@@ -1,9 +1,82 @@
 {
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
-			"path": "pages/index/index",
+			"path": "pages/login/login",
 			"style": {
-				"navigationBarTitleText": "uni-app"
+				"navigationBarTitleText": "",
+				"navigationStyle": "custom" ,//自定义导航栏
+				"app-plus": {
+					"titleNView": {
+						"autoBackButton": false
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/home/home",
+			"style": {
+				"navigationBarTitleText": "陕西交控定期检查",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {
+						"autoBackButton": false,
+						"buttons": [{
+							"text": "\ue627",
+							"fontSize": "30px",
+							"color": "#ffffff",
+							"fontSrc": "/static/fonts/uniicons.ttf",
+							"float": "left"
+						}, {
+							// "type": "menu",
+							"text": "\ue68d",
+							"fontSize": "30px",
+							"color": "#ffffff",
+							"fontSrc": "/static/fonts/uniicons.ttf",
+							"float": "right"
+						}]
+					}
+				}
+			}
+		},
+		{
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "消息管理",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path": "pages/userinfo/userinfo",
+			"style": {
+				"navigationBarTitleText": "个人信息",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path": "pages/setting/setting",
+			"style": {
+				"navigationBarTitleText": "设置",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path": "pages/versionInfo/versionInfo",
+			"style": {
+				"navigationBarTitleText": "陕西交控定期检查",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {}
+				}
+
 			}
 		}
 	],
@@ -11,7 +84,12 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#F8F8F8",
-		"backgroundColor": "#F8F8F8"
+		"backgroundColor": "#F8F8F8",
+		"app-plus": {
+			"titleNView": {
+				"titleColor": "#ffffff"
+			}
+		}
 	},
 	"uniIdRouter": {}
 }
