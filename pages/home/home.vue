@@ -99,7 +99,10 @@
 			})
 		} else if (name === "隧道病害采集") {
 			// 隧道页面路由可以在后续添加
-			console.log("隧道病害采集功能待开发")
+			console.log("隧道病害采集功能待开发");
+			uni.navigateTo({
+				url: '/pages/detail/detail'
+			})
 		}
 	}
 </script>

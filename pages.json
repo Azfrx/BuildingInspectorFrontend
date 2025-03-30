@@ -4,7 +4,7 @@
 			"path": "pages/login/login",
 			"style": {
 				"navigationBarTitleText": "",
-				"navigationStyle": "custom" ,//自定义导航栏
+				"navigationStyle": "custom", //自定义导航栏
 				"app-plus": {
 					"titleNView": {
 						"autoBackButton": false
@@ -80,17 +80,23 @@
 			}
 		},
 		{
-			"path" : "pages/bridge-diseases/bridge-diseases",
-			"style" : 
-			{
-				"navigationBarTitleText" : "桥梁病害列表",
+			"path": "pages/bridge-diseases/bridge-diseases",
+			"style": {
+				"navigationBarTitleText": "桥梁病害列表",
 				"navigationBarBackgroundColor": "#3d655f",
 				"app-plus": {
 					"titleNView": {}
 				}
 			}
+		},
+		{
+			"path": "pages/detail/detail",
+			"style": {
+				"navigationBarTitleText": "桥梁检测项目",
+				"navigationBarBackgroundColor": "#3cb371"
+			}
 		}
-	
+
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
