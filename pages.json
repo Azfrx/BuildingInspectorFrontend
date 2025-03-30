@@ -78,7 +78,19 @@
 				}
 
 			}
+		},
+		{
+			"path" : "pages/bridge-diseases/bridge-diseases",
+			"style" : 
+			{
+				"navigationBarTitleText" : "桥梁病害列表",
+				"navigationBarBackgroundColor": "#3d655f",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
 		}
+	
 	],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",

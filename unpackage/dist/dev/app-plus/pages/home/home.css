@@ -1,0 +1,227 @@
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+.uni-popup[data-v-4dd3c44b] {
+  position: fixed;
+  z-index: 99;
+}
+.uni-popup.top[data-v-4dd3c44b], .uni-popup.left[data-v-4dd3c44b], .uni-popup.right[data-v-4dd3c44b] {
+  top: 0;
+}
+.uni-popup .uni-popup__wrapper[data-v-4dd3c44b] {
+  display: block;
+  position: relative;
+  /* iphonex 等安全区设置，底部安全区适配 */
+}
+.uni-popup .uni-popup__wrapper.left[data-v-4dd3c44b], .uni-popup .uni-popup__wrapper.right[data-v-4dd3c44b] {
+  padding-top: 0;
+  flex: 1;
+}
+.fixforpc-z-index[data-v-4dd3c44b] {
+  z-index: 999;
+}
+.fixforpc-top[data-v-4dd3c44b] {
+  top: 0;
+}
+
+.home {
+		width: 100%;
+		height: calc(100vh - var(--window-top));
+		/* 剩余可用高度 */
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-content: flex-start;
+		gap: 5vw;
+		/* padding-top: 20rpx; */
+		/* padding-bottom: 20rpx; */
+}
+.home-box {
+		width: 40vw;
+		height: 40vw;
+		border-radius: 0.3125rem;
+		border: 0.04688rem solid #3d655f;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		margin-top: 0.625rem;
+		margin-bottom: -0.625rem;
+}
+::-webkit-scrollbar {
+		/* 隐藏滚动条 */
+		display: none;
+}
+.home-box-image {
+		width: 20%;
+		height: 20%;
+		margin-top: 30%;
+}
+.home-box-text {
+		font-size: 0.5625rem;
+		font-weight: 600;
+		margin-top: 30%;
+		color: #3d655f;
+}
+
+	/* 侧边栏样式 */
+.sidebar {
+		width: 40vw;
+		height: 100%;
+		background-color: #fff;
+		padding: 20px;
+		box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+}
+.sidebar-userinfo {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+		width: 100%;
+		height: 10%;
+}
+.sidebar-userinfo-photo {
+		width: 2.1875rem;
+		height: 2.1875rem;
+		border-radius: 50%;
+		background-color: #3d655f;
+}
+.sidebar-userinfo-info {
+		display: flex;
+		flex-direction: column;
+		justify-content: space-around;
+		height: 80%;
+		width: 60%;
+		padding-left: 5%;
+}
+.sidebar-userinfo-info-nameAndStatus {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+		width: 100%;
+}
+.sidebar-userinfo-info-nameAndStatus-name {
+		font-size: 0.5rem;
+		font-weight: bold;
+}
+.sidebar-userinfo-info-nameAndStatus-status {
+		font-size: 0.375rem;
+		width: 20%;
+		border: 1px solid #526b66;
+		color: #526b66;
+		border-radius: 0.9375rem;
+		margin-left: 0.3125rem;
+		text-align: center;
+}
+.sidebar-userinfo-info-number {
+		font-size: 0.5rem;
+		color: #a0a0a0;
+}
+.sidebar-message {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+		width: 100%;
+		height: 7%;
+		margin-top: 10%;
+}
+.sidebar-message-icon {
+		width: 0.9375rem;
+		height: 0.9375rem;
+		margin-left: 5%;
+}
+.sidebar-message-text {
+		font-size: 0.5rem;
+		color: #787878;
+		margin-left: 5%;
+}
+.sidebar-setting {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		align-items: center;
+		width: 100%;
+		height: 7%;
+}
+.sidebar-setting-icon {
+		width: 0.9375rem;
+		height: 0.9375rem;
+		margin-left: 5%;
+}
+.sidebar-setting-text {
+		font-size: 0.5rem;
+		color: #787878;
+		margin-left: 5%;
+}
+
+	/* 适配 iPad（768px 以上） */
+@media screen and (min-width: 768px) {}
+
+	/* 适配 iPad Pro（1024px 以上） */
+@media screen and (min-width: 1024px) {
+.home-box {
+			margin-top: 1.5625rem;
+			margin-bottom: -1.5625rem;
+}
+.home-box-image {
+			width: 30%;
+			height: 30%;
+			margin-top: 20%;
+}
+.home-box-text {
+			font-size: 1.125rem;
+			margin-top: 20%;
+}
+.sidebar-userinfo-photo {
+			width: 5.625rem;
+			height: 5.625rem;
+}
+.sidebar-userinfo-info-nameAndStatus-name {
+			font-size: 1.03125rem;
+}
+.sidebar-userinfo-info-nameAndStatus-status {
+			font-size: 0.75rem;
+			margin-left: 0.625rem;
+}
+.sidebar-userinfo-info-number {
+			font-size: 1.03125rem;
+}
+.sidebar-message,
+		.sidebar-setting {
+			margin-top: 0;
+			height: 5%;
+}
+.sidebar-message-icon,
+		.sidebar-setting-icon {
+			width: 1.875rem;
+			height: 1.875rem;
+}
+.sidebar-message-text,
+		.sidebar-setting-text {
+			font-size: 1rem;
+}
+}
