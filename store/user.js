@@ -7,7 +7,8 @@ export const useUserStore = defineStore('user', {
 	state: () => ({
 		name: '张三',
 		age: 25,
-		isLoggedIn: false
+		isLoggedIn: false,
+		data: {},
 	}),
 	//修改全局数据的方法
 	actions: {
@@ -18,6 +19,9 @@ export const useUserStore = defineStore('user', {
 		logout() {
 			this.name = ''
 			this.isLoggedIn = false
+		},
+		setData(data) {
+			this.data = data
 		}
 	}
 })

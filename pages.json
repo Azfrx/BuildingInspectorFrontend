@@ -95,6 +95,21 @@
 				"navigationBarTitleText": "桥梁检测项目",
 				"navigationBarBackgroundColor": "#3cb371"
 			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "桥梁检测项目",
+				"navigationBarBackgroundColor": "#3cb371"
+			}
+		},
+		{
+			"path" : "pages/canvas/canvas",
+			"style" : 
+			{
+				"navigationBarTitleText" : "绘制",
+				"navigationBarBackgroundColor": "#3d655f"
+			}
 		}
 
 	],

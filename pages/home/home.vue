@@ -5,7 +5,7 @@
 			<view class="home-box-text">{{ item.name }}</view>
 		</view>
 	</view>
-	
+
 	<!-- 侧边栏 -->
 	<uni-popup ref="popup" type="left" @maskClick="hideSidebar">
 		<view class="sidebar">
@@ -30,13 +30,13 @@
 		</view>
 	</uni-popup>
 
-	
+
 </template>
 
 <script setup>
 	import {
 		onMounted,
-		ref
+		ref,
 	} from 'vue';
 	import {
 		onLoad
@@ -45,7 +45,10 @@
 	import setting from '@/static/image/setting.svg';
 	import {
 		onNavigationBarButtonTap
-	} from '@dcloudio/uni-app'
+	} from '@dcloudio/uni-app';
+	import {
+		useUserStore
+	} from '@/store/user' // 根据实际路径导入 store
 	const popup = ref(null);
 	const isOnline = ref(false);
 	const buildingInspector = ref([{
@@ -71,6 +74,25 @@
 			url: '/pages/setting/setting'
 		})
 	}
+
+	// 获取 Pinia store 实例
+	const userStore = useUserStore();
+
+	onMounted(() => {
+		uni.request({
+			url: '/static/test.json',
+			header: {
+				'Content-Type': 'application/json; charset=utf-8'
+			},
+			success: function(res) {
+				var data = res.data;
+				// 调用其他方法进行数据操作
+				console.log(data);
+				userStore.setData(data); // 设置 data
+			}
+		});
+	});
+
 	onLoad(() => {
 		// 页面加载完成后的操作
 		// document.querySelector('.uni-page-head-hd').style.display = 'none';
@@ -95,13 +117,14 @@
 		console.log("点击的卡片的名称为:" + name);
 		if (name === "桥梁病害采集") {
 			uni.navigateTo({
-				url: '/pages/bridge-diseases/bridge-diseases'
+				// url: '/pages/bridge-diseases/bridge-diseases'
+				url: '/pages/index/index'
 			})
 		} else if (name === "隧道病害采集") {
 			// 隧道页面路由可以在后续添加
-			console.log("隧道病害采集功能待开发");
+			// console.log("隧道病害采集功能待开发");
 			uni.navigateTo({
-				url: '/pages/detail/detail'
+				url: '/pages/canvas/canvas'
 			})
 		}
 	}

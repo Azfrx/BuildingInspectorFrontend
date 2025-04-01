@@ -669,7 +669,9 @@
 
 	.header-right {
 		display: flex;
+		width: 150rpx;
 		gap: 20rpx;
+		/* margin-right: 10rpx; */
 		align-items: center;
 	}
 
@@ -688,7 +690,9 @@
 	.section-title {
 		font-size: 28rpx;
 		color: #333;
-		margin-bottom: 16rpx;
+		/* margin-bottom: 16rpx; */
+		display: flex;
+		align-items: center;
 	}
 
 	.image-grid {
@@ -813,18 +817,24 @@
 	}
 
 	.add-btn {
-		font-size: 26rpx;
-		color: #2e8b57;
-		padding: 8rpx 16rpx;
+		/* font-size: 26rpx; */
+		width: 100%;
+		color: #fff;
+		background-color: #2e8b57;
+		padding: 4rpx 8rpx;
 		border: 1px solid #2e8b57;
 		border-radius: 4rpx;
 		transition: all 0.2s;
+		font-size: 28rpx;
+		text-align: center;
 	}
 
 	.add-btn:active {
 		background-color: #2e8b57;
 		color: white;
 		opacity: 0.8;
+		font-size: 28rpx;
+		color: #333;
 	}
 
 	.disease-content {
