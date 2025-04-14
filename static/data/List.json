@@ -1,0 +1,254 @@
+{
+    "projects": [
+        {
+            "id": "BG-2024004-MQI-02",
+            "code": "BG(YH)-2024004-MQI-02/53",
+            "name": "2024年建恩高速松恩段桥隧构造物定期检查",
+            "status": "未完成",
+            "company": "湖北交投鄂西高速公路运营管理有限公司",
+            "progress": "26/26",
+            "year": "2024年度",
+            "timeRange": "0000-00-00 至 0000-00-00",
+            "detectionUnit": "湖北交投智能检测股份有限公司",
+            "inspector": "张三三/李四四/王五五/赵六六",
+            "bridges": [
+                {
+                    "id": "G691142822L1160",
+                    "code": "G691142822L1160",
+                    "name": "69+580小桥(K251+665)-左线",
+                    "location": "G6911/建恩高速/K251+665",
+                    "length": "264m",
+                    "class": "2",
+                    "type": "small"
+                },
+                {
+                    "id": "G691142822R1620",
+                    "code": "G691142822R1620",
+                    "name": "文家郎分离式立体交叉桥-上行(K247+041)-右线",
+                    "location": "G6911/建恩高速/K247+041",
+                    "length": "264m",
+                    "class": "2",
+                    "type": "cross"
+                },
+                {
+                    "id": "G6911422801R1480",
+                    "code": "G6911422801R1480",
+                    "name": "龙凤坝互通主线桥-上行(K281+140)-右线",
+                    "location": "G6911/建恩高速/K281+140",
+                    "length": "264m",
+                    "class": "1",
+                    "type": "main"
+                },
+                {
+                    "id": "G6911422801Z0460",
+                    "code": "G6911422801Z0460",
+                    "name": "白杨坪枢纽互通B匝2号桥(K257+350)-匝道",
+                    "location": "G6911/建恩高速/K257+350",
+                    "length": "1777m",
+                    "class": "2",
+                    "type": "ramp"
+                },
+                {
+                    "id": "G6911422801L1320",
+                    "code": "G6911422801L1320",
+                    "name": "盐水溪大桥-下行(K292+109)-左线",
+                    "location": "G6911/建恩高速/K292+109",
+                    "length": "1777m",
+                    "class": "2",
+                    "type": "main"
+                },
+                {
+                    "id": "G6911422801Z0370",
+                    "code": "G6911422801Z0370",
+                    "name": "虎岔口互通C匝道桥(K287+570)-匝道",
+                    "location": "G6911/建恩高速/K287+570",
+                    "length": "698m",
+                    "class": "1",
+                    "type": "ramp"
+                },
+                {
+                    "id": "G6911422801R0890",
+                    "code": "G6911422801R0890",
+                    "name": "荆竹园大桥-上行(K300+567)-右线",
+                    "location": "G6911/建恩高速/K300+567",
+                    "length": "698m",
+                    "class": "1",
+                    "type": "main"
+                }
+            ]
+        },
+        {
+            "id": "HBSJ-202406GL-043001001",
+            "code": "HBSJ-202406GL-043001001",
+            "name": "武汉至深圳高速公路武汉段公路技术状况检测及评定",
+            "status": "未完成",
+            "company": "武汉交投高速公路运营管理有限公司",
+            "progress": "55/55",
+            "year": "2024年度",
+            "timeRange": "0000-00-00 至 0000-00-00",
+            "detectionUnit": "湖北交投智能检测股份有限公司",
+            "inspector": "张三三/李四四/王五五/赵六六",
+            "bridges": [
+                {
+                    "id": "WSG001",
+                    "code": "WSG001",
+                    "name": "武深高速跨江大桥",
+                    "location": "武深高速/K10+500",
+                    "length": "1280m",
+                    "class": "1",
+                    "type": "suspension"
+                },
+                {
+                    "id": "WSG002",
+                    "code": "WSG002",
+                    "name": "武深高速互通立交桥",
+                    "location": "武深高速/K15+200",
+                    "length": "860m",
+                    "class": "1",
+                    "type": "cross"
+                },
+                {
+                    "id": "WSG003",
+                    "code": "WSG003",
+                    "name": "武深高速跨铁路大桥",
+                    "location": "武深高速/K20+300",
+                    "length": "520m",
+                    "class": "1",
+                    "type": "arch"
+                }
+            ]
+        },
+        {
+            "id": "DGBGS-2024-0320-015",
+            "code": "DGBGS-2024-0320-015",
+            "name": "大广高速湖北省麻城至浠水段2024年养护工程公路技术状况检测与评定项目",
+            "status": "未完成",
+            "company": "湖北楚天智能交通股份有限公司",
+            "progress": "340/340",
+            "year": "2024年度",
+            "timeRange": "0000-00-00 至 0000-00-00",
+            "detectionUnit": "湖北交投智能检测股份有限公司",
+            "inspector": "张三三/李四四/王五五/赵六六",
+            "bridges": [
+                {
+                    "id": "DG001",
+                    "code": "DG001",
+                    "name": "麻城特大桥",
+                    "location": "大广高速/K100+200",
+                    "length": "1560m",
+                    "class": "1",
+                    "type": "main"
+                },
+                {
+                    "id": "DG002",
+                    "code": "DG002",
+                    "name": "浠水互通匝道桥",
+                    "location": "大广高速/K120+500",
+                    "length": "420m",
+                    "class": "2",
+                    "type": "ramp"
+                },
+                {
+                    "id": "DG003",
+                    "code": "DG003",
+                    "name": "浠水服务区天桥",
+                    "location": "大广高速/K125+800",
+                    "length": "68m",
+                    "class": "3",
+                    "type": "small"
+                }
+            ]
+        },
+        {
+            "id": "D2024",
+            "code": "D2024",
+            "name": "2024年全省国省道定期检查（第6包）",
+            "status": "未完成",
+            "company": "湖北系统中心",
+            "progress": "26/26",
+            "year": "2024年度",
+            "timeRange": "0000-00-00 至 0000-00-00",
+            "detectionUnit": "湖北交投智能检测股份有限公司",
+            "inspector": "张三三/李四四/王五五/赵六六",
+            "bridges": [
+                {
+                    "id": "GS001",
+                    "code": "GS001",
+                    "name": "316国道跨河大桥",
+                    "location": "316国道/K50+200",
+                    "length": "320m",
+                    "class": "2",
+                    "type": "arch"
+                },
+                {
+                    "id": "GS002",
+                    "code": "GS002",
+                    "name": "S238省道跨铁路桥",
+                    "location": "S238省道/K15+600",
+                    "length": "180m",
+                    "class": "2",
+                    "type": "small"
+                },
+                {
+                    "id": "GS003",
+                    "code": "GS003",
+                    "name": "G351国道特大桥",
+                    "location": "G351国道/K80+900",
+                    "length": "850m",
+                    "class": "1",
+                    "type": "main"
+                }
+            ]
+        },
+        {
+            "id": "YHJC-2024-001",
+            "code": "YHJC-2024-001",
+            "name": "湖北交投高速公路检测评定YHJC-1标段2024年度养护检测项目鄂西北片区",
+            "status": "未完成",
+            "company": "湖北交投鄂西北高速公路运营管理有限公司",
+            "progress": "0/0",
+            "year": "2024年度",
+            "timeRange": "0000-00-00 至 0000-00-00",
+            "detectionUnit": "湖北交投智能检测股份有限公司",
+            "inspector": "张三三/李四四/王五五/赵六六",
+            "bridges": [
+                {
+                    "id": "XB001",
+                    "code": "XB001",
+                    "name": "十漫高速跨江大桥",
+                    "location": "十漫高速/K30+500",
+                    "length": "1200m",
+                    "class": "1",
+                    "type": "suspension"
+                },
+                {
+                    "id": "XB002",
+                    "code": "XB002",
+                    "name": "十白高速互通立交",
+                    "location": "十白高速/K45+800",
+                    "length": "560m",
+                    "class": "1",
+                    "type": "cross"
+                },
+                {
+                    "id": "XB003",
+                    "code": "XB003",
+                    "name": "土十高速特大桥",
+                    "location": "土十高速/K60+200",
+                    "length": "980m",
+                    "class": "1",
+                    "type": "main"
+                },
+                {
+                    "id": "XB004",
+                    "code": "XB004",
+                    "name": "十漫高速匝道桥",
+                    "location": "十漫高速/K35+600",
+                    "length": "320m",
+                    "class": "2",
+                    "type": "ramp"
+                }
+            ]
+        }
+    ]
+}
