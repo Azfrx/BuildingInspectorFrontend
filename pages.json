@@ -110,6 +110,13 @@
 				"navigationBarTitleText" : "新增病害",
 				"navigationBarBackgroundColor" : "#0F4687"
 			}
+		},
+		{
+			"path" : "pages/canvas/canvas",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
 		}
 	],
 	"globalStyle": {
