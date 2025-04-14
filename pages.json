@@ -1,4 +1,12 @@
 {
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			// uni-ui 规则如下配置
+			"^uni-(.*)": "@dcloudio/uni-ui/lib/uni-$1/uni-$1.vue"
+		}
+	},
+
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 		{
 			"path": "pages/login/login",
@@ -77,6 +85,24 @@
 					"titleNView": {}
 				}
 
+			}
+		},
+		{
+			"path": "pages/bridge-disease/bridge-disease",
+			"style": {
+				"navigationBarTitleText": "桥梁与病害信息",
+				"navigationBarBackgroundColor": "#0F4687",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path" : "pages/add-disease/add-disease",
+			"style" : 
+			{
+				"navigationBarTitleText" : "新增病害",
+				"navigationBarBackgroundColor" : "#0F4687"
 			}
 		}
 	],
