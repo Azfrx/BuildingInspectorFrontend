@@ -1,19 +1,37 @@
 <template>
 	<view class="container">
 		<view class="toolbar">
-			<button @click="chooseTemplate">选择模板</button>
-			<button @click="setMode('select')" :class="{ active: mode === 'select' }">选中</button>
-			<button @click="setMode('line')" :class="{ active: mode === 'line' }">直线</button>
-			<button @click="setMode('curve')" :class="{ active: mode === 'curve' }">曲线</button>
-			<button @click="setMode('rect')" :class="{ active: mode === 'rect' }">矩形</button>
-			<button @click="setMode('circle')" :class="{ active: mode === 'circle' }">圆形</button>
-			<button @click="setMode('text')" :class="{ active: mode === 'text' }">文字</button>
-			<button @click="deleteSelected">删除</button>
-			<button @click="undo">撤销</button>
-			<button @click="clearCanvas">清空画布</button>
-			<button @click="saveCanvasToImage">保存图片</button>
+			<button @click="setMode('select')" :class="['iconButton', { active: mode === 'select' }]">
+				<image src='/static/image/hand.svg' class="icon"></image>
+			</button>
+			<button @click="setMode('line')" :class="['iconButton', { active: mode === 'line' }]">
+				<image src='/static/image/line.svg' class="icon"></image>
+			</button>
+			<button @click="setMode('curve')" :class="['iconButton', { active: mode === 'curve' }]">
+				<image src='/static/image/curve.svg' class="icon"></image>
+			</button>
+			<button @click="setMode('rect')" :class="['iconButton', { active: mode === 'rect' }]">
+				<image src='/static/image/rect.svg' class="icon"></image>
+			</button>
+			<button @click="setMode('circle')" :class="['iconButton', { active: mode === 'circle' }]">
+				<image src='/static/image/circle.svg' class="icon"></image>
+			</button>
+			<button @click="setMode('text')" :class="['iconButton', { active: mode === 'text' }]">
+				<image src='/static/image/text.svg' class="icon"></image>
+			</button>
+			<button @click="undo" class="iconButton">
+				<image src='/static/image/back.svg' class="icon"></image>
+			</button>
+			<button @click="saveCanvasToImage" class="iconButton">
+				<image src='/static/image/save.svg' class="icon"></image>
+			</button>
 		</view>
 
+		<view class="functionBar">
+			<button @click="deleteSelected" class="functionButton">删除</button>
+			<button @click="chooseTemplate" class="functionButton">模板</button>
+			<button @click="clearCanvas" class="functionButton">清空</button>
+		</view>
 		<view v-if="showTextInput" class="text-input" :style="{ top: textInputY + 'px', left: textInputX + 'px' }">
 			<input v-model="textValue" placeholder="输入文字..." class="input" @input="inputting" />
 			<view class="textButtons">
@@ -26,16 +44,16 @@
 			@confirm="confirmText" class="text-input" focus /> -->
 
 		<view class="toolbar">
-			<button @click="changeColor('#ff0000')"
-				style="background-color: #ff0000; width: 40rpx; height: 30rpx;">{{drawColor=="#ff0000"? '√':''}}</button>
-			<button @click="changeColor('#00ff00')"
-				style="background-color: #00ff00; width: 40rpx; height: 30rpx;">{{drawColor=="#00ff00"? '√':''}}</button>
-			<button @click="changeColor('#0055ff')"
-				style="background-color: #0055ff; width: 40rpx; height: 30rpx;">{{drawColor=="#0055ff"? '√':''}}</button>
-			<button @click="changeColor('#ffff00')"
-				style="background-color: #ffff00; width: 40rpx; height: 30rpx;">{{drawColor=="#ffff00"? '√':''}}</button>
-			<button @click="changeColor('#000000')"
-				style="background-color: #000000; width: 40rpx; height: 30rpx;">{{drawColor=="#000000"? '√':''}}</button>
+			<button @click="changeColor('#ff0000')" class="colorButton"
+				style="background-color: #ff0000">{{drawColor=="#ff0000"? '√':''}}</button>
+			<button @click="changeColor('#00ff00')" class="colorButton"
+				style="background-color: #00ff00">{{drawColor=="#00ff00"? '√':''}}</button>
+			<button @click="changeColor('#0055ff')" class="colorButton"
+				style="background-color: #0055ff">{{drawColor=="#0055ff"? '√':''}}</button>
+			<button @click="changeColor('#ffff00')" class="colorButton"
+				style="background-color: #ffff00">{{drawColor=="#ffff00"? '√':''}}</button>
+			<button @click="changeColor('#000000')" class="colorButton"
+				style="background-color: #000000">{{drawColor=="#000000"? '√':''}}</button>
 		</view>
 
 		<canvas :style="canvasStyle" canvas-id="myCanvas" id="myCanvas" class="canvas" disable-scroll="true" />
@@ -81,7 +99,7 @@
 	const offsetCurrentX = ref(0);
 	const offsetCurrentY = ref(0);
 	const drawing = ref(false);
-	const savedImage = ref('');
+	const templateImage = ref('');
 	const history = ref([]);
 	const curvePoints = ref([]);
 	//记录状态 为了在只有点击没有滑动的情况下，让startX和currentX都不为0
@@ -100,7 +118,16 @@
 	const textBox = ref(null)
 
 	const selectedObject = ref(null);
+	const selectedObjectOriginColor = ref(null);
 	const touchMoveMode = ref('canvas');
+	// 用于存储发生的事件 给撤销功能使用
+	const events = ref([]);
+	const markSavedEvent = ref(false)
+	// 文字修改了
+	const inputAndChanged = ref(false)
+
+	const clickCandidates = ref([]); // 当前点击位置命中的对象数组
+	const clickCycleIndex = ref(0); // 当前循环到哪个
 
 	// 记录上一次点击的像素位置和选中图形的索引
 	const lastClick = ref({
@@ -132,7 +159,14 @@
 		uni.chooseImage({
 			count: 1,
 			success: (res) => {
-				savedImage.value = res.tempFilePaths[0];
+				events.value.push({
+					type: 'template',
+					object: {
+						oldTemplateImage: templateImage.value,
+						newTemplateImage: res.tempFilePaths[0]
+					}
+				})
+				templateImage.value = res.tempFilePaths[0];
 				redrawCanvas();
 			}
 		});
@@ -144,6 +178,7 @@
 		if (changingTextIndex.value !== null) {
 			//修改时
 			history.value[changingTextIndex.value].textValue = textValue.value;
+			inputAndChanged.value = true;
 			//获取文字长度
 			// textBox.value.width = ctx.value.measureText(history.value[changingTextIndex.value].textValue).width
 		} else {
@@ -159,9 +194,11 @@
 		if (changingTextIndex.value !== null) {
 			//如果刚刚是修改 取消应该是取消修改 改回原来的值
 			history.value[changingTextIndex.value].textValue = beforeChangeText.value;
+			inputAndChanged.value = false
 		} else {
 			//新增的取消则是删除对象
 			history.value.pop();
+			events.value.pop();
 		}
 		resetState();
 	};
@@ -170,6 +207,18 @@
 		if (textValue.value === '') {
 			//如果没有输入文字 那么就删除这个空的text对象
 			history.value.pop();
+		}
+		if (inputAndChanged.value == true && beforeChangeText.value != textValue.value) {
+			//真正修改了 并且 修改后的值有变化
+			events.value.push({
+				type: 'textValueChange',
+				object: {
+					oldTextValue: beforeChangeText.value,
+					newTextValue: textValue.value
+				},
+				id: history.value[changingTextIndex.value].id
+			})
+			inputAndChanged.value = false
 		}
 		resetState();
 	};
@@ -191,24 +240,101 @@
 	};
 	//清空画布
 	const clearCanvas = () => {
+		events.value.push({
+			type: 'clear',
+			object: {
+				history: history.value,
+				template: templateImage.value
+			}
+		})
 		history.value = [];
+		templateImage.value = '';
 		resetState();
 		redrawCanvas();
 	};
 	//撤销
 	const undo = () => {
-		if (history.value.length > 0) {
-			history.value.pop();
-			redrawCanvas();
+		//可能发生的事件
+		//history.value添加了一个对象 -> events记录'add'以及对象的id -> 撤销中删除此对象即可
+		//history.value删除了一个对象 -> events记录'delete'以及对象的信息 -> 撤销中执行push即可
+		//history.value移动了一个对象 -> events记录'move'以及对象的信息 -> 撤销中改回原位置即可
+		//选择了模板                  -> events记录'template'以及旧模板（可能是空） -> 撤销中改回旧模板或空
+		//清空了画布                  -> events记录'clear'以及旧history（可能是空） -> 撤销中改回旧history
+		let len = events.value.length;
+		if (len > 0) {
+			let type = events.value[len - 1].type;
+			let obj = events.value[len - 1].object;
+			let id = events.value[len - 1].id;
+			let index = -1;
+			if (id !== null) {
+				index = history.value.findIndex(item => item.id === id);
+			}
+			if (type == 'add') {
+				//根据id删除数组中的元素
+				if (index !== -1) {
+					history.value.splice(index, 1);
+				}
+			} else if (type == 'delete') {
+				history.value.push(obj)
+			} else if (type == 'move') {
+				//根据id找到对象
+				if (index !== -1) {
+					//将对象的坐标改回原来的坐标
+					//不同的对象存储的位置属性是不同的 如textInputX和x
+					backToOldPosition(index, obj)
+					// history.value[index].x = obj.x;
+					// history.value[index].y = obj.y;
+				}
+			} else if (type == 'template') {
+				templateImage.value = obj.oldTemplateImage;
+			} else if (type == 'clear') {
+				//清空画布时 记录的是history的快照和模板
+				history.value = obj.history;
+				templateImage.value = obj.template;
+			} else if (type == 'textValueChange') {
+				history.value[index].textValue = obj.oldTextValue;
+			}
 		}
+		events.value.pop();
 		resetState();
+		// redrawCanvas();
 	};
+
+	const backToOldPosition = (index, obj) => {
+		if (history.value[index].mode === 'line') {
+			history.value[index].startX = obj.startX;
+			history.value[index].startY = obj.startY;
+			history.value[index].endX = obj.endX;
+			history.value[index].endY = obj.endY;
+		} else if (history.value[index].mode === 'rect') {
+			history.value[index].x = obj.x;
+			history.value[index].y = obj.y;
+			history.value[index].width = obj.width;
+			history.value[index].height = obj.height;
+		} else if (history.value[index].mode === 'circle') {
+			history.value[index].startX = obj.startX;
+			history.value[index].startY = obj.startY;
+			history.value[index].currentX = obj.currentX;
+			history.value[index].currentY = obj.currentY;
+		} else if (history.value[index].mode === 'curve') {
+			history.value[index].curvePoints = obj.curvePoints;
+		} else if (history.value[index].mode === 'text') {
+			history.value[index].textInputX = obj.textInputX;
+			history.value[index].textInputY = obj.textInputY;
+		}
+	}
+
 	//删除当前
 	const deleteSelected = () => {
 		if (!selectedObject.value) return;
 
 		const index = history.value.findIndex(item => item.id === selectedObject.value.id);
 		if (index !== -1) {
+			//删除前记录对象
+			events.value.push({
+				type: 'delete',
+				object: history.value[index]
+			});
 			history.value.splice(index, 1); // 从 history 中删除
 			selectedObject.value = null; // 清除选中状态
 		}
@@ -248,11 +374,15 @@
 		}
 		status.value = "start";
 
+		//因为移动是按帧触发 所以需要设置一个标记 从而只记录移动前的初始位置
+		markSavedEvent.value = false;
+
 		//当处于选中状态 并且已经选中了某个对象 检测当前点击处是否就在这个对象上 
 		//如果是 则接下来的拖动并不是修改画布的坐标，而是修改这个对象的坐标
 		if (mode.value === 'select' && selectedObject.value !== null &&
 			isPointInShape(selectedObject.value, -1, offsetStartX.value, offsetStartY.value)) {
 			touchMoveMode.value = 'object';
+
 		} else {
 			touchMoveMode.value = 'canvas';
 		}
@@ -315,6 +445,16 @@
 					//物体移动
 					const index = history.value.findIndex(item => item.id === selectedObject.value.id);
 					if (index !== -1) {
+						//记录移动前的位置信息
+						if (markSavedEvent.value == false) {
+							const objJSON = JSON.parse(JSON.stringify(history.value[index]));
+							events.value.push({
+								type: 'move',
+								object: objJSON,
+								id: objJSON.id
+							});
+							markSavedEvent.value = true;
+						}
 						changeObjectPosition(history.value[index], dx, dy);
 					}
 				}
@@ -393,7 +533,7 @@
 			currentX.value = startX.value;
 			currentY.value = startY.value;
 
-			selectedObject.value = null;
+			// selectedObject.value = null;
 			// 检查是否有图案与单击位置重叠
 			if (!showTextInput.value) {
 				clickOnObject(offsetStartX.value, offsetStartY.value)
@@ -424,10 +564,12 @@
 			//正在修改中
 			//将修改中的撤回
 			history.value[changingTextIndex.value].textValue = beforeChangeText.value;
+			inputAndChanged.value = false
 		} else {
 			//正在新加文字中 
 			//取消新加的 
 			history.value.pop();
+			events.value.pop();
 		}
 		resetState();
 	}
@@ -498,68 +640,182 @@
 	};
 
 	const clickOnObject = (x, y) => {
-		const tolerance = 3; // 容差像素
-		let updatedHistory = history.value.map(action => ({
-			...action
-		})); // 深拷贝，避免直接改原数据
+		const tolerance = 3;
 
-		// 是否点击位置与上次接近
+		// 判断点击位置是否与上次相近
 		const isSamePos =
 			lastClick.value.x !== null &&
 			Math.abs(lastClick.value.x - x) <= tolerance &&
 			Math.abs(lastClick.value.y - y) <= tolerance;
 
-		let found = false;
-		let foundIndex = -1;
-
-		// 从后往前查找选中的图形
+		// 收集当前位置命中的图形（从后往前优先显示上层图形）
+		const candidates = [];
 		for (let i = history.value.length - 1; i >= 0; i--) {
 			const action = history.value[i];
 
-			// 跳过不匹配的模式
 			if (mode.value === 'text' && action.mode !== 'text') continue;
 
-			// 如果当前点击位置与上次接近，就跳过上次选中的图形索引，选下一个
-			if (isSamePos && i === lastClick.value.index) continue;
-
 			if (isPointInShape(action, i, x, y)) {
-				updatedHistory[i].color = '#ff0000'; // 选中图形变红
-				selectedObject.value = action;
-				found = true;
-				foundIndex = i;
-				if (action.mode === 'text') {
-					changingTextIndex.value = foundIndex;
-				}
-				break;
+				candidates.push({
+					action,
+					index: i
+				});
 			}
 		}
 
-		// 恢复其他图形颜色
-		updatedHistory = updatedHistory.map((action, i) => {
-			if (i !== foundIndex) {
-				action.color = drawColor.value;
+		if (candidates.length === 0) {
+			// 没有选中任何图形
+			changingTextIndex.value = -1;
+			// history.value = updatedHistory.map(action => ({
+			// 	...action,
+			// 	color: drawColor.value
+			// }));
+			if (selectedObject.value !== null) {
+				// 还原颜色
+				const index = history.value.findIndex(item => item.id == selectedObject.value.id);
+				if (index !== -1) {
+					history.value[index].color = selectedObjectOriginColor.value;
+				}
 			}
-			return action;
-		});
-
-		history.value = updatedHistory;
-
-		// 更新点击记录
-		if (found) {
-			lastClick.value = {
-				x,
-				y,
-				index: foundIndex
-			};
-		} else {
-			// 没选中图形就重置
+			selectedObject.value = null;
 			lastClick.value = {
 				x: null,
 				y: null,
 				index: -1
 			};
+			clickCandidates.value = [];
+			clickCycleIndex.value = 0;
+			return;
 		}
-	}
+
+		let updatedHistory = history.value.map(action => ({
+			...action
+		}));
+
+		let chosen;
+		if (
+			isSamePos &&
+			clickCandidates.value.length > 0 &&
+			JSON.stringify(clickCandidates.value.map(c => c.index)) === JSON.stringify(candidates.map(c => c.index))
+		) {
+			// 连续点击同一位置，并且候选对象一样 -> 退让循环
+			clickCycleIndex.value = (clickCycleIndex.value + 1) % candidates.length;
+			chosen = candidates[clickCycleIndex.value];
+		} else {
+			// 第一次点击该区域 或 候选对象发生变化 -> 从头开始
+			clickCandidates.value = candidates;
+			clickCycleIndex.value = 0;
+			chosen = candidates[0];
+		}
+
+		if (chosen.action.mode !== 'text') {
+			// 更新颜色状态
+			if (selectedObject.value === null && candidates.length !== 0) {
+				//第一次选中 没有上次选中的历史记录
+				selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
+				updatedHistory[chosen.index].color = '#ff93c4';
+				selectedObject.value = updatedHistory[chosen.index];
+			} else if (selectedObject.value !== null && selectedObject.value.id === chosen.action.id) {
+				//如果上次选中的对象和当前选中的对象是同一个对象 什么都不用做
+			} else if (selectedObject.value !== null && selectedObject.value.id !== chosen.action.id) {
+				//如果上次选中的对象和当前选中的对象不是同一个对象
+				//将上次选中的对象颜色改回原来的颜色
+				const index = updatedHistory.findIndex(item => item.id == selectedObject.value.id);
+				if (index !== -1) {
+					updatedHistory[index].color = selectedObjectOriginColor.value;
+				}
+				selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
+				updatedHistory[chosen.index].color = '#ff93c4';
+				selectedObject.value = updatedHistory[chosen.index];
+			}
+		}
+
+		// updatedHistory = updatedHistory.map((action, i) => {
+		// 	if (i === chosen.index) {
+		// 		action.color = '#ff93c4';
+		// 	} else {
+		// 		action.color = drawColor.value;
+		// 	}
+		// 	return action;
+		// });
+
+		history.value = updatedHistory;
+		selectedObject.value = chosen.action;
+		lastClick.value = {
+			x,
+			y,
+			index: chosen.index
+		};
+
+		if (chosen.action.mode === 'text') {
+			changingTextIndex.value = chosen.index;
+		}
+	};
+
+
+	// const clickOnObject = (x, y) => {
+	// 	const tolerance = 3; // 容差像素
+	// 	let updatedHistory = history.value.map(action => ({
+	// 		...action
+	// 	})); // 深拷贝，避免直接改原数据
+
+	// 	// 是否点击位置与上次接近
+	// 	const isSamePos =
+	// 		lastClick.value.x !== null &&
+	// 		Math.abs(lastClick.value.x - x) <= tolerance &&
+	// 		Math.abs(lastClick.value.y - y) <= tolerance;
+
+	// 	let found = false;
+	// 	let foundIndex = -1;
+
+	// 	// 从后往前查找选中的图形
+	// 	for (let i = history.value.length - 1; i >= 0; i--) {
+	// 		const action = history.value[i];
+
+	// 		// 跳过不匹配的模式
+	// 		if (mode.value === 'text' && action.mode !== 'text') continue;
+
+	// 		// 如果当前点击位置与上次接近，就跳过上次选中的图形索引，选下一个
+	// 		if (isSamePos && i === lastClick.value.index) continue;
+
+	// 		if (isPointInShape(action, i, x, y)) {
+	// 			updatedHistory[i].color = '#ff93c4'; // 选中图形变红
+	// 			selectedObject.value = action;
+	// 			found = true;
+	// 			foundIndex = i;
+	// 			if (action.mode === 'text') {
+	// 				changingTextIndex.value = foundIndex;
+	// 			}
+	// 			break;
+	// 		}
+	// 	}
+
+	// 	// 恢复其他图形颜色
+	// 	updatedHistory = updatedHistory.map((action, i) => {
+	// 		if (i !== foundIndex) {
+	// 			action.color = drawColor.value;
+	// 		}
+	// 		return action;
+	// 	});
+
+	// 	history.value = updatedHistory;
+
+	// 	// 更新点击记录
+	// 	if (found) {
+	// 		lastClick.value = {
+	// 			x,
+	// 			y,
+	// 			index: foundIndex
+	// 		};
+	// 	} else {
+	// 		// 没选中图形就重置
+	// 		lastClick.value = {
+	// 			x: null,
+	// 			y: null,
+	// 			index: -1
+	// 		};
+	// 	}
+	// }
 	//是否点到了文字
 	const isPointInText = (action, historyIndex, x, y) => {
 		//文字的位置是在左下角，所以要判断文字长度
@@ -685,6 +941,7 @@
 			default:
 				console.warn('Unknown object mode:', object.mode);
 		}
+		selectedObject.value = object;
 	};
 
 
@@ -779,6 +1036,11 @@
 		}
 		if (action) {
 			history.value.push(action);
+			events.value.push({
+				type: 'add',
+				object: null,
+				id: action.id
+			})
 		}
 	};
 
@@ -794,8 +1056,8 @@
 		ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
 		ctx.value.scale(scale.value, scale.value);
 		// 画背景图片
-		if (savedImage.value) {
-			ctx.value.drawImage(savedImage.value, 0, 0, screenWidth.value, screenHeight.value);
+		if (templateImage.value) {
+			ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
 		}
 
 		// 重新绘制所有历史记录
@@ -904,16 +1166,66 @@
 		margin-top: 4rpx;
 		display: flex;
 		justify-content: center;
+		align-items: center;
 		gap: 8px;
 		margin-bottom: 10px;
 		z-index: 9999;
+	}
+
+	.functionBar {
+		position: absolute;
+		top: 10rpx;
+		right: 10rpx;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10rpx;
+	}
+
+	.functionButton {
+		background-color: transparent;
+		border: 1rpx solid #00aaff;
+		height: 50rpx;
+		width: 50rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 4rpx;
+	}
+
+	.iconButton {
+		background-color: transparent;
+		border-radius: 50%;
+		border: 1rpx solid #00aaff;
+		height: 40rpx;
+		width: 40rpx;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 6rpx;
+	}
+
+	.icon {
+		width: 30rpx;
+		height: 30rpx;
+	}
+
+	.colorButton {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50%;
+		height: 40rpx;
+		width: 40rpx;
+		color: #FFFFFF;
+		font-size: 25rpx;
 	}
 
 	.text-input {
 		width: 140rpx;
 		position: absolute;
 		background: white;
-		border: 1px solid #ccc;
+		border: 1px solid #23c5ff;
 		border-radius: 10rpx;
 		padding: 8px;
 		z-index: 1000;
@@ -931,25 +1243,19 @@
 	}
 
 	.textButtons button {
-		width: 60rpx;
+		width: 55rpx;
 		height: 30rpx;
-		margin-left: 5rpx;
-		margin-right: 5rpx;
-	}
-
-	button {
-		padding: 4px 8px;
-		background-color: #007aff;
-		color: white;
-		border: none;
-		border-radius: 5rpx;
 		display: flex;
-		align-items: center;
 		justify-content: center;
+		align-items: center;
+		padding: 8rpx;
+		font-size: 16rpx;
+		background-color: #52d7ff;
 	}
 
 	.active {
-		background-color: #ff007f;
+		background-color: #52d7ff;
+		/* background-color: #ff93c4; */
 	}
 
 	.canvas {
