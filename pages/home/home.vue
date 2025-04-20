@@ -95,7 +95,7 @@
 		console.log("点击的卡片的名称为:" + name);
 		if (name === "桥梁病害采集") {
 			uni.navigateTo({
-				url: '/pages/bridge-disease/bridge-disease'
+				url: '/pages/bridge/bridge'
 			})
 		} else if (name === "隧道病害采集") {
 			// 隧道页面路由可以在后续添加

@@ -4,39 +4,69 @@
   "detectionYear": "2024年度",
   "bridgeInspectionList": [
     {
+	  "id":"1",
       "company": "湖北交投鄂西高速公路运营管理有限公司",
       "projectName": "2024年建恩高速松恩段桥隧构造物定期检查",
       "projectCode": "BG(YH)-2024004-MQI-02/53",
       "progress": "26/26",
-      "status": "未完成"
+      "status": "未完成",
+	  "code": "BG(YH)-2024004-MQI-02/53",
+	  "year": "2024年度",
+	  "timeRange": "0000-00-00 至 0000-00-00",
+	  "detectionUnit": "湖北交投智能检测股份有限公司",
+	  "inspector": "张三三/李四四/王五五/赵六六"
     },
     {
+	  "id":"2",
       "company": "武汉交投高速公路运营管理有限公司",
       "projectName": "武汉至深圳高速公路武汉段公路技术状况检测及评定",
       "projectCode": "HBSJ-202406GL-043001001",
       "progress": "55/55",
-      "status": "未完成"
+      "status": "未完成",
+	  "code": "HBSJ-202406GL-043001001",
+	  "year": "2024年度",
+	  "timeRange": "0000-00-00 至 0000-00-00",
+	  "detectionUnit": "湖北交投智能检测股份有限公司",
+	  "inspector": "张三三/李四四/王五五/赵六六"
     },
     {
+	  "id":"3",
       "company": "湖北楚天智能交通股份有限公司",
       "projectName": "大广高速湖北省麻城至浠水段2024年养护工程公路技术状况检测与评定项目",
       "projectCode": "DGBGS-2024-0320-015",
       "progress": "340/340",
-      "status": "未完成"
+      "status": "未完成",
+	  "code": "DGBGS-2024-0320-015",
+	  "year": "2024年度",
+	  "timeRange": "0000-00-00 至 0000-00-00",
+	  "detectionUnit": "湖北交投智能检测股份有限公司",
+	  "inspector": "张三三/李四四/王五五/赵六六"
     },
     {
+	  "id":"4",
       "company": "湖北系统中心",
       "projectName": "2024年全省国省道定期检查（第6包）",
       "projectCode": "D2024",
+	   "code": "DGBGS-2024-0320-010",
       "progress": "26/26",
-      "status": "未完成"
+      "status": "未完成",
+	  "year": "2024年度",
+	  "timeRange": "0000-00-00 至 0000-00-00",
+	  "detectionUnit": "湖北交投智能检测股份有限公司",
+	  "inspector": "张三三/李四四/王五五/赵六六"
     },
     {
+	  "id":"5",
       "company": "湖北交投鄂西北高速公路运营管理有限公司",
       "projectName": "湖北交投高速公路检测评定YHJC-1标段2024年度养护检测项目鄂西北片区（十漫高速、十白高速、土十",
       "projectCode": "",
       "progress": "",
-      "status": "未完成"
+      "status": "未完成",
+	  "code": "YHJC-2024-001",
+	  "year": "2024年度",
+	  "timeRange": "0000-00-00 至 0000-00-00",
+	  "detectionUnit": "湖北交投智能检测股份有限公司",
+	  "inspector": "张三三/李四四/王五五/赵六六"
     }
   ]
 }

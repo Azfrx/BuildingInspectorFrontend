@@ -1,5 +1,8 @@
 <template>
 	<view class="container">
+		<!-- 导航栏 -->
+		<uni-nav-bar class="uni-nav-bar" dark :fixed="true" shadow background-color="#0F4687" status-bar left-icon="left" 
+			title="桥梁定期检查项目列表" @clickLeft="back"/>
 		<!-- 顶部信息卡片 -->
 		<view class="info-card">
 			<view class="content-box">
@@ -58,6 +61,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { getTaskList, getBridgeList } from '@/utils/readJson.js'
+
+// 返回上一页
+const back = () => {
+	uni.navigateBack()
+}
 
 // 项目信息
 const projectInfo = ref({})
@@ -66,77 +75,85 @@ const searchText = ref('')
 // 桥梁列表数据
 const bridges = ref([])
 
-// 获取当前页面参数
-const getProjectId = () => {
-	const pages = getCurrentPages()
-	const currentPage = pages[pages.length - 1]
-	return currentPage.$page?.options?.id || 'BG(YH)-2024004-MQI-02/53' // 默认项目编号
-}
-
 // 获取项目数据
-const getProjectData = () => {
-	const projectCode = getProjectId()
-	console.log('当前项目编号:', projectCode)
-	
-	// 先尝试获取项目基本信息
-	uni.request({
-		url: '/static/data/1.json',
-		success: (res1) => {
-			console.log('获取到的项目列表:', res1.data)
-			const projectBasic = res1.data.bridgeInspectionList.find(p => p.projectCode === projectCode)
-			
-			if (projectBasic) {
-				// 更新项目基本信息
+const getProjectData = async () => {
+	try {
+		// 获取路由参数
+		const pages = getCurrentPages();
+		const currentPage = pages[pages.length - 1];
+		const options = currentPage.$page.options;
+		
+		// 先获取任务列表数据以获取检测单位和人员信息
+		const taskData = await getTaskList(3);
+		
+		if (options) {
+			// 更新项目基本信息
+			projectInfo.value = {
+				projectName: decodeURIComponent(options.projectName || ''),
+				code: options.projectId || '',
+				status: decodeURIComponent(options.status || ''),
+				company: decodeURIComponent(options.company || ''),
+				progress: decodeURIComponent(options.progress || ''),
+				year: new Date().getFullYear() + '年度',
+				timeRange: '0000-00-00 至 0000-00-00',
+				detectionUnit: taskData ? taskData.unit : '',
+				inspector: taskData && taskData.bridgeInspectionList ? 
+					taskData.bridgeInspectionList[0].inspector : ''
+			}
+		} else {
+			// 如果没有路由参数，使用任务列表数据
+			if (taskData && taskData.bridgeInspectionList && taskData.bridgeInspectionList.length > 0) {
 				projectInfo.value = {
-					projectName: projectBasic.projectName,
-					code: projectBasic.projectCode,
-					status: projectBasic.status,
-					company: projectBasic.company,
-					progress: projectBasic.progress,
-					year: res1.data.detectionYear,
+					projectName: taskData.bridgeInspectionList[0].projectName,
+					code: taskData.bridgeInspectionList[0].code,
+					status: taskData.bridgeInspectionList[0].status,
+					company: taskData.bridgeInspectionList[0].company,
+					progress: taskData.bridgeInspectionList[0].progress,
+					year: taskData.year,
 					timeRange: '0000-00-00 至 0000-00-00',
-					detectionUnit: res1.data.unit,
-					inspector: res1.data.person
+					detectionUnit: taskData.unit,
+					inspector: taskData.bridgeInspectionList[0].inspector
 				}
-				
-				// 获取桥梁详细信息
-				uni.request({
-					url: '/static/data/list.json',
-					success: (res2) => {
-						console.log('获取到的桥梁数据:', res2.data)
-						const project = res2.data.projects.find(p => p.code === projectCode)
-						if (project) {
-							bridges.value = project.bridges
-							console.log('桥梁列表已更新:', bridges.value)
-						} else {
-							bridges.value = []
-							console.error('未找到桥梁信息')
-						}
-					},
-					fail: (err) => {
-						console.error('获取桥梁数据失败:', err)
-						uni.showToast({
-							title: '获取桥梁数据失败',
-							icon: 'none'
-						})
-					}
-				})
+			}
+		}
+		
+		// 获取桥梁列表数据
+		try {
+			const bridgeData = await getBridgeList(3, 1)
+			console.log('获取到的桥梁数据:', bridgeData)
+			if (bridgeData && Array.isArray(bridgeData)) {
+				bridges.value = bridgeData.map(bridge => ({
+					id: bridge.id || bridge.code,
+					code: bridge.code,
+					name: bridge.name,
+					location: bridge.location || '',
+					type: bridge.type || 'small',
+					length: bridge.length || '',
+					class: bridge.class || ''
+				}))
+				console.log('处理后的桥梁列表:', bridges.value)
 			} else {
-				console.error('未找到项目信息，projectCode:', projectCode)
+				bridges.value = []
+				console.error('桥梁数据格式不正确')
 				uni.showToast({
-					title: '未找到项目信息',
+					title: '桥梁数据格式不正确',
 					icon: 'none'
 				})
 			}
-		},
-		fail: (err) => {
-			console.error('获取项目数据失败:', err)
+		} catch (error) {
+			console.error('获取桥梁数据失败:', error)
 			uni.showToast({
-				title: '获取项目数据失败',
+				title: '获取桥梁数据失败',
 				icon: 'none'
 			})
 		}
-	})
+	} catch (error) {
+		console.error('获取数据失败:', error)
+		uni.showToast({
+			title: '获取数据失败',
+			icon: 'none'
+		})
+	}
 }
 
 // 页面加载时获取数据
@@ -192,7 +209,25 @@ const handleSearch = () => {
 .container {
 	min-height: 100vh;
 	background-color: #f1f0ff;
-	padding-bottom: 20px;
+	padding: 0;
+	margin: 0;
+}
+
+.uni-nav-bar {
+	height: 88px;
+	font-size: 34px;
+	font-weight: bold;
+	margin-bottom: 0;
+}
+
+::v-deep .uni-nav-bar__content {
+	font-size: 34px;
+	font-weight: bold;
+}
+
+::v-deep .uni-nav-bar__header-container-inner {
+	font-size: 34px;
+	font-weight: bold;
 }
 
 .info-card {
@@ -201,6 +236,7 @@ const handleSearch = () => {
 	margin: 0;
 	border-radius: 0;
 	box-shadow: none;
+	margin-top: -14px;
 
 	.content-box {
 		background-color: transparent;

@@ -30,7 +30,7 @@ const fileData = ref(null)
 const fileName = ref('bridgeinfo')  // 将文件名声明为响应式变量
 
 const write = () => {
-	const pathUrl = plus.io.convertLocalFileSystemURL("_downloads/") + fileName.value + '.json'//设置文件格式
+	const pathUrl = plus.io.convertLocalFileSystemURL("_doc/") +"/3"+ fileName.value + '.json'//设置文件格式
 	// const parentDir = '_downloads';
 	// const newDirName = 'newDir';
 	// CreateNewDir(parentDir, newDirName)
@@ -40,23 +40,45 @@ const write = () => {
 	// 3.www也在app目录下 仅应用自身可读
 
 	const data = [
-    {
-      name: "Bob",
-      gender: "male",
-      birthday: "1992-10-18",
-      url: "https://gimg2.baidu.com/image_search/src=http%3A%2F%2Fwww.pptbz.com%2Fd%2Ffile%2Fp%2F201708%2Fb92908f5427aaa3dc10aea19c06e013d.jpg&refer=http%3A%2F%2Fwww.pptbz.com&app=2002&size=f9999,10000&q=a80&n=0&g=0n&fmt=auto"
-    },
-    {
-      name: "Selina",
-      gender: "female",
-      birthday: "1995-11-16"
-    }
+     {
+       "studentId": "S12345",
+       "studentName": "Jane Smith",
+       "department": "Computer Science",
+       "year": 2024,
+       "courses": [
+         {
+           "courseId": "CSE101",
+           "courseName": "Introduction to Programming",
+           "instructor": "Dr. Johnson",
+           "creditHours": 3,
+           "grade": "A"
+         },
+         {
+           "courseId": "MAT101",
+           "courseName": "Calculus I",
+           "instructor": "Prof. Brown",
+           "creditHours": 4,
+           "grade": "B+"
+         },
+         {
+           "courseId": "PHY101",
+           "courseName": "Physics I",
+           "instructor": "Dr. Lee",
+           "creditHours": 3,
+           "grade": "A-"
+         }
+       ],
+       "gpa": 3.7,
+       "academicStanding": "Good Standing",
+       "transcriptUrl": "https://example.com/transcript/S12345"
+     }
+  
   ]
 
   changeData(pathUrl, 0, data);
 }
 const read = async()=>{
-	const path = plus.io.convertLocalFileSystemURL("_downloads/") + fileName.value + '.json'//设置文件格式
+	const path = plus.io.convertLocalFileSystemURL("_doc/") + fileName.value + '.json'//设置文件格式
 	const rawData = await getJsonData(path)
 	// 解析JSON数据
 	    fileData.value = JSON.parse(rawData)

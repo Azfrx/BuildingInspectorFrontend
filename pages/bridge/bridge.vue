@@ -1,275 +1,340 @@
 <template>
-	<!-- 导航栏 -->
-    <view class="container">
-        <uni-nav-bar 
-            class="uni-nav-bar__content-title" 
-            dark 
-            :fixed="true" 
-            shadow 
-            background-color="#3b405f" 
-            status-bar 
-            left-icon="left" 
-            title="桥梁定期检查项目" 
-            @clickLeft="back" 
-        />
+  <!-- 导航栏 -->
+  <uni-nav-bar class="uni-nav-bar" dark :fixed="true" shadow background-color="#0F4687" status-bar left-icon="left"
+    title="桥梁定期检查项目列表" @clickLeft="back" />
+  <!-- 内容区 -->
+  <view class="container">
+    <view class="info-container" v-if="fileData">
+      <view class="info-box">
+        <text class="label">检测单位</text>
+        <text class="value">{{ fileData.unit || '暂无数据' }}</text>
+      </view>
+      <view class="info-box">
+        <text class="label">检测人员</text>
+        <text class="value">{{ fileData.person || '暂无数据' }}</text>
+      </view>
+      <view class="info-box">
+        <text class="label">检测年度</text>
+        <picker class="year-picker" :value="selectedYearIndex" :range="years" @change="changeYear">
+          <view class="picker-content">
+            <text class="value">{{ years[selectedYearIndex] }}</text>
+            <view class="arrows">
+              <text class="arrow up">▲</text>
+              <text class="arrow down">▼</text>
+            </view>
+          </view>
+        </picker>
+      </view>
     </view>
-	
-	<!-- 中间 -->
-	<view class="mid_container">
-		<view class="mid1">
-			<text class="row11">承担单位</text>
-			<text class="row12">{{inspectionData.unit}}</text>
-		</view>
-		
-		<view class="mid2">
-			<text class="row21">承担人员</text>
-			<text class="row22">{{inspectionData.person}}</text>
-		</view>
-		
-		<view class="mid3">
-			<text class="row31">检测年份</text>
-			<picker class="picker" mode="selector" :range="years" :value="currentIndex" @change="yearsChange">
-				<view class="picker-content">
-					<text>{{currentYear}}</text>
-					<view class="arrows">
-						<text class="arrow down">▼</text>
-					</view>
-				</view>
-			</picker>
-		</view>
-	</view>
-	
-	<!-- 任务列表 -->
-	<view class="lists-container">
-		<view class="list" v-for="(item,index) in inspectionData.bridgeInspectionList" :key="item.projectCode" @click="goToDetail(item)">
-			<text class="text1">{{item.company}}</text>
-			<text class="text2">{{item.projectName}}</text>
-			<view class="list_bottom">
-				<text class="text3">{{item.projectCode}}</text>
-				<text class="text4">{{item.progress}}</text>
-				<text class="text5">{{item.status}}</text>
-			</view>
-		</view>
-	</view>
+
+    <view class="list-container" v-if="fileData && fileData.bridgeInspectionList">
+      <view class="list-item" v-for="(item, index) in fileData.bridgeInspectionList" :key="index" @click="goToList(item)">
+        <view class="item-left">
+          <text class="project-code">{{ item.code || '暂无编号' }}</text>
+          <text class="project-name">{{ item.projectName || '暂无名称' }}</text>
+          <text class="project-company">{{ item.company || '暂无公司' }}</text>
+        </view>
+        <view class="item-right">
+          <text class="status" :class="{ 'completed': item.status === '已完成' }">{{ item.status || '未知状态' }}</text>
+          <view class="progress-wrapper">
+            <text class="progress">{{ item.progress || '0/0' }}</text>
+            <text class="arrow-right">></text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
 </template>
 
 <script setup>
-import {ref, onMounted} from 'vue'
+import { ref, onMounted } from 'vue';
+import { getTaskList } from '@/utils/readJson.js';
 
-const years = ['全部','2025年度', '2024年度', '2023年度', '2022年度','2021年度','2020年度','2019年度','2018年度']
-const currentIndex = ref(1)
-const currentYear = ref(years[1])
-const inspectionData = ref({
-    unit: '',
-    person: '',
-    detectionYear: '',
-    bridgeInspectionList: []
-})
+// 检测单位
+const detectUnit = ref('');
+// 检测人员
+const detectPerson = ref('');
+// 检测年度选项
+const years = ref(['2024年度', '2025年度', '2026年度']);
+const selectedYearIndex = ref(0);
 
-// 获取数据
-const getData = () => {
-    uni.request({
-        url: '/static/data/1.json',
-        method: 'GET',
-        success: (res) => {
-            console.log('获取数据成功:', res.data)
-            inspectionData.value = res.data
-        },
-        fail: (err) => {
-            console.error('获取数据失败:', err)
-        }
-    })
-}
+const fileData = ref(null);
 
-// 页面加载时获取数据
-onMounted(() => {
-    getData()
-})
+const getData = async () => {
+  try {
+    const data = await getTaskList(3);
+    console.log('获取到的数据:', data);
+    if (data) {
+      fileData.value = data;
+      console.log('处理后的数据:', fileData.value);
+    } else {
+      console.error('获取数据为空');
+    }
+  } catch (error) {
+    console.error('获取数据失败:', error);
+  }
+};
+
+const changeYear = (e) => {
+  selectedYearIndex.value = e.detail.value;
+  // 这里可以添加年份切换后的数据刷新逻辑
+};
 
 const back = () => {
-    uni.showToast({
-        title: '点击成功'
-    });
-}
+  uni.navigateBack();
+};
 
-const yearsChange = (e) => {
-    currentIndex.value = e.detail.value
-    currentYear.value = years[currentIndex.value]
-}
+const goToList = (item) => {
+  uni.navigateTo({
+    url: `/pages/List/List?projectId=${item.code || ''}&projectName=${encodeURIComponent(item.projectName || '')}&company=${encodeURIComponent(item.company || '')}&status=${encodeURIComponent(item.status || '')}&progress=${encodeURIComponent(item.progress || '')}`
+  });
+};
 
-// 跳转到详情页
-const goToDetail = (item) => {
-    console.log('准备跳转，数据：', item)
-    uni.navigateTo({
-        url: `/pages/List/List?id=${item.projectCode}`,
-        success: () => {
-            console.log('跳转成功')
-            uni.showToast({
-                title: '加载中...',
-                icon: 'loading',
-                duration: 1000
-            })
-        },
-        fail: (err) => {
-            console.error('跳转失败：', err)
-            uni.showToast({
-                title: '跳转失败',
-                icon: 'error'
-            })
-        }
-    })
-}
+onMounted(() => {
+  getData();
+});
 </script>
 
-<style lang="scss">
+<style scoped>
+.uni-nav-bar {
+  height: 88px;
+  font-size: 34px;
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+::v-deep .uni-nav-bar__content {
+  font-size: 34px;
+  font-weight: bold;
+}
+
+::v-deep .uni-nav-bar__header-container-inner {
+  font-size: 34px;
+  font-weight: bold;
+}
+
 .container {
-    min-height: 100vh;
-	position: relative;
-	font-size: 44px;
-	letter-spacing: 5px;
-	height: 44px;
-	line-height: 44px;
-}
-.mid_container{
-	position: absolute;
-	top: 50px;
-	width: 100%;
-	padding: 0 15px;
-	box-sizing: border-box;
-	display: grid;
-	grid-template-columns: 2fr 1fr 1fr;
-	gap: 12px;
-	background-color: #f1f0ff;
-	padding-bottom: 0;
-
-	.mid1, .mid2, .mid3 {
-		padding: 15px;
-		border-radius: 8px;
-		display: flex;
-		flex-direction: column;
-		gap: 8px;
-		border: 1px solid #333;
-		box-shadow: 0 2px 0.2px rgba(0,0,0,0.05);
-		flex: 1;
-	}
-
-	.row11, .row21, .row31 {
-		font-size: 16px;
-		letter-spacing: 2px;
-		color: #666;
-	}
-
-	.row12, .row22 {
-		font-size: 25px;
-		color: #333;
-		font-weight: bolder;
-		letter-spacing: 2px;
-		word-break: break-all;
-	}
-
-	.picker {
-		.picker-content {
-			font-size: 25px;
-			color: #333;
-			font-weight: bolder;
-			letter-spacing: 2px;
-			display: flex;
-			align-items: center;
-			gap: 4px;
-
-			.arrows {
-				display: flex;
-				flex-direction: column;
-				margin-left: 4px;
-				
-				.arrow {
-					font-size: 25px;
-					color: #666;
-					line-height: 1;
-					font-weight: bolder;
-					&.down {
-						margin-top: 1px;
-					}
-				}
-			}
-		}
-	}
+  padding: 0;
+  margin: 0;
 }
 
-.list {
-    position: relative;
-    width: 100%;
-    padding: 15px;
-    box-sizing: border-box;
-    background-color: #fff;
-    border-radius: 0;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    margin: 0;
-    border-bottom: 1px solid #333;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    
-    &:active {
-        background-color: #f5f5f5;
-        transform: scale(0.98);
-    }
-    
-    .text1 {
-        font-size: 17px;
-        color: #666;
-        margin-bottom: 8px;
-        display: block;
-        letter-spacing: 2px;
-    }
-    
-    .text2 {
-        font-size: 26px;
-        color: #333;
-        font-weight: bold;
-        margin-bottom: 12px;
-        display: block;
-        letter-spacing: 2px;
-    }
-    
-    .list_bottom {
-        display: flex;
-        align-items: center;
-        border-top: 1px solid #eee;
-        padding-top: 12px;
-        
-        .text3 {
-            font-size: 16px;
-            color: #666;
-            flex: 1;
-        }
-        
-        .text4 {
-            font-size: 16px;
-            color: #3b405f;
-            flex: 1;
-            text-align: center;
-        }
-        
-        .text5 {
-            font-size: 16px;
-            color: #ff6b6b;
-            padding: 4px 8px;
-            flex: 1;
-            text-align: right;
-            padding-right: 15px;
-        }
-    }
+.info-container {
+  background-color: #BDCBE0;
+  display: flex;
+  justify-content: flex-start;
+  padding: 24px;
+  height: 188px;
+  width: 1200px;
+  box-sizing: border-box;
+  margin-top: -14px;
 }
 
-.list:last-child {
-    border-bottom: none;
+.info-box {
+  border: 1px solid #0F4687;
+  border-radius: 8rpx;
+  padding: 0;
+  margin: 0 10rpx;
+  background-color: #BDCBE0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  height: 140px;
+  position: relative;
 }
 
-.lists-container {
-    position: absolute;
-    top: 170px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
+.info-box:first-child {
+  width: 600px;
+  flex: none;
 }
-</style>
+
+.info-box:nth-child(2),
+.info-box:last-child {
+  width: 252px;
+  flex: none;
+}
+
+.info-box .label {
+  font-size: 26px;
+  color: #666666;
+  margin-top: 18px;
+  margin-left: 24px;
+  height: 26px;
+  line-height: 26px;
+  margin-bottom: 24px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.info-box .value {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  margin-left: 24px;
+  margin-top: calc(68px - 26px - 24px - 18px);
+  position: absolute;
+  top: 68px;
+  left: 0;
+}
+
+.list-container {
+  margin-top: 20rpx;
+  padding: 0;
+  width: 1200px;
+  background: #FFFFFF;
+}
+
+.list-item {
+  padding: 24px;
+  border-bottom: 1px solid #E5E5E5;
+  display: flex;
+  justify-content: space-between;
+  width: 1200px;
+  min-height: 184px;
+  box-sizing: border-box;
+  position: relative;
+  background: #FFFFFF;
+  transition: all 0.3s ease;
+}
+
+.list-item:hover {
+  background: #F8F9FA;
+}
+
+.item-left {
+  width: calc(100% - 200px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 136px; /* 184px - 48px(padding) */
+}
+
+.item-right {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 24px;
+  padding-right: 0;
+}
+
+.status {
+  color: #333333;
+  font-size: 32px;
+  margin-bottom: 8px;
+  width: 96px;
+}
+
+.status.completed {
+  color: #00B578;
+}
+
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.progress {
+  color: #666666;
+  font-size: 28px;
+  width: 96px;
+}
+
+.arrow-right {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 32px;
+  color: #666666;
+  font-weight: bold;
+}
+
+.project-code {
+  font-size: 26px;
+  display: block;
+  color: #666666;
+  margin: 24px 0 18px 24px;
+}
+
+.project-name {
+  font-size: 34px;
+  font-weight: bold;
+  display: block;
+  color: #333333;
+  margin: 0 0 18px 24px;
+  line-height: 1.4;
+  word-break: break-all;
+  flex: 1;
+}
+
+.project-company {
+  color: #666666;
+  font-size: 26px;
+  display: block;
+  margin-left: 24px;
+  position: relative;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.year-picker {
+  position: absolute;
+  top: 68px;
+  left: 24px;
+  height: 34px;
+  line-height: 34px;
+  width: calc(100% - 48px);
+}
+
+.picker-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding-right: 10px;
+}
+
+.picker-content .value {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  margin: 0;
+  padding: 0;
+  position: static;
+}
+
+.picker-content .arrows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+
+.picker-content .arrow {
+  font-size: 17px;
+  color: #333333;
+  line-height: 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+
+.picker-content .arrow.up {
+  margin-bottom: -1px;
+}
+
+.picker-content .arrow.down {
+  margin-top: -1px;
+}
+
+.year-picker .value {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  display: inline-block;
+}
+</style> 
