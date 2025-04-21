@@ -665,165 +665,215 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-/**
- * 这里是uni-app内置的常用样式变量
- *
- * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
- * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
- *
- */
-/**
- * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
- *
- * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
- */
-/* 颜色变量 */
-/* 行为相关颜色 */
-/* 文字基本颜色 */
-/* 背景颜色 */
-/* 边框颜色 */
-/* 尺寸变量 */
-/* 文字尺寸 */
-/* 图片尺寸 */
-/* Border Radius */
-/* 水平间距 */
-/* 垂直间距 */
-/* 透明度 */
-/* 文章场景相关 */
-.container {
-  min-height: 100vh;
-  position: relative;
-  font-size: 44px;
-  letter-spacing: 5px;
-  height: 44px;
-  line-height: 44px;
-}
-.mid_container {
-  position: absolute;
-  top: 50px;
-  width: 100%;
-  padding: 0 15px;
-  box-sizing: border-box;
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  gap: 12px;
-  background-color: #f1f0ff;
-  padding-bottom: 0;
-}
-.mid_container .mid1,
-.mid_container .mid2,
-.mid_container .mid3 {
-  padding: 15px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  border: 1px solid #333;
-  box-shadow: 0 2px 0.2px rgba(0, 0, 0, 0.05);
-  flex: 1;
-}
-.mid_container .row11,
-.mid_container .row21,
-.mid_container .row31 {
-  font-size: 16px;
-  letter-spacing: 2px;
-  color: #666;
-}
-.mid_container .row12,
-.mid_container .row22 {
-  font-size: 25px;
-  color: #333;
-  font-weight: bolder;
-  letter-spacing: 2px;
-  word-break: break-all;
-}
-.mid_container .picker .picker-content {
-  font-size: 25px;
-  color: #333;
-  font-weight: bolder;
-  letter-spacing: 2px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.mid_container .picker .picker-content .arrows {
-  display: flex;
-  flex-direction: column;
-  margin-left: 4px;
-}
-.mid_container .picker .picker-content .arrows .arrow {
-  font-size: 25px;
-  color: #666;
-  line-height: 1;
-  font-weight: bolder;
-}
-.mid_container .picker .picker-content .arrows .arrow.down {
-  margin-top: 1px;
-}
-.list {
-  position: relative;
-  width: 100%;
-  padding: 15px;
-  box-sizing: border-box;
-  background-color: #fff;
-  border-radius: 0;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  margin: 0;
-  border-bottom: 1px solid #333;
-  transition: all 0.3s ease;
-  cursor: pointer;
-}
-.list:active {
-  background-color: #f5f5f5;
-  transform: scale(0.98);
-}
-.list .text1 {
-  font-size: 17px;
-  color: #666;
-  margin-bottom: 8px;
-  display: block;
-  letter-spacing: 2px;
-}
-.list .text2 {
-  font-size: 26px;
-  color: #333;
+
+.uni-nav-bar[data-v-29b8df97] {
+  height: 88px;
+  font-size: 34px;
   font-weight: bold;
-  margin-bottom: 12px;
-  display: block;
-  letter-spacing: 2px;
+  margin-bottom: 0;
 }
-.list .list_bottom {
+[data-v-29b8df97] .uni-nav-bar__content {
+  font-size: 34px;
+  font-weight: bold;
+}
+[data-v-29b8df97] .uni-nav-bar__header-container-inner {
+  font-size: 34px;
+  font-weight: bold;
+}
+.container[data-v-29b8df97] {
+  padding: 0;
+  margin: 0;
+}
+.info-container[data-v-29b8df97] {
+  background-color: #BDCBE0;
   display: flex;
-  align-items: center;
-  border-top: 1px solid #eee;
-  padding-top: 12px;
+  justify-content: flex-start;
+  padding: 24px;
+  height: 188px;
+  width: 1200px;
+  box-sizing: border-box;
+  margin-top: -14px;
 }
-.list .list_bottom .text3 {
-  font-size: 16px;
-  color: #666;
-  flex: 1;
-}
-.list .list_bottom .text4 {
-  font-size: 16px;
-  color: #3b405f;
-  flex: 1;
-  text-align: center;
-}
-.list .list_bottom .text5 {
-  font-size: 16px;
-  color: #ff6b6b;
-  padding: 4px 8px;
-  flex: 1;
-  text-align: right;
-  padding-right: 15px;
-}
-.list:last-child {
-  border-bottom: none;
-}
-.lists-container {
-  position: absolute;
-  top: 170px;
-  width: 100%;
+.info-box[data-v-29b8df97] {
+  border: 1px solid #0F4687;
+  border-radius: 0.25rem;
+  padding: 0;
+  margin: 0 0.3125rem;
+  background-color: #BDCBE0;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
+  height: 140px;
+  position: relative;
+}
+.info-box[data-v-29b8df97]:first-child {
+  width: 600px;
+  flex: none;
+}
+.info-box[data-v-29b8df97]:nth-child(2),
+.info-box[data-v-29b8df97]:last-child {
+  width: 252px;
+  flex: none;
+}
+.info-box .label[data-v-29b8df97] {
+  font-size: 26px;
+  color: #666666;
+  margin-top: 18px;
+  margin-left: 24px;
+  height: 26px;
+  line-height: 26px;
+  margin-bottom: 24px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+.info-box .value[data-v-29b8df97] {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  margin-left: 24px;
+  margin-top: calc(68px - 26px - 24px - 18px);
+  position: absolute;
+  top: 68px;
+  left: 0;
+}
+.list-container[data-v-29b8df97] {
+  margin-top: 0.625rem;
+  padding: 0;
+  width: 1200px;
+  background: #FFFFFF;
+}
+.list-item[data-v-29b8df97] {
+  padding: 24px;
+  border-bottom: 1px solid #E5E5E5;
+  display: flex;
+  justify-content: space-between;
+  width: 1200px;
+  min-height: 184px;
+  box-sizing: border-box;
+  position: relative;
+  background: #FFFFFF;
+  transition: all 0.3s ease;
+}
+.list-item[data-v-29b8df97]:hover {
+  background: #F8F9FA;
+}
+.item-left[data-v-29b8df97] {
+  width: calc(100% - 200px);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 136px; /* 184px - 48px(padding) */
+}
+.item-right[data-v-29b8df97] {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding-top: 24px;
+  padding-right: 0;
+}
+.status[data-v-29b8df97] {
+  color: #333333;
+  font-size: 32px;
+  margin-bottom: 8px;
+  width: 96px;
+}
+.status.completed[data-v-29b8df97] {
+  color: #00B578;
+}
+.progress-wrapper[data-v-29b8df97] {
+  display: flex;
+  align-items: center;
+}
+.progress[data-v-29b8df97] {
+  color: #666666;
+  font-size: 28px;
+  width: 96px;
+}
+.arrow-right[data-v-29b8df97] {
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  font-size: 32px;
+  color: #666666;
+  font-weight: bold;
+}
+.project-code[data-v-29b8df97] {
+  font-size: 26px;
+  display: block;
+  color: #666666;
+  margin: 24px 0 18px 24px;
+}
+.project-name[data-v-29b8df97] {
+  font-size: 34px;
+  font-weight: bold;
+  display: block;
+  color: #333333;
+  margin: 0 0 18px 24px;
+  line-height: 1.4;
+  word-break: break-all;
+  flex: 1;
+}
+.project-company[data-v-29b8df97] {
+  color: #666666;
+  font-size: 26px;
+  display: block;
+  margin-left: 24px;
+  position: relative;
+  margin-top: auto;
+  padding-top: 18px;
+}
+.year-picker[data-v-29b8df97] {
+  position: absolute;
+  top: 68px;
+  left: 24px;
+  height: 34px;
+  line-height: 34px;
+  width: calc(100% - 48px);
+}
+.picker-content[data-v-29b8df97] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 34px;
+  padding-right: 10px;
+}
+.picker-content .value[data-v-29b8df97] {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  height: 34px;
+  line-height: 34px;
+  margin: 0;
+  padding: 0;
+  position: static;
+}
+.picker-content .arrows[data-v-29b8df97] {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 6px;
+}
+.picker-content .arrow[data-v-29b8df97] {
+  font-size: 17px;
+  color: #333333;
+  line-height: 12px;
+  display: inline-block;
+  font-weight: bold;
+}
+.picker-content .arrow.up[data-v-29b8df97] {
+  margin-bottom: -1px;
+}
+.picker-content .arrow.down[data-v-29b8df97] {
+  margin-top: -1px;
+}
+.year-picker .value[data-v-29b8df97] {
+  font-size: 34px;
+  color: #333333;
+  font-weight: bold;
+  display: inline-block;
 }

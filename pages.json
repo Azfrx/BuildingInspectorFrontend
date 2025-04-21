@@ -8,12 +8,30 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	{
+		"path" : "pages/testWrite/testWrite",
+		"style" : 
 		{
-			"path": "pages/List/List"
-		},
-		{
-			"path": "pages/bridge/bridge"
-		},
+			"navigationBarTitleText" : ""
+		}
+	},
+	{
+		"path": "pages/bridge/bridge",
+		"style": {
+			"navigationBarTitleText": "桥梁定期检查列表",
+			"navigationBarBackgroundColor": "#0F4678",
+			"navigationStyle": "custom" // 隐藏默认顶部导航
+	
+		}
+	},
+	{
+		"path": "pages/List/List",
+		"style": {
+			"navigationBarTitleText": "桥梁定期检查项目列表",
+			"navigationBarBackgroundColor": "#0F4687",
+			"navigationStyle": "custom"
+		}
+	},
 		{
 			"path": "pages/login/login",
 			"style": {
@@ -25,6 +43,16 @@
 					}
 				}
 			}
+		},
+		{
+			"path" : "pages/test/test",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path": "pages/fileIO/fileIO"
 		},
 		{
 			"path": "pages/home/home",
@@ -109,6 +137,13 @@
 			{
 				"navigationBarTitleText" : "新增病害",
 				"navigationBarBackgroundColor" : "#0F4687"
+			}
+		},
+		{
+			"path" : "pages/canvas/canvas",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
 			}
 		}
 	],

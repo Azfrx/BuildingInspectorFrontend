@@ -469,6 +469,7 @@
 .part-titleandcontent[data-v-79f8b97c] {
 		display: flex;
 		flex-direction: column;
+    width: 100%;
 }
 .part-title[data-v-79f8b97c] {
 		font-size: 17px;
@@ -479,6 +480,7 @@
 }
 .part-icon[data-v-79f8b97c] {
 		font-size: 20px;
+    color: #CCCCCC;
 }
 
 	/* 输入框 */

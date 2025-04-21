@@ -25,7 +25,7 @@ __renderjsModules["74bb5072"] = (() => {
     default: () => stdin_default
   });
 
-  // E:/BI/dev/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/render.js
+  // ../../../VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/render.js
   var MIN_DISTANCE = 10;
   var render_default = {
     showWatch(newVal, oldVal, ownerInstance, instance, self) {
