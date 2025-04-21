@@ -1,6 +1,6 @@
 // 获取文档目录基础路径
 const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
-import { trackReadPath } from './reviseJson';
+import { trackPath } from './reviseJson';
 
 // 统一文件命名规则
 const FILE_NAMING = {
@@ -60,7 +60,7 @@ async function getJsonData(fullPath) {
 export function getTaskList(userId) {
   const fileName = FILE_NAMING.taskList(userId);
   const fullPath = getFullPath(fileName);
-  trackReadPath(fullPath);
+  trackPath(fullPath);
   return getJsonData(fullPath).then(data => {
     // 如果是数组，返回第一项；否则直接返回
     if (Array.isArray(data) && data.length > 0) {
@@ -73,13 +73,13 @@ export function getTaskList(userId) {
 export function getBridgeList(userId, bridgeListId) {
   const fileName = FILE_NAMING.bridgeList(userId, bridgeListId);
   const fullPath = getFullPath(fileName)
-  trackReadPath(fullPath); // 新增此行
+  trackPath(fullPath); // 新增此行
   return getJsonData(fullPath);
 }
 
 export function getBridge(userId, bridgeListId, bridgeId) {
   const fileName = FILE_NAMING.bridge(userId, bridgeListId, bridgeId);
   const fullPath =getFullPath(fileName)
-    trackReadPath(fullPath); // 新增此行
+    trackPath(fullPath); // 新增此行
   return getJsonData(fullPath);
 }

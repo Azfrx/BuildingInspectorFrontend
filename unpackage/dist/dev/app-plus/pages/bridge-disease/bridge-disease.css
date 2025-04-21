@@ -523,7 +523,7 @@
 }
 @font-face {
   font-family: uniicons;
-  src: url("../../assets/uniicons.32e978a5.ttf");
+  src: url("../../static/fonts/uniicons.ttf");
 }
 .uni-icons[data-v-d31e1c47] {
   font-family: uniicons;

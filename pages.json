@@ -9,6 +9,13 @@
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
 	{
+		"path" : "pages/testWrite/testWrite",
+		"style" : 
+		{
+			"navigationBarTitleText" : ""
+		}
+	},
+	{
 		"path": "pages/bridge/bridge",
 		"style": {
 			"navigationBarTitleText": "桥梁定期检查列表",

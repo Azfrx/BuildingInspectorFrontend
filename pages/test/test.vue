@@ -27,7 +27,7 @@
 <script setup>
 import { ref } from 'vue';
 import { getTaskList, getBridgeList, getBridge } from '@/utils/readJson.js';
-import { saveData, trackReadPath } from '@/utils/reviseJson.js';
+import { saveData, trackPath } from '@/utils/reviseJson.js';
 
 const userId = ref('');
 const bridgeListId = ref('');

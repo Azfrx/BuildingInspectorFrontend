@@ -1,0 +1,112 @@
+
+.container[data-v-3fb2435b] {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: space-between;
+		height: 95vh;
+}
+.toolbar[data-v-3fb2435b],
+	.colorToolbar[data-v-3fb2435b] {
+		margin-top: 0.125rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 8px;
+		margin-bottom: 10px;
+		z-index: 9999;
+}
+.functionBar[data-v-3fb2435b] {
+		position: absolute;
+		top: 0.3125rem;
+		right: 0.3125rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.3125rem;
+}
+.functionButton[data-v-3fb2435b] {
+		background-color: transparent;
+		border: 0.03125rem solid #00aaff;
+		height: 1.5625rem;
+		width: 1.5625rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0.125rem;
+}
+.iconButton[data-v-3fb2435b] {
+		background-color: transparent;
+		border-radius: 50%;
+		border: 0.03125rem solid #00aaff;
+		height: 1.25rem;
+		width: 1.25rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0.1875rem;
+}
+.icon[data-v-3fb2435b] {
+		width: 0.9375rem;
+		height: 0.9375rem;
+}
+.colorButton[data-v-3fb2435b] {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		border-radius: 50%;
+		height: 1.25rem;
+		width: 1.25rem;
+		color: #FFFFFF;
+		font-size: 0.78125rem;
+}
+.text-input[data-v-3fb2435b] {
+		width: 4.375rem;
+		position: absolute;
+		background: white;
+		border: 1px solid #23c5ff;
+		border-radius: 0.3125rem;
+		padding: 8px;
+		z-index: 1000;
+}
+.input[data-v-3fb2435b] {
+		width: 100%;
+		height: 0.9375rem;
+}
+.textButtons[data-v-3fb2435b] {
+		display: flex;
+		justify-content: center;
+		margin-top: 0.15625rem;
+}
+.textButtons uni-button[data-v-3fb2435b] {
+		width: 1.71875rem;
+		height: 0.9375rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		padding: 0.25rem;
+		font-size: 0.5rem;
+		background-color: #52d7ff;
+}
+.active[data-v-3fb2435b] {
+		background-color: #52d7ff;
+		/* background-color: #ff93c4; */
+}
+.canvas[data-v-3fb2435b] {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100vw;
+		height: 100vh;
+		background-color: transparent;
+		touch-action: none;
+		/* 防止浏览器的手势冲突 */
+}
+.imgShow[data-v-3fb2435b] {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width: 30vw;
+		height: 30vh;
+		border: 1px solid #000000;
+}
