@@ -144,6 +144,7 @@
 			"style" : 
 			{
 				"navigationBarTitleText" : ""
+				// "pageOrientation": "landscape" // 设置为横屏
 			}
 		}
 	],
