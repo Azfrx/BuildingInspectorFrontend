@@ -25,12 +25,70 @@
 			<button @click="saveCanvasToImage" class="iconButton">
 				<image src='/static/image/save.svg' class="icon"></image>
 			</button>
+			<button @click="changeTemplateParam" class="iconButton">
+				<!-- <image src='/static/image/save.svg' class="icon"></image> -->
+				修改
+			</button>
+		</view>
+
+		<!-- 参数设置弹窗 -->
+		<view v-if="showParamPopup" class="popup">
+			<view class="popup-content">
+				<view v-for="field in fieldList" :key="field.key">
+					<view v-if="field.key in tempParams">
+						<text>{{ field.label }}</text>
+						<input v-model="tempParams[field.key]" :type="field.type" />
+					</view>
+				</view>
+
+				<!-- <view v-if="tempParams.logicalWidth">
+					<text>逻辑宽度（单位数）</text>
+					<input v-model="tempParams.logicalWidth" type="number" />
+				</view>
+				<view v-if="tempParams.logicalHeight">
+					<text>逻辑高度（单位数）</text>
+					<input v-model="tempParams.logicalHeight" type="number" />
+				</view>
+				<view v-if="tempParams.logicalLengthl">
+					<text>逻辑长度 </text>
+					<input v-model="tempParams.logicalLength" type="number" />
+				</view>
+				<view v-if="tempParams.beamCount">
+					<text>梁数 </text>
+					<input v-model="tempParams.beamCount" type="number" />
+				</view>
+				<view v-if="tempParams.bigBeamNumber">
+					<text>大桩号墩 </text>
+					<input v-model="tempParams.bigBeamNumber" type="number" />
+				</view>
+				<view v-if="tempParams.smallBeamNumber">
+					<text>小桩号墩 </text>
+					<input v-model="tempParams.smallBeamNumber" type="number" />
+				</view>
+				<view v-if="tempParams.unit">
+					<text>单位（如 cm / m）</text>
+					<input v-model="tempParams.unit" type="text" />
+				</view>
+				<view v-if="tempParams.bridge">
+					<text>桥幅（L / R）</text>
+					<input v-model="tempParams.bridge" type="text" />
+				</view> -->
+
+				<view class="popup-actions">
+					<button @click="applyTemplateChange" type="primary">确认</button>
+					<button @click="cancleTemplateChange">取消</button>
+				</view>
+			</view>
 		</view>
 
 		<view class="functionBar">
 			<button @click="deleteSelected" class="functionButton">删除</button>
-			<button @click="chooseTemplate" class="functionButton">模板</button>
 			<button @click="clearCanvas" class="functionButton">清空</button>
+			<button @click="zoomIn" class="functionButton">放大</button>
+			<button @click="zoomOut" class="functionButton">缩小</button>
+			<button @click="chooseTemplate('rect')" class="functionButton">模板1</button>
+			<button @click="chooseTemplate('bridge')" class="functionButton">模板2</button>
+			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button>
 		</view>
 		<view v-if="showTextInput" class="text-input" :style="{ top: textInputY + 'px', left: textInputX + 'px' }">
 			<input v-model="textValue" placeholder="输入文字..." class="input" @input="inputting" />
@@ -68,9 +126,15 @@
 	import {
 		ref,
 		onMounted,
+		reactive,
 		h,
 		nextTick
 	} from 'vue';
+	import {
+		drawRulerRectTemplate,
+		drawArchBridgeTemplate,
+		drawRulerRectTemplate4
+	} from '../../utils/drawTemplate';
 
 	const canvasId = 'myCanvas';
 	const transparentCanvasId = 'transparentCanvas';
@@ -99,12 +163,12 @@
 	const offsetCurrentX = ref(0);
 	const offsetCurrentY = ref(0);
 	const drawing = ref(false);
-	const templateImage = ref('');
+	const template = ref('');
 	const history = ref([]);
 	const curvePoints = ref([]);
 	//记录状态 为了在只有点击没有滑动的情况下，让startX和currentX都不为0
 	const status = ref('start');
-	const drawColor = ref('#000000');
+	const drawColor = ref('#ff0000');
 
 	const textValue = ref('');
 	const showTextInput = ref(false);
@@ -128,6 +192,73 @@
 
 	const clickCandidates = ref([]); // 当前点击位置命中的对象数组
 	const clickCycleIndex = ref(0); // 当前循环到哪个
+
+	const showParamPopup = ref(false);
+	//空心板1
+	const rectTemplateParam = ref({
+		logicalWidth: 8,
+		logicalHeight: 8,
+		unit: 'cm',
+	})
+	//桥梁2
+	const bridgeTemplateParam = ref({
+		logicalLength: 12.1,
+		beamCount: 3,
+		bigBeamNumber: 36,
+		smallBeamNumber: 35,
+		bridgeFu: 'L',
+		unit: 'cm',
+	})
+	//空心板4
+	const rectTemplateParam4 = ref({
+		logicalWidth: 12,
+		bigBeamNumber: 1,
+		beamCount: 8,
+		bridgeFu: 'L',
+		unit: 'm',
+	})
+	const tempParams = ref({})
+	const fieldList = reactive([{
+			key: 'logicalWidth',
+			label: '逻辑宽度（单位数）',
+			type: 'number'
+		},
+		{
+			key: 'logicalHeight',
+			label: '逻辑高度（单位数）',
+			type: 'number'
+		},
+		{
+			key: 'logicalLength',
+			label: '逻辑长度',
+			type: 'number'
+		},
+		{
+			key: 'beamCount',
+			label: '梁数',
+			type: 'number'
+		},
+		{
+			key: 'bigBeamNumber',
+			label: '大桩号墩',
+			type: 'number'
+		},
+		{
+			key: 'smallBeamNumber',
+			label: '小桩号墩',
+			type: 'number'
+		},
+		{
+			key: 'unit',
+			label: '单位(cm / m)',
+			type: 'text'
+		},
+		{
+			key: 'bridge',
+			label: '桥幅(L / R)',
+			type: 'text'
+		}
+	]);
 
 	// 记录上一次点击的像素位置和选中图形的索引
 	const lastClick = ref({
@@ -155,21 +286,24 @@
 		drawColor.value = color;
 	}
 
-	const chooseTemplate = () => {
-		uni.chooseImage({
-			count: 1,
-			success: (res) => {
-				events.value.push({
-					type: 'template',
-					object: {
-						oldTemplateImage: templateImage.value,
-						newTemplateImage: res.tempFilePaths[0]
-					}
-				})
-				templateImage.value = res.tempFilePaths[0];
-				redrawCanvas();
-			}
-		});
+	const chooseTemplate = (tem) => {
+		// uni.chooseImage({
+		// 	count: 1,
+		// 	success: (res) => {
+		// 		events.value.push({
+		// 			type: 'template',
+		// 			object: {
+		// 				oldTemplateImage: templateImage.value,
+		// 				newTemplateImage: res.tempFilePaths[0]
+		// 			}
+		// 		})
+		// 		templateImage.value = res.tempFilePaths[0];
+		// 		redrawCanvas();
+		// 	}
+		// });
+		if (tem !== null) {
+			template.value = tem;
+		}
 
 		resetState();
 	};
@@ -244,14 +378,23 @@
 			type: 'clear',
 			object: {
 				history: history.value,
-				template: templateImage.value
+				template: template.value
 			}
 		})
 		history.value = [];
-		templateImage.value = '';
+		// templateImage.value = '';
 		resetState();
 		redrawCanvas();
 	};
+
+	const zoomIn = () => {
+		scale.value *= 1.1; // 放大10%
+		redrawCanvas();
+	}
+	const zoomOut = () => {
+		scale.value /= 1.1; // 缩小10%
+		redrawCanvas();
+	}
 	//撤销
 	const undo = () => {
 		//可能发生的事件
@@ -286,11 +429,11 @@
 					// history.value[index].y = obj.y;
 				}
 			} else if (type == 'template') {
-				templateImage.value = obj.oldTemplateImage;
+				template.value = obj.oldTemplateImage;
 			} else if (type == 'clear') {
 				//清空画布时 记录的是history的快照和模板
 				history.value = obj.history;
-				templateImage.value = obj.template;
+				template.value = obj.template;
 			} else if (type == 'textValueChange') {
 				history.value[index].textValue = obj.oldTextValue;
 			}
@@ -404,7 +547,7 @@
 		if (mode.value !== 'select') {
 			transparentCtx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
 			transparentCtx.value.setStrokeStyle('#ff00ff');
-			transparentCtx.value.setLineWidth(2);
+			transparentCtx.value.setLineWidth(1);
 			transparentCtx.value.beginPath();
 		}
 
@@ -730,15 +873,6 @@
 			}
 		}
 
-		// updatedHistory = updatedHistory.map((action, i) => {
-		// 	if (i === chosen.index) {
-		// 		action.color = '#ff93c4';
-		// 	} else {
-		// 		action.color = drawColor.value;
-		// 	}
-		// 	return action;
-		// });
-
 		history.value = updatedHistory;
 		selectedObject.value = chosen.action;
 		lastClick.value = {
@@ -752,70 +886,6 @@
 		}
 	};
 
-
-	// const clickOnObject = (x, y) => {
-	// 	const tolerance = 3; // 容差像素
-	// 	let updatedHistory = history.value.map(action => ({
-	// 		...action
-	// 	})); // 深拷贝，避免直接改原数据
-
-	// 	// 是否点击位置与上次接近
-	// 	const isSamePos =
-	// 		lastClick.value.x !== null &&
-	// 		Math.abs(lastClick.value.x - x) <= tolerance &&
-	// 		Math.abs(lastClick.value.y - y) <= tolerance;
-
-	// 	let found = false;
-	// 	let foundIndex = -1;
-
-	// 	// 从后往前查找选中的图形
-	// 	for (let i = history.value.length - 1; i >= 0; i--) {
-	// 		const action = history.value[i];
-
-	// 		// 跳过不匹配的模式
-	// 		if (mode.value === 'text' && action.mode !== 'text') continue;
-
-	// 		// 如果当前点击位置与上次接近，就跳过上次选中的图形索引，选下一个
-	// 		if (isSamePos && i === lastClick.value.index) continue;
-
-	// 		if (isPointInShape(action, i, x, y)) {
-	// 			updatedHistory[i].color = '#ff93c4'; // 选中图形变红
-	// 			selectedObject.value = action;
-	// 			found = true;
-	// 			foundIndex = i;
-	// 			if (action.mode === 'text') {
-	// 				changingTextIndex.value = foundIndex;
-	// 			}
-	// 			break;
-	// 		}
-	// 	}
-
-	// 	// 恢复其他图形颜色
-	// 	updatedHistory = updatedHistory.map((action, i) => {
-	// 		if (i !== foundIndex) {
-	// 			action.color = drawColor.value;
-	// 		}
-	// 		return action;
-	// 	});
-
-	// 	history.value = updatedHistory;
-
-	// 	// 更新点击记录
-	// 	if (found) {
-	// 		lastClick.value = {
-	// 			x,
-	// 			y,
-	// 			index: foundIndex
-	// 		};
-	// 	} else {
-	// 		// 没选中图形就重置
-	// 		lastClick.value = {
-	// 			x: null,
-	// 			y: null,
-	// 			index: -1
-	// 		};
-	// 	}
-	// }
 	//是否点到了文字
 	const isPointInText = (action, historyIndex, x, y) => {
 		//文字的位置是在左下角，所以要判断文字长度
@@ -944,7 +1014,6 @@
 		selectedObject.value = object;
 	};
 
-
 	const saveCanvasToImage = () => {
 		resetState();
 		// canvasImagePath.value = history.value[history.value.length - 1].path;
@@ -973,6 +1042,33 @@
 			}
 		});
 	};
+
+	const changeTemplateParam = () => {
+		showParamPopup.value = true;
+		if (template.value === 'rect') {
+			tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam.value));
+		} else if (template.value === 'bridge') {
+			tempParams.value = JSON.parse(JSON.stringify(bridgeTemplateParam.value));
+		} else if (template.value === 'rect4') {
+			tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam4.value));
+		}
+	}
+
+	const applyTemplateChange = () => {
+		showParamPopup.value = false;
+		if (template.value === 'rect') {
+			rectTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'bridge') {
+			bridgeTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'rect4') {
+			rectTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+		}
+		redrawCanvas();
+	}
+
+	const cancleTemplateChange = () => {
+		showParamPopup.value = false
+	}
 
 	const save = () => {
 		let action;
@@ -1034,6 +1130,7 @@
 				id: Math.random().toString(36).substr(2, 8)
 			}
 		}
+		action.scale = scale.value;
 		if (action) {
 			history.value.push(action);
 			events.value.push({
@@ -1054,16 +1151,53 @@
 
 		// 应用画布的平移和缩放
 		ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
-		ctx.value.scale(scale.value, scale.value);
-		// 画背景图片
-		if (templateImage.value) {
-			ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
+		// ctx.value.scale(scale.value, scale.value);
+
+		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
+		ctx.value.scale(scale.value, scale.value); // 执行缩放
+		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+		// // 画背景图片
+		// if (templateImage.value) {
+		// 	ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
+		// }
+		//绘制模板
+		if (template.value === 'rect') {
+			// ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
+			drawRulerRectTemplate(ctx.value, {
+				logicalWidth: Number(rectTemplateParam.value.logicalWidth),
+				logicalHeight: Number(rectTemplateParam.value.logicalHeight),
+				unit: rectTemplateParam.value.unit, // 单位参数
+			});
+		} else if (template.value === 'bridge') {
+			drawArchBridgeTemplate(ctx.value, {
+				logicalLength: Number(bridgeTemplateParam.value.logicalLength),
+				beamCount: Number(bridgeTemplateParam.value.beamCount),
+				unit: bridgeTemplateParam.value.unit,
+				bigBeamNumber: Number(bridgeTemplateParam.value.bigBeamNumber),
+				smallBeamNumber: Number(bridgeTemplateParam.value.smallBeamNumber),
+				bridgeFu: bridgeTemplateParam.value.bridgeFu
+			});
+		} else if (template.value === 'rect4') {
+			drawRulerRectTemplate4(ctx.value, {
+				logicalWidth: rectTemplateParam4.value.logicalWidth,
+				bigBeamNumber: rectTemplateParam4.value.bigBeamNumber,
+				beamCount: rectTemplateParam4.value.beamCount,
+				bridgeFu: rectTemplateParam4.value.bridgeFu,
+				unit: rectTemplateParam4.value.unit,
+			});
 		}
+		ctx.value.restore(); // 恢复原始状态
 
 		// 重新绘制所有历史记录
 		history.value.forEach(action => {
+			ctx.value.save(); // 保存当前状态
+
+			ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
+			ctx.value.scale(scale.value / action.scale, scale.value / action.scale); // 执行缩放
+			ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+
 			ctx.value.setStrokeStyle(action.color);
-			ctx.value.setLineWidth(2 / scale.value); // 缩放时线宽保持视觉一致
+			ctx.value.setLineWidth(1 / (scale.value / action.scale)); // 缩放时线宽保持视觉一致
 			ctx.value.beginPath();
 			if (action.mode === 'line') {
 				ctx.value.moveTo(action.startX, action.startY);
@@ -1085,6 +1219,8 @@
 				ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
 			}
 			ctx.value.stroke();
+
+			ctx.value.restore(); // 恢复原始状态
 		});
 
 		//有没有文字处于选中状态需要绘制边框
@@ -1155,9 +1291,10 @@
 <style scoped>
 	.container {
 		display: flex;
-		flex-direction: column;
+		flex-direction: row-reverse;
 		align-items: center;
 		justify-content: space-between;
+		padding: 0 10rpx 0 10rpx;
 		height: 95vh;
 	}
 
@@ -1165,21 +1302,28 @@
 	.colorToolbar {
 		margin-top: 4rpx;
 		display: flex;
+		flex-direction: column;
 		justify-content: center;
 		align-items: center;
-		gap: 8px;
+		gap: 10rpx;
 		margin-bottom: 10px;
 		z-index: 9999;
 	}
 
+	.toolbar button,
+	.colorToolbar button {
+		transform: rotate(90deg);
+	}
+
 	.functionBar {
 		position: absolute;
-		top: 10rpx;
+		bottom: 10rpx;
 		right: 10rpx;
 		display: flex;
-		flex-direction: column;
+		flex-direction: row-reverse;
 		align-items: center;
 		gap: 10rpx;
+		z-index: 9999;
 	}
 
 	.functionButton {
@@ -1187,10 +1331,13 @@
 		border: 1rpx solid #00aaff;
 		height: 50rpx;
 		width: 50rpx;
+		font-size: 16rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		padding: 4rpx;
+		white-space: nowrap;
+		transform: rotate(90deg);
 	}
 
 	.iconButton {
@@ -1203,6 +1350,7 @@
 		justify-content: center;
 		align-items: center;
 		padding: 6rpx;
+		white-space: nowrap;
 	}
 
 	.icon {
@@ -1271,11 +1419,45 @@
 
 	.imgShow {
 		position: absolute;
-		bottom: 0;
+		top: 0;
 		left: 0;
 		width: 30vw;
 		height: 30vh;
 		border: 1px solid #000000;
-		;
+	}
+
+	.popup {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.5);
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		z-index: 999;
+	}
+
+	.popup-content {
+		background-color: #fff;
+		padding: 20rpx;
+		width: 500rpx;
+		border-radius: 20rpx;
+		transform: rotate(90deg);
+	}
+
+	.popup-content view input {
+		/* border: 1px solid #00aaff; */
+		background-color: #9ddaff;
+		border-radius: 5rpx;
+		margin-bottom: 5rpx;
+		padding: 5rpx;
+	}
+
+	.popup-actions {
+		margin-top: 20rpx;
+		display: flex;
+		justify-content: space-between;
 	}
 </style>
