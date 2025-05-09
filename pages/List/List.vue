@@ -61,7 +61,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getTaskList, getBridgeList } from '@/utils/readJson.js'
+import { getProject, getTask } from '@/utils/readJsonNew.js'
 
 // 返回上一页
 const back = () => {
@@ -78,83 +78,63 @@ const bridges = ref([])
 // 获取项目数据
 const getProjectData = async () => {
 	try {
-		// 获取路由参数
-		const pages = getCurrentPages();
-		const currentPage = pages[pages.length - 1];
-		const options = currentPage.$page.options;
+		// 获取项目数据
+		const response = await getProject(1);
+		console.log('获取到的原始数据:', JSON.stringify(response));
 		
-		// 先获取任务列表数据以获取检测单位和人员信息
-		const taskData = await getTaskList(3);
-		
-		if (options) {
-			// 更新项目基本信息
-			projectInfo.value = {
-				projectName: decodeURIComponent(options.projectName || ''),
-				code: options.projectId || '',
-				status: decodeURIComponent(options.status || ''),
-				company: decodeURIComponent(options.company || ''),
-				progress: decodeURIComponent(options.progress || ''),
-				year: new Date().getFullYear() + '年度',
-				timeRange: '0000-00-00 至 0000-00-00',
-				detectionUnit: taskData ? taskData.unit : '',
-				inspector: taskData && taskData.bridgeInspectionList ? 
-					taskData.bridgeInspectionList[0].inspector : ''
-			}
-		} else {
-			// 如果没有路由参数，使用任务列表数据
-			if (taskData && taskData.bridgeInspectionList && taskData.bridgeInspectionList.length > 0) {
-				projectInfo.value = {
-					projectName: taskData.bridgeInspectionList[0].projectName,
-					code: taskData.bridgeInspectionList[0].code,
-					status: taskData.bridgeInspectionList[0].status,
-					company: taskData.bridgeInspectionList[0].company,
-					progress: taskData.bridgeInspectionList[0].progress,
-					year: taskData.year,
-					timeRange: '0000-00-00 至 0000-00-00',
-					detectionUnit: taskData.unit,
-					inspector: taskData.bridgeInspectionList[0].inspector
-				}
-			}
+		// 检查响应数据
+		if (!response || response.code !== 0) {
+			console.error('获取数据失败:', response?.msg || '未知错误');
+			return;
 		}
-		
+
+		// 设置项目信息
+		if (response.data && response.data.projects && response.data.projects.length > 0) {
+			const project = response.data.projects[0];
+			projectInfo.value = {
+				projectName: project.name,
+				code: project.code,
+				status: project.status === '1' ? '已完成' : '未完成',
+				company: project.ownerDept?.deptName || '',
+				progress: project.number || '0/0',
+				year: project.year,
+				timeRange: `${project.startDate || ''} - ${project.endDate || ''}`,
+				detectionUnit: project.dept?.deptName || '',
+				inspector: project.inspectors?.map(i => i.userName).join(' / ') || ''
+			};
+		}
+
 		// 获取桥梁列表数据
-		try {
-			const bridgeData = await getBridgeList(3, 1)
-			console.log('获取到的桥梁数据:', bridgeData)
-			if (bridgeData && Array.isArray(bridgeData)) {
-				bridges.value = bridgeData.map(bridge => ({
-					id: bridge.id || bridge.code,
-					code: bridge.code,
-					name: bridge.name,
-					location: bridge.location || '',
-					type: bridge.type || 'small',
-					length: bridge.length || '',
-					class: bridge.class || ''
-				}))
-				console.log('处理后的桥梁列表:', bridges.value)
-			} else {
-				bridges.value = []
-				console.error('桥梁数据格式不正确')
-				uni.showToast({
-					title: '桥梁数据格式不正确',
-					icon: 'none'
-				})
-			}
-		} catch (error) {
-			console.error('获取桥梁数据失败:', error)
+		const bridgeData = await getTask(1, 1);
+		console.log('获取到的桥梁数据:', bridgeData);
+		
+		if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
+			bridges.value = bridgeData.data.tasks.map(task => ({
+				id: task.id,
+				code: task.building?.buildingCode || '',
+				name: task.building?.name || '',
+				location: `${task.building?.routeCode || ''} / ${task.building?.routeName || ''} / ${task.building?.bridgePileNumber || ''}`,
+				type: 'small', // 默认类型
+				length: task.building?.bridgeLength || '',
+				class: task.building?.rootPropertyId || ''
+			}));
+			console.log('处理后的桥梁列表:', bridges.value);
+		} else {
+			bridges.value = [];
+			console.error('桥梁数据格式不正确');
 			uni.showToast({
-				title: '获取桥梁数据失败',
+				title: '桥梁数据格式不正确',
 				icon: 'none'
-			})
+			});
 		}
 	} catch (error) {
-		console.error('获取数据失败:', error)
+		console.error('获取数据失败:', error);
 		uni.showToast({
 			title: '获取数据失败',
 			icon: 'none'
-		})
+		});
 	}
-}
+};
 
 // 页面加载时获取数据
 onMounted(() => {

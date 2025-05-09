@@ -1,190 +1,136 @@
 <template>
-  <view class="content">
-    <!-- 测试任务列表写入 -->
-    <view class="test-section">
-      <text class="section-title">任务列表测试</text>
-      <input class="input" v-model="taskData.userId" placeholder="输入用户ID" />
-      <button class="btn" @click="testTaskList">写入任务列表</button>
+  <view class="container">
+    <view class="button-group">
+      <button @click="testProject">测试项目文件</button>
+      <button @click="testTask">测试任务文件</button>
+      <button @click="testProperty">测试属性文件</button>
+      <button @click="testDisease">测试病害文件</button>
     </view>
-
-    <!-- 测试桥梁列表写入 -->
-    <view class="test-section">
-      <text class="section-title">桥梁列表测试</text>
-      <input class="input" v-model="bridgeListData.userId" placeholder="用户ID" />
-      <input class="input" v-model="bridgeListData.bridgeListId" placeholder="桥梁列表ID" />
-      <button class="btn" @click="testBridgeList">写入桥梁列表</button>
+    <view v-if="writeResult">
+      <text>写入结果: </text>
+      <text>{{ writeResult }}</text>
     </view>
-
-    <!-- 测试单个桥梁写入 -->
-    <view class="test-section">
-      <text class="section-title">单个桥梁测试</text>
-      <input class="input" v-model="bridgeData.userId" placeholder="用户ID" />
-      <input class="input" v-model="bridgeData.bridgeListId" placeholder="桥梁列表ID" />
-      <input class="input" v-model="bridgeData.bridgeId" placeholder="桥梁ID" />
-      <button class="btn" @click="testBridge">写入桥梁数据</button>
-    </view>
-
-    <!-- 操作结果展示 -->
-    <view class="result-box">
-      <text class="result-title">操作日志：</text>
-      <scroll-view scroll-y class="log-container">
-        <text class="log-item" v-for="(log, index) in logs" :key="index">{{ log }}</text>
-      </scroll-view>
+    <view v-if="readResult">
+      <text>读取结果: </text>
+      <text>{{ JSON.stringify(readResult, null, 2) }}</text>
     </view>
   </view>
 </template>
 
 <script setup>
-import { ref, onMounted, reactive } from 'vue';
-import { 
-  setTaskList, 
-  setBridgeList, 
-  setBridge 
-} from '@/utils/writeJson.js';
+import { ref } from 'vue';
+import { getProject, getTask, getProperty, getDisease } from '@/utils/readJsonNew.js';
+import { saveData, trackPath } from '@/utils/reviseNew.js';
 
-// 定义响应式数据
-const taskData = reactive({
-  userId: '4',
-  data: {
-    tasks: ['任务1', '任务2', '任务3'],
-    createTime: new Date().toISOString()
+const writeResult = ref(null);
+const readResult = ref(null);
+
+// 测试数据
+const testData = {
+  test: {
+    name: '测试项目',
+    description: '这是一个测试项目'
   }
-});
+};
 
-const bridgeListData = reactive({
-  userId: '4',
-  bridgeListId: '2',
-  data: {
-    bridges: ['桥梁A', '桥梁B'],
-    location: '北京市'
-  }
-});
-
-const bridgeData = reactive({
-  userId: '4',
-  bridgeListId: '2',
-  bridgeId: '1',
-  data: {
-    length: 150,
-    width: 20,
-    material: '混凝土'
-  }
-});
-
-const logs = ref([]);
-
-// 定义方法
-const testTaskList = async () => {
+// 测试项目文件
+const testProject = async () => {
   try {
-    await setTaskList(taskData.userId, taskData.data);
-    addLog(`任务列表写入成功！路径：${taskData.userId}/taskList.json`);
-    uni.showToast({ title: '任务列表写入成功', icon: 'success' });
-  } catch (e) {
-    addLog(`任务列表写入失败：${e.message}`);
-    uni.showToast({ title: '写入失败', icon: 'none' });
+    const userId = '1';
+    const path = `_doc/${userId}/project/projects.json`;
+    // 先设置文件路径
+    trackPath(path);
+    // 先读取
+    const data = await getProject(userId);
+    readResult.value = data;
+    // 再写入
+    await saveData(testData.test);
+    writeResult.value = '项目文件操作成功';
+  } catch (error) {
+    writeResult.value = '项目文件操作失败: ' + error.message;
   }
 };
 
-const testBridgeList = async () => {
+// 测试任务文件
+const testTask = async () => {
   try {
-    const { userId, bridgeListId, data } = bridgeListData;
-    await setBridgeList(userId, bridgeListId, data);
-    addLog(`桥梁列表写入成功！路径：${userId}/${bridgeListId}/bridgeList.json`);
-    uni.showToast({ title: '桥梁列表写入成功', icon: 'success' });
-  } catch (e) {
-    addLog(`桥梁列表写入失败：${e.message}`);
-    uni.showToast({ title: '写入失败', icon: 'none' });
+    const userId = '1';
+    const projectId = '1';
+    const path = `_doc/${userId}/project/${projectId}/task.json`;
+    // 先设置文件路径
+    trackPath(path);
+    // 先读取
+    const data = await getTask(userId, projectId);
+    readResult.value = data;
+    // 再写入
+    await saveData(testData.test);
+    writeResult.value = '任务文件操作成功';
+  } catch (error) {
+    writeResult.value = '任务文件操作失败: ' + error.message;
   }
 };
 
-const testBridge = async () => {
+// 测试属性文件
+const testProperty = async () => {
   try {
-    const { userId, bridgeListId, bridgeId, data } = bridgeData;
-    await setBridge(userId, bridgeListId, bridgeId, data);
-    addLog(`桥梁数据写入成功！路径：${userId}/${bridgeListId}/${bridgeId}/bridge.json`);
-    uni.showToast({ title: '桥梁数据写入成功', icon: 'success' });
-  } catch (e) {
-    addLog(`桥梁数据写入失败：${e.message}`);
-    uni.showToast({ title: '写入失败', icon: 'none' });
+    const userId = '1';
+    const buildingId = '5';
+    const path = `_doc/${userId}/building/${buildingId}/property.json`;
+    // 先设置文件路径
+    trackPath(path);
+    // 先读取
+    const data = await getProperty(userId, buildingId);
+    readResult.value = data;
+    // 再写入
+    await saveData(testData.test);
+    writeResult.value = '属性文件操作成功';
+  } catch (error) {
+    writeResult.value = '属性文件操作失败: ' + error.message;
   }
 };
 
-const addLog = (message) => {
-  logs.value = [`[${new Date().toLocaleTimeString()}] ${message}`, ...logs.value];
+// 测试病害文件
+const testDisease = async () => {
+  try {
+    const userId = '1';
+    const buildingId = '5';
+    const yearId = '2023';
+    const path = `_doc/${userId}/building/${buildingId}/disease/${yearId}.json`;
+    // 先设置文件路径
+    trackPath(path);
+    // 先读取
+    const data = await getDisease(userId, buildingId, yearId);
+    readResult.value = data;
+    // 再写入
+    await saveData(testData.test);
+    writeResult.value = '病害文件操作成功';
+  } catch (error) {
+    writeResult.value = '病害文件操作失败: ' + error.message;
+  }
 };
-
-// 生命周期钩子函数（如果需要）
-// onMounted(() => {
-//   // 组件挂载后的操作
-// });
 </script>
 
-<style lang="scss">
-.content {
-  padding: 20rpx;
-  background-color: #f5f5f5;
+<style scoped>
+.container {
+  padding: 20px;
 }
 
-.test-section {
-  background: white;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  margin-bottom: 30rpx;
-  box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.section-title {
-  display: block;
-  font-size: 32rpx;
-  color: #333;
-  margin-bottom: 20rpx;
-  font-weight: bold;
-}
-
-.input {
-  height: 80rpx;
-  border: 1rpx solid #ddd;
-  border-radius: 8rpx;
-  padding: 0 20rpx;
-  margin-bottom: 20rpx;
-  font-size: 28rpx;
-}
-
-.btn {
-  background-color: #007AFF;
+button {
+  margin: 5px 0;
+  background-color: #0F4687;
   color: white;
-  height: 80rpx;
-  line-height: 80rpx;
-  border-radius: 8rpx;
-  font-size: 30rpx;
+  border: none;
+  border-radius: 4px;
+  padding: 10px;
 }
 
-.result-box {
-  background: white;
-  padding: 20rpx;
-  border-radius: 12rpx;
-}
-
-.result-title {
-  font-size: 30rpx;
-  color: #666;
-  margin-bottom: 15rpx;
-  display: block;
-}
-
-.log-container {
-  max-height: 400rpx;
-  border: 1rpx solid #eee;
-  border-radius: 8rpx;
-  padding: 10rpx;
-}
-
-.log-item {
-  display: block;
-  font-size: 24rpx;
-  color: #666;
-  line-height: 1.6;
-  padding: 8rpx 0;
-  border-bottom: 1rpx dashed #eee;
+button:active {
+  background-color: #0a3461;
 }
 </style>

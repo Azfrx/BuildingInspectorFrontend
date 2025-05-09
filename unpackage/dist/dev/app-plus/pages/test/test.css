@@ -1,38 +1,7 @@
 
 .container[data-v-727d09f0] {
-  padding: 20px;
+    padding: 20px;
 }
-.input-group[data-v-727d09f0] {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-}
-.label[data-v-727d09f0] {
-  width: 100px;
-  margin-right: 10px;
-}
-.input-group uni-input[data-v-727d09f0] {
-  flex: 1;
-  height: 35px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0 10px;
-}
-.button-group[data-v-727d09f0] {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-  gap: 10px;
-}
-.button-group uni-button[data-v-727d09f0] {
-  flex: 1;
-}
-.result[data-v-727d09f0] {
-  border: 1px solid #ccc;
-  padding: 10px;
-  min-height: 100px;
-  border-radius: 4px;
-  background: #f9f9f9;
-  white-space: pre-wrap;
-  font-family: monospace;
+uni-button[data-v-727d09f0] {
+    margin: 10px;
 }

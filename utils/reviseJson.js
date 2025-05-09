@@ -2,8 +2,8 @@ let __currentFilePath = null;
 
 // 获取完整的文件路径
 function getFullPath(path) {
-  const docPath = plus.io.convertLocalFileSystemURL("_doc/");
-  return `${docPath}${path}`;
+  const docPath = plus.io.convertLocalFileSystemURL(path);
+  return docPath
 }
 
 // 统一保存方法（只需传递数据）

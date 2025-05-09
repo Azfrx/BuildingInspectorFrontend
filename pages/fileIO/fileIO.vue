@@ -39,42 +39,173 @@ const write = () => {
 	// 2.doc会在app目录下创建一个子目录存文件 仅应用自身可读写
 	// 3.www也在app目录下 仅应用自身可读
 
-	const data = [
-     {
-       "studentId": "S12345",
-       "studentName": "Jane Smith",
-       "department": "Computer Science",
-       "year": 2024,
-       "courses": [
-         {
-           "courseId": "CSE101",
-           "courseName": "Introduction to Programming",
-           "instructor": "Dr. Johnson",
-           "creditHours": 3,
-           "grade": "A"
-         },
-         {
-           "courseId": "MAT101",
-           "courseName": "Calculus I",
-           "instructor": "Prof. Brown",
-           "creditHours": 4,
-           "grade": "B+"
-         },
-         {
-           "courseId": "PHY101",
-           "courseName": "Physics I",
-           "instructor": "Dr. Lee",
-           "creditHours": 3,
-           "grade": "A-"
-         }
-       ],
-       "gpa": 3.7,
-       "academicStanding": "Good Standing",
-       "transcriptUrl": "https://example.com/transcript/S12345"
-     }
-  
-  ]
-
+	const data = {
+    "msg": "查询成功",
+    "code": 0,
+    "data": {
+        "projectId": 1,
+        "tasks": [
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-09 09:09:16",
+                "updateBy": "admin",
+                "updateTime": "2025-05-02 10:01:47",
+                "remark": "测试一下",
+                "id": 4,
+                "building": {
+                    "id": 5,
+                    "name": "宜都长江大桥-主桥",
+                    "rootObjectId": 160,
+                    "rootPropertyId": 2108,
+                    "buildingCode": "G0421421088L4750",
+                    "routeCode": "G0421",
+                    "routeName": "许广高速",
+                    "bridgePileNumber": "K532+699",
+                    "bridgeLength": "4515.5"
+                },
+                "buildingId": 5,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-09 09:09:17",
+                "updateTime": "2025-04-09 09:09:16",
+                "id": 5,
+                "building": {
+                    "id": 6,
+                    "name": "宜都长江大桥-左幅引桥",
+                    "rootObjectId": 143,
+                    "rootPropertyId": 2108,
+                    "buildingCode": "G0421421088L4750",
+                    "routeCode": "G0421",
+                    "routeName": "许广高速",
+                    "bridgePileNumber": "K532+699",
+                    "bridgeLength": "4515.5"
+                },
+                "buildingId": 6,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-16 16:52:59",
+                "updateTime": "2025-04-16 16:52:59",
+                "id": 6,
+                "building": {
+                    "id": 3,
+                    "name": "荆岳长江大桥",
+                    "rootObjectId": 1,
+                    "rootPropertyId": 2108,
+                    "buildingCode": "G0421421088L4750",
+                    "routeCode": "G0421",
+                    "routeName": "许广高速",
+                    "bridgePileNumber": "K532+699",
+                    "bridgeLength": "4515.5"
+                },
+                "buildingId": 3,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-20 20:50:01",
+                "updateTime": "2025-04-20 20:50:01",
+                "id": 7,
+                "building": {
+                    "id": 35,
+                    "name": "引桥右幅（新数据测试评分，老的没有权重）",
+                    "rootObjectId": 684
+                },
+                "buildingId": 35,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-21 15:55:30",
+                "updateTime": "2025-04-21 15:55:30",
+                "id": 8,
+                "building": {
+                    "id": 32,
+                    "name": "宜都长江大桥-右幅引桥",
+                    "rootObjectId": 615
+                },
+                "buildingId": 32,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-21 15:55:30",
+                "updateTime": "2025-04-21 15:55:30",
+                "id": 9,
+                "building": {
+                    "id": 34,
+                    "name": "引桥左幅",
+                    "rootObjectId": 636,
+                    "rootPropertyId": 411,
+                    "buildingCode": "G70420302R1020",
+                    "routeCode": "G70",
+                    "routeName": "福州至银川高速公路",
+                    "bridgePileNumber": "1373.765",
+                    "bridgeLength": "155.6"
+                },
+                "buildingId": 34,
+                "project": {
+                    "id": 1,
+                    "name": "宜都长江大桥桥梁检测",
+                    "year": 2025,
+                    "code": "YDCJDQ01",
+                    "startDate": "2025-04-01",
+                    "endDate": "2025-05-01"
+                },
+                "projectId": 1,
+                "status": "0"
+            }
+        ]
+    }
+}
   changeData(pathUrl, 0, data);
 }
 const read = async()=>{

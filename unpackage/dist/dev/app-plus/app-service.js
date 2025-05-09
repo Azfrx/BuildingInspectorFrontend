@@ -48,343 +48,6 @@ if (uni.restoreGlobal) {
   };
   const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
   const onNavigationBarButtonTap = /* @__PURE__ */ createHook(ON_NAVIGATION_BAR_BUTTON_TAP);
-  let __currentFilePath = null;
-  function getFullPath$1(path) {
-    const docPath = plus.io.convertLocalFileSystemURL("_doc/");
-    return `${docPath}${path}`;
-  }
-  function saveData(data) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath$1(__currentFilePath);
-      formatAppLog("log", "at utils/reviseJson.js:17", "准备保存文件到路径:", fullPath);
-      plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, (fs2) => {
-        formatAppLog("log", "at utils/reviseJson.js:20", "获取文件系统成功");
-        fs2.root.getFile(fullPath, { create: true }, (fileEntry) => {
-          formatAppLog("log", "at utils/reviseJson.js:22", "获取文件入口成功");
-          fileEntry.createWriter((writer) => {
-            const wait = plus.nativeUI.showWaiting("正在保存信息");
-            writer.seek(0);
-            const jsonString = JSON.stringify(data, null, 2);
-            formatAppLog("log", "at utils/reviseJson.js:28", "准备写入数据:", jsonString);
-            writer.onwrite = () => {
-              wait.close();
-              formatAppLog("log", "at utils/reviseJson.js:32", "写入成功");
-              plus.nativeUI.toast("保存成功");
-              resolve(true);
-            };
-            writer.onerror = (e2) => {
-              wait.close();
-              formatAppLog("error", "at utils/reviseJson.js:39", "写入失败:", e2.message);
-              plus.nativeUI.toast("保存失败");
-              reject(e2);
-            };
-            writer.write(jsonString);
-          }, (error2) => {
-            formatAppLog("error", "at utils/reviseJson.js:46", "创建写入器失败:", error2);
-            reject(error2);
-          });
-        }, (error2) => {
-          formatAppLog("error", "at utils/reviseJson.js:50", "获取文件入口失败:", error2);
-          reject(error2);
-        });
-      }, (error2) => {
-        formatAppLog("error", "at utils/reviseJson.js:54", "获取文件系统失败:", error2);
-        reject(error2);
-      });
-    });
-  }
-  function trackPath(path) {
-    formatAppLog("log", "at utils/reviseJson.js:62", "设置文件路径:", path);
-    __currentFilePath = path;
-  }
-  const DOC_BASE_PATH$1 = "_doc/";
-  const FILE_NAMING$1 = {
-    taskList: (userId) => `${userId}/taskList.json`,
-    bridgeList: (userId, bridgeListId) => `${userId}/${bridgeListId}/bridgeList.json`,
-    bridge: (userId, bridgeListId, bridgeId) => `${userId}/${bridgeListId}/${bridgeId}/bridge.json`
-  };
-  function writeJsonData(path, data) {
-    return new Promise((resolve, reject) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        formatAppLog("log", "at utils/writeJson.js:16", fs2.root.toURL(), "当前根路径");
-        fs2.root.getFile(path, {
-          create: true
-        }, (fileEntry) => {
-          fileEntry.file((file) => {
-            fileEntry.createWriter((writer) => {
-              plus.nativeUI.showWaiting("正在保存信息");
-              const jsonString = JSON.stringify(data, null, "	");
-              writer.seek(0);
-              writer.write(jsonString);
-              writer.onerror = function() {
-                formatAppLog("error", "at utils/writeJson.js:31", "写入文件失败:", writer.error.message);
-                plus.nativeUI.closeWaiting();
-                plus.nativeUI.toast("修改信息失败,请重新操作", {
-                  background: "rgba(255, 255, 255, 0.6)"
-                });
-                reject(writer.error);
-              };
-              writer.onwrite = function() {
-                plus.nativeUI.closeWaiting();
-                plus.nativeUI.toast("保存成功");
-                resolve(true);
-              };
-            }, (error2) => {
-              formatAppLog("error", "at utils/writeJson.js:45", "创建Writer失败:", error2);
-              plus.nativeUI.toast("保存文件失败,请重新操作");
-              reject(error2);
-            });
-          });
-        }, (error2) => {
-          formatAppLog("error", "at utils/writeJson.js:51", "获取文件失败:", error2);
-          plus.nativeUI.toast("保存文件失败,请重新操作");
-          reject(error2);
-        });
-      }, (error2) => {
-        formatAppLog("error", "at utils/writeJson.js:56", "请求文件系统失败:", error2.message);
-        plus.nativeUI.toast("请求系统失败,请重新操作");
-        reject(error2);
-      });
-    });
-  }
-  function setTaskList(userId, data) {
-    const fileName = FILE_NAMING$1.taskList(userId);
-    const fullPath = DOC_BASE_PATH$1 + fileName;
-    trackPath(fullPath);
-    return writeJsonData(fullPath, data);
-  }
-  function setBridgeList(userId, bridgeListId, data) {
-    const fileName = FILE_NAMING$1.bridgeList(userId, bridgeListId);
-    const fullPath = DOC_BASE_PATH$1 + fileName;
-    trackPath(fullPath);
-    return writeJsonData(fullPath, data);
-  }
-  function setBridge(userId, bridgeListId, bridgeId, data) {
-    const fileName = FILE_NAMING$1.bridge(userId, bridgeListId, bridgeId);
-    const fullPath = DOC_BASE_PATH$1 + fileName;
-    trackPath(fullPath);
-    return writeJsonData(fullPath, data);
-  }
-  const _export_sfc = (sfc, props) => {
-    const target = sfc.__vccOpts || sfc;
-    for (const [key, val] of props) {
-      target[key] = val;
-    }
-    return target;
-  };
-  const _sfc_main$x = {
-    __name: "testWrite",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const taskData = vue.reactive({
-        userId: "4",
-        data: {
-          tasks: ["任务1", "任务2", "任务3"],
-          createTime: (/* @__PURE__ */ new Date()).toISOString()
-        }
-      });
-      const bridgeListData = vue.reactive({
-        userId: "4",
-        bridgeListId: "2",
-        data: {
-          bridges: ["桥梁A", "桥梁B"],
-          location: "北京市"
-        }
-      });
-      const bridgeData = vue.reactive({
-        userId: "4",
-        bridgeListId: "2",
-        bridgeId: "1",
-        data: {
-          length: 150,
-          width: 20,
-          material: "混凝土"
-        }
-      });
-      const logs = vue.ref([]);
-      const testTaskList = async () => {
-        try {
-          await setTaskList(taskData.userId, taskData.data);
-          addLog(`任务列表写入成功！路径：${taskData.userId}/taskList.json`);
-          uni.showToast({ title: "任务列表写入成功", icon: "success" });
-        } catch (e2) {
-          addLog(`任务列表写入失败：${e2.message}`);
-          uni.showToast({ title: "写入失败", icon: "none" });
-        }
-      };
-      const testBridgeList = async () => {
-        try {
-          const { userId, bridgeListId, data } = bridgeListData;
-          await setBridgeList(userId, bridgeListId, data);
-          addLog(`桥梁列表写入成功！路径：${userId}/${bridgeListId}/bridgeList.json`);
-          uni.showToast({ title: "桥梁列表写入成功", icon: "success" });
-        } catch (e2) {
-          addLog(`桥梁列表写入失败：${e2.message}`);
-          uni.showToast({ title: "写入失败", icon: "none" });
-        }
-      };
-      const testBridge = async () => {
-        try {
-          const { userId, bridgeListId, bridgeId, data } = bridgeData;
-          await setBridge(userId, bridgeListId, bridgeId, data);
-          addLog(`桥梁数据写入成功！路径：${userId}/${bridgeListId}/${bridgeId}/bridge.json`);
-          uni.showToast({ title: "桥梁数据写入成功", icon: "success" });
-        } catch (e2) {
-          addLog(`桥梁数据写入失败：${e2.message}`);
-          uni.showToast({ title: "写入失败", icon: "none" });
-        }
-      };
-      const addLog = (message2) => {
-        logs.value = [`[${(/* @__PURE__ */ new Date()).toLocaleTimeString()}] ${message2}`, ...logs.value];
-      };
-      const __returned__ = { taskData, bridgeListData, bridgeData, logs, testTaskList, testBridgeList, testBridge, addLog, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, get setTaskList() {
-        return setTaskList;
-      }, get setBridgeList() {
-        return setBridgeList;
-      }, get setBridge() {
-        return setBridge;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "content" }, [
-      vue.createCommentVNode(" 测试任务列表写入 "),
-      vue.createElementVNode("view", { class: "test-section" }, [
-        vue.createElementVNode("text", { class: "section-title" }, "任务列表测试"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.taskData.userId = $event),
-            placeholder: "输入用户ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.taskData.userId]
-        ]),
-        vue.createElementVNode("button", {
-          class: "btn",
-          onClick: $setup.testTaskList
-        }, "写入任务列表")
-      ]),
-      vue.createCommentVNode(" 测试桥梁列表写入 "),
-      vue.createElementVNode("view", { class: "test-section" }, [
-        vue.createElementVNode("text", { class: "section-title" }, "桥梁列表测试"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.bridgeListData.userId = $event),
-            placeholder: "用户ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeListData.userId]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.bridgeListData.bridgeListId = $event),
-            placeholder: "桥梁列表ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeListData.bridgeListId]
-        ]),
-        vue.createElementVNode("button", {
-          class: "btn",
-          onClick: $setup.testBridgeList
-        }, "写入桥梁列表")
-      ]),
-      vue.createCommentVNode(" 测试单个桥梁写入 "),
-      vue.createElementVNode("view", { class: "test-section" }, [
-        vue.createElementVNode("text", { class: "section-title" }, "单个桥梁测试"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.bridgeData.userId = $event),
-            placeholder: "用户ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeData.userId]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.bridgeData.bridgeListId = $event),
-            placeholder: "桥梁列表ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeData.bridgeListId]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "input",
-            "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.bridgeData.bridgeId = $event),
-            placeholder: "桥梁ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeData.bridgeId]
-        ]),
-        vue.createElementVNode("button", {
-          class: "btn",
-          onClick: $setup.testBridge
-        }, "写入桥梁数据")
-      ]),
-      vue.createCommentVNode(" 操作结果展示 "),
-      vue.createElementVNode("view", { class: "result-box" }, [
-        vue.createElementVNode("text", { class: "result-title" }, "操作日志："),
-        vue.createElementVNode("scroll-view", {
-          "scroll-y": "",
-          class: "log-container"
-        }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.logs, (log, index) => {
-              return vue.openBlock(), vue.createElementBlock(
-                "text",
-                {
-                  class: "log-item",
-                  key: index
-                },
-                vue.toDisplayString(log),
-                1
-                /* TEXT */
-              );
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ])
-      ])
-    ]);
-  }
-  const PagesTestWriteTestWrite = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/testWrite/testWrite.vue"]]);
   const fontData = [
     {
       "font_class": "arrow-down",
@@ -1031,11 +694,18 @@ if (uni.restoreGlobal) {
       "unicode": ""
     }
   ];
+  const _export_sfc = (sfc, props) => {
+    const target = sfc.__vccOpts || sfc;
+    for (const [key, val] of props) {
+      target[key] = val;
+    }
+    return target;
+  };
   const getVal$1 = (val) => {
     const reg = /^[0-9]*$/g;
     return typeof val === "number" || reg.test(val) ? val + "px" : val;
   };
-  const _sfc_main$w = {
+  const _sfc_main$F = {
     name: "UniIcons",
     emits: ["click"],
     props: {
@@ -1089,7 +759,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$E(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "text",
       {
@@ -1104,8 +774,8 @@ if (uni.restoreGlobal) {
       /* CLASS, STYLE */
     );
   }
-  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
-  const _sfc_main$v = {
+  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$F, [["render", _sfc_render$E], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
+  const _sfc_main$E = {
     name: "UniStatusBar",
     data() {
       return {
@@ -1113,7 +783,7 @@ if (uni.restoreGlobal) {
       };
     }
   };
-  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$D(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -1127,9 +797,9 @@ if (uni.restoreGlobal) {
       /* STYLE */
     );
   }
-  const statusBar = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__scopeId", "data-v-7920e3e0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar.vue"]]);
+  const statusBar = /* @__PURE__ */ _export_sfc(_sfc_main$E, [["render", _sfc_render$D], ["__scopeId", "data-v-7920e3e0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar.vue"]]);
   const getVal = (val) => typeof val === "number" ? val + "px" : val;
-  const _sfc_main$u = {
+  const _sfc_main$D = {
     name: "UniNavBar",
     components: {
       statusBar
@@ -1249,9 +919,9 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$C(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_status_bar = vue.resolveComponent("status-bar");
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$6);
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -1404,89 +1074,95 @@ if (uni.restoreGlobal) {
       /* CLASS */
     );
   }
-  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__scopeId", "data-v-26544265"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar.vue"]]);
-  const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
-  const FILE_NAMING = {
-    taskList: (userId) => `${userId}/taskList.json`,
-    bridgeList: (userId, bridgeListId) => `${userId}/${bridgeListId}/bridgeList.json`,
-    bridge: (userId, bridgeListId, bridgeId) => `${userId}/${bridgeListId}/${bridgeId}/bridge.json`
+  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$D, [["render", _sfc_render$C], ["__scopeId", "data-v-26544265"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar.vue"]]);
+  function trackPath$1(path) {
+    formatAppLog("log", "at utils/reviseJson.js:62", "设置文件路径:", path);
+  }
+  const DOC_BASE_PATH$2 = "_doc/";
+  const FILE_NAMING$1 = {
+    project: (userId2) => `${userId2}/project/projects.json`,
+    task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
+    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
+    disease: (userId2, buildingId2, yearId2) => `${userId2}/building/${buildingId2}/disease/${yearId2}.json`
   };
-  function getFullPath(fileName) {
-    return `${DOC_BASE_PATH}${fileName}`;
-  }
-  async function getJsonData$1(fullPath) {
-    try {
-      formatAppLog("log", "at utils/readJson.js:20", "文件访问路径:", fullPath);
-      const fileSystem = await new Promise((resolve, reject) => {
-        plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, resolve, reject);
-      });
-      const fileEntry = await new Promise((resolve, reject) => {
-        fileSystem.root.getFile(fullPath, { create: false }, resolve, reject);
-      });
-      const file = await new Promise((resolve, reject) => {
-        fileEntry.file(resolve, reject);
-      });
-      const jsonString = await new Promise((resolve, reject) => {
-        const reader = new plus.io.FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsText(file);
-      });
-      try {
-        return JSON.parse(jsonString);
-      } catch (parseError) {
-        formatAppLog("error", "at utils/readJson.js:49", `JSON解析失败: ${fullPath}`, parseError);
-        throw new Error("文件内容格式不正确");
-      }
-    } catch (error2) {
-      formatAppLog("error", "at utils/readJson.js:54", `文件操作失败: ${fullPath}`, error2);
-      throw error2;
-    }
-  }
-  function getTaskList(userId) {
-    const fileName = FILE_NAMING.taskList(userId);
-    const fullPath = getFullPath(fileName);
-    trackPath(fullPath);
-    return getJsonData$1(fullPath).then((data) => {
-      if (Array.isArray(data) && data.length > 0) {
-        return data[0];
-      }
-      return data;
+  async function getJsonData$1(path) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: false }, (fileEntry) => {
+          fileEntry.file((file) => {
+            const reader = new plus.io.FileReader();
+            reader.onload = () => {
+              try {
+                resolve(JSON.parse(reader.result));
+              } catch (e2) {
+                reject(`JSON解析失败: ${path}`);
+              }
+            };
+            reader.onerror = () => reject(`文件读取失败: ${path}`);
+            reader.readAsText(file);
+          }, reject);
+        }, reject);
+      }, reject);
     });
   }
-  function getBridgeList(userId, bridgeListId) {
-    const fileName = FILE_NAMING.bridgeList(userId, bridgeListId);
-    const fullPath = getFullPath(fileName);
-    trackPath(fullPath);
-    return getJsonData$1(fullPath);
+  function getProject(userId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.project(userId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
   }
-  function getBridge(userId, bridgeListId, bridgeId) {
-    const fileName = FILE_NAMING.bridge(userId, bridgeListId, bridgeId);
-    const fullPath = getFullPath(fileName);
-    trackPath(fullPath);
-    return getJsonData$1(fullPath);
+  function getTask(userId2, projectId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.task(userId2, projectId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
   }
-  const _sfc_main$t = {
+  function getProperty(userId2, buildingId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.property(userId2, buildingId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  function getDisease(userId2, buildingId2, yearId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.disease(userId2, buildingId2, yearId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  const _sfc_main$C = {
     __name: "bridge",
     setup(__props, { expose: __expose }) {
       __expose();
       const detectUnit = vue.ref("");
       const detectPerson = vue.ref("");
-      const years = vue.ref(["2024年度", "2025年度", "2026年度"]);
+      const years = vue.ref([2024, 2023, 2022]);
       const selectedYearIndex = vue.ref(0);
       const fileData = vue.ref(null);
       const getData = async () => {
         try {
-          const data = await getTaskList(3);
-          formatAppLog("log", "at pages/bridge/bridge.vue:66", "获取到的数据:", data);
-          if (data) {
-            fileData.value = data;
-            formatAppLog("log", "at pages/bridge/bridge.vue:69", "处理后的数据:", fileData.value);
-          } else {
-            formatAppLog("error", "at pages/bridge/bridge.vue:71", "获取数据为空");
+          const response = await getProject(1);
+          formatAppLog("log", "at pages/bridge/bridge.vue:75", "获取到的原始数据:", JSON.stringify(response));
+          if (!response || response.code !== 0) {
+            formatAppLog("error", "at pages/bridge/bridge.vue:79", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
+            fileData.value = null;
+            return;
           }
-        } catch (error2) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:74", "获取数据失败:", error2);
+          fileData.value = {
+            data: {
+              projects: response.data.projects || []
+            }
+          };
+          formatAppLog("log", "at pages/bridge/bridge.vue:90", "处理后的数据:", JSON.stringify(fileData.value));
+          if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {
+            const projectYear = fileData.value.data.projects[0].year;
+            formatAppLog("log", "at pages/bridge/bridge.vue:95", "项目年份:", projectYear);
+            const index = years.value.findIndex((year) => year === projectYear);
+            if (index !== -1) {
+              selectedYearIndex.value = index;
+              formatAppLog("log", "at pages/bridge/bridge.vue:101", "设置年份索引:", index);
+            } else {
+              formatAppLog("log", "at pages/bridge/bridge.vue:103", "未找到匹配的年份，使用默认索引 0");
+            }
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/bridge/bridge.vue:107", "获取数据失败:", error);
+          fileData.value = null;
         }
       };
       const changeYear = (e2) => {
@@ -1500,18 +1176,33 @@ if (uni.restoreGlobal) {
           url: `/pages/List/List?projectId=${item.code || ""}&projectName=${encodeURIComponent(item.projectName || "")}&company=${encodeURIComponent(item.company || "")}&status=${encodeURIComponent(item.status || "")}&progress=${encodeURIComponent(item.progress || "")}`
         });
       };
+      const getInspectorNames = (inspectors) => {
+        if (!inspectors || !Array.isArray(inspectors))
+          return "暂无数据";
+        return inspectors.map((inspector) => inspector.userName).join(" / ");
+      };
+      const getStatusText = (status) => {
+        switch (status) {
+          case "0":
+            return "未完成";
+          case "1":
+            return "已完成";
+          default:
+            return "未知状态";
+        }
+      };
       vue.onMounted(() => {
         getData();
       });
-      const __returned__ = { detectUnit, detectPerson, years, selectedYearIndex, fileData, getData, changeYear, back, goToList, ref: vue.ref, onMounted: vue.onMounted, get getTaskList() {
-        return getTaskList;
+      const __returned__ = { detectUnit, detectPerson, years, selectedYearIndex, fileData, getData, changeYear, back, goToList, getInspectorNames, getStatusText, ref: vue.ref, onMounted: vue.onMounted, get getProject() {
+        return getProject;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$5);
+  function _sfc_render$B(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$6);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -1530,431 +1221,420 @@ if (uni.restoreGlobal) {
         }),
         vue.createCommentVNode(" 内容区 "),
         vue.createElementVNode("view", { class: "container" }, [
-          $setup.fileData ? (vue.openBlock(), vue.createElementBlock("view", {
+          vue.createCommentVNode(" 信息卡片 "),
+          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
             key: 0,
-            class: "info-container"
+            class: "info-card"
           }, [
-            vue.createElementVNode("view", { class: "info-box" }, [
-              vue.createElementVNode("text", { class: "label" }, "检测单位"),
-              vue.createElementVNode(
-                "text",
-                { class: "value" },
-                vue.toDisplayString($setup.fileData.unit || "暂无数据"),
-                1
-                /* TEXT */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "info-box" }, [
-              vue.createElementVNode("text", { class: "label" }, "检测人员"),
-              vue.createElementVNode(
-                "text",
-                { class: "value" },
-                vue.toDisplayString($setup.fileData.person || "暂无数据"),
-                1
-                /* TEXT */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "info-box" }, [
-              vue.createElementVNode("text", { class: "label" }, "检测年度"),
-              vue.createElementVNode("picker", {
-                class: "year-picker",
-                value: $setup.selectedYearIndex,
-                range: $setup.years,
-                onChange: $setup.changeYear
-              }, [
-                vue.createElementVNode("view", { class: "picker-content" }, [
-                  vue.createElementVNode(
-                    "text",
-                    { class: "value" },
-                    vue.toDisplayString($setup.years[$setup.selectedYearIndex]),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.createElementVNode("view", { class: "arrows" }, [
-                    vue.createElementVNode("text", { class: "arrow up" }, "▲"),
-                    vue.createElementVNode("text", { class: "arrow down" }, "▼")
+            vue.createElementVNode("view", { class: "info-boxes" }, [
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测单位"),
+                vue.createElementVNode(
+                  "text",
+                  { class: "value" },
+                  vue.toDisplayString($setup.fileData.data.projects[0].dept.deptName || "暂无数据"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测人员"),
+                vue.createElementVNode(
+                  "text",
+                  { class: "value" },
+                  vue.toDisplayString($setup.getInspectorNames($setup.fileData.data.projects[0].inspectors) || "暂无数据"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测年度"),
+                vue.createElementVNode("picker", {
+                  class: "year-picker",
+                  value: $setup.selectedYearIndex,
+                  range: $setup.years,
+                  onChange: $setup.changeYear
+                }, [
+                  vue.createElementVNode("view", { class: "picker-content" }, [
+                    vue.createElementVNode(
+                      "text",
+                      { class: "value" },
+                      vue.toDisplayString($setup.years[$setup.selectedYearIndex]) + "年度",
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode("text", { class: "arrow" }, "▼")
                   ])
-                ])
-              ], 40, ["value", "range"])
+                ], 40, ["value", "range"])
+              ])
             ])
           ])) : vue.createCommentVNode("v-if", true),
-          $setup.fileData && $setup.fileData.bridgeInspectionList ? (vue.openBlock(), vue.createElementBlock("view", {
+          vue.createCommentVNode(" 项目列表 "),
+          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
             key: 1,
-            class: "list-container"
+            class: "bridge-list"
           }, [
             (vue.openBlock(true), vue.createElementBlock(
               vue.Fragment,
               null,
-              vue.renderList($setup.fileData.bridgeInspectionList, (item, index) => {
+              vue.renderList($setup.fileData.data.projects, (item, index) => {
                 return vue.openBlock(), vue.createElementBlock("view", {
-                  class: "list-item",
+                  class: "bridge-item",
                   key: index,
                   onClick: ($event) => $setup.goToList(item)
                 }, [
-                  vue.createElementVNode("view", { class: "item-left" }, [
+                  vue.createElementVNode("view", { class: "bridge-info" }, [
                     vue.createElementVNode(
-                      "text",
-                      { class: "project-code" },
+                      "view",
+                      { class: "bridge-code" },
                       vue.toDisplayString(item.code || "暂无编号"),
                       1
                       /* TEXT */
                     ),
                     vue.createElementVNode(
-                      "text",
-                      { class: "project-name" },
-                      vue.toDisplayString(item.projectName || "暂无名称"),
+                      "view",
+                      { class: "bridge-name" },
+                      vue.toDisplayString(item.name || "暂无名称"),
                       1
                       /* TEXT */
                     ),
                     vue.createElementVNode(
-                      "text",
-                      { class: "project-company" },
-                      vue.toDisplayString(item.company || "暂无公司"),
+                      "view",
+                      { class: "bridge-location" },
+                      vue.toDisplayString(item.ownerDept.deptName || "暂无公司"),
                       1
                       /* TEXT */
                     )
                   ]),
-                  vue.createElementVNode("view", { class: "item-right" }, [
+                  vue.createElementVNode("view", { class: "bridge-meta" }, [
                     vue.createElementVNode(
                       "text",
                       {
-                        class: vue.normalizeClass(["status", { "completed": item.status === "已完成" }])
+                        class: vue.normalizeClass(["bridge-status", { "completed": item.status === "1" }])
                       },
-                      vue.toDisplayString(item.status || "未知状态"),
+                      vue.toDisplayString($setup.getStatusText(item.status)),
                       3
                       /* TEXT, CLASS */
                     ),
-                    vue.createElementVNode("view", { class: "progress-wrapper" }, [
-                      vue.createElementVNode(
-                        "text",
-                        { class: "progress" },
-                        vue.toDisplayString(item.progress || "0/0"),
-                        1
-                        /* TEXT */
-                      ),
-                      vue.createElementVNode("text", { class: "arrow-right" }, ">")
-                    ])
+                    vue.createElementVNode(
+                      "text",
+                      { class: "bridge-progress" },
+                      vue.toDisplayString(item.number || "0/0"),
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode("text", { class: "arrow" }, ">")
                   ])
                 ], 8, ["onClick"]);
               }),
               128
               /* KEYED_FRAGMENT */
             ))
-          ])) : vue.createCommentVNode("v-if", true)
+          ])) : !$setup.fileData ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 2 },
+            [
+              vue.createCommentVNode(" 加载状态 "),
+              vue.createElementVNode("view", { class: "loading" }, [
+                vue.createElementVNode("text", null, "加载中...")
+              ])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 3 },
+            [
+              vue.createCommentVNode(" 无数据状态 "),
+              vue.createElementVNode("view", { class: "no-data" }, [
+                vue.createElementVNode("text", null, "暂无数据")
+              ])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          ))
         ])
       ],
       64
       /* STABLE_FRAGMENT */
     );
   }
-  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__scopeId", "data-v-29b8df97"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
-  const _sfc_main$s = {
-    __name: "List",
+  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$C, [["render", _sfc_render$B], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
+  let __currentFilePath = null;
+  function getFullPath$1(path) {
+    const docPath = plus.io.convertLocalFileSystemURL(path);
+    return docPath;
+  }
+  async function setJsonData(path, data) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: true }, (fileEntry) => {
+          fileEntry.createWriter((writer) => {
+            writer.onwriteend = () => {
+              resolve();
+            };
+            writer.onerror = () => {
+              reject(`文件写入失败: ${path}`);
+            };
+            const jsonData = JSON.stringify(data, null, 2);
+            writer.write(jsonData);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+  function saveData(data) {
+    return new Promise((resolve, reject) => {
+      if (!__currentFilePath) {
+        return reject(new Error("请先执行读取操作获取文件路径"));
+      }
+      const fullPath = getFullPath$1(__currentFilePath);
+      formatAppLog("log", "at utils/reviseNew.js:48", "准备保存文件到路径:", fullPath);
+      const wait = plus.nativeUI.showWaiting("正在保存信息");
+      setJsonData(fullPath, data).then(() => {
+        wait.close();
+        formatAppLog("log", "at utils/reviseNew.js:55", "写入成功");
+        plus.nativeUI.toast("保存成功");
+        resolve(true);
+      }).catch((error) => {
+        wait.close();
+        formatAppLog("error", "at utils/reviseNew.js:61", "写入失败:", error);
+        plus.nativeUI.toast("保存失败");
+        reject(error);
+      });
+    });
+  }
+  function trackPath(path) {
+    formatAppLog("log", "at utils/reviseNew.js:70", "设置文件路径:", path);
+    __currentFilePath = path;
+  }
+  const _sfc_main$B = {
+    __name: "testWrite",
     setup(__props, { expose: __expose }) {
       __expose();
-      const back = () => {
-        uni.navigateBack();
+      const writeResult = vue.ref(null);
+      const readResult = vue.ref(null);
+      const testData = {
+        test: {
+          name: "测试项目",
+          description: "这是一个测试项目"
+        }
       };
-      const projectInfo = vue.ref({});
-      const searchText = vue.ref("");
-      const bridges = vue.ref([]);
-      const getProjectData = async () => {
+      const testProject = async () => {
         try {
-          const pages2 = getCurrentPages();
-          const currentPage = pages2[pages2.length - 1];
-          const options = currentPage.$page.options;
-          const taskData = await getTaskList(3);
-          if (options) {
-            projectInfo.value = {
-              projectName: decodeURIComponent(options.projectName || ""),
-              code: options.projectId || "",
-              status: decodeURIComponent(options.status || ""),
-              company: decodeURIComponent(options.company || ""),
-              progress: decodeURIComponent(options.progress || ""),
-              year: (/* @__PURE__ */ new Date()).getFullYear() + "年度",
-              timeRange: "0000-00-00 至 0000-00-00",
-              detectionUnit: taskData ? taskData.unit : "",
-              inspector: taskData && taskData.bridgeInspectionList ? taskData.bridgeInspectionList[0].inspector : ""
-            };
-          } else {
-            if (taskData && taskData.bridgeInspectionList && taskData.bridgeInspectionList.length > 0) {
-              projectInfo.value = {
-                projectName: taskData.bridgeInspectionList[0].projectName,
-                code: taskData.bridgeInspectionList[0].code,
-                status: taskData.bridgeInspectionList[0].status,
-                company: taskData.bridgeInspectionList[0].company,
-                progress: taskData.bridgeInspectionList[0].progress,
-                year: taskData.year,
-                timeRange: "0000-00-00 至 0000-00-00",
-                detectionUnit: taskData.unit,
-                inspector: taskData.bridgeInspectionList[0].inspector
-              };
-            }
-          }
-          try {
-            const bridgeData = await getBridgeList(3, 1);
-            formatAppLog("log", "at pages/List/List.vue:123", "获取到的桥梁数据:", bridgeData);
-            if (bridgeData && Array.isArray(bridgeData)) {
-              bridges.value = bridgeData.map((bridge) => ({
-                id: bridge.id || bridge.code,
-                code: bridge.code,
-                name: bridge.name,
-                location: bridge.location || "",
-                type: bridge.type || "small",
-                length: bridge.length || "",
-                class: bridge.class || ""
-              }));
-              formatAppLog("log", "at pages/List/List.vue:134", "处理后的桥梁列表:", bridges.value);
-            } else {
-              bridges.value = [];
-              formatAppLog("error", "at pages/List/List.vue:137", "桥梁数据格式不正确");
-              uni.showToast({
-                title: "桥梁数据格式不正确",
-                icon: "none"
-              });
-            }
-          } catch (error2) {
-            formatAppLog("error", "at pages/List/List.vue:144", "获取桥梁数据失败:", error2);
-            uni.showToast({
-              title: "获取桥梁数据失败",
-              icon: "none"
-            });
-          }
-        } catch (error2) {
-          formatAppLog("error", "at pages/List/List.vue:151", "获取数据失败:", error2);
-          uni.showToast({
-            title: "获取数据失败",
-            icon: "none"
-          });
+          const userId2 = "1";
+          const path = `_doc/${userId2}/project/projects.json`;
+          trackPath(path);
+          const data = await getProject(userId2);
+          readResult.value = data;
+          await saveData(testData.test);
+          writeResult.value = "项目文件操作成功";
+        } catch (error) {
+          writeResult.value = "项目文件操作失败: " + error.message;
         }
       };
-      vue.onMounted(() => {
-        getProjectData();
-      });
-      const getBridgeIcon = (type) => {
-        const icons = {
-          "small": "/static/image/bridge-small.png",
-          "cross": "/static/image/bridge-cross.png",
-          "arch": "/static/image/bridge-arch.png",
-          "suspension": "/static/images/bridge-suspension.png",
-          "main": "/static/image/bridge-arch.png",
-          // 暂时使用拱桥图标代替主线桥图标
-          "ramp": "/static/image/bridge-cross.png"
-          // 暂时使用立交桥图标代替匝道桥图标
-        };
-        return icons[type] || icons["small"];
-      };
-      const goToDetail = (bridge) => {
-        uni.navigateTo({
-          url: `/pages/bridge-disease/bridge-disease`
-        });
-      };
-      const filteredBridges = vue.computed(() => {
-        if (!searchText.value) {
-          return bridges.value;
+      const testTask = async () => {
+        try {
+          const userId2 = "1";
+          const projectId2 = "1";
+          const path = `_doc/${userId2}/project/${projectId2}/task.json`;
+          trackPath(path);
+          const data = await getTask(userId2, projectId2);
+          readResult.value = data;
+          await saveData(testData.test);
+          writeResult.value = "任务文件操作成功";
+        } catch (error) {
+          writeResult.value = "任务文件操作失败: " + error.message;
         }
-        const searchLower = searchText.value.toLowerCase();
-        return bridges.value.filter((bridge) => {
-          return bridge.name.toLowerCase().includes(searchLower) || bridge.code.toLowerCase().includes(searchLower) || bridge.location.toLowerCase().includes(searchLower);
-        });
-      });
-      const handleSearch = () => {
-        formatAppLog("log", "at pages/List/List.vue:199", "搜索关键词:", searchText.value);
       };
-      const __returned__ = { back, projectInfo, searchText, bridges, getProjectData, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getTaskList() {
-        return getTaskList;
-      }, get getBridgeList() {
-        return getBridgeList;
+      const testProperty = async () => {
+        try {
+          const userId2 = "1";
+          const buildingId2 = "5";
+          const path = `_doc/${userId2}/building/${buildingId2}/property.json`;
+          trackPath(path);
+          const data = await getProperty(userId2, buildingId2);
+          readResult.value = data;
+          await saveData(testData.test);
+          writeResult.value = "属性文件操作成功";
+        } catch (error) {
+          writeResult.value = "属性文件操作失败: " + error.message;
+        }
+      };
+      const testDisease = async () => {
+        try {
+          const userId2 = "1";
+          const buildingId2 = "5";
+          const yearId2 = "2023";
+          const path = `_doc/${userId2}/building/${buildingId2}/disease/${yearId2}.json`;
+          trackPath(path);
+          const data = await getDisease(userId2, buildingId2, yearId2);
+          readResult.value = data;
+          await saveData(testData.test);
+          writeResult.value = "病害文件操作成功";
+        } catch (error) {
+          writeResult.value = "病害文件操作失败: " + error.message;
+        }
+      };
+      const __returned__ = { writeResult, readResult, testData, testProject, testTask, testProperty, testDisease, ref: vue.ref, get getProject() {
+        return getProject;
+      }, get getTask() {
+        return getTask;
+      }, get getProperty() {
+        return getProperty;
+      }, get getDisease() {
+        return getDisease;
+      }, get saveData() {
+        return saveData;
+      }, get trackPath() {
+        return trackPath;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$5);
+  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createCommentVNode(" 导航栏 "),
-      vue.createVNode(_component_uni_nav_bar, {
-        class: "uni-nav-bar",
-        dark: "",
-        fixed: true,
-        shadow: "",
-        "background-color": "#0F4687",
-        "status-bar": "",
-        "left-icon": "left",
-        title: "桥梁定期检查项目列表",
-        onClickLeft: $setup.back
-      }),
-      vue.createCommentVNode(" 顶部信息卡片 "),
-      vue.createElementVNode("view", { class: "info-card" }, [
-        vue.createElementVNode("view", { class: "content-box" }, [
-          vue.createElementVNode(
-            "view",
-            { class: "title" },
-            vue.toDisplayString($setup.projectInfo.projectName || "项目名称"),
-            1
-            /* TEXT */
-          ),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "项目编号: " + vue.toDisplayString($setup.projectInfo.code),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测状态: " + vue.toDisplayString($setup.projectInfo.status),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "项目单位: " + vue.toDisplayString($setup.projectInfo.company),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测数量: " + vue.toDisplayString($setup.projectInfo.progress),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测年度: " + vue.toDisplayString($setup.projectInfo.year),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "起止时间: " + vue.toDisplayString($setup.projectInfo.timeRange),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测单位: " + vue.toDisplayString($setup.projectInfo.detectionUnit),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测人员: " + vue.toDisplayString($setup.projectInfo.inspector),
-              1
-              /* TEXT */
-            )
-          ])
-        ])
+      vue.createElementVNode("view", { class: "button-group" }, [
+        vue.createElementVNode("button", { onClick: $setup.testProject }, "测试项目文件"),
+        vue.createElementVNode("button", { onClick: $setup.testTask }, "测试任务文件"),
+        vue.createElementVNode("button", { onClick: $setup.testProperty }, "测试属性文件"),
+        vue.createElementVNode("button", { onClick: $setup.testDisease }, "测试病害文件")
       ]),
-      vue.createCommentVNode(" 搜索框 "),
-      vue.createElementVNode("view", { class: "search-box" }, [
-        vue.createElementVNode("text", { class: "search-icon" }, ""),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            type: "text",
-            placeholder: "搜索桥梁名称/编号/位置",
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.searchText = $event),
-            onInput: $setup.handleSearch
-          },
+      $setup.writeResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+        vue.createElementVNode("text", null, "写入结果: "),
+        vue.createElementVNode(
+          "text",
           null,
-          544
-          /* NEED_HYDRATION, NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.searchText]
-        ])
-      ]),
-      vue.createCommentVNode(" 桥梁列表 "),
-      vue.createElementVNode("view", { class: "bridge-list" }, [
-        (vue.openBlock(true), vue.createElementBlock(
-          vue.Fragment,
+          vue.toDisplayString($setup.writeResult),
+          1
+          /* TEXT */
+        )
+      ])) : vue.createCommentVNode("v-if", true),
+      $setup.readResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 1 }, [
+        vue.createElementVNode("text", null, "读取结果: "),
+        vue.createElementVNode(
+          "text",
           null,
-          vue.renderList($setup.filteredBridges, (bridge) => {
-            return vue.openBlock(), vue.createElementBlock("view", {
-              class: "bridge-item",
-              key: bridge.id,
-              onClick: ($event) => $setup.goToDetail(bridge)
-            }, [
-              vue.createElementVNode("view", { class: "bridge-icon" }, [
-                vue.createElementVNode("image", {
-                  src: $setup.getBridgeIcon(bridge.type),
-                  mode: "aspectFit"
-                }, null, 8, ["src"])
-              ]),
-              vue.createElementVNode("view", { class: "bridge-info" }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-code" },
-                  vue.toDisplayString(bridge.code),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-name" },
-                  vue.toDisplayString(bridge.name),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-location" },
-                  vue.toDisplayString(bridge.location),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "bridge-meta" }, [
-                vue.createElementVNode(
-                  "text",
-                  { class: "bridge-length" },
-                  vue.toDisplayString(bridge.length),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "text",
-                  { class: "bridge-class" },
-                  vue.toDisplayString(bridge.class) + "类",
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("text", { class: "arrow" }, ">")
-              ])
-            ], 8, ["onClick"]);
-          }),
-          128
-          /* KEYED_FRAGMENT */
-        )),
-        vue.createCommentVNode(" 无搜索结果提示 "),
-        $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "no-result"
-        }, [
-          vue.createElementVNode("text", null, "未找到匹配的桥梁")
-        ])) : vue.createCommentVNode("v-if", true)
-      ])
+          vue.toDisplayString(JSON.stringify($setup.readResult, null, 2)),
+          1
+          /* TEXT */
+        )
+      ])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
-  const _sfc_main$r = {
+  const PagesTestWriteTestWrite = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__scopeId", "data-v-5a80cfda"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/testWrite/testWrite.vue"]]);
+  const DOC_BASE_PATH$1 = "_doc/";
+  const userId = "1";
+  const projectId = "3";
+  const buildingId = "5";
+  const yearId = "2023";
+  const _sfc_main$A = {
+    __name: "test",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      function trackPath2(path) {
+        formatAppLog("log", "at pages/test/test.vue:19", "Tracked path:", path);
+      }
+      const FILE_NAMING2 = {
+        project: (userId2) => `${userId2}/project/projects.json`,
+        task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
+        property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
+        disease: (userId2, buildingId2, yearId2) => `${userId2}/building/${buildingId2}/disease/${yearId2}.json`
+      };
+      async function getJsonData2(path) {
+        return new Promise((resolve, reject) => {
+          plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+            fs2.root.getFile(path, { create: false }, (fileEntry) => {
+              fileEntry.file((file) => {
+                const reader = new plus.io.FileReader();
+                reader.onload = () => {
+                  try {
+                    resolve(JSON.parse(reader.result));
+                  } catch (e2) {
+                    reject(`JSON解析失败: ${path}`);
+                  }
+                };
+                reader.onerror = () => reject(`文件读取失败: ${path}`);
+                reader.readAsText(file);
+              }, reject);
+            }, reject);
+          }, reject);
+        });
+      }
+      function getProject2(userId2) {
+        const path = DOC_BASE_PATH$1 + FILE_NAMING2.project(userId2);
+        trackPath2(path);
+        return getJsonData2(path);
+      }
+      function getTask2(userId2, projectId2) {
+        const path = DOC_BASE_PATH$1 + FILE_NAMING2.task(userId2, projectId2);
+        trackPath2(path);
+        return getJsonData2(path);
+      }
+      function getProperty2(userId2, buildingId2) {
+        const path = DOC_BASE_PATH$1 + FILE_NAMING2.property(userId2, buildingId2);
+        trackPath2(path);
+        return getJsonData2(path);
+      }
+      function getDisease2(userId2, buildingId2, yearId2) {
+        const path = DOC_BASE_PATH$1 + FILE_NAMING2.disease(userId2, buildingId2, yearId2);
+        trackPath2(path);
+        return getJsonData2(path);
+      }
+      const data = vue.ref(null);
+      const fetchProject = async () => {
+        try {
+          data.value = await getProject2(userId);
+        } catch (error) {
+          formatAppLog("error", "at pages/test/test.vue:88", error);
+        }
+      };
+      const fetchTask = async () => {
+        try {
+          data.value = await getTask2(userId, projectId);
+        } catch (error) {
+          formatAppLog("error", "at pages/test/test.vue:96", error);
+        }
+      };
+      const fetchProperty = async () => {
+        try {
+          data.value = await getProperty2(userId, buildingId);
+        } catch (error) {
+          formatAppLog("error", "at pages/test/test.vue:104", error);
+        }
+      };
+      const fetchDisease = async () => {
+        try {
+          data.value = await getDisease2(userId, buildingId, yearId);
+        } catch (error) {
+          formatAppLog("error", "at pages/test/test.vue:112", error);
+        }
+      };
+      const __returned__ = { DOC_BASE_PATH: DOC_BASE_PATH$1, trackPath: trackPath2, FILE_NAMING: FILE_NAMING2, getJsonData: getJsonData2, getProject: getProject2, getTask: getTask2, getProperty: getProperty2, getDisease: getDisease2, data, userId, projectId, buildingId, yearId, fetchProject, fetchTask, fetchProperty, fetchDisease, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createElementVNode("button", { onClick: $setup.fetchProject }, "获取项目数据"),
+      vue.createElementVNode("button", { onClick: $setup.fetchTask }, "获取任务数据"),
+      vue.createElementVNode("button", { onClick: $setup.fetchProperty }, "获取属性数据"),
+      vue.createElementVNode("button", { onClick: $setup.fetchDisease }, "获取疾病数据"),
+      $setup.data ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+        vue.createElementVNode(
+          "pre",
+          null,
+          vue.toDisplayString(JSON.stringify($setup.data, null, 2)),
+          1
+          /* TEXT */
+        )
+      ])) : vue.createCommentVNode("v-if", true)
+    ]);
+  }
+  const PagesTestTest = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-727d09f0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/test/test.vue"]]);
+  const _sfc_main$z = {
     __name: "login",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2049,7 +1729,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "login" }, [
       vue.createElementVNode("view", { class: "login-box" }, [
         vue.createElementVNode("view", { class: "login-box-title" }, "登录"),
@@ -2119,619 +1799,7 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-e4e4508d"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/login/login.vue"]]);
-  const _sfc_main$q = {
-    __name: "test",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const userId = vue.ref("");
-      const bridgeListId = vue.ref("");
-      const bridgeId = vue.ref("");
-      const result = vue.ref("");
-      const currentData = vue.ref(null);
-      const handleGetTaskList = async () => {
-        const idToUse = userId.value || "3";
-        try {
-          const data = await getTaskList(idToUse);
-          result.value = JSON.stringify(data, null, 2);
-          currentData.value = data;
-          uni.showToast({
-            title: "获取任务列表成功",
-            icon: "success"
-          });
-        } catch (error2) {
-          result.value = `错误: ${error2.message}`;
-          uni.showToast({
-            title: "获取任务列表失败",
-            icon: "none"
-          });
-        }
-      };
-      const handleGetBridgeList = async () => {
-        if (!userId.value || !bridgeListId.value) {
-          uni.showToast({
-            title: "请输入用户 ID 和桥梁列表 ID",
-            icon: "none"
-          });
-          return;
-        }
-        try {
-          const data = await getBridgeList(userId.value, bridgeListId.value);
-          result.value = JSON.stringify(data, null, 2);
-          currentData.value = data;
-        } catch (error2) {
-          result.value = `错误: ${error2.message}`;
-          uni.showToast({
-            title: "获取桥梁列表失败",
-            icon: "none"
-          });
-        }
-      };
-      const handleGetBridge = async () => {
-        if (!userId.value || !bridgeId.value) {
-          uni.showToast({
-            title: "请输入用户 ID 和桥梁 ID",
-            icon: "none"
-          });
-          return;
-        }
-        try {
-          const taskListData = await getTaskList(userId.value);
-          if (!taskListData || !taskListData.bridgeInspectionList) {
-            throw new Error("未找到任务列表数据");
-          }
-          const bridge = taskListData.bridgeInspectionList.find(
-            (item) => item.id === bridgeId.value
-          );
-          if (!bridge) {
-            throw new Error("未找到对应的桥梁信息");
-          }
-          result.value = JSON.stringify(bridge, null, 2);
-          currentData.value = bridge;
-          uni.showToast({
-            title: "获取成功",
-            icon: "success"
-          });
-        } catch (error2) {
-          formatAppLog("error", "at pages/test/test.vue:111", "获取桥梁数据失败:", error2);
-          result.value = `错误: ${error2.message}`;
-          uni.showToast({
-            title: "获取桥梁信息失败",
-            icon: "none"
-          });
-        }
-      };
-      const handleSaveTest = async () => {
-        if (!currentData.value) {
-          uni.showToast({
-            title: "请先获取数据",
-            icon: "none"
-          });
-          return;
-        }
-        try {
-          const updatedData = {
-            ...currentData.value,
-            person: "ykx"
-          };
-          await saveData(updatedData);
-          result.value = JSON.stringify(updatedData, null, 2);
-          currentData.value = updatedData;
-          uni.showToast({
-            title: "更新保存成功",
-            icon: "success"
-          });
-        } catch (error2) {
-          result.value = `更新保存错误: ${error2.message}`;
-          uni.showToast({
-            title: "更新保存失败",
-            icon: "none"
-          });
-        }
-      };
-      const __returned__ = { userId, bridgeListId, bridgeId, result, currentData, handleGetTaskList, handleGetBridgeList, handleGetBridge, handleSaveTest, ref: vue.ref, get getTaskList() {
-        return getTaskList;
-      }, get getBridgeList() {
-        return getBridgeList;
-      }, get getBridge() {
-        return getBridge;
-      }, get saveData() {
-        return saveData;
-      }, get trackPath() {
-        return trackPath;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "input-group" }, [
-        vue.createElementVNode("text", { class: "label" }, "用户 ID:"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.userId = $event),
-            placeholder: "请输入用户 ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.userId]
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "input-group" }, [
-        vue.createElementVNode("text", { class: "label" }, "桥梁列表 ID:"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.bridgeListId = $event),
-            placeholder: "请输入桥梁列表 ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeListId]
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "input-group" }, [
-        vue.createElementVNode("text", { class: "label" }, "桥梁 ID:"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.bridgeId = $event),
-            placeholder: "请输入桥梁 ID"
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.bridgeId]
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "button-group" }, [
-        vue.createElementVNode("button", { onClick: $setup.handleGetTaskList }, "获取任务列表"),
-        vue.createElementVNode("button", { onClick: $setup.handleGetBridgeList }, "获取桥梁列表"),
-        vue.createElementVNode("button", { onClick: $setup.handleGetBridge }, "获取桥梁信息"),
-        vue.createElementVNode("button", {
-          onClick: $setup.handleSaveTest,
-          type: "primary"
-        }, "修改并保存")
-      ]),
-      vue.createElementVNode("view", { class: "result" }, [
-        vue.createElementVNode(
-          "text",
-          null,
-          vue.toDisplayString($setup.result),
-          1
-          /* TEXT */
-        )
-      ])
-    ]);
-  }
-  const PagesTestTest = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__scopeId", "data-v-727d09f0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/test/test.vue"]]);
-  function getJsonData(path) {
-    formatAppLog("log", "at utils/file.js:3", "getData");
-    return new Promise((resolve) => {
-      plus.io.requestFileSystem(
-        plus.io.PUBLIC_DOCUMENTS,
-        (fs2) => {
-          fs2.root.getFile(
-            path,
-            {
-              //请求地址文件  '/storage/emulated/0/config.txt'为根目录  '/config.txt'为/storage/Android/data/io.dcloud.HBuilder（包名）/documents/config.js
-              create: true
-              //当文件不存在时创建
-            },
-            (fileEntry) => {
-              fileEntry.file(function(file) {
-                let fileReader = new plus.io.FileReader();
-                fileReader.readAsText(file, "utf-8");
-                fileReader.onerror = (e2) => {
-                  formatAppLog("log", "at utils/file.js:15", "获取文件失败", fileReader.error);
-                  plus.nativeUI.toast("获取文件失败,请重启应用", {
-                    background: "rgba(255, 255, 255, 0.6)"
-                  });
-                  return;
-                };
-                fileReader.onload = (e2) => {
-                  formatAppLog("log", "at utils/file.js:22", "读取文件成功");
-                  let txtData = e2.target.result;
-                  resolve(txtData);
-                };
-              });
-            },
-            (error2) => {
-              formatAppLog("log", "at utils/file.js:29", "2新建获取文件失败", error2);
-              plus.nativeUI.toast("获取文件失败,请重启应用", {
-                background: "rgba(255, 255, 255, 0.6)"
-              });
-              return;
-            }
-          );
-        },
-        (e2) => {
-          formatAppLog("log", "at utils/file.js:37", "1请求文件系统失败", e2.message);
-          plus.nativeUI.toast("请求系统失败,请重启应用", {
-            background: "rgba(255, 255, 255, 0.6)"
-          });
-          return;
-        }
-      );
-    });
-  }
-  function changeData(path, seek, writeData) {
-    return new Promise((resolve) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getFile(
-          path,
-          {
-            create: true
-          },
-          (fileEntry) => {
-            fileEntry.file((file) => {
-              fileEntry.createWriter(
-                (writer) => {
-                  formatAppLog("log", "at utils/file.js:56", fs2.root.toURL(), "路径111");
-                  plus.nativeUI.showWaiting("正在保存信息");
-                  writer.seek(seek);
-                  const writeDataTemp = JSON.stringify(
-                    writeData,
-                    null,
-                    "\r"
-                  ).replace(/[\r]/g, "");
-                  writer.write(writeDataTemp);
-                  writer.onerror = function() {
-                    formatAppLog("log", "at utils/file.js:63", "4写入文件失败", writer.error.message);
-                    plus.nativeUI.closeWaiting();
-                    plus.nativeUI.toast("修改信息失败,请重新操作", {
-                      background: "rgba(255, 255, 255, 0.6)"
-                    });
-                    return;
-                  };
-                  writer.onsuccess = function() {
-                    plus.nativeUI.closeWaiting();
-                    plus.nativeUI.toast("保存成功", {
-                      // background: "rgba(255, 255, 255, 0.6)",
-                    });
-                    resolve("1");
-                  };
-                },
-                (error2) => {
-                  formatAppLog("log", "at utils/file.js:80", "3创建creactWriter失败", error2);
-                  plus.nativeUI.toast("保存文件失败,请重新操作", {
-                    // background: "#ffa38c",
-                  });
-                  return;
-                }
-              );
-            });
-          },
-          (error2) => {
-            formatAppLog("log", "at utils/file.js:89", "2获取文件失败", error2);
-            plus.nativeUI.toast("保存文件失败,请重新操作", {
-              // background: "#ffa38c",
-            });
-            return;
-          }
-        );
-      }, (e2) => {
-        formatAppLog("log", "at utils/file.js:97", "1请求文件系统失败", e2.message);
-        plus.nativeUI.toast("请求系统失败,请重新操作", {
-          // background: "#ffa38c",
-        });
-        return;
-      });
-    });
-  }
-  async function saveFile(url, file, newfilename) {
-    await creatDirs(url);
-    let isokm = moveDirectyOrFile(file, url + "/", newfilename);
-    return isokm;
-  }
-  async function creatDirs(url) {
-    let urllist = url.split("/");
-    formatAppLog("log", "at utils/file.js:119", urllist);
-    let u2 = "";
-    for (let i2 = 0; i2 < urllist.length - 1; i2++) {
-      let j2 = i2;
-      if (i2 == 0) {
-        u2 = urllist[i2];
-      } else {
-        u2 = u2 + "/" + urllist[i2];
-      }
-      formatAppLog("log", "at utils/file.js:129", i2 + "-------------------");
-      formatAppLog("log", "at utils/file.js:130", u2);
-      formatAppLog("log", "at utils/file.js:131", urllist[j2 + 1]);
-      await CreateNewDir(u2, urllist[j2 + 1]);
-    }
-  }
-  function moveDirectyOrFile(srcUrl, dstUrl, newName) {
-    plus.io.resolveLocalFileSystemURL(srcUrl, function(srcEntry) {
-      plus.io.resolveLocalFileSystemURL(dstUrl, function(dstEntry) {
-        if (srcEntry.isDirectory) {
-          srcEntry.moveTo(dstEntry, newName, function(entry) {
-            return true;
-          }, function(e2) {
-            return e2;
-          });
-        } else {
-          srcEntry.moveTo(dstEntry, newName, function(entry) {
-            return true;
-          }, function(e2) {
-            return e2;
-          });
-        }
-      }, function(e2) {
-        uni.showToast({
-          title: "获取目标目录失败:" + e2.message,
-          duration: 2e3,
-          icon: "none"
-        });
-      });
-    }, function(e2) {
-      uni.showToast({
-        title: "获取目录失败:" + e2.message,
-        duration: 2e3,
-        icon: "none"
-      });
-    });
-  }
-  function CreateNewDir(url, dirName) {
-    return new Promise((resolver, reject) => {
-      plus.io.resolveLocalFileSystemURL(url, function(entry) {
-        entry.getDirectory(dirName, {
-          create: true,
-          exclusive: false
-        }, function(dir) {
-          resolver(true);
-        }, function(error2) {
-          reject(error2.message);
-          uni.showToast({
-            title: dirName + "目录创建失败:" + error2.message,
-            duration: 2e3,
-            icon: "none"
-          });
-        });
-      }, function(e2) {
-        reject(error.message);
-        uni.showToast({
-          title: "获取目录失败:" + e2.message,
-          duration: 2e3,
-          icon: "none"
-        });
-      });
-    });
-  }
-  function copyFileTo(url, newUrl, dirName, newName) {
-    if (url.length >= 7 && "file://" == url.substring(0, 7)) {
-      url = url.substring(7);
-    }
-    let tempUrl = url.substring(0, url.lastIndexOf("/"));
-    let addUrl = newUrl + "/" + dirName;
-    formatAppLog("log", "at utils/file.js:215", addUrl, tempUrl);
-    if (addUrl == tempUrl) {
-      return url;
-    }
-    formatAppLog("log", "at utils/file.js:219", newUrl, dirName, newName);
-    return new Promise((resolve, reject) => {
-      plus.io.resolveLocalFileSystemURL(url, async (entry) => {
-        if (entry.isFile) {
-          await CreateNewDir(newUrl, dirName);
-          let u2 = await getDirsys(addUrl);
-          entry.copyTo(u2, newName, (en2) => {
-            resolve(en2.fullPath);
-          }, (e2) => {
-            formatAppLog("log", "at utils/file.js:228", e2);
-            reject("错误：复制时出现错误");
-            uni.showModal({
-              title: "错误",
-              content: "复制时出现错误"
-            });
-          });
-        } else {
-          reject("错误：路径必须是文件");
-          uni.showModal({
-            title: "错误",
-            content: "路径必须是文件"
-          });
-        }
-      }, (e2) => {
-        formatAppLog("log", "at utils/file.js:243", e2);
-        reject(e2);
-        uni.showModal({
-          title: "错误",
-          content: "打开文件系统时出错"
-        });
-      });
-    });
-  }
-  function getDirsys(url) {
-    return new Promise((resolve, reject) => {
-      plus.io.resolveLocalFileSystemURL(url, (entry) => {
-        resolve(entry);
-      }, (e2) => {
-        reject(e2);
-        formatAppLog("log", "at utils/file.js:259", e2);
-      });
-    });
-  }
-  const _sfc_main$p = {
-    __name: "fileIO",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const fileData = vue.ref(null);
-      const fileName = vue.ref("bridgeinfo");
-      const write = () => {
-        const pathUrl = plus.io.convertLocalFileSystemURL("_doc/") + "/3" + fileName.value + ".json";
-        const data = [
-          {
-            "studentId": "S12345",
-            "studentName": "Jane Smith",
-            "department": "Computer Science",
-            "year": 2024,
-            "courses": [
-              {
-                "courseId": "CSE101",
-                "courseName": "Introduction to Programming",
-                "instructor": "Dr. Johnson",
-                "creditHours": 3,
-                "grade": "A"
-              },
-              {
-                "courseId": "MAT101",
-                "courseName": "Calculus I",
-                "instructor": "Prof. Brown",
-                "creditHours": 4,
-                "grade": "B+"
-              },
-              {
-                "courseId": "PHY101",
-                "courseName": "Physics I",
-                "instructor": "Dr. Lee",
-                "creditHours": 3,
-                "grade": "A-"
-              }
-            ],
-            "gpa": 3.7,
-            "academicStanding": "Good Standing",
-            "transcriptUrl": "https://example.com/transcript/S12345"
-          }
-        ];
-        changeData(pathUrl, 0, data);
-      };
-      const read = async () => {
-        const path = plus.io.convertLocalFileSystemURL("_doc/") + fileName.value + ".json";
-        const rawData = await getJsonData(path);
-        fileData.value = JSON.parse(rawData);
-        uni.showToast({
-          title: "文件读取成功",
-          icon: "none"
-        });
-      };
-      const revise = async () => {
-        const path = plus.io.convertLocalFileSystemURL("_downloads/") + fileName.value + ".json";
-        const rawData = await getJsonData(path);
-        fileData.value = JSON.parse(rawData);
-        const item_1 = fileData.value[0];
-        item_1.name = "ykx";
-        const item_2 = fileData.value[1];
-        item_2.gender = "女性";
-        const updatedData = JSON.stringify(fileData.value);
-        await changeData(path, 0, JSON.parse(updatedData));
-      };
-      const saveFileToNewLocation = async () => {
-        const newFileName = "ykxtest";
-        const newPath = "_doc/" + newFileName + ".json";
-        const originalPath = plus.io.convertLocalFileSystemURL("_downloads/") + fileName.value + ".json";
-        try {
-          await saveFile(newPath, originalPath, newFileName);
-          uni.showToast({
-            title: "文件保存成功",
-            icon: "success"
-          });
-        } catch (error2) {
-          uni.showToast({
-            title: "保存失败：" + error2,
-            icon: "none"
-          });
-        }
-      };
-      const copyFile = async () => {
-        try {
-          const sourcePath = plus.io.convertLocalFileSystemURL("_downloads/") + fileName.value + ".json";
-          const targetDir = "_doc";
-          const dirName = "copied_files";
-          const newFileName = "copied_" + fileName.value + ".json";
-          const result = await copyFileTo(sourcePath, targetDir, dirName, newFileName);
-          if (result) {
-            uni.showToast({
-              title: "文件复制成功",
-              icon: "success"
-            });
-            formatAppLog("log", "at pages/fileIO/fileIO.vue:143", "复制后的文件路径：", result);
-          }
-        } catch (error2) {
-          formatAppLog("error", "at pages/fileIO/fileIO.vue:146", "复制文件失败：", error2);
-        }
-      };
-      const __returned__ = { fileData, fileName, write, read, revise, saveFileToNewLocation, copyFile, ref: vue.ref, get changeData() {
-        return changeData;
-      }, get getJsonData() {
-        return getJsonData;
-      }, get CreateNewDir() {
-        return CreateNewDir;
-      }, get saveFile() {
-        return saveFile;
-      }, get copyFileTo() {
-        return copyFileTo;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock(
-      vue.Fragment,
-      null,
-      [
-        vue.createElementVNode("button", { onClick: $setup.write }, "写文件"),
-        vue.createElementVNode("button", { onClick: $setup.read }, "读文件"),
-        vue.createElementVNode("button", { onClick: $setup.revise }, "修改文件"),
-        vue.createElementVNode("button", { onClick: $setup.saveFileToNewLocation }, "保存文件"),
-        vue.createElementVNode("button", { onClick: $setup.copyFile }, "复制文件"),
-        vue.createCommentVNode(" 渲染数据 "),
-        $setup.fileData ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "data-container"
-        }, [
-          vue.createCommentVNode(" 循环遍历数组 "),
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.fileData, (item, index) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                key: index,
-                class: "data-item"
-              }, [
-                vue.createElementVNode("text", { class: "label" }, "姓名："),
-                vue.createElementVNode(
-                  "text",
-                  { class: "value" },
-                  vue.toDisplayString(item.name),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("text", { class: "label" }, "性别："),
-                vue.createElementVNode(
-                  "text",
-                  { class: "value" },
-                  vue.toDisplayString(item.gender),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("text", { class: "label" }, "生日："),
-                vue.createElementVNode(
-                  "text",
-                  { class: "value" },
-                  vue.toDisplayString(item.birthday),
-                  1
-                  /* TEXT */
-                )
-              ]);
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ])) : vue.createCommentVNode("v-if", true)
-      ],
-      64
-      /* STABLE_FRAGMENT */
-    );
-  }
-  const PagesFileIOFileIO = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/fileIO/fileIO.vue"]]);
+  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__scopeId", "data-v-e4e4508d"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/login/login.vue"]]);
   class MPAnimation {
     constructor(options, _this) {
       this.options = options;
@@ -2844,7 +1912,7 @@ if (uni.restoreGlobal) {
     clearTimeout(_this.timer);
     return new MPAnimation(option, _this);
   }
-  const _sfc_main$o = {
+  const _sfc_main$y = {
     name: "uniTransition",
     emits: ["click", "change"],
     props: {
@@ -3095,7 +2163,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
       ref: "ani",
       animation: $data.animationData,
@@ -3108,8 +2176,8 @@ if (uni.restoreGlobal) {
       [vue.vShow, $data.isShow]
     ]);
   }
-  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
-  const _sfc_main$n = {
+  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
+  const _sfc_main$x = {
     name: "uniPopup",
     components: {},
     emits: ["change", "maskClick"],
@@ -3462,8 +2530,8 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$4);
+  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$5);
     return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -3522,11 +2590,1139 @@ if (uni.restoreGlobal) {
       /* CLASS */
     )) : vue.createCommentVNode("v-if", true);
   }
-  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
+  const __easycom_1$4 = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
+  const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
+  const FILE_NAMING = {
+    taskList: (userId2) => `${userId2}/taskList.json`,
+    bridgeList: (userId2, bridgeListId) => `${userId2}/${bridgeListId}/bridgeList.json`,
+    bridge: (userId2, bridgeListId, bridgeId) => `${userId2}/${bridgeListId}/${bridgeId}/bridge.json`
+  };
+  function getFullPath(fileName) {
+    return `${DOC_BASE_PATH}${fileName}`;
+  }
+  async function getJsonData(fullPath) {
+    try {
+      formatAppLog("log", "at utils/readJson.js:20", "文件访问路径:", fullPath);
+      const fileSystem = await new Promise((resolve, reject) => {
+        plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, resolve, reject);
+      });
+      const fileEntry = await new Promise((resolve, reject) => {
+        fileSystem.root.getFile(fullPath, { create: false }, resolve, reject);
+      });
+      const file = await new Promise((resolve, reject) => {
+        fileEntry.file(resolve, reject);
+      });
+      const jsonString = await new Promise((resolve, reject) => {
+        const reader = new plus.io.FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      try {
+        return JSON.parse(jsonString);
+      } catch (parseError) {
+        formatAppLog("error", "at utils/readJson.js:49", `JSON解析失败: ${fullPath}`, parseError);
+        throw new Error("文件内容格式不正确");
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/readJson.js:54", `文件操作失败: ${fullPath}`, error);
+      throw error;
+    }
+  }
+  function getBridge(userId2, bridgeListId, bridgeId) {
+    const fileName = FILE_NAMING.bridge(userId2, bridgeListId, bridgeId);
+    const fullPath = getFullPath(fileName);
+    trackPath$1(fullPath);
+    return getJsonData(fullPath);
+  }
+  const _sfc_main$w = {
+    __name: "tree",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const expandedItems = vue.ref(/* @__PURE__ */ new Set());
+      const treeData = vue.ref([]);
+      const popup2 = vue.ref(null);
+      const showInputs = vue.ref(false);
+      const typeOptions = ["固定值", "序号"];
+      const selectedTypeIndex = vue.ref(0);
+      const fixedValue = vue.ref("");
+      const startNum = vue.ref("");
+      const endNum = vue.ref("");
+      const allInputRecords = vue.ref([]);
+      const inputRecords = vue.ref([]);
+      const currentEditItem = vue.ref(null);
+      const currentItemRecords = vue.computed(() => {
+        if (!currentEditItem.value)
+          return [];
+        return inputRecords.value.filter((record) => record.itemId === currentEditItem.value.id);
+      });
+      const deleteRecord = (index) => {
+        const recordToDelete = inputRecords.value[index];
+        inputRecords.value.splice(index, 1);
+        const allRecordIndex = allInputRecords.value.findIndex(
+          (record) => record.itemId === recordToDelete.itemId && record.timestamp === recordToDelete.timestamp
+        );
+        if (allRecordIndex > -1) {
+          allInputRecords.value.splice(allRecordIndex, 1);
+        }
+        uni.showToast({
+          title: "删除成功",
+          icon: "success"
+        });
+      };
+      const selectedNode = vue.ref(null);
+      const isThirdLevel = (ancestors) => {
+        if (!ancestors)
+          return false;
+        const levels = ancestors.split(",");
+        return levels.length === 4;
+      };
+      const handleNodeClick = (item) => {
+        if (!isThirdLevel(item.ancestors))
+          return;
+        formatAppLog("log", "at pages/tree/tree.vue:204", "点击节点:", item);
+        selectedNode.value = item;
+      };
+      const filteredComponentsList = vue.computed(() => {
+        var _a;
+        formatAppLog("log", "at pages/tree/tree.vue:210", "过滤构件列表 - 当前节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
+        formatAppLog("log", "at pages/tree/tree.vue:211", "总构件列表长度:", componentsList.value.length);
+        if (!selectedNode.value) {
+          formatAppLog("log", "at pages/tree/tree.vue:214", "返回所有构件");
+          return componentsList.value;
+        }
+        const filtered = componentsList.value.filter((item) => item.component === selectedNode.value.name);
+        formatAppLog("log", "at pages/tree/tree.vue:219", "过滤后构件数量:", filtered.length);
+        return filtered;
+      });
+      const handleDelete = (index) => {
+        const itemToDelete = filteredComponentsList.value[index];
+        const originalIndex = componentsList.value.findIndex(
+          (item) => item.number === itemToDelete.number && item.component === itemToDelete.component
+        );
+        if (originalIndex > -1) {
+          componentsList.value.splice(originalIndex, 1);
+          uni.showToast({
+            title: "删除成功",
+            icon: "success"
+          });
+        }
+      };
+      const response = vue.ref({
+        currentDisease: [],
+        historyDisease: [],
+        frontFhoto: [],
+        bridgeArchive: {},
+        structureInfo: {}
+      });
+      const jsonData = vue.ref({});
+      vue.onMounted(async () => {
+        try {
+          const result = await getBridge(3, 1, "G6911428222L1160");
+          formatAppLog("log", "at pages/tree/tree.vue:254", "原始返回数据:", result);
+          const data = Array.isArray(result) ? result[0] : result;
+          formatAppLog("log", "at pages/tree/tree.vue:258", "处理后的数据:", data);
+          response.value = data;
+          formatAppLog("log", "at pages/tree/tree.vue:262", "response.value 更新后:", response.value);
+          if (data && data.structureInfo) {
+            jsonData.value = data.structureInfo;
+            formatAppLog("log", "at pages/tree/tree.vue:267", "structureInfo 数据:", jsonData.value);
+            if (jsonData.value.data) {
+              formatAppLog("log", "at pages/tree/tree.vue:270", "找到树形数据:", jsonData.value.data);
+              const flattenTree = (node) => {
+                if (!node)
+                  return [];
+                let result2 = [node];
+                if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+                  node.children.forEach((child) => {
+                    result2 = result2.concat(flattenTree(child));
+                  });
+                }
+                return result2;
+              };
+              treeData.value = flattenTree(jsonData.value.data);
+              formatAppLog("log", "at pages/tree/tree.vue:286", "展平后的树形数据:", treeData.value);
+              formatAppLog("log", "at pages/tree/tree.vue:287", "树形数据长度:", treeData.value.length);
+              if (treeData.value.length > 0) {
+                expandedItems.value.add(549);
+                expandedItems.value.add(550);
+                expandedItems.value.add(551);
+                expandedItems.value.add(552);
+                formatAppLog("log", "at pages/tree/tree.vue:295", "已展开的节点:", Array.from(expandedItems.value));
+              }
+            } else {
+              formatAppLog("error", "at pages/tree/tree.vue:298", "structureInfo.data 不存在");
+              formatAppLog("log", "at pages/tree/tree.vue:299", "完整的 structureInfo:", jsonData.value);
+            }
+          } else {
+            formatAppLog("error", "at pages/tree/tree.vue:302", "API返回数据中没有 structureInfo");
+            formatAppLog("log", "at pages/tree/tree.vue:303", "完整的API返回数据:", data);
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/tree/tree.vue:306", "数据加载出错:", error);
+        }
+      });
+      const getLevel = (ancestors) => {
+        if (!ancestors)
+          return 0;
+        const levels = ancestors.split(",");
+        return levels.length - 1;
+      };
+      const hasChildren = (item) => {
+        return treeData.value.some((node) => node.parentId === item.id);
+      };
+      const isExpanded = (id) => {
+        return expandedItems.value.has(id);
+      };
+      const shouldShowItem = (item) => {
+        if (item.id === 549)
+          return true;
+        return isExpanded(item.parentId);
+      };
+      const toggleExpand = (item) => {
+        if (expandedItems.value.has(item.id)) {
+          expandedItems.value.delete(item.id);
+        } else {
+          expandedItems.value.add(item.id);
+        }
+      };
+      const getStatus = (status) => {
+        return status === "0" ? "正常" : "异常";
+      };
+      const showInputForm = () => {
+        showInputs.value = true;
+      };
+      const handleTypeChange = (e2) => {
+        selectedTypeIndex.value = e2.detail.value;
+        fixedValue.value = "";
+        startNum.value = "";
+        endNum.value = "";
+      };
+      const cancelInput = () => {
+        showInputs.value = false;
+        fixedValue.value = "";
+        startNum.value = "";
+        endNum.value = "";
+        selectedTypeIndex.value = 0;
+        popup2.value.close();
+      };
+      const confirmInput = () => {
+        if (selectedTypeIndex.value === 0) {
+          if (!fixedValue.value) {
+            uni.showToast({
+              title: "请输入固定值",
+              icon: "none"
+            });
+            return;
+          }
+          const newRecord = {
+            itemId: currentEditItem.value.id,
+            itemName: currentEditItem.value.name,
+            type: "固定值",
+            value: fixedValue.value,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString()
+          };
+          inputRecords.value.push(newRecord);
+          allInputRecords.value.push(newRecord);
+          formatAppLog("log", "at pages/tree/tree.vue:401", "添加固定值记录:", fixedValue.value);
+          fixedValue.value = "";
+        } else {
+          if (!startNum.value || !endNum.value) {
+            uni.showToast({
+              title: "请输入完整的序号范围",
+              icon: "none"
+            });
+            return;
+          }
+          const start = parseInt(startNum.value);
+          const end = parseInt(endNum.value);
+          if (start > end) {
+            uni.showToast({
+              title: "起始值不能大于结束值",
+              icon: "none"
+            });
+            return;
+          }
+          const newRecord = {
+            itemId: currentEditItem.value.id,
+            itemName: currentEditItem.value.name,
+            type: "序号",
+            value: `${start}-${end}`,
+            timestamp: (/* @__PURE__ */ new Date()).toISOString()
+          };
+          inputRecords.value.push(newRecord);
+          allInputRecords.value.push(newRecord);
+          formatAppLog("log", "at pages/tree/tree.vue:438", "添加序号范围记录:", `${start}-${end}`);
+          startNum.value = "";
+          endNum.value = "";
+        }
+        uni.showToast({
+          title: "保存成功",
+          icon: "success"
+        });
+      };
+      const generateComponents = () => {
+        formatAppLog("log", "at pages/tree/tree.vue:454", "开始生成构件，当前记录数:", inputRecords.value.length);
+        if (inputRecords.value.length === 0) {
+          formatAppLog("log", "at pages/tree/tree.vue:456", "没有记录，跳过生成");
+          return;
+        }
+        const sortedRecords = [...inputRecords.value].sort(
+          (a2, b2) => new Date(a2.timestamp) - new Date(b2.timestamp)
+        );
+        formatAppLog("log", "at pages/tree/tree.vue:465", "排序后的记录:", sortedRecords);
+        const generateCombinations = (records, currentIndex = 0, prefix = "") => {
+          if (currentIndex >= records.length) {
+            return [prefix];
+          }
+          const record = records[currentIndex];
+          let combinations2 = [];
+          if (record.type === "固定值") {
+            const newPrefix = prefix ? `${prefix}-${record.value}` : record.value;
+            combinations2 = generateCombinations(records, currentIndex + 1, newPrefix);
+          } else {
+            const [start, end] = record.value.split("-").map(Number);
+            for (let i2 = start; i2 <= end; i2++) {
+              const newPrefix = prefix ? `${prefix}-${i2}` : `${i2}`;
+              combinations2 = combinations2.concat(generateCombinations(records, currentIndex + 1, newPrefix));
+            }
+          }
+          return combinations2;
+        };
+        const combinations = generateCombinations(sortedRecords);
+        formatAppLog("log", "at pages/tree/tree.vue:492", "生成的组合:", combinations);
+        const newComponents = combinations.map((number) => ({
+          number: `${number}#${currentEditItem.value.name}`,
+          component: currentEditItem.value.name,
+          status: "",
+          originalNumber: number
+        }));
+        componentsList.value = [...componentsList.value, ...newComponents];
+        formatAppLog("log", "at pages/tree/tree.vue:504", "生成完成，当前构件列表:", componentsList.value);
+      };
+      const numberItem = (item) => {
+        formatAppLog("log", "at pages/tree/tree.vue:509", "点击构件:", item);
+        currentEditItem.value = item;
+        inputRecords.value = allInputRecords.value.filter((record) => record.itemId === item.id);
+        formatAppLog("log", "at pages/tree/tree.vue:514", "当前构件的记录:", inputRecords.value);
+        showInputs.value = true;
+        popup2.value.open("center");
+      };
+      const closePopup = () => {
+        formatAppLog("log", "at pages/tree/tree.vue:522", "点击关闭按钮");
+        if (inputRecords.value.length > 0) {
+          generateComponents();
+        }
+        popup2.value.close();
+        showInputs.value = false;
+        fixedValue.value = "";
+        startNum.value = "";
+        endNum.value = "";
+        selectedTypeIndex.value = 0;
+      };
+      const handlePopupClose = () => {
+        formatAppLog("log", "at pages/tree/tree.vue:537", "弹窗关闭事件触发");
+        showInputs.value = false;
+        fixedValue.value = "";
+        startNum.value = "";
+        endNum.value = "";
+        selectedTypeIndex.value = 0;
+      };
+      const editPopup = vue.ref(null);
+      const editingComponent = vue.ref({
+        index: -1,
+        number: "",
+        component: "",
+        originalNumber: "",
+        originalComponent: ""
+      });
+      const handleEdit = (item, index) => {
+        var _a;
+        formatAppLog("log", "at pages/tree/tree.vue:558", "开始编辑构件:", item);
+        const [number] = item.number.split("#");
+        editingComponent.value = {
+          index,
+          number,
+          component: selectedNode.value ? selectedNode.value.name : item.component,
+          originalNumber: number,
+          originalComponent: item.component
+        };
+        formatAppLog("log", "at pages/tree/tree.vue:571", "当前编辑的构件信息:", editingComponent.value);
+        formatAppLog("log", "at pages/tree/tree.vue:572", "当前选中的节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
+        editPopup.value.open("center");
+      };
+      const confirmEdit = () => {
+        var _a;
+        formatAppLog("log", "at pages/tree/tree.vue:580", "确认编辑:", editingComponent.value);
+        if (!editingComponent.value.number) {
+          uni.showToast({
+            title: "请填写构件编号",
+            icon: "none"
+          });
+          return;
+        }
+        if (editingComponent.value.index > -1) {
+          const targetComponent = filteredComponentsList.value[editingComponent.value.index];
+          if (!targetComponent) {
+            uni.showToast({
+              title: "未找到要编辑的构件",
+              icon: "none"
+            });
+            return;
+          }
+          const originalIndex = componentsList.value.findIndex(
+            (item) => item.number === targetComponent.number && item.component === targetComponent.component
+          );
+          if (originalIndex > -1) {
+            const updatedList = [...componentsList.value];
+            const componentName = selectedNode.value ? selectedNode.value.name : targetComponent.component;
+            updatedList[originalIndex] = {
+              ...componentsList.value[originalIndex],
+              number: `${editingComponent.value.number}#${componentName}`,
+              component: componentName,
+              originalNumber: editingComponent.value.number
+            };
+            componentsList.value = updatedList;
+            formatAppLog("log", "at pages/tree/tree.vue:625", "更新成功，新的构件信息:", updatedList[originalIndex]);
+            formatAppLog("log", "at pages/tree/tree.vue:626", "当前构件列表长度:", updatedList.length);
+            formatAppLog("log", "at pages/tree/tree.vue:627", "当前选中节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
+            uni.showToast({
+              title: "修改成功",
+              icon: "success",
+              duration: 2e3
+            });
+            editPopup.value.close();
+            editingComponent.value = {
+              index: -1,
+              number: "",
+              component: "",
+              originalNumber: "",
+              originalComponent: ""
+            };
+          } else {
+            uni.showToast({
+              title: "未找到原始构件",
+              icon: "none"
+            });
+          }
+        }
+      };
+      const cancelEdit = () => {
+        formatAppLog("log", "at pages/tree/tree.vue:658", "取消编辑");
+        editPopup.value.close();
+        editingComponent.value = {
+          index: -1,
+          number: "",
+          component: "",
+          originalNumber: "",
+          originalComponent: ""
+        };
+      };
+      const componentsList = vue.ref([]);
+      vue.watch(componentsList, (newVal) => {
+        formatAppLog("log", "at pages/tree/tree.vue:676", "构件列表发生变化");
+        formatAppLog("log", "at pages/tree/tree.vue:677", "新的构件列表长度:", newVal.length);
+        formatAppLog("log", "at pages/tree/tree.vue:678", "构件列表内容:", JSON.stringify(newVal, null, 2));
+      }, { deep: true, immediate: true });
+      vue.watch(inputRecords, (newVal) => {
+        formatAppLog("log", "at pages/tree/tree.vue:683", "输入记录更新，新的长度:", newVal.length);
+        formatAppLog("log", "at pages/tree/tree.vue:684", "输入记录内容:", newVal);
+      }, { deep: true });
+      vue.watch(allInputRecords, (newVal) => {
+        formatAppLog("log", "at pages/tree/tree.vue:689", "所有输入记录更新，新的长度:", newVal.length);
+        formatAppLog("log", "at pages/tree/tree.vue:690", "所有输入记录内容:", newVal);
+      }, { deep: true });
+      const __returned__ = { expandedItems, treeData, popup: popup2, showInputs, typeOptions, selectedTypeIndex, fixedValue, startNum, endNum, allInputRecords, inputRecords, currentEditItem, currentItemRecords, deleteRecord, selectedNode, isThirdLevel, handleNodeClick, filteredComponentsList, handleDelete, response, jsonData, getLevel, hasChildren, isExpanded, shouldShowItem, toggleExpand, getStatus, showInputForm, handleTypeChange, cancelInput, confirmInput, generateComponents, numberItem, closePopup, handlePopupClose, editPopup, editingComponent, handleEdit, confirmEdit, cancelEdit, componentsList, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, watch: vue.watch, nextTick: vue.nextTick, get getBridge() {
+        return getBridge;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createElementVNode("view", { class: "tree-list" }, [
+        vue.createElementVNode("view", { class: "header" }, [
+          vue.createElementVNode("text", { class: "header-name" }, "名称"),
+          vue.createElementVNode("text", { class: "header-order" }, "显示顺序"),
+          vue.createElementVNode("text", { class: "header-status" }, "状态"),
+          vue.createElementVNode("text", { class: "header-action" }, "操作")
+        ]),
+        (vue.openBlock(true), vue.createElementBlock(
+          vue.Fragment,
+          null,
+          vue.renderList($setup.treeData, (item, index) => {
+            return vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: index },
+              [
+                $setup.shouldShowItem(item) ? (vue.openBlock(), vue.createElementBlock("view", {
+                  key: 0,
+                  class: "tree-item"
+                }, [
+                  vue.createElementVNode("view", {
+                    class: "item-content",
+                    style: vue.normalizeStyle({ paddingLeft: $setup.getLevel(item.ancestors) * 20 + "px" }),
+                    onClick: ($event) => $setup.handleNodeClick(item)
+                  }, [
+                    vue.createElementVNode("view", { class: "item-left" }, [
+                      $setup.hasChildren(item) ? (vue.openBlock(), vue.createElementBlock("view", {
+                        key: 0,
+                        class: "expand-icon",
+                        onClick: vue.withModifiers(($event) => $setup.toggleExpand(item), ["stop"])
+                      }, vue.toDisplayString($setup.isExpanded(item.id) ? "▼" : "▶"), 9, ["onClick"])) : (vue.openBlock(), vue.createElementBlock("view", {
+                        key: 1,
+                        class: "expand-icon-placeholder"
+                      })),
+                      vue.createElementVNode(
+                        "text",
+                        { class: "item-name" },
+                        vue.toDisplayString(item.name),
+                        1
+                        /* TEXT */
+                      )
+                    ]),
+                    vue.createElementVNode("view", { class: "item-middle" }, [
+                      vue.createElementVNode(
+                        "text",
+                        { class: "order-num" },
+                        vue.toDisplayString(item.orderNum),
+                        1
+                        /* TEXT */
+                      )
+                    ]),
+                    vue.createElementVNode("view", { class: "item-right" }, [
+                      vue.createElementVNode(
+                        "view",
+                        { class: "status-tag" },
+                        vue.toDisplayString($setup.getStatus(item.status)),
+                        1
+                        /* TEXT */
+                      ),
+                      vue.createElementVNode("button", {
+                        type: "default",
+                        size: "mini",
+                        class: "number-btn",
+                        onClick: vue.withModifiers(($event) => $setup.numberItem(item), ["stop"])
+                      }, "构件编号", 8, ["onClick"])
+                    ])
+                  ], 12, ["onClick"])
+                ])) : vue.createCommentVNode("v-if", true)
+              ],
+              64
+              /* STABLE_FRAGMENT */
+            );
+          }),
+          128
+          /* KEYED_FRAGMENT */
+        ))
+      ]),
+      vue.createCommentVNode(" 修改构件列表显示 "),
+      $setup.filteredComponentsList.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "components-list"
+      }, [
+        vue.createElementVNode("view", { class: "list-header" }, [
+          vue.createElementVNode("text", { class: "header-cell index" }, "序号"),
+          vue.createElementVNode("text", { class: "header-cell number" }, "编号"),
+          vue.createElementVNode("text", { class: "header-cell component" }, "所属部件"),
+          vue.createElementVNode("text", { class: "header-cell action" }, "操作")
+        ]),
+        vue.createElementVNode("scroll-view", {
+          class: "list-content",
+          "scroll-y": ""
+        }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.filteredComponentsList, (item, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: index,
+                class: "list-row"
+              }, [
+                vue.createElementVNode(
+                  "text",
+                  { class: "list-cell index" },
+                  vue.toDisplayString(index + 1),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "list-cell number" },
+                  vue.toDisplayString(item.number),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "list-cell component" },
+                  vue.toDisplayString(item.component),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "list-cell action" }, [
+                  vue.createElementVNode("button", {
+                    class: "list-btn",
+                    size: "mini",
+                    type: "primary",
+                    onClick: ($event) => $setup.handleEdit(item, index)
+                  }, "编辑", 8, ["onClick"]),
+                  vue.createElementVNode("button", {
+                    class: "list-btn",
+                    size: "mini",
+                    type: "primary",
+                    onClick: ($event) => $setup.handleDelete(index)
+                  }, "删除", 8, ["onClick"])
+                ])
+              ]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          ))
+        ])
+      ])) : (vue.openBlock(), vue.createElementBlock("view", {
+        key: 1,
+        class: "empty-tip"
+      }, " 暂无构件数据 ")),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "popup",
+          type: "center",
+          maskClick: false
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "popup-box" }, [
+              vue.createElementVNode("view", { class: "popup-content" }, [
+                vue.createElementVNode("view", { class: "input-container" }, [
+                  vue.createElementVNode("view", { class: "select-container" }, [
+                    vue.createElementVNode("view", { class: "type-wrapper" }, [
+                      vue.createElementVNode("view", { class: "type-picker" }, [
+                        vue.createElementVNode(
+                          "picker",
+                          {
+                            range: $setup.typeOptions,
+                            onChange: $setup.handleTypeChange
+                          },
+                          [
+                            vue.createElementVNode("view", { class: "picker-text" }, [
+                              vue.createElementVNode(
+                                "text",
+                                null,
+                                vue.toDisplayString($setup.typeOptions[$setup.selectedTypeIndex]),
+                                1
+                                /* TEXT */
+                              ),
+                              vue.createElementVNode("text", { class: "dropdown-icon" }, "▼")
+                            ])
+                          ],
+                          32
+                          /* NEED_HYDRATION */
+                        )
+                      ]),
+                      $setup.selectedTypeIndex === 0 ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+                        "input",
+                        {
+                          key: 0,
+                          type: "text",
+                          class: "single-input",
+                          "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.fixedValue = $event),
+                          placeholder: "请输入固定值"
+                        },
+                        null,
+                        512
+                        /* NEED_PATCH */
+                      )), [
+                        [vue.vModelText, $setup.fixedValue]
+                      ]) : (vue.openBlock(), vue.createElementBlock("view", {
+                        key: 1,
+                        class: "range-inputs"
+                      }, [
+                        vue.withDirectives(vue.createElementVNode(
+                          "input",
+                          {
+                            type: "number",
+                            class: "range-input",
+                            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.startNum = $event),
+                            placeholder: "起始值"
+                          },
+                          null,
+                          512
+                          /* NEED_PATCH */
+                        ), [
+                          [vue.vModelText, $setup.startNum]
+                        ]),
+                        vue.createElementVNode("text", { class: "separator" }, "-"),
+                        vue.withDirectives(vue.createElementVNode(
+                          "input",
+                          {
+                            type: "number",
+                            class: "range-input",
+                            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.endNum = $event),
+                            placeholder: "结束值"
+                          },
+                          null,
+                          512
+                          /* NEED_PATCH */
+                        ), [
+                          [vue.vModelText, $setup.endNum]
+                        ])
+                      ]))
+                    ]),
+                    vue.createElementVNode("view", { class: "action-buttons" }, [
+                      vue.createElementVNode("button", {
+                        class: "action-btn cancel",
+                        onClick: $setup.cancelInput
+                      }, "取消"),
+                      vue.createElementVNode("button", {
+                        class: "action-btn confirm",
+                        type: "primary",
+                        onClick: $setup.confirmInput
+                      }, "确定")
+                    ])
+                  ]),
+                  vue.createCommentVNode(" 添加记录显示区域 "),
+                  vue.createElementVNode("view", { class: "records-container" }, [
+                    vue.createElementVNode("view", { class: "records-title" }, "已添加片段："),
+                    vue.createElementVNode("view", { class: "records-header" }, [
+                      vue.createElementVNode("text", { class: "header-item" }, "序号"),
+                      vue.createElementVNode("text", { class: "header-item" }, "类型"),
+                      vue.createElementVNode("text", { class: "header-item" }, "值"),
+                      vue.createElementVNode("text", { class: "header-item" }, "操作")
+                    ]),
+                    vue.createElementVNode("scroll-view", {
+                      class: "records-list",
+                      "scroll-y": ""
+                    }, [
+                      (vue.openBlock(true), vue.createElementBlock(
+                        vue.Fragment,
+                        null,
+                        vue.renderList($setup.inputRecords, (record, index) => {
+                          return vue.openBlock(), vue.createElementBlock("view", {
+                            key: index,
+                            class: "record-item"
+                          }, [
+                            vue.createElementVNode(
+                              "text",
+                              { class: "record-index" },
+                              vue.toDisplayString(index + 1),
+                              1
+                              /* TEXT */
+                            ),
+                            vue.createElementVNode(
+                              "text",
+                              { class: "record-type" },
+                              vue.toDisplayString(record.type),
+                              1
+                              /* TEXT */
+                            ),
+                            vue.createElementVNode(
+                              "text",
+                              { class: "record-value" },
+                              vue.toDisplayString(record.value),
+                              1
+                              /* TEXT */
+                            ),
+                            vue.createElementVNode("button", {
+                              class: "delete-btn",
+                              size: "mini",
+                              onClick: ($event) => $setup.deleteRecord(index)
+                            }, "删除", 8, ["onClick"])
+                          ]);
+                        }),
+                        128
+                        /* KEYED_FRAGMENT */
+                      ))
+                    ])
+                  ])
+                ])
+              ]),
+              vue.createCommentVNode(" 添加关闭按钮 "),
+              vue.createElementVNode("view", { class: "popup-footer" }, [
+                vue.createElementVNode("button", {
+                  class: "close-btn",
+                  type: "primary",
+                  onClick: $setup.closePopup
+                }, "完成")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createCommentVNode(" 添加编辑弹窗 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "editPopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "edit-popup-box" }, [
+              vue.createElementVNode("view", { class: "edit-popup-header" }, [
+                vue.createElementVNode("text", { class: "edit-title" }, "编辑构件")
+              ]),
+              vue.createElementVNode("view", { class: "edit-popup-content" }, [
+                vue.createElementVNode("view", { class: "edit-form-item" }, [
+                  vue.createElementVNode("text", { class: "edit-label" }, "编号"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "input",
+                    {
+                      type: "text",
+                      class: "edit-input",
+                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.editingComponent.number = $event),
+                      placeholder: "请输入编号"
+                    },
+                    null,
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vModelText, $setup.editingComponent.number]
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "edit-form-item" }, [
+                  vue.createElementVNode("text", { class: "edit-label" }, "所属部件"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "input",
+                    {
+                      type: "text",
+                      class: "edit-input",
+                      "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.editingComponent.component = $event),
+                      placeholder: "请输入所属部件"
+                    },
+                    null,
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vModelText, $setup.editingComponent.component]
+                  ])
+                ])
+              ]),
+              vue.createElementVNode("view", { class: "edit-popup-footer" }, [
+                vue.createElementVNode("button", {
+                  class: "edit-btn cancel",
+                  onClick: $setup.cancelEdit
+                }, "取消"),
+                vue.createElementVNode("button", {
+                  class: "edit-btn confirm",
+                  type: "primary",
+                  onClick: $setup.confirmEdit
+                }, "确定")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      )
+    ]);
+  }
+  const PagesTreeTree = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-d9a31fef"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/tree/tree.vue"]]);
+  const _sfc_main$v = {
+    __name: "List",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const back = () => {
+        uni.navigateBack();
+      };
+      const projectInfo = vue.ref({});
+      const searchText = vue.ref("");
+      const bridges = vue.ref([]);
+      const getProjectData = async () => {
+        var _a, _b, _c;
+        try {
+          const response = await getProject(1);
+          formatAppLog("log", "at pages/List/List.vue:83", "获取到的原始数据:", JSON.stringify(response));
+          if (!response || response.code !== 0) {
+            formatAppLog("error", "at pages/List/List.vue:87", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
+            return;
+          }
+          if (response.data && response.data.projects && response.data.projects.length > 0) {
+            const project = response.data.projects[0];
+            projectInfo.value = {
+              projectName: project.name,
+              code: project.code,
+              status: project.status === "1" ? "已完成" : "未完成",
+              company: ((_a = project.ownerDept) == null ? void 0 : _a.deptName) || "",
+              progress: project.number || "0/0",
+              year: project.year,
+              timeRange: `${project.startDate || ""} - ${project.endDate || ""}`,
+              detectionUnit: ((_b = project.dept) == null ? void 0 : _b.deptName) || "",
+              inspector: ((_c = project.inspectors) == null ? void 0 : _c.map((i2) => i2.userName).join(" / ")) || ""
+            };
+          }
+          const bridgeData = await getTask(1, 1);
+          formatAppLog("log", "at pages/List/List.vue:109", "获取到的桥梁数据:", bridgeData);
+          if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
+            bridges.value = bridgeData.data.tasks.map((task) => {
+              var _a2, _b2, _c2, _d, _e2, _f, _g;
+              return {
+                id: task.id,
+                code: ((_a2 = task.building) == null ? void 0 : _a2.buildingCode) || "",
+                name: ((_b2 = task.building) == null ? void 0 : _b2.name) || "",
+                location: `${((_c2 = task.building) == null ? void 0 : _c2.routeCode) || ""} / ${((_d = task.building) == null ? void 0 : _d.routeName) || ""} / ${((_e2 = task.building) == null ? void 0 : _e2.bridgePileNumber) || ""}`,
+                type: "small",
+                // 默认类型
+                length: ((_f = task.building) == null ? void 0 : _f.bridgeLength) || "",
+                class: ((_g = task.building) == null ? void 0 : _g.rootPropertyId) || ""
+              };
+            });
+            formatAppLog("log", "at pages/List/List.vue:121", "处理后的桥梁列表:", bridges.value);
+          } else {
+            bridges.value = [];
+            formatAppLog("error", "at pages/List/List.vue:124", "桥梁数据格式不正确");
+            uni.showToast({
+              title: "桥梁数据格式不正确",
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/List/List.vue:131", "获取数据失败:", error);
+          uni.showToast({
+            title: "获取数据失败",
+            icon: "none"
+          });
+        }
+      };
+      vue.onMounted(() => {
+        getProjectData();
+      });
+      const getBridgeIcon = (type) => {
+        const icons = {
+          "small": "/static/image/bridge-small.png",
+          "cross": "/static/image/bridge-cross.png",
+          "arch": "/static/image/bridge-arch.png",
+          "suspension": "/static/images/bridge-suspension.png",
+          "main": "/static/image/bridge-arch.png",
+          // 暂时使用拱桥图标代替主线桥图标
+          "ramp": "/static/image/bridge-cross.png"
+          // 暂时使用立交桥图标代替匝道桥图标
+        };
+        return icons[type] || icons["small"];
+      };
+      const goToDetail = (bridge) => {
+        uni.navigateTo({
+          url: `/pages/bridge-disease/bridge-disease`
+        });
+      };
+      const filteredBridges = vue.computed(() => {
+        if (!searchText.value) {
+          return bridges.value;
+        }
+        const searchLower = searchText.value.toLowerCase();
+        return bridges.value.filter((bridge) => {
+          return bridge.name.toLowerCase().includes(searchLower) || bridge.code.toLowerCase().includes(searchLower) || bridge.location.toLowerCase().includes(searchLower);
+        });
+      });
+      const handleSearch = () => {
+        formatAppLog("log", "at pages/List/List.vue:179", "搜索关键词:", searchText.value);
+      };
+      const __returned__ = { back, projectInfo, searchText, bridges, getProjectData, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
+        return getProject;
+      }, get getTask() {
+        return getTask;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$6);
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createCommentVNode(" 导航栏 "),
+      vue.createVNode(_component_uni_nav_bar, {
+        class: "uni-nav-bar",
+        dark: "",
+        fixed: true,
+        shadow: "",
+        "background-color": "#0F4687",
+        "status-bar": "",
+        "left-icon": "left",
+        title: "桥梁定期检查项目列表",
+        onClickLeft: $setup.back
+      }),
+      vue.createCommentVNode(" 顶部信息卡片 "),
+      vue.createElementVNode("view", { class: "info-card" }, [
+        vue.createElementVNode("view", { class: "content-box" }, [
+          vue.createElementVNode(
+            "view",
+            { class: "title" },
+            vue.toDisplayString($setup.projectInfo.projectName || "项目名称"),
+            1
+            /* TEXT */
+          ),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "项目编号: " + vue.toDisplayString($setup.projectInfo.code),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测状态: " + vue.toDisplayString($setup.projectInfo.status),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "项目单位: " + vue.toDisplayString($setup.projectInfo.company),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测数量: " + vue.toDisplayString($setup.projectInfo.progress),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测年度: " + vue.toDisplayString($setup.projectInfo.year),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "起止时间: " + vue.toDisplayString($setup.projectInfo.timeRange),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测单位: " + vue.toDisplayString($setup.projectInfo.detectionUnit),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测人员: " + vue.toDisplayString($setup.projectInfo.inspector),
+              1
+              /* TEXT */
+            )
+          ])
+        ])
+      ]),
+      vue.createCommentVNode(" 搜索框 "),
+      vue.createElementVNode("view", { class: "search-box" }, [
+        vue.createElementVNode("text", { class: "search-icon" }, ""),
+        vue.withDirectives(vue.createElementVNode(
+          "input",
+          {
+            type: "text",
+            placeholder: "搜索桥梁名称/编号/位置",
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.searchText = $event),
+            onInput: $setup.handleSearch
+          },
+          null,
+          544
+          /* NEED_HYDRATION, NEED_PATCH */
+        ), [
+          [vue.vModelText, $setup.searchText]
+        ])
+      ]),
+      vue.createCommentVNode(" 桥梁列表 "),
+      vue.createElementVNode("view", { class: "bridge-list" }, [
+        (vue.openBlock(true), vue.createElementBlock(
+          vue.Fragment,
+          null,
+          vue.renderList($setup.filteredBridges, (bridge) => {
+            return vue.openBlock(), vue.createElementBlock("view", {
+              class: "bridge-item",
+              key: bridge.id,
+              onClick: ($event) => $setup.goToDetail(bridge)
+            }, [
+              vue.createElementVNode("view", { class: "bridge-icon" }, [
+                vue.createElementVNode("image", {
+                  src: $setup.getBridgeIcon(bridge.type),
+                  mode: "aspectFit"
+                }, null, 8, ["src"])
+              ]),
+              vue.createElementVNode("view", { class: "bridge-info" }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-code" },
+                  vue.toDisplayString(bridge.code),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-name" },
+                  vue.toDisplayString(bridge.name),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-location" },
+                  vue.toDisplayString(bridge.location),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "bridge-meta" }, [
+                vue.createElementVNode(
+                  "text",
+                  { class: "bridge-length" },
+                  vue.toDisplayString(bridge.length),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "text",
+                  { class: "bridge-class" },
+                  vue.toDisplayString(bridge.class) + "类",
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("text", { class: "arrow" }, ">")
+              ])
+            ], 8, ["onClick"]);
+          }),
+          128
+          /* KEYED_FRAGMENT */
+        )),
+        vue.createCommentVNode(" 无搜索结果提示 "),
+        $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "no-result"
+        }, [
+          vue.createElementVNode("text", null, "未找到匹配的桥梁")
+        ])) : vue.createCommentVNode("v-if", true)
+      ])
+    ]);
+  }
+  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
   const message = "/static/image/message.svg";
   const setting = "/static/image/setting.svg";
   const _imports_0$4 = "/static/image/zjl.png";
-  const _sfc_main$m = {
+  const _sfc_main$u = {
     __name: "home",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -3594,8 +3790,8 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$3);
+  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -3693,9 +3889,9 @@ if (uni.restoreGlobal) {
       /* STABLE_FRAGMENT */
     );
   }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
   const noMessage = "/static/image/noMessage.svg";
-  const _sfc_main$l = {
+  const _sfc_main$t = {
     __name: "message",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -3706,7 +3902,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "message" }, [
       vue.createElementVNode("view", { class: "message-none" }, [
         vue.createElementVNode("image", {
@@ -3717,8 +3913,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesMessageMessage = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/message/message.vue"]]);
-  const _sfc_main$k = {
+  const PagesMessageMessage = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/message/message.vue"]]);
+  const _sfc_main$s = {
     __name: "infoItem",
     props: {
       infoKey: String,
@@ -3732,7 +3928,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "infoItem" }, [
       vue.createElementVNode(
         "view",
@@ -3750,8 +3946,8 @@ if (uni.restoreGlobal) {
       )
     ]);
   }
-  const infoItem = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-e152a2e4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/infoItem.vue"]]);
-  const _sfc_main$j = {
+  const infoItem = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-e152a2e4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/infoItem.vue"]]);
+  const _sfc_main$r = {
     __name: "userinfo",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -3787,7 +3983,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "userinfo" }, [
       vue.createElementVNode("view", { class: "userinfo-photoBox" }, [
         vue.createElementVNode("image", {
@@ -3811,10 +4007,10 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const PagesUserinfoUserinfo = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/userinfo/userinfo.vue"]]);
+  const PagesUserinfoUserinfo = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/userinfo/userinfo.vue"]]);
   const _imports_0$3 = "/static/image/exclamation.svg";
   const _imports_1$1 = "/static/image/rightArrow.svg";
-  const _sfc_main$i = {
+  const _sfc_main$q = {
     __name: "setting",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -3833,7 +4029,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "setting" }, [
       vue.createElementVNode("view", {
         class: "setting-versionInfo",
@@ -3857,7 +4053,7 @@ if (uni.restoreGlobal) {
       }, " 注销登录 ")
     ]);
   }
-  const PagesSettingSetting = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/setting/setting.vue"]]);
+  const PagesSettingSetting = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/setting/setting.vue"]]);
   const popup = {
     data() {
       return {};
@@ -4197,7 +4393,7 @@ if (uni.restoreGlobal) {
   const {
     t: t$2
   } = initVueI18n(messages$1);
-  const _sfc_main$h = {
+  const _sfc_main$p = {
     name: "uniPopupDialog",
     mixins: [popup],
     emits: ["confirm", "close", "update:modelValue", "input"],
@@ -4333,7 +4529,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-popup-dialog" }, [
       vue.createElementVNode("view", { class: "uni-dialog-title" }, [
         vue.createElementVNode(
@@ -4411,9 +4607,9 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-d78c88b7"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue"]]);
+  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-d78c88b7"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue"]]);
   const _imports_0$2 = "/static/image/bridge.svg";
-  const _sfc_main$g = {
+  const _sfc_main$o = {
     __name: "versionInfo",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -4431,9 +4627,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup_dialog = resolveEasycom(vue.resolveDynamicComponent("uni-popup-dialog"), __easycom_0$3);
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$3);
+  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup_dialog = resolveEasycom(vue.resolveDynamicComponent("uni-popup-dialog"), __easycom_0$4);
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -4480,7 +4676,7 @@ if (uni.restoreGlobal) {
       /* STABLE_FRAGMENT */
     );
   }
-  const PagesVersionInfoVersionInfo = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/versionInfo/versionInfo.vue"]]);
+  const PagesVersionInfoVersionInfo = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/versionInfo/versionInfo.vue"]]);
   const en$1 = {
     "uni-search-bar.cancel": "cancel",
     "uni-search-bar.placeholder": "Search enter content"
@@ -4501,7 +4697,7 @@ if (uni.restoreGlobal) {
   const {
     t: t$1
   } = initVueI18n(messages);
-  const _sfc_main$f = {
+  const _sfc_main$n = {
     name: "UniSearchBar",
     emits: ["input", "update:modelValue", "clear", "cancel", "confirm", "blur", "focus"],
     props: {
@@ -4643,8 +4839,8 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$6);
+  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-searchbar" }, [
       vue.createElementVNode(
         "view",
@@ -4719,7 +4915,7 @@ if (uni.restoreGlobal) {
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
+  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
   let mpMixins = {};
   mpMixins = {
     data() {
@@ -4791,7 +4987,7 @@ if (uni.restoreGlobal) {
     (Comp.$renderjs || (Comp.$renderjs = [])).push("renderswipe");
     (Comp.$renderjsModules || (Comp.$renderjsModules = {}))["renderswipe"] = "74bb5072";
   };
-  const _sfc_main$e = {
+  const _sfc_main$m = {
     mixins: [mpwxs, bindIngXMixins, otherMixins],
     emits: ["click", "change"],
     props: {
@@ -4861,7 +5057,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -4958,11 +5154,11 @@ if (uni.restoreGlobal) {
     );
   }
   if (typeof block0 === "function")
-    block0(_sfc_main$e);
+    block0(_sfc_main$m);
   if (typeof block1 === "function")
-    block1(_sfc_main$e);
-  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
-  const _sfc_main$d = {
+    block1(_sfc_main$m);
+  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
+  const _sfc_main$l = {
     name: "uniSwipeAction",
     data() {
       return {};
@@ -4988,14 +5184,14 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.renderSlot(_ctx.$slots, "default")
     ]);
   }
-  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
+  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
   const _imports_0$1 = "/static/image/disease.png";
-  const _sfc_main$c = {
+  const _sfc_main$k = {
     __name: "disease-item",
     props: {
       item: {
@@ -5095,9 +5291,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$1);
-    const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$2);
+  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$2);
+    const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$3);
     return vue.openBlock(), vue.createBlock(
       _component_uni_swipe_action,
       {
@@ -5219,8 +5415,8 @@ if (uni.restoreGlobal) {
       /* NEED_PATCH */
     );
   }
-  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
-  const _sfc_main$b = {
+  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
+  const _sfc_main$j = {
     __name: "current-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -5345,9 +5541,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$2);
-    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$1);
+  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$3);
+    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
         vue.createElementVNode("view", { class: "view-search-bar" }, [
@@ -5421,8 +5617,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
-  const _sfc_main$a = /* @__PURE__ */ Object.assign({
+  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
+  const _sfc_main$i = /* @__PURE__ */ Object.assign({
     name: "history-disease"
   }, {
     __name: "history-disease",
@@ -5653,9 +5849,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   });
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$2);
-    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$1);
+  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$3);
+    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
         vue.createElementVNode("view", { class: "view-search-bar" }, [
@@ -5801,17 +5997,1473 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
+  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
+  const _sfc_main$h = {
+    __name: "administrative-identification-data",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const __returned__ = { props, ref: vue.ref, computed: vue.computed };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁所处行政区划代码 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.administrativeDivisionCode || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 路线编号 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.routeNumber || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 路线名称 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.routeName || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 路线等级 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.routeGrade || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁编号 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.bridgeNumber || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁名称 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.bridgeName || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥位桩号 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.bridgeStakeNumber || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 功能类型 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.functionalType || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 被跨越道路（通道）类型 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.crossedFacilityName || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 被跨越道路（通道）桩号 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.crossedFacilityStakeNumber || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计荷载 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.designLoad || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁坡度 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.bridgeSlope || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁平曲线半径 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.bridgeHorizontalCurveRadius || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 建成时间 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.completionYear || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计单位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.designOrganization || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 施工单位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.constructionOrganization || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 监理单位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.supervisionOrganization || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 业主单位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.ownerOrganization || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 管养单位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.maintenanceOrganization || "/"),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
+  const _sfc_main$g = {
+    __name: "bridge-tech",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const __returned__ = { props, ref: vue.ref, computed: vue.computed };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁总长(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.totalLength || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥面总宽(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.totalDeckWidth || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 车道宽度(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.laneWidth || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 人行道宽度(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.sidewalkWidth || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 护栏或防护墙宽度(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.guardrailHeight || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 中央分隔带宽度(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.centralMedianWidth || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥面标准净空(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.standardDeckClearance || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥面实际净空(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.actualDeckClearance || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥下通航等级及标准净空(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.navigationGradeUnderBridge || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥下实际净空(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.actualClearanceUnderBridge || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 引道总宽(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.approachTotalWidth || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 引道线形或曲线半径(m) "),
+        vue.createElementVNode("view", { class: "line-content" }, [
+          vue.createElementVNode(
+            "text",
+            { class: "line-content-left" },
+            vue.toDisplayString($props.data.approachRoadLinear || "/"),
+            1
+            /* TEXT */
+          ),
+          vue.createElementVNode("text", { class: "line-content-middle" }, "|"),
+          vue.createElementVNode(
+            "text",
+            { class: "line-content-right" },
+            vue.toDisplayString($props.data.approachRoadRadius || "/"),
+            1
+            /* TEXT */
+          )
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计洪水频率及其水位 "),
+        vue.createElementVNode("view", { class: "line-content" }, [
+          vue.createElementVNode(
+            "text",
+            { class: "line-content-left" },
+            vue.toDisplayString($props.data.floodFrequency || "/"),
+            1
+            /* TEXT */
+          ),
+          vue.createElementVNode("text", { class: "line-content-middle" }, "|"),
+          vue.createElementVNode(
+            "text",
+            { class: "line-content-right" },
+            vue.toDisplayString($props.data.waterLevel || "/"),
+            1
+            /* TEXT */
+          )
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 历史洪水位 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.historicalFloodLevel || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计地震动峰值加速度系数 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.seismicPeakAcceleration || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥面高度(m) "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.deckElevation || "/"),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
+  const _sfc_main$f = {
+    __name: "bridge-structure",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const types = [
+        "上部结构形式与材料",
+        "桥面系形式与材料",
+        "下部结构形式与材料",
+        "基础形式与材料",
+        "支座形式、材料与附属设施"
+      ];
+      const expandedTypes = vue.reactive({});
+      types.forEach((type) => {
+        expandedTypes[type] = true;
+      });
+      const toggleTypeExpand = (type) => {
+        expandedTypes[type] = !expandedTypes[type];
+      };
+      const __returned__ = { props, types, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "part-area" }, [
+        vue.createElementVNode("view", { class: "part-area-title" }, "桥梁分孔（m）"),
+        vue.createElementVNode(
+          "view",
+          { class: "part-area-content" },
+          vue.toDisplayString($props.data.bridgeSpanDivision),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "part-area" }, [
+        vue.createElementVNode("view", { class: "part-area-title" }, "结构体系"),
+        vue.createElementVNode(
+          "view",
+          { class: "part-area-content" },
+          vue.toDisplayString($props.data.structuralSystem),
+          1
+          /* TEXT */
+        )
+      ]),
+      (vue.openBlock(), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($setup.types, (type) => {
+          return vue.createElementVNode("view", {
+            key: type,
+            class: "type-group"
+          }, [
+            vue.createElementVNode("view", {
+              class: "type-header",
+              onClick: ($event) => $setup.toggleTypeExpand(type)
+            }, [
+              vue.createElementVNode(
+                "text",
+                null,
+                vue.toDisplayString(type),
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode(
+                "text",
+                { class: "expand-icon" },
+                vue.toDisplayString($setup.expandedTypes[type] ? "▼" : "▶"),
+                1
+                /* TEXT */
+              )
+            ], 8, ["onClick"]),
+            type === "上部结构形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+              "view",
+              { key: 0 },
+              [
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "主梁"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.mainGirder || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "主拱圈"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.mainArch || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥（索）塔"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.bridgeTower || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "拱上建筑"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.spandrelStructure || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "主缆"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.mainCable || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "斜拉索（含索力）"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.stayCable || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "吊杆（含索力）"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.hanger || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "系杆（含索力）"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.superstructureMaterial.tieRod || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ],
+              512
+              /* NEED_PATCH */
+            )), [
+              [vue.vShow, $setup.expandedTypes[type]]
+            ]) : vue.createCommentVNode("v-if", true),
+            type === "桥面系形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+              "view",
+              { key: 1 },
+              [
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥面铺装"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.deckSystemMaterial.deckPavement || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "伸缩缝"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.deckSystemMaterial.expansionJoint || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "人行道、路缘"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.deckSystemMaterial.sidewalkCurb || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "栏杆、护栏"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.deckSystemMaterial.railing || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "照明、标志"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.deckSystemMaterial.lightingSignage || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ],
+              512
+              /* NEED_PATCH */
+            )), [
+              [vue.vShow, $setup.expandedTypes[type]]
+            ]) : vue.createCommentVNode("v-if", true),
+            type === "下部结构形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+              "view",
+              { key: 2 },
+              [
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥台"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.substructureMaterial.abutment || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥墩"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.substructureMaterial.pier || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "锥坡、护坡"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.substructureMaterial.slopeProtection || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "翼墙、耳墙"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.substructureMaterial.wingWall || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ],
+              512
+              /* NEED_PATCH */
+            )), [
+              [vue.vShow, $setup.expandedTypes[type]]
+            ]) : vue.createCommentVNode("v-if", true),
+            type === "基础形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+              "view",
+              { key: 3 },
+              [
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "基础"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.foundationMaterial.foundation || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "锚碇"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.foundationMaterial.anchorBlock || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ],
+              512
+              /* NEED_PATCH */
+            )), [
+              [vue.vShow, $setup.expandedTypes[type]]
+            ]) : vue.createCommentVNode("v-if", true),
+            type === "支座形式、材料与附属设施" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+              "view",
+              { key: 4 },
+              [
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "支座"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.bearingAncillaryFacilities.bearing || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "防碰撞设施"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.bearingAncillaryFacilities.collisionProtection || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "航标及排水系统"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.bearingAncillaryFacilities.navigationMarkDrainage || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "expand-area" }, [
+                  vue.createElementVNode("view", { class: "expand-area-title" }, "调治构造物"),
+                  vue.createElementVNode(
+                    "view",
+                    { class: "expand-area-content" },
+                    vue.toDisplayString($props.data.bearingAncillaryFacilities.regulatingStructure || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ],
+              512
+              /* NEED_PATCH */
+            )), [
+              [vue.vShow, $setup.expandedTypes[type]]
+            ]) : vue.createCommentVNode("v-if", true)
+          ]);
+        }),
+        64
+        /* STABLE_FRAGMENT */
+      ))
+    ]);
+  }
+  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
+  const _sfc_main$e = {
+    __name: "bridge-files",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const __returned__ = { props, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计图纸 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.designDrawings || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 设计文件 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.designDocuments || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 竣工图纸 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.asBuiltDrawings || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 施工文件（含施工缺陷文件） "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.constructionDocuments || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 验收文件 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.acceptanceDocuments || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 行政审批文件 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.administrativeApprovalDocuments || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 定期检查资料 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.regularInspectionRecords || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 特殊检查资料 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.specialInspectionRecords || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 历次维修、加固资料 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.maintenanceHistory || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 其他档案 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.otherArchives || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 档案形式 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.archiveFormats || "/"),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 建档时间 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($props.data.archiveDate || "/"),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
+  const _sfc_main$d = {
+    __name: "bridge-inspection-history",
+    props: {
+      data: {
+        type: Array,
+        default: () => []
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const expandedTypes = vue.reactive({});
+      props.data.forEach((item) => {
+        expandedTypes[item.inspectionDate] = true;
+      });
+      const toggleTypeExpand = (type) => {
+        expandedTypes[type] = !expandedTypes[type];
+      };
+      const __returned__ = { props, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($props.data, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            key: index,
+            class: "type-group"
+          }, [
+            vue.createElementVNode("view", {
+              class: "type-header",
+              onClick: ($event) => $setup.toggleTypeExpand(item.inspectionDate)
+            }, [
+              vue.createElementVNode(
+                "text",
+                null,
+                "评定时间：" + vue.toDisplayString(item.inspectionDate),
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode(
+                "text",
+                { class: "expand-icon" },
+                vue.toDisplayString($setup.expandedTypes[item.inspectionDate] ? "▼" : "▶"),
+                1
+                /* TEXT */
+              )
+            ], 8, ["onClick"]),
+            $setup.expandedTypes[item.inspectionDate] ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 检测类别 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.inspectionType || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 桥梁技术状况评定结果/特殊检查结论 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.technicalCondition || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 处治对策 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.treatmentPlan || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 下次检测时间 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.nextInspectionDate || "/"),
+                  1
+                  /* TEXT */
+                )
+              ])
+            ])) : vue.createCommentVNode("v-if", true)
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
+    ]);
+  }
+  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
+  const _sfc_main$c = {
+    __name: "maintenance-records",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const expandedTypes = vue.reactive({});
+      props.data.forEach((item) => {
+        expandedTypes[item.timePeriod] = true;
+      });
+      const toggleTypeExpand = (type) => {
+        expandedTypes[type] = !expandedTypes[type];
+      };
+      const __returned__ = { props, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($props.data, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            key: index,
+            class: "type-group"
+          }, [
+            vue.createElementVNode("view", {
+              class: "type-header",
+              onClick: ($event) => $setup.toggleTypeExpand(item.timePeriod)
+            }, [
+              vue.createElementVNode(
+                "text",
+                null,
+                "时间（段）：" + vue.toDisplayString(item.timePeriod || "/"),
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode(
+                "text",
+                { class: "expand-icon" },
+                vue.toDisplayString($setup.expandedTypes[item.timePeriod] ? "▼" : "▶"),
+                1
+                /* TEXT */
+              )
+            ], 8, ["onClick"]),
+            $setup.expandedTypes[item.timePeriod] ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 处治类别（维修、加固、改造） "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.treatmentType || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 处置原因 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.treatmentReason || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 工程费用（万元） "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.treatmentScope || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 经费来源 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.fundingSource || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 处治质量评定 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.treatmentQualityAssessment || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 建设单位 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.constructionUnit || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 设计单位 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.designUnit || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 施工单位 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.constructionOrganization || "/"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "line" }, [
+                vue.createElementVNode("view", { class: "line-title" }, " 监理单位 "),
+                vue.createElementVNode(
+                  "view",
+                  { class: "line-content" },
+                  vue.toDisplayString(item.supervisionUnit || "/"),
+                  1
+                  /* TEXT */
+                )
+              ])
+            ])) : vue.createCommentVNode("v-if", true)
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
+    ]);
+  }
+  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
+  const _sfc_main$b = {
+    __name: "notes",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const __returned__ = { props, reactive: vue.reactive, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "part-area" }, [
+        vue.createElementVNode("view", { class: "part-area-title" }, "需要说明的事项(含桥梁管养单位的变更情况)"),
+        vue.createElementVNode(
+          "view",
+          { class: "part-area-content" },
+          vue.toDisplayString($props.data || "/"),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
+  const _sfc_main$a = {
+    __name: "other-info",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const data = vue.ref({
+        engineer: "张三",
+        //桥梁工程师
+        filler: "李四",
+        //填卡人
+        date: "2024-11"
+        //填卡时间
+      });
+      const __returned__ = { data, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      vue.createElementVNode("view", { class: "image-line" }, [
+        vue.createElementVNode("view", { class: "image-line-part" }, [
+          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁正面照 "),
+          vue.createElementVNode("view", { class: "image-line-part-image" }, [
+            vue.createElementVNode("image", {
+              src: _imports_0$4,
+              mode: "aspectFill",
+              class: "image"
+            })
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "image-line-part" }, [
+          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁立面照 "),
+          vue.createElementVNode("view", { class: "image-line-part-image" }, [
+            vue.createElementVNode("image", {
+              src: _imports_0$4,
+              mode: "aspectFill",
+              class: "image"
+            })
+          ])
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "image-line" }, [
+        vue.createElementVNode("view", { class: "image-line-part" }, [
+          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁正面照 "),
+          vue.createElementVNode("view", { class: "image-line-part-image" }, [
+            vue.createElementVNode("image", {
+              src: _imports_0$4,
+              mode: "aspectFill",
+              class: "image"
+            })
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "image-line-part" }, [
+          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁立面照 "),
+          vue.createElementVNode("view", { class: "image-line-part-image" }, [
+            vue.createElementVNode("image", {
+              src: _imports_0$4,
+              mode: "aspectFill",
+              class: "image"
+            })
+          ])
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 桥梁工程师 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($setup.data.engineer),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 填卡人 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($setup.data.filler),
+          1
+          /* TEXT */
+        )
+      ]),
+      vue.createElementVNode("view", { class: "line" }, [
+        vue.createElementVNode("view", { class: "line-title" }, " 填卡时间 "),
+        vue.createElementVNode(
+          "view",
+          { class: "line-content" },
+          vue.toDisplayString($setup.data.date),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
   const _sfc_main$9 = {
-    name: "bridge-archive",
-    data() {
-      return {};
+    __name: "bridge-archive",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const tabItems = vue.ref(["行政识别数据", "桥梁技术指标", "桥梁结构信息", "桥梁档案资料", "桥梁检测评定历史", "养护处置记录", "需要说明的事项", "其他"]);
+      const activeTab = vue.ref(0);
+      const changeTab = (index) => {
+        activeTab.value = index;
+      };
+      const bridgeArchive2 = vue.ref({
+        administrativeIdentificationData: {},
+        bridgeTechnicalIndicators: {},
+        bridgeStructuralInfo: {},
+        bridgeArchiveRecords: {},
+        bridgeInspectionHistory: [],
+        maintenanceRecords: [],
+        additionalNotes: "",
+        additionalInfo: {}
+      });
+      const getData = () => {
+        uni.request({
+          url: "/static/data/bridgeArchive.json",
+          method: "GET",
+          success: (res) => {
+            formatAppLog("log", "at components/bridge-archive.vue:72", "获取数据成功:", res.data);
+            bridgeArchive2.value = res.data;
+          },
+          fail: (err) => {
+            formatAppLog("error", "at components/bridge-archive.vue:76", "获取数据失败:", err);
+          }
+        });
+      };
+      vue.onMounted(() => {
+        getData();
+      });
+      const __returned__ = { tabItems, activeTab, changeTab, bridgeArchive: bridgeArchive2, getData, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
     }
   };
   function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", null, " 桥梁档案 ");
+    const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$1);
+    const _component_bridge_tech = resolveEasycom(vue.resolveDynamicComponent("bridge-tech"), __easycom_1$1);
+    const _component_bridge_structure = resolveEasycom(vue.resolveDynamicComponent("bridge-structure"), __easycom_2);
+    const _component_bridge_files = resolveEasycom(vue.resolveDynamicComponent("bridge-files"), __easycom_3);
+    const _component_bridge_inspection_history = resolveEasycom(vue.resolveDynamicComponent("bridge-inspection-history"), __easycom_4);
+    const _component_maintenance_records = resolveEasycom(vue.resolveDynamicComponent("maintenance-records"), __easycom_5);
+    const _component_notes = resolveEasycom(vue.resolveDynamicComponent("notes"), __easycom_6);
+    const _component_other_info = resolveEasycom(vue.resolveDynamicComponent("other-info"), __easycom_7);
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createElementVNode("view", { class: "content-layout" }, [
+        vue.createCommentVNode("左侧边栏"),
+        vue.createElementVNode("view", { class: "sidebar" }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.tabItems, (item, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: index,
+                class: vue.normalizeClass(["sidebar-item", $setup.activeTab === index ? "active" : ""]),
+                onClick: ($event) => $setup.changeTab(index)
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "sidebar-item-content" },
+                  vue.toDisplayString(item),
+                  1
+                  /* TEXT */
+                )
+              ], 10, ["onClick"]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          ))
+        ]),
+        vue.createCommentVNode(" 右侧内容区 "),
+        vue.createElementVNode("view", { class: "content" }, [
+          vue.createCommentVNode("使用条件渲染显示不同组件 "),
+          vue.createCommentVNode("行政识别数据 "),
+          $setup.activeTab === 0 ? (vue.openBlock(), vue.createBlock(_component_administrative_identification_data, {
+            key: 0,
+            data: $setup.bridgeArchive.administrativeIdentificationData
+          }, null, 8, ["data"])) : $setup.activeTab === 1 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 1 },
+            [
+              vue.createCommentVNode("桥梁技术指标"),
+              vue.createVNode(_component_bridge_tech, {
+                data: $setup.bridgeArchive.bridgeTechnicalIndicators
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 2 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 2 },
+            [
+              vue.createCommentVNode("桥梁结构信息"),
+              vue.createVNode(_component_bridge_structure, {
+                data: $setup.bridgeArchive.bridgeStructuralInfo
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 3 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 3 },
+            [
+              vue.createCommentVNode("桥梁档案资料"),
+              vue.createVNode(_component_bridge_files, {
+                data: $setup.bridgeArchive.bridgeArchiveRecords
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 4 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 4 },
+            [
+              vue.createCommentVNode("桥梁检测评定历史"),
+              vue.createVNode(_component_bridge_inspection_history, {
+                data: $setup.bridgeArchive.bridgeInspectionHistory
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 5 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 5 },
+            [
+              vue.createCommentVNode("养护处置记录"),
+              vue.createVNode(_component_maintenance_records, {
+                data: $setup.bridgeArchive.maintenanceRecords
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 6 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 6 },
+            [
+              vue.createCommentVNode("需要说明的事项"),
+              vue.createVNode(_component_notes, {
+                data: $setup.bridgeArchive.additionalNotes
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : $setup.activeTab === 7 ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 7 },
+            [
+              vue.createCommentVNode("其他"),
+              vue.createVNode(_component_other_info, {
+                data: $setup.bridgeArchive.additionalInfo
+              }, null, 8, ["data"])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : vue.createCommentVNode("v-if", true)
+        ])
+      ])
+    ]);
   }
-  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
+  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
   const _sfc_main$8 = {
     name: "structure-info",
     data() {
@@ -6116,12 +7768,6 @@ if (uni.restoreGlobal) {
   };
   const pages = [
     {
-      path: "pages/testWrite/testWrite",
-      style: {
-        navigationBarTitleText: ""
-      }
-    },
-    {
       path: "pages/bridge/bridge",
       style: {
         navigationBarTitleText: "桥梁定期检查列表",
@@ -6130,11 +7776,15 @@ if (uni.restoreGlobal) {
       }
     },
     {
-      path: "pages/List/List",
+      path: "pages/testWrite/testWrite",
       style: {
-        navigationBarTitleText: "桥梁定期检查项目列表",
-        navigationBarBackgroundColor: "#0F4687",
-        navigationStyle: "custom"
+        navigationBarTitleText: ""
+      }
+    },
+    {
+      path: "pages/test/test",
+      style: {
+        navigationBarTitleText: ""
       }
     },
     {
@@ -6150,13 +7800,15 @@ if (uni.restoreGlobal) {
       }
     },
     {
-      path: "pages/test/test",
-      style: {
-        navigationBarTitleText: ""
-      }
+      path: "pages/tree/tree"
     },
     {
-      path: "pages/fileIO/fileIO"
+      path: "pages/List/List",
+      style: {
+        navigationBarTitleText: "桥梁定期检查项目列表",
+        navigationBarBackgroundColor: "#0F4687",
+        navigationStyle: "custom"
+      }
     },
     {
       path: "pages/home/home",
@@ -10454,8 +12106,8 @@ ${i3}
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
               formatAppLog("log", "at pages/add-disease/add-disease.vue:252", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
-            } catch (error2) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:257", "解析编辑数据失败:", error2);
+            } catch (error) {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:257", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
@@ -11137,6 +12789,349 @@ ${i3}
     ]);
   }
   const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
+  function drawRulerRectTemplate(ctx, {
+    logicalWidth = 8,
+    logicalHeight = 8,
+    unit = "cm"
+  }) {
+    const MAX_DRAW_WIDTH = 800;
+    const MAX_DRAW_HEIGHT = 400;
+    let scale = MAX_DRAW_WIDTH / logicalWidth;
+    let drawWidth = MAX_DRAW_WIDTH;
+    let drawHeight = logicalHeight * scale;
+    if (drawHeight > MAX_DRAW_HEIGHT) {
+      scale = MAX_DRAW_HEIGHT / logicalHeight;
+      drawHeight = MAX_DRAW_HEIGHT;
+      drawWidth = logicalWidth * scale;
+    }
+    const centerX = 750 / 2;
+    const centerY = 950 / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
+    const x = (950 - drawWidth) / 2;
+    const y2 = (750 - drawHeight) / 2;
+    const rulerGap = 10;
+    const minPixelPerUnit = 40;
+    let unitStepX = 1;
+    while (unitStepX * scale < minPixelPerUnit)
+      unitStepX++;
+    let unitStepY = 1;
+    while (unitStepY * scale < minPixelPerUnit)
+      unitStepY++;
+    ctx.setLineWidth(1);
+    ctx.setStrokeStyle("#333");
+    ctx.setFontSize(12);
+    ctx.strokeRect(x, y2, drawWidth, drawHeight);
+    ctx.beginPath();
+    ctx.moveTo(x, y2 - rulerGap);
+    ctx.lineTo(x + drawWidth, y2 - rulerGap);
+    ctx.stroke();
+    for (let i2 = 0; i2 <= logicalWidth; i2 += unitStepX) {
+      const px = x + i2 * scale;
+      const py = y2 - rulerGap;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, py - 8);
+      ctx.stroke();
+      ctx.fillText(`${i2}${unit}`, px - 10, py - 12);
+    }
+    if (logicalWidth % unitStepX !== 0) {
+      const px = x + logicalWidth * scale;
+      const py = y2 - rulerGap;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px, py - 8);
+      ctx.stroke();
+      ctx.fillText(`${logicalWidth}${unit}`, px - 10, py - 12);
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + drawWidth + rulerGap, y2);
+    ctx.lineTo(x + drawWidth + rulerGap, y2 + drawHeight);
+    ctx.stroke();
+    for (let i2 = 0; i2 <= logicalHeight; i2 += unitStepY) {
+      const py = y2 + i2 * scale;
+      const px = x + drawWidth + rulerGap;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + 8, py);
+      ctx.stroke();
+      ctx.fillText(`${i2}${unit}`, px + 10, py + 5);
+    }
+    if (logicalHeight % unitStepY !== 0) {
+      const py = y2 + logicalHeight * scale;
+      const px = x + drawWidth + rulerGap;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.lineTo(px + 8, py);
+      ctx.stroke();
+      ctx.fillText(`${logicalHeight}${unit}`, px + 10, py + 5);
+    }
+    {
+      const arrowStartX = x + drawWidth / 3;
+      const arrowY = y2 + drawHeight + 10;
+      const arrowEndX = x + drawWidth / 3 * 2;
+      ctx.beginPath();
+      ctx.moveTo(arrowStartX, arrowY);
+      ctx.lineTo(arrowEndX, arrowY);
+      ctx.lineTo(arrowEndX - 10, arrowY - 5);
+      ctx.moveTo(arrowEndX, arrowY);
+      ctx.lineTo(arrowEndX - 10, arrowY + 5);
+      ctx.stroke();
+      ctx.fillText("桩号增大方向", x + drawWidth / 2 - 40, arrowY + 20);
+    }
+  }
+  function drawArchBridgeTemplate(ctx, {
+    logicalLength = 53,
+    // 总逻辑长度（单位）
+    beamCount = 3,
+    // 梁数，最终桥墩数 = 2n + 1
+    unit = "m",
+    // 单位显示
+    bigBeamNumber = 36,
+    //大桩号墩
+    smallBeamNumber = 35,
+    //小桩号墩
+    bridgeFu = "L"
+    //桥幅
+  }) {
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
+    const drawHeight = beamCount * 20 > 200 ? 200 : beamCount * 20;
+    const screenWidth = 750;
+    const screenHeight = 950;
+    const x = (screenWidth - drawHeight) / 2;
+    const y2 = (screenHeight - drawWidth) / 2;
+    const unitLevel = 25;
+    drawRuler(
+      ctx,
+      x + drawHeight + 10,
+      y2,
+      x + drawHeight + 10,
+      y2 + drawWidth,
+      "row",
+      logicalLength,
+      unitLevel,
+      unit
+    );
+    const lineList = [];
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x + drawHeight, y2 + drawWidth);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x, y2);
+    ctx.stroke();
+    lineList.push({
+      x,
+      y: y2
+    });
+    const exponent = 2;
+    const xPoints = [lineList[0].x];
+    for (let i2 = 1; i2 < beamCount; i2++) {
+      const ratio = 1 - Math.pow(1 - i2 / (beamCount + 1), exponent);
+      const xi = x + drawHeight / 3 * 2 * ratio;
+      xPoints.push(xi);
+    }
+    for (let i2 = 0; i2 < beamCount; i2++) {
+      const py = y2 + (i2 + 1) * drawWidth / (beamCount * 2 + 1);
+      const px = xPoints[i2];
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      lineList.push({
+        x: px,
+        y: py
+      });
+      ctx.lineTo(x + drawHeight, py);
+      ctx.stroke();
+    }
+    for (let i2 = 0; i2 < beamCount; i2++) {
+      const py = y2 + (i2 + 1 + beamCount) * drawWidth / (beamCount * 2 + 1);
+      ctx.beginPath();
+      ctx.moveTo(lineList[beamCount - i2].x, py);
+      lineList.push({
+        x: lineList[beamCount - i2].x,
+        y: py
+      });
+      ctx.lineTo(x + drawHeight, py);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2 + drawWidth);
+    lineList.push({
+      x,
+      y: y2 + drawWidth
+    });
+    ctx.lineTo(x, y2 + drawWidth);
+    ctx.stroke();
+    drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount);
+  }
+  function drawRuler(ctx, x, y2, endx, endy, direction, logicalLength, unitLevel, unit) {
+    const intLogicalLength = Math.floor(logicalLength);
+    const unitCount = logicalLength % unitLevel === 0 ? logicalLength / unitLevel : Math.floor(logicalLength / unitLevel) + 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(endx, endy);
+    ctx.stroke();
+    for (let i2 = 0; i2 <= intLogicalLength / unitCount - 1; i2++) {
+      let text;
+      let textX;
+      let textY;
+      if (direction === "colunm") {
+        const longth = endx - x;
+        const oversetY = (endy - y2) / (intLogicalLength / unitCount);
+        const px = x + i2 * (longth / (intLogicalLength / unitCount));
+        ctx.beginPath();
+        ctx.moveTo(px, y2 + oversetY * i2);
+        ctx.lineTo(px, y2 + 8 + oversetY * i2);
+        ctx.stroke();
+        text = `${i2 * unitCount}${unit}`;
+        textX = px - 10;
+        textY = y2 + 15 + oversetY * i2;
+      } else {
+        const longth = endy - y2;
+        const oversetX = (endx - x) / (intLogicalLength / unitCount);
+        const py = y2 + i2 * (longth / (intLogicalLength / unitCount));
+        ctx.beginPath();
+        ctx.moveTo(x + oversetX, py);
+        ctx.lineTo(x + 8 + oversetX, py);
+        ctx.stroke();
+        text = `${i2 * unitCount}${unit}`;
+        textX = x + 15 + oversetX;
+        textY = py - 10;
+      }
+      ctx.save();
+      ctx.translate(textX, textY);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    {
+      let text;
+      let textX;
+      let textY;
+      if (direction === "colunm") {
+        ctx.beginPath();
+        ctx.moveTo(endx, endy);
+        ctx.lineTo(endx, endy + 8);
+        ctx.stroke();
+        text = `${logicalLength}${unit}`;
+        textX = endx - 10;
+        textY = endy + 15;
+      } else {
+        ctx.beginPath();
+        ctx.moveTo(endx, endy);
+        ctx.lineTo(endx + 8, endy);
+        ctx.stroke();
+        text = `${logicalLength}${unit}`;
+        textX = endx + 15;
+        textY = endy - 10;
+      }
+      ctx.save();
+      ctx.translate(textX, textY);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+  }
+  function drawConvexCurve(ctx, points, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount) {
+    if (!points || points.length < 2)
+      return;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i2 = 1; i2 < points.length; i2++) {
+      const text = `${bridgeFu}${bigBeamNumber}-${i2 > beamCount ? bigBeamNumber : smallBeamNumber}-${i2 - 1 > beamCount ? beamCount * 2 - i2 + 1 : i2 - 1}#`;
+      const textX = points[i2 - 1].x - 20;
+      const textY = points[i2 - 1].y - 20;
+      ctx.save();
+      ctx.translate(textX, textY);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    for (let i2 = 1; i2 < points.length; i2++) {
+      const p0 = points[i2 - 1];
+      const p1 = points[i2];
+      const p2 = points[i2 + 1] || p1;
+      const cp1x = p0.x + (p1.x - p0.x) / 4;
+      const cp1y = p0.y + (p1.y - p0.y) / 4;
+      const cp2x = p1.x - (p2.x - p1.x) / 4;
+      const cp2y = p1.y - (p2.y - p1.y) / 4;
+      ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p1.x, p1.y);
+    }
+    ctx.stroke();
+  }
+  function drawRulerRectTemplate4(ctx, {
+    logicalWidth = 12,
+    bigBeamNumber = 1,
+    beamCount = 8,
+    bridgeFu = "L",
+    unit = "m"
+  }) {
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const miniRectHeight = 50;
+    const drawWidth = 600;
+    const drawHeight = miniRectHeight * beamCount;
+    const overSetY = 50;
+    const x = 100;
+    const y2 = 950 - drawHeight > 0 ? (950 - drawHeight) / 2 : 50;
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + drawWidth, y2 + overSetY);
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x, y2 + drawHeight);
+    ctx.moveTo(x, y2 + drawHeight);
+    ctx.lineTo(x + drawWidth, y2 + drawHeight + overSetY);
+    ctx.moveTo(x + drawWidth, y2 + overSetY);
+    ctx.lineTo(x + drawWidth, y2 + drawHeight + overSetY);
+    ctx.stroke();
+    for (let i2 = 1; i2 <= beamCount; i2++) {
+      const py = y2 + i2 * miniRectHeight;
+      ctx.beginPath();
+      ctx.moveTo(x, py);
+      ctx.lineTo(x + drawWidth, py + overSetY);
+      ctx.stroke();
+      const text = `${bridgeFu}${bigBeamNumber}-${i2}`;
+      ctx.save();
+      ctx.translate(x + drawWidth + 10, py + overSetY - 34);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    for (let i2 = 1; i2 < beamCount; i2++) {
+      const py = y2 + i2 * miniRectHeight;
+      const text = `${bridgeFu}${bigBeamNumber}-${i2}`;
+      ctx.save();
+      ctx.translate(x - 16, py - 16);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(x - 40, y2 + drawHeight / 2 - 24);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText("铰缝编号", 0, 0);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x + drawWidth + 30, y2 + overSetY + drawHeight / 2 - 20);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText("铰缝编号", 0, 0);
+    ctx.restore();
+    drawRuler(
+      ctx,
+      x + drawWidth,
+      y2 + drawHeight + overSetY + 10,
+      x,
+      y2 + drawHeight + 10,
+      "colunm",
+      logicalWidth,
+      20,
+      unit
+    );
+  }
   const _imports_0 = "/static/image/hand.svg";
   const _imports_1 = "/static/image/line.svg";
   const _imports_2 = "/static/image/curve.svg";
@@ -11174,11 +13169,11 @@ ${i3}
       const offsetCurrentX = vue.ref(0);
       const offsetCurrentY = vue.ref(0);
       const drawing = vue.ref(false);
-      const templateImage = vue.ref("");
+      const template = vue.ref("");
       const history = vue.ref([]);
       const curvePoints = vue.ref([]);
       const status = vue.ref("start");
-      const drawColor = vue.ref("#000000");
+      const drawColor = vue.ref("#ff0000");
       const textValue = vue.ref("");
       const showTextInput = vue.ref(false);
       const textInputX = vue.ref(0);
@@ -11197,6 +13192,70 @@ ${i3}
       const inputAndChanged = vue.ref(false);
       const clickCandidates = vue.ref([]);
       const clickCycleIndex = vue.ref(0);
+      const showParamPopup = vue.ref(false);
+      const rectTemplateParam = vue.ref({
+        logicalWidth: 8,
+        logicalHeight: 8,
+        unit: "cm"
+      });
+      const bridgeTemplateParam = vue.ref({
+        logicalLength: 12.1,
+        beamCount: 3,
+        bigBeamNumber: 36,
+        smallBeamNumber: 35,
+        bridgeFu: "L",
+        unit: "cm"
+      });
+      const rectTemplateParam4 = vue.ref({
+        logicalWidth: 12,
+        bigBeamNumber: 1,
+        beamCount: 8,
+        bridgeFu: "L",
+        unit: "m"
+      });
+      const tempParams = vue.ref({});
+      const fieldList = vue.reactive([
+        {
+          key: "logicalWidth",
+          label: "逻辑宽度（单位数）",
+          type: "number"
+        },
+        {
+          key: "logicalHeight",
+          label: "逻辑高度（单位数）",
+          type: "number"
+        },
+        {
+          key: "logicalLength",
+          label: "逻辑长度",
+          type: "number"
+        },
+        {
+          key: "beamCount",
+          label: "梁数",
+          type: "number"
+        },
+        {
+          key: "bigBeamNumber",
+          label: "大桩号墩",
+          type: "number"
+        },
+        {
+          key: "smallBeamNumber",
+          label: "小桩号墩",
+          type: "number"
+        },
+        {
+          key: "unit",
+          label: "单位(cm / m)",
+          type: "text"
+        },
+        {
+          key: "bridge",
+          label: "桥幅(L / R)",
+          type: "text"
+        }
+      ]);
       const lastClick = vue.ref({
         x: null,
         y: null,
@@ -11218,21 +13277,10 @@ ${i3}
       const changeColor = (color) => {
         drawColor.value = color;
       };
-      const chooseTemplate = () => {
-        uni.chooseImage({
-          count: 1,
-          success: (res) => {
-            events.value.push({
-              type: "template",
-              object: {
-                oldTemplateImage: templateImage.value,
-                newTemplateImage: res.tempFilePaths[0]
-              }
-            });
-            templateImage.value = res.tempFilePaths[0];
-            redrawCanvas();
-          }
-        });
+      const chooseTemplate = (tem) => {
+        if (tem !== null) {
+          template.value = tem;
+        }
         resetState();
       };
       const inputting = () => {
@@ -11291,12 +13339,19 @@ ${i3}
           type: "clear",
           object: {
             history: history.value,
-            template: templateImage.value
+            template: template.value
           }
         });
         history.value = [];
-        templateImage.value = "";
         resetState();
+        redrawCanvas();
+      };
+      const zoomIn = () => {
+        scale.value *= 1.1;
+        redrawCanvas();
+      };
+      const zoomOut = () => {
+        scale.value /= 1.1;
         redrawCanvas();
       };
       const undo = () => {
@@ -11320,10 +13375,10 @@ ${i3}
               backToOldPosition(index, obj);
             }
           } else if (type == "template") {
-            templateImage.value = obj.oldTemplateImage;
+            template.value = obj.oldTemplateImage;
           } else if (type == "clear") {
             history.value = obj.history;
-            templateImage.value = obj.template;
+            template.value = obj.template;
           } else if (type == "textValueChange") {
             history.value[index].textValue = obj.oldTextValue;
           }
@@ -11417,7 +13472,7 @@ ${i3}
         if (mode.value !== "select") {
           transparentCtx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
           transparentCtx.value.setStrokeStyle("#ff00ff");
-          transparentCtx.value.setLineWidth(2);
+          transparentCtx.value.setLineWidth(1);
           transparentCtx.value.beginPath();
         }
         if (mode.value === "line") {
@@ -11762,7 +13817,7 @@ ${i3}
             }
             break;
           default:
-            formatAppLog("warn", "at pages/canvas/canvas.vue:942", "Unknown object mode:", object.mode);
+            formatAppLog("warn", "at pages/canvas/canvas.vue:1012", "Unknown object mode:", object.mode);
         }
         selectedObject.value = object;
       };
@@ -11775,9 +13830,33 @@ ${i3}
             canvasImagePath.value = filePath;
           },
           fail: (err) => {
-            formatAppLog("error", "at pages/canvas/canvas.vue:972", "保存画布失败", err);
+            formatAppLog("error", "at pages/canvas/canvas.vue:1041", "保存画布失败", err);
           }
         });
+      };
+      const changeTemplateParam = () => {
+        showParamPopup.value = true;
+        if (template.value === "rect") {
+          tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam.value));
+        } else if (template.value === "bridge") {
+          tempParams.value = JSON.parse(JSON.stringify(bridgeTemplateParam.value));
+        } else if (template.value === "rect4") {
+          tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam4.value));
+        }
+      };
+      const applyTemplateChange = () => {
+        showParamPopup.value = false;
+        if (template.value === "rect") {
+          rectTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "bridge") {
+          bridgeTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "rect4") {
+          rectTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+        }
+        redrawCanvas();
+      };
+      const cancleTemplateChange = () => {
+        showParamPopup.value = false;
       };
       const save = () => {
         let action;
@@ -11840,6 +13919,7 @@ ${i3}
             id: Math.random().toString(36).substr(2, 8)
           };
         }
+        action.scale = scale.value;
         if (action) {
           history.value.push(action);
           events.value.push({
@@ -11857,13 +13937,42 @@ ${i3}
         ctx.value.save();
         ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
         ctx.value.translate(offsetX.value, offsetY.value);
+        ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
         ctx.value.scale(scale.value, scale.value);
-        if (templateImage.value) {
-          ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
+        ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
+        if (template.value === "rect") {
+          drawRulerRectTemplate(ctx.value, {
+            logicalWidth: Number(rectTemplateParam.value.logicalWidth),
+            logicalHeight: Number(rectTemplateParam.value.logicalHeight),
+            unit: rectTemplateParam.value.unit
+            // 单位参数
+          });
+        } else if (template.value === "bridge") {
+          drawArchBridgeTemplate(ctx.value, {
+            logicalLength: Number(bridgeTemplateParam.value.logicalLength),
+            beamCount: Number(bridgeTemplateParam.value.beamCount),
+            unit: bridgeTemplateParam.value.unit,
+            bigBeamNumber: Number(bridgeTemplateParam.value.bigBeamNumber),
+            smallBeamNumber: Number(bridgeTemplateParam.value.smallBeamNumber),
+            bridgeFu: bridgeTemplateParam.value.bridgeFu
+          });
+        } else if (template.value === "rect4") {
+          drawRulerRectTemplate4(ctx.value, {
+            logicalWidth: rectTemplateParam4.value.logicalWidth,
+            bigBeamNumber: rectTemplateParam4.value.bigBeamNumber,
+            beamCount: rectTemplateParam4.value.beamCount,
+            bridgeFu: rectTemplateParam4.value.bridgeFu,
+            unit: rectTemplateParam4.value.unit
+          });
         }
+        ctx.value.restore();
         history.value.forEach((action) => {
+          ctx.value.save();
+          ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
+          ctx.value.scale(scale.value / action.scale, scale.value / action.scale);
+          ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
           ctx.value.setStrokeStyle(action.color);
-          ctx.value.setLineWidth(2 / scale.value);
+          ctx.value.setLineWidth(1 / (scale.value / action.scale));
           ctx.value.beginPath();
           if (action.mode === "line") {
             ctx.value.moveTo(action.startX, action.startY);
@@ -11884,6 +13993,7 @@ ${i3}
             ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
           }
           ctx.value.stroke();
+          ctx.value.restore();
         });
         if (textSelecting.value) {
           ctx.value.setStrokeStyle("#000000");
@@ -11932,11 +14042,17 @@ ${i3}
         ctx2.bezierCurveTo(cx - rx, cy + oy, cx - ox, cy + ry, cx, cy + ry);
         ctx2.bezierCurveTo(cx + ox, cy + ry, cx + rx, cy + oy, cx + rx, cy);
       };
-      const __returned__ = { canvasId, transparentCanvasId, ctx, transparentCtx, screenWidth, screenHeight, canvasStyle, offsetX, offsetY, scale, lastDistance, isScaling, mode, startX, startY, currentX, currentY, offsetStartX, offsetStartY, offsetCurrentX, offsetCurrentY, drawing, templateImage, history, curvePoints, status, drawColor, textValue, showTextInput, textInputX, textInputY, changingTextIndex, beforeChangeText, canvasImagePath, textFontSize, textSelecting, textBox, selectedObject, selectedObjectOriginColor, touchMoveMode, events, markSavedEvent, inputAndChanged, clickCandidates, clickCycleIndex, lastClick, get lastRedrawTime() {
+      const __returned__ = { canvasId, transparentCanvasId, ctx, transparentCtx, screenWidth, screenHeight, canvasStyle, offsetX, offsetY, scale, lastDistance, isScaling, mode, startX, startY, currentX, currentY, offsetStartX, offsetStartY, offsetCurrentX, offsetCurrentY, drawing, template, history, curvePoints, status, drawColor, textValue, showTextInput, textInputX, textInputY, changingTextIndex, beforeChangeText, canvasImagePath, textFontSize, textSelecting, textBox, selectedObject, selectedObjectOriginColor, touchMoveMode, events, markSavedEvent, inputAndChanged, clickCandidates, clickCycleIndex, showParamPopup, rectTemplateParam, bridgeTemplateParam, rectTemplateParam4, tempParams, fieldList, lastClick, get lastRedrawTime() {
         return lastRedrawTime;
       }, set lastRedrawTime(v2) {
         lastRedrawTime = v2;
-      }, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, save, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, h: vue.h, nextTick: vue.nextTick };
+      }, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, zoomIn, zoomOut, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, changeTemplateParam, applyTemplateChange, cancleTemplateChange, save, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, h: vue.h, nextTick: vue.nextTick, get drawRulerRectTemplate() {
+        return drawRulerRectTemplate;
+      }, get drawArchBridgeTemplate() {
+        return drawArchBridgeTemplate;
+      }, get drawRulerRectTemplate4() {
+        return drawRulerRectTemplate4;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -12051,26 +14167,92 @@ ${i3}
             src: _imports_7,
             class: "icon"
           })
+        ]),
+        vue.createElementVNode("button", {
+          onClick: $setup.changeTemplateParam,
+          class: "iconButton"
+        }, [
+          vue.createCommentVNode(` <image src='/static/image/save.svg' class="icon"></image> `),
+          vue.createTextVNode(" 修改 ")
         ])
       ]),
+      vue.createCommentVNode(" 参数设置弹窗 "),
+      $setup.showParamPopup ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "popup"
+      }, [
+        vue.createElementVNode("view", { class: "popup-content" }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.fieldList, (field) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: field.key
+              }, [
+                field.key in $setup.tempParams ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+                  vue.createElementVNode(
+                    "text",
+                    null,
+                    vue.toDisplayString(field.label),
+                    1
+                    /* TEXT */
+                  ),
+                  vue.withDirectives(vue.createElementVNode("input", {
+                    "onUpdate:modelValue": ($event) => $setup.tempParams[field.key] = $event,
+                    type: field.type
+                  }, null, 8, ["onUpdate:modelValue", "type"]), [
+                    [vue.vModelDynamic, $setup.tempParams[field.key]]
+                  ])
+                ])) : vue.createCommentVNode("v-if", true)
+              ]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          )),
+          vue.createCommentVNode(' <view v-if="tempParams.logicalWidth">\r\n					<text>逻辑宽度（单位数）</text>\r\n					<input v-model="tempParams.logicalWidth" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.logicalHeight">\r\n					<text>逻辑高度（单位数）</text>\r\n					<input v-model="tempParams.logicalHeight" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.logicalLengthl">\r\n					<text>逻辑长度 </text>\r\n					<input v-model="tempParams.logicalLength" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.beamCount">\r\n					<text>梁数 </text>\r\n					<input v-model="tempParams.beamCount" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.bigBeamNumber">\r\n					<text>大桩号墩 </text>\r\n					<input v-model="tempParams.bigBeamNumber" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.smallBeamNumber">\r\n					<text>小桩号墩 </text>\r\n					<input v-model="tempParams.smallBeamNumber" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.unit">\r\n					<text>单位（如 cm / m）</text>\r\n					<input v-model="tempParams.unit" type="text" />\r\n				</view>\r\n				<view v-if="tempParams.bridge">\r\n					<text>桥幅（L / R）</text>\r\n					<input v-model="tempParams.bridge" type="text" />\r\n				</view> '),
+          vue.createElementVNode("view", { class: "popup-actions" }, [
+            vue.createElementVNode("button", {
+              onClick: $setup.applyTemplateChange,
+              type: "primary"
+            }, "确认"),
+            vue.createElementVNode("button", { onClick: $setup.cancleTemplateChange }, "取消")
+          ])
+        ])
+      ])) : vue.createCommentVNode("v-if", true),
       vue.createElementVNode("view", { class: "functionBar" }, [
         vue.createElementVNode("button", {
           onClick: $setup.deleteSelected,
           class: "functionButton"
         }, "删除"),
         vue.createElementVNode("button", {
-          onClick: $setup.chooseTemplate,
-          class: "functionButton"
-        }, "模板"),
-        vue.createElementVNode("button", {
           onClick: $setup.clearCanvas,
           class: "functionButton"
-        }, "清空")
+        }, "清空"),
+        vue.createElementVNode("button", {
+          onClick: $setup.zoomIn,
+          class: "functionButton"
+        }, "放大"),
+        vue.createElementVNode("button", {
+          onClick: $setup.zoomOut,
+          class: "functionButton"
+        }, "缩小"),
+        vue.createElementVNode("button", {
+          onClick: _cache[6] || (_cache[6] = ($event) => $setup.chooseTemplate("rect")),
+          class: "functionButton"
+        }, "模板1"),
+        vue.createElementVNode("button", {
+          onClick: _cache[7] || (_cache[7] = ($event) => $setup.chooseTemplate("bridge")),
+          class: "functionButton"
+        }, "模板2"),
+        vue.createElementVNode("button", {
+          onClick: _cache[8] || (_cache[8] = ($event) => $setup.chooseTemplate("rect4")),
+          class: "functionButton"
+        }, "模板3")
       ]),
       $setup.showTextInput ? (vue.openBlock(), vue.createElementBlock(
         "view",
         {
-          key: 0,
+          key: 1,
           class: "text-input",
           style: vue.normalizeStyle({ top: $setup.textInputY + "px", left: $setup.textInputX + "px" })
         },
@@ -12078,7 +14260,7 @@ ${i3}
           vue.withDirectives(vue.createElementVNode(
             "input",
             {
-              "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.textValue = $event),
+              "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => $setup.textValue = $event),
               placeholder: "输入文字...",
               class: "input",
               onInput: $setup.inputting
@@ -12103,7 +14285,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[7] || (_cache[7] = ($event) => $setup.changeColor("#ff0000")),
+            onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#ff0000")),
             class: "colorButton",
             style: { "background-color": "#ff0000" }
           },
@@ -12114,7 +14296,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[8] || (_cache[8] = ($event) => $setup.changeColor("#00ff00")),
+            onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#00ff00")),
             class: "colorButton",
             style: { "background-color": "#00ff00" }
           },
@@ -12125,7 +14307,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[9] || (_cache[9] = ($event) => $setup.changeColor("#0055ff")),
+            onClick: _cache[12] || (_cache[12] = ($event) => $setup.changeColor("#0055ff")),
             class: "colorButton",
             style: { "background-color": "#0055ff" }
           },
@@ -12136,7 +14318,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#ffff00")),
+            onClick: _cache[13] || (_cache[13] = ($event) => $setup.changeColor("#ffff00")),
             class: "colorButton",
             style: { "background-color": "#ffff00" }
           },
@@ -12147,7 +14329,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#000000")),
+            onClick: _cache[14] || (_cache[14] = ($event) => $setup.changeColor("#000000")),
             class: "colorButton",
             style: { "background-color": "#000000" }
           },
@@ -12193,12 +14375,12 @@ ${i3}
     ]);
   }
   const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
-  __definePage("pages/testWrite/testWrite", PagesTestWriteTestWrite);
   __definePage("pages/bridge/bridge", PagesBridgeBridge);
-  __definePage("pages/List/List", PagesListList);
-  __definePage("pages/login/login", PagesLoginLogin);
+  __definePage("pages/testWrite/testWrite", PagesTestWriteTestWrite);
   __definePage("pages/test/test", PagesTestTest);
-  __definePage("pages/fileIO/fileIO", PagesFileIOFileIO);
+  __definePage("pages/login/login", PagesLoginLogin);
+  __definePage("pages/tree/tree", PagesTreeTree);
+  __definePage("pages/List/List", PagesListList);
   __definePage("pages/home/home", PagesHomeHome);
   __definePage("pages/message/message", PagesMessageMessage);
   __definePage("pages/userinfo/userinfo", PagesUserinfoUserinfo);

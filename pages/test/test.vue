@@ -1,195 +1,124 @@
 <template>
-  <view class="container">
-    <view class="input-group">
-      <text class="label">用户 ID:</text>
-      <input v-model="userId" placeholder="请输入用户 ID" />
+    <view class="container">
+        <button @click="fetchProject">获取项目数据</button>
+        <button @click="fetchTask">获取任务数据</button>
+        <button @click="fetchProperty">获取属性数据</button>
+        <button @click="fetchDisease">获取疾病数据</button>
+        <view v-if="data">
+            <pre>{{ JSON.stringify(data, null, 2) }}</pre>
+        </view>
     </view>
-    <view class="input-group">
-      <text class="label">桥梁列表 ID:</text>
-      <input v-model="bridgeListId" placeholder="请输入桥梁列表 ID" />
-    </view>
-    <view class="input-group">
-      <text class="label">桥梁 ID:</text>
-      <input v-model="bridgeId" placeholder="请输入桥梁 ID" />
-    </view>
-    <view class="button-group">
-      <button @click="handleGetTaskList">获取任务列表</button>
-      <button @click="handleGetBridgeList">获取桥梁列表</button>
-      <button @click="handleGetBridge">获取桥梁信息</button>
-      <button @click="handleSaveTest" type="primary">修改并保存</button>
-    </view>
-    <view class="result">
-      <text>{{ result }}</text>
-    </view>
-  </view>
 </template>
 
 <script setup>
 import { ref } from 'vue';
-import { getTaskList, getBridgeList, getBridge } from '@/utils/readJson.js';
-import { saveData, trackPath } from '@/utils/reviseJson.js';
+// 文档基础路径
+const DOC_BASE_PATH = '_doc/';
+// 假设这里有 trackPath 函数的实现
+function trackPath(path) {
+    console.log('Tracked path:', path);
+}
 
-const userId = ref('');
-const bridgeListId = ref('');
-const bridgeId = ref('');
-const result = ref('');
-const currentData = ref(null);
-
-const handleGetTaskList = async () => {
-  const idToUse = userId.value || '3';  // 如果没有输入ID，默认使用3
-  try {
-    const data = await getTaskList(idToUse);
-    result.value = JSON.stringify(data, null, 2);
-    currentData.value = data;
-    uni.showToast({
-      title: '获取任务列表成功',
-      icon: 'success'
-    });
-  } catch (error) {
-    result.value = `错误: ${error.message}`;
-    uni.showToast({
-      title: '获取任务列表失败',
-      icon: 'none'
-    });
-  }
+// 路径生成规则
+const FILE_NAMING = {
+    project: userId => `${userId}/project/projects.json`,
+    task: (userId, projectId) => `${userId}/project/${projectId}/task.json`,
+    property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
+    disease: (userId, buildingId, yearId) => 
+        `${userId}/building/${buildingId}/disease/${yearId}.json`
 };
 
-const handleGetBridgeList = async () => {
-  if (!userId.value || !bridgeListId.value) {
-    uni.showToast({
-      title: '请输入用户 ID 和桥梁列表 ID',
-      icon: 'none'
+// 核心文件读取方法
+async function getJsonData(path) {
+    return new Promise((resolve, reject) => {
+        plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+            fs.root.getFile(path, { create: false }, fileEntry => {
+                fileEntry.file(file => {
+                    const reader = new plus.io.FileReader();
+                    reader.onload = () => {
+                        try {
+                            resolve(JSON.parse(reader.result));
+                        } catch (e) {
+                            reject(`JSON解析失败: ${path}`);
+                        }
+                    };
+                    reader.onerror = () => reject(`文件读取失败: ${path}`);
+                    reader.readAsText(file);
+                }, reject);
+            }, reject);
+        }, reject);
     });
-    return;
-  }
-  try {
-    const data = await getBridgeList(userId.value, bridgeListId.value);
-    result.value = JSON.stringify(data, null, 2);
-    currentData.value = data;
-  } catch (error) {
-    result.value = `错误: ${error.message}`;
-    uni.showToast({
-      title: '获取桥梁列表失败',
-      icon: 'none'
-    });
-  }
-};
+}
 
-const handleGetBridge = async () => {
-  if (!userId.value || !bridgeId.value) {
-    uni.showToast({
-      title: '请输入用户 ID 和桥梁 ID',
-      icon: 'none'
-    });
-    return;
-  }
-  try {
-    // 获取任务列表数据
-    const taskListData = await getTaskList(userId.value);
-    if (!taskListData || !taskListData.bridgeInspectionList) {
-      throw new Error('未找到任务列表数据');
+// 对外接口
+function getProject(userId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.project(userId);
+    trackPath(path);
+    return getJsonData(path);
+}
+
+function getTask(userId, projectId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.task(userId, projectId);
+    trackPath(path);
+    return getJsonData(path);
+}
+
+function getProperty(userId, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.property(userId, buildingId);
+    trackPath(path);
+    return getJsonData(path);
+}
+
+function getDisease(userId, buildingId, yearId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.disease(userId, buildingId, yearId);
+    trackPath(path);
+    return getJsonData(path);
+}
+
+const data = ref(null);
+const userId = '1';
+const projectId = '3';
+const buildingId = '5';
+const yearId = '2023';
+
+const fetchProject = async () => {
+    try {
+        data.value = await getProject(userId);
+    } catch (error) {
+        console.error(error);
     }
-
-    // 在 bridgeInspectionList 中查找对应的桥梁
-    const bridge = taskListData.bridgeInspectionList.find(
-      item => item.id === bridgeId.value
-    );
-
-    if (!bridge) {
-      throw new Error('未找到对应的桥梁信息');
-    }
-
-    // 显示桥梁信息
-    result.value = JSON.stringify(bridge, null, 2);
-    currentData.value = bridge;
-    
-    uni.showToast({
-      title: '获取成功',
-      icon: 'success'
-    });
-  } catch (error) {
-    console.error('获取桥梁数据失败:', error);
-    result.value = `错误: ${error.message}`;
-    uni.showToast({
-      title: '获取桥梁信息失败',
-      icon: 'none'
-    });
-  }
 };
 
-const handleSaveTest = async () => {
-  if (!currentData.value) {
-    uni.showToast({
-      title: '请先获取数据',
-      icon: 'none'
-    });
-    return;
-  }
+const fetchTask = async () => {
+    try {
+        data.value = await getTask(userId, projectId);
+    } catch (error) {
+        console.error(error);
+    }
+};
 
-  try {
-    // 修改 person 字段
-    const updatedData = {
-      ...currentData.value,
-      person: 'ykx'
-    };
-    
-    // 保存更新后的数据
-    await saveData(updatedData);
-    
-    // 更新显示
-    result.value = JSON.stringify(updatedData, null, 2);
-    currentData.value = updatedData;
-    
-    uni.showToast({
-      title: '更新保存成功',
-      icon: 'success'
-    });
-  } catch (error) {
-    result.value = `更新保存错误: ${error.message}`;
-    uni.showToast({
-      title: '更新保存失败',
-      icon: 'none'
-    });
-  }
+const fetchProperty = async () => {
+    try {
+        data.value = await getProperty(userId, buildingId);
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const fetchDisease = async () => {
+    try {
+        data.value = await getDisease(userId, buildingId, yearId);
+    } catch (error) {
+        console.error(error);
+    }
 };
 </script>
 
 <style scoped>
 .container {
-  padding: 20px;
+    padding: 20px;
 }
-.input-group {
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
+button {
+    margin: 10px;
 }
-.label {
-  width: 100px;
-  margin-right: 10px;
-}
-.input-group input {
-  flex: 1;
-  height: 35px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0 10px;
-}
-.button-group {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 15px;
-  gap: 10px;
-}
-.button-group button {
-  flex: 1;
-}
-.result {
-  border: 1px solid #ccc;
-  padding: 10px;
-  min-height: 100px;
-  border-radius: 4px;
-  background: #f9f9f9;
-  white-space: pre-wrap;
-  font-family: monospace;
-}
-</style>
+</style>    

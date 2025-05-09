@@ -8,13 +8,9 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-	{
-		"path" : "pages/testWrite/testWrite",
-		"style" : 
-		{
-			"navigationBarTitleText" : ""
-		}
-	},
+	// {
+	// 	"path": "pages/fileIO/fileIO"
+	// },
 	{
 		"path": "pages/bridge/bridge",
 		"style": {
@@ -25,6 +21,36 @@
 		}
 	},
 	{
+		"path" : "pages/testWrite/testWrite",
+		"style" : 
+		{
+			"navigationBarTitleText" : ""
+		}
+	},
+	{
+			"path" : "pages/test/test",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+
+	{
+		"path": "pages/login/login",
+		"style": {
+			"navigationBarTitleText": "",
+			"navigationStyle": "custom", //自定义导航栏
+			"app-plus": {
+				"titleNView": {
+					"autoBackButton": false
+				}
+			}
+		}
+	},
+	{
+		"path": "pages/tree/tree"
+	},
+	{
 		"path": "pages/List/List",
 		"style": {
 			"navigationBarTitleText": "桥梁定期检查项目列表",
@@ -32,28 +58,6 @@
 			"navigationStyle": "custom"
 		}
 	},
-		{
-			"path": "pages/login/login",
-			"style": {
-				"navigationBarTitleText": "",
-				"navigationStyle": "custom", //自定义导航栏
-				"app-plus": {
-					"titleNView": {
-						"autoBackButton": false
-					}
-				}
-			}
-		},
-		{
-			"path" : "pages/test/test",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
-			}
-		},
-		{
-			"path": "pages/fileIO/fileIO"
-		},
 		{
 			"path": "pages/home/home",
 			"style": {

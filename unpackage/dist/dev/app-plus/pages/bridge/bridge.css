@@ -665,215 +665,182 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
-.uni-nav-bar[data-v-29b8df97] {
+/**
+ * 这里是uni-app内置的常用样式变量
+ *
+ * uni-app 官方扩展插件及插件市场（https://ext.dcloud.net.cn）上很多三方插件均使用了这些样式变量
+ * 如果你是插件开发者，建议你使用scss预处理，并在插件代码中直接使用这些变量（无需 import 这个文件），方便用户通过搭积木的方式开发整体风格一致的App
+ *
+ */
+/**
+ * 如果你是App开发者（插件使用者），你可以通过修改这些变量来定制自己的插件主题，实现自定义主题功能
+ *
+ * 如果你的项目同样使用了scss预处理，你也可以直接在你的 scss 代码中使用如下变量，同时无需 import 这个文件
+ */
+/* 颜色变量 */
+/* 行为相关颜色 */
+/* 文字基本颜色 */
+/* 背景颜色 */
+/* 边框颜色 */
+/* 尺寸变量 */
+/* 文字尺寸 */
+/* 图片尺寸 */
+/* Border Radius */
+/* 水平间距 */
+/* 垂直间距 */
+/* 透明度 */
+/* 文章场景相关 */
+@font-face {
+  font-family: "uniicons";
+  src: url("../../static/fonts/uniicons.ttf") format("truetype");
+}
+.container {
+  min-height: 100vh;
+  background-color: #fff;
+  padding: 0;
+  margin: 0;
+}
+.uni-nav-bar {
   height: 88px;
   font-size: 34px;
   font-weight: bold;
   margin-bottom: 0;
+  background-color: #0F4687 !important;
 }
-[data-v-29b8df97] .uni-nav-bar__content {
+ .uni-nav-bar__content {
+  font-size: 34px;
+  font-weight: bold;
+  background-color: #0F4687 !important;
+}
+ .uni-nav-bar__header-container-inner {
   font-size: 34px;
   font-weight: bold;
 }
-[data-v-29b8df97] .uni-nav-bar__header-container-inner {
-  font-size: 34px;
-  font-weight: bold;
-}
-.container[data-v-29b8df97] {
-  padding: 0;
+.info-card {
+  background-color: #bdcbe0;
+  padding: 12px;
   margin: 0;
-}
-.info-container[data-v-29b8df97] {
-  background-color: #BDCBE0;
-  display: flex;
-  justify-content: flex-start;
-  padding: 24px;
-  height: 188px;
-  width: 1200px;
-  box-sizing: border-box;
   margin-top: -14px;
 }
-.info-box[data-v-29b8df97] {
-  border: 1px solid #0F4687;
-  border-radius: 0.25rem;
-  padding: 0;
-  margin: 0 0.3125rem;
-  background-color: #BDCBE0;
+.info-card .info-boxes {
+  display: flex;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 12px;
+}
+.info-card .info-boxes .info-box {
+  border: 1px solid #0f4687;
+  border-radius: 4px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
+  background-color: #bdcbe0;
+  min-height: 62px;
   justify-content: flex-start;
-  height: 140px;
-  position: relative;
 }
-.info-box[data-v-29b8df97]:first-child {
-  width: 600px;
-  flex: none;
+.info-card .info-boxes .info-box:first-child {
+  width: 42%;
 }
-.info-box[data-v-29b8df97]:nth-child(2),
-.info-box[data-v-29b8df97]:last-child {
-  width: 252px;
-  flex: none;
+.info-card .info-boxes .info-box:first-child .value {
+  font-size: 15px;
 }
-.info-box .label[data-v-29b8df97] {
-  font-size: 26px;
-  color: #666666;
-  margin-top: 18px;
-  margin-left: 24px;
-  height: 26px;
-  line-height: 26px;
-  margin-bottom: 24px;
-  position: absolute;
-  top: 0;
-  left: 0;
+.info-card .info-boxes .info-box:nth-child(2) {
+  width: 28%;
 }
-.info-box .value[data-v-29b8df97] {
-  font-size: 34px;
-  color: #333333;
-  font-weight: bold;
-  height: 34px;
-  line-height: 34px;
-  margin-left: 24px;
-  margin-top: calc(68px - 26px - 24px - 18px);
-  position: absolute;
-  top: 68px;
-  left: 0;
+.info-card .info-boxes .info-box:nth-child(2) .value {
+  font-size: 15px;
 }
-.list-container[data-v-29b8df97] {
-  margin-top: 0.625rem;
-  padding: 0;
-  width: 1200px;
-  background: #FFFFFF;
+.info-card .info-boxes .info-box:last-child {
+  width: 28%;
 }
-.list-item[data-v-29b8df97] {
-  padding: 24px;
-  border-bottom: 1px solid #E5E5E5;
+.info-card .info-boxes .info-box:last-child .value {
+  font-size: 15px;
+}
+.info-card .info-boxes .info-box .label {
+  font-size: 13px;
+  color: #666;
+  line-height: 1.2;
+  margin-bottom: 3px;
+}
+.info-card .info-boxes .info-box .value {
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.year-picker {
+  width: 100%;
+}
+.year-picker .picker-content {
   display: flex;
   justify-content: space-between;
-  width: 1200px;
-  min-height: 184px;
-  box-sizing: border-box;
-  position: relative;
-  background: #FFFFFF;
-  transition: all 0.3s ease;
-}
-.list-item[data-v-29b8df97]:hover {
-  background: #F8F9FA;
-}
-.item-left[data-v-29b8df97] {
-  width: calc(100% - 200px);
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  min-height: 136px; /* 184px - 48px(padding) */
-}
-.item-right[data-v-29b8df97] {
-  width: 180px;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  padding-top: 24px;
-  padding-right: 0;
-}
-.status[data-v-29b8df97] {
-  color: #333333;
-  font-size: 32px;
-  margin-bottom: 8px;
-  width: 96px;
-}
-.status.completed[data-v-29b8df97] {
-  color: #00B578;
-}
-.progress-wrapper[data-v-29b8df97] {
-  display: flex;
   align-items: center;
 }
-.progress[data-v-29b8df97] {
-  color: #666666;
-  font-size: 28px;
-  width: 96px;
+.year-picker .picker-content .value {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
 }
-.arrow-right[data-v-29b8df97] {
-  width: 40px;
-  height: 40px;
-  line-height: 40px;
-  text-align: center;
-  font-size: 32px;
-  color: #666666;
-  font-weight: bold;
+.year-picker .picker-content .arrow {
+  color: #666;
+  font-size: 12px;
+  margin-left: 5px;
+  transform: scale(0.8);
 }
-.project-code[data-v-29b8df97] {
-  font-size: 26px;
-  display: block;
-  color: #666666;
-  margin: 24px 0 18px 24px;
+.bridge-list .bridge-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  background-color: #fff;
+  margin-bottom: 1px;
+  border: 1px solid #0f4687;
+  border-radius: 4px;
 }
-.project-name[data-v-29b8df97] {
-  font-size: 34px;
-  font-weight: bold;
-  display: block;
-  color: #333333;
-  margin: 0 0 18px 24px;
-  line-height: 1.4;
-  word-break: break-all;
+.bridge-list .bridge-item .bridge-info {
   flex: 1;
 }
-.project-company[data-v-29b8df97] {
-  color: #666666;
-  font-size: 26px;
+.bridge-list .bridge-item .bridge-info .bridge-code {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+}
+.bridge-list .bridge-item .bridge-info .bridge-name {
+  font-size: 16px;
+  color: #333;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+.bridge-list .bridge-item .bridge-info .bridge-location {
+  font-size: 14px;
+  color: #999;
+}
+.bridge-list .bridge-item .bridge-meta {
+  text-align: right;
+  margin-left: 10px;
+}
+.bridge-list .bridge-item .bridge-meta .bridge-status {
+  font-size: 16px;
+  color: #333;
   display: block;
-  margin-left: 24px;
-  position: relative;
-  margin-top: auto;
-  padding-top: 18px;
 }
-.year-picker[data-v-29b8df97] {
-  position: absolute;
-  top: 68px;
-  left: 24px;
-  height: 34px;
-  line-height: 34px;
-  width: calc(100% - 48px);
+.bridge-list .bridge-item .bridge-meta .bridge-status.completed {
+  color: #00B578;
 }
-.picker-content[data-v-29b8df97] {
+.bridge-list .bridge-item .bridge-meta .bridge-progress {
+  font-size: 14px;
+  color: #666;
+  display: block;
+  margin: 4px 0;
+}
+.bridge-list .bridge-item .bridge-meta .arrow {
+  color: #999;
+  margin-left: 5px;
+}
+.loading, .no-data {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 34px;
-  padding-right: 10px;
-}
-.picker-content .value[data-v-29b8df97] {
-  font-size: 34px;
-  color: #333333;
-  font-weight: bold;
-  height: 34px;
-  line-height: 34px;
-  margin: 0;
-  padding: 0;
-  position: static;
-}
-.picker-content .arrows[data-v-29b8df97] {
-  display: flex;
-  flex-direction: column;
   justify-content: center;
-  gap: 6px;
-}
-.picker-content .arrow[data-v-29b8df97] {
-  font-size: 17px;
-  color: #333333;
-  line-height: 12px;
-  display: inline-block;
-  font-weight: bold;
-}
-.picker-content .arrow.up[data-v-29b8df97] {
-  margin-bottom: -1px;
-}
-.picker-content .arrow.down[data-v-29b8df97] {
-  margin-top: -1px;
-}
-.year-picker .value[data-v-29b8df97] {
-  font-size: 34px;
-  color: #333333;
-  font-weight: bold;
-  display: inline-block;
+  align-items: center;
+  height: 200px;
+  color: #666;
+  font-size: 16px;
 }
