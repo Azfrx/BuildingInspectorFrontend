@@ -28,7 +28,9 @@
 						<view class="part-title" style="position: relative;">
 							<text style="position: absolute; left: -10px; color: red;">*</text>部件类型
 						</view>
-						<view class="part-content" :style="typeindex === -1 ? 'color: #CCCCCC;' : ''">{{ type[typeindex] || '请选择部件类型'}} </view>
+						<view class="part-content" :style="typeindex === -1 ? 'color: #CCCCCC;' : ''">
+							{{ type[typeindex] || '请选择部件类型'}}
+						</view>
 					</view>
 					<view class="part-icon">&gt;</view>
 				</view>
@@ -41,7 +43,9 @@
 						<view class="part-title" style="position: relative;">
 							<text style="position: absolute; left: -10px; color: red;">*</text>构件编号
 						</view>
-						<view class="part-content" :style="numindex === -1 ? 'color: #CCCCCC;' : ''">{{ num[numindex] || '请选择构件编号'}}</view>
+						<view class="part-content" :style="numindex === -1 ? 'color: #CCCCCC;' : ''">
+							{{ num[numindex] || '请选择构件编号'}}
+						</view>
 					</view>
 					<view class="part-icon">&gt;</view>
 				</view>
@@ -57,7 +61,9 @@
 						<view class="part-title" style="position: relative;">
 							<text style="position: absolute; left: -10px; color: red;">*</text>缺损类型
 						</view>
-						<view class="part-content" :style="Typeofdefectindex === -1 ? 'color: #CCCCCC;' : ''">{{Typeofdefect[Typeofdefectindex] || '请选择缺损类型'}}</view>
+						<view class="part-content" :style="Typeofdefectindex === -1 ? 'color: #CCCCCC;' : ''">
+							{{Typeofdefect[Typeofdefectindex] || '请选择缺损类型'}}
+						</view>
 					</view>
 
 					<view class="part-icon">&gt;</view>
@@ -71,7 +77,8 @@
 					<view class="part-title" style="position: relative;">
 						<text style="position: absolute; left: -10px; color: red;">*</text>缺损位置
 					</view>
-					<input type="text" placeholder="请填写缺损位置信息" class="input-text" placeholder-class="input-text-placeholder" v-model="position">
+					<input type="text" placeholder="请填写缺损位置信息" class="input-text"
+						placeholder-class="input-text-placeholder" v-model="position">
 				</view>
 			</view>
 		</view>
@@ -95,7 +102,9 @@
 				<view class="picker-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">数据记载方式</view>
-						<view class="part-content" :style="WayofDefectindex === -1 ? 'color: #CCCCCC;' : ''">{{WayofDefect[WayofDefectindex] || '请选择数据记载方式'}}</view>
+						<view class="part-content" :style="WayofDefectindex === -1 ? 'color: #CCCCCC;' : ''">
+							{{WayofDefect[WayofDefectindex] || '请选择数据记载方式'}}
+						</view>
 					</view>
 					<view class="part-icon">&gt;</view>
 				</view>
@@ -108,7 +117,8 @@
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">长度(m)</view>
-						<input type="text" placeholder="长度数据" class="input-text" placeholder-class="input-text-placeholder" v-model="length">
+						<input type="text" placeholder="长度数据" class="input-text"
+							placeholder-class="input-text-placeholder" v-model="length">
 					</view>
 				</view>
 			</view>
@@ -117,7 +127,8 @@
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">宽度(m)</view>
-						<input type="text" placeholder="宽度数据" class="input-text" placeholder-class="input-text-placeholder" v-model="width">
+						<input type="text" placeholder="宽度数据" class="input-text"
+							placeholder-class="input-text-placeholder" v-model="width">
 					</view>
 				</view>
 			</view>
@@ -129,7 +140,8 @@
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">缝宽(mm)</view>
-						<input type="text" placeholder="缝宽数据" class="input-text" placeholder-class="input-text-placeholder" v-model="SeamWidth">
+						<input type="text" placeholder="缝宽数据" class="input-text"
+							placeholder-class="input-text-placeholder" v-model="SeamWidth">
 					</view>
 				</view>
 			</view>
@@ -138,7 +150,8 @@
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">高度/深度(m)</view>
-						<input type="text" placeholder="高度/深度数据" class="input-text" placeholder-class="input-text-placeholder" v-model="height">
+						<input type="text" placeholder="高度/深度数据" class="input-text"
+							placeholder-class="input-text-placeholder" v-model="height">
 					</view>
 				</view>
 			</view>
@@ -147,7 +160,8 @@
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title">面积(m²)</view>
-						<input type="text" placeholder="面积数据" class="input-text" placeholder-class="input-text-placeholder" v-model="area">
+						<input type="text" placeholder="面积数据" class="input-text"
+							placeholder-class="input-text-placeholder" v-model="area">
 					</view>
 				</view>
 			</view>
@@ -159,7 +173,8 @@
 					<view class="part-title" style="position: relative;">
 						<text style="position: absolute; left: -10px; color: red;">*</text>病害描述(性质、范围、程度等)
 					</view>
-					<input type="text" placeholder="请填写病害描述信息" class="input-text" placeholder-class="input-text-placeholder" v-model= "description">
+					<input type="text" placeholder="请填写病害描述信息" class="input-text"
+						placeholder-class="input-text-placeholder" v-model="description">
 				</view>
 			</view>
 		</view>
@@ -207,19 +222,43 @@
 		<view class="part-UploadImage">
 			<view class="part-title">上传图片或视频</view>
 			<view class="upload-view">
-				<uni-file-picker 
-					class="file-picker" 
-					limit="9" 
-					:image-styles="imageStyles" 
-					v-model="fileList"
-					file-mediatype="image"
-					mode="grid"
-					@select="handleFileSelect"
-					@delete="handleFileDelete"
-				></uni-file-picker>
+				<uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
+					file-mediatype="image" mode="grid" @select="handleFileSelect"
+					@delete="handleFileDelete"></uni-file-picker>
 			</view>
 		</view>
 
+		<view class="part-ADImages">
+			<view class="part-title">上传简图</view>
+			<view class="ADImages">
+				<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
+					<image :src="img.src" class="ADImage" mode="widthFix" />
+					<view class="close-btn" @click="removeImage(index)">×</view>
+				</view>
+				<view class="ADImage-container" @click="selectCanvasTemplate()">
+					<image src="/static/image/AD.svg" class="ADImageButton"></image>
+				</view>
+			</view>
+		</view>
+
+		<!-- 底部弹出层 -->
+		<uni-popup ref="popup" type="bottom">
+			<view class="popup-content">
+				<view class="template-row">
+					<view class="template-type">
+						模板
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template1.png" class="template-image-card"
+							@click="onClickTemplate(1)"></image>
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate(2)"></image>
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate(3)"></image>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -231,10 +270,10 @@
 		onUnmounted,
 		watch
 	} from 'vue';
-
 	// 判断是编辑模式还是新增模式
 	const isEdit = ref(false);
-
+	const popup = ref(null);
+	const ADImgs = ref([]);
 	// 页面加载时，根据参数判断是新增还是编辑模式
 	onMounted(() => {
 		const pages = getCurrentPages();
@@ -244,13 +283,13 @@
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
 			isEdit.value = true;
-			
+
 			// 如果传递了数据，则解析并填充表单
 			if (options.data) {
 				try {
 					const diseaseData = JSON.parse(decodeURIComponent(options.data));
 					console.log('接收到的编辑数据:', diseaseData);
-					
+
 					// 填充表单数据
 					fillFormWithData(diseaseData);
 				} catch (error) {
@@ -273,7 +312,7 @@
 				typeindex.value = index;
 			}
 		}
-		
+
 		// 设置构件编号
 		if (data.partNumber) {
 			const index = num.value.findIndex(item => item === data.partNumber);
@@ -281,7 +320,7 @@
 				numindex.value = index;
 			}
 		}
-		
+
 		// 设置缺损类型
 		if (data.disease) {
 			const index = Typeofdefect.value.findIndex(item => item === data.disease);
@@ -290,16 +329,16 @@
 			}
 		}
 
-    // 设置缺损位置
-    if(data.position){
-      position.value = data.position;
-    }
+		// 设置缺损位置
+		if (data.position) {
+			position.value = data.position;
+		}
 
 		// 设置缺损数量
 		if (data.count) {
 			NumofDefect.value = parseInt(data.count) || 1;
 		}
-		
+
 		// 设置评定标度
 		if (data.grade) {
 			const index = scalesItems.findIndex(item => item.value === data.grade);
@@ -307,7 +346,7 @@
 				scalesCurrent.value = index;
 			}
 		}
-		
+
 		// 设置参与评定
 		if (data.reference) {
 			const value = data.reference === '是' ? '1' : '2';
@@ -317,64 +356,64 @@
 			}
 		}
 
-    //设置长度
-    if(data.length){
-      length.value = data.length;
-    }else {
-      length.value = '-';
-    }
+		//设置长度
+		if (data.length) {
+			length.value = data.length;
+		} else {
+			length.value = '-';
+		}
 
-    //设置宽度
-    if(data.width){
-      width.value = data.width;
-    }else {
-      width.value = '-';
-    }
+		//设置宽度
+		if (data.width) {
+			width.value = data.width;
+		} else {
+			width.value = '-';
+		}
 
-    //设置缝宽
-    if(data.SeamWidth){
-      SeamWidth.value = data.SeamWidth;
-    }else {
-      SeamWidth.value = '-';
-    }
+		//设置缝宽
+		if (data.SeamWidth) {
+			SeamWidth.value = data.SeamWidth;
+		} else {
+			SeamWidth.value = '-';
+		}
 
-    //设置高度/深度
-    if(data.height){
-      height.value = data.height;
-    }else {
-      height.value = '-';
-    }
+		//设置高度/深度
+		if (data.height) {
+			height.value = data.height;
+		} else {
+			height.value = '-';
+		}
 
-    //设置面积
-    if(data.area){
-      area.value = data.area;
-    }else {
-      area.value = '-';
-    }
+		//设置面积
+		if (data.area) {
+			area.value = data.area;
+		} else {
+			area.value = '-';
+		}
 
-    // 设置病害描述
-    description.value = data.description || '';
-    
-    // 处理图片数据
-    if (data.images && Array.isArray(data.images)) {
-      // 将图片URL数组转换为uni-file-picker所需的格式
-      fileList.value = data.images.map((url, index) => {
-        return {
-          name: `图片${index + 1}`,
-          url: url,
-          extname: 'jpg', // 默认扩展名，也可以从URL中解析
-          size: 0 // uni-file-picker需要但我们没有实际大小，设为0
-        };
-      });
-    } else if (data.imageUrl) {
-      // 如果是单个图片URL
-      fileList.value = [{
-        name: '图片1',
-        url: data.imageUrl,
-        size: 0
-      }];
-    }
-		
+		// 设置病害描述
+		description.value = data.description || '';
+
+		// 处理图片数据
+		if (data.images && Array.isArray(data.images)) {
+			// 将图片URL数组转换为uni-file-picker所需的格式
+			fileList.value = data.images.map((url, index) => {
+				return {
+					name: `图片${index + 1}`,
+					url: url,
+					extname: 'jpg', // 默认扩展名，也可以从URL中解析
+					size: 0 // uni-file-picker需要但我们没有实际大小，设为0
+				};
+			});
+		} else if (data.imageUrl) {
+			// 如果是单个图片URL
+			fileList.value = [{
+				name: '图片1',
+				url: data.imageUrl,
+				size: 0
+			}];
+		}
+
 		// 可以继续添加其他字段的填充逻辑
 	};
 
@@ -385,7 +424,7 @@
 	});
 
 	// 部件类型
-	const type = ref([ 'T梁', '支座', '桥面','墩身','墩柱']);
+	const type = ref(['T梁', '支座', '桥面', '墩身', '墩柱']);
 	const typeindex = ref(-1);
 
 	// 构件编号
@@ -396,8 +435,8 @@
 	const Typeofdefect = ref(['空洞、孔洞', '剥落、掉角', '凹凸不平', '裂缝']);
 	const Typeofdefectindex = ref(-1);
 
-  // 缺损位置
-  const position = ref('');
+	// 缺损位置
+	const position = ref('');
 
 	// 缺损数量
 	const NumofDefect = ref(1);
@@ -406,23 +445,23 @@
 	const WayofDefect = ref(['数值', '记载方式2', '记载方式3']);
 	const WayofDefectindex = ref(0);
 
-  // 长度
-  const length = ref('');
+	// 长度
+	const length = ref('');
 
-  //宽度
-  const width = ref('');
+	//宽度
+	const width = ref('');
 
-  //缝宽
-  const SeamWidth = ref('');
+	//缝宽
+	const SeamWidth = ref('');
 
-  //高度/深度
-  const height = ref('');
+	//高度/深度
+	const height = ref('');
 
-  //面积
-  const area = ref('');
+	//面积
+	const area = ref('');
 
-  //病害描述
-  const description = ref('');
+	//病害描述
+	const description = ref('');
 
 	// 图片文件列表
 	const fileList = ref([]);
@@ -527,12 +566,34 @@
 	const handleFileDelete = (e) => {
 		console.log('文件删除事件', e);
 	}
+
+	const selectCanvasTemplate = () => {
+		popup.value.open();
+	}
+	const removeImage = (index) => {
+		ADImgs.value.splice(index, 1)
+	}
+
+	const onClickTemplate = (templateIndex) => {
+		uni.navigateTo({
+			url: `/pages/canvas/canvas?template=${templateIndex}`,
+			success: (res) => {
+				// 监听从 B 页面返回的数据
+				res.eventChannel.once('returnData', (data) => {
+					ADImgs.value.push({
+						src: data.src
+					});
+				})
+			}
+		});
+		popup.value.close();
+	}
 </script>
 
 <style>
-.input-text-placeholder {
-  color: #CCCCCC;
-}
+	.input-text-placeholder {
+		color: #CCCCCC;
+	}
 </style>
 
 <style scoped>
@@ -668,7 +729,7 @@
 	.part-titleandcontent {
 		display: flex;
 		flex-direction: column;
-    width: 100%;
+		width: 100%;
 	}
 
 	.part-title {
@@ -682,7 +743,7 @@
 
 	.part-icon {
 		font-size: 20px;
-    color: #CCCCCC;
+		color: #CCCCCC;
 	}
 
 	/* 输入框 */
@@ -871,4 +932,102 @@
 	}
 
 	.file-picker {}
+
+	.part-ADImages {
+		display: flex;
+		flex-direction: column;
+		border-bottom: 1px solid #EEEEEE;
+		padding: 12rpx 16rpx;
+	}
+
+	.ADImages {
+		width: 100%;
+		margin-top: 10rpx;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.img-wrapper {
+		position: relative;
+		display: inline-block;
+		margin: 10rpx;
+	}
+
+	.ADImage {
+		height: 140rpx;
+		width: 140rpx;
+		border-radius: 8rpx;
+	}
+
+	/* 右上角的删除按钮 */
+	.close-btn {
+		position: absolute;
+		top: 0rpx;
+		right: 0rpx;
+		width: 20rpx;
+		height: 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background-color: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		font-size: 24rpx;
+		z-index: 1;
+	}
+
+	.ADImage-container {
+		height: 140rpx;
+		width: 140rpx;
+		border: 1px solid #eeeeee;
+		border-radius: 5rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.ADImageButton {
+		height: 100rpx;
+		width: 100rpx;
+	}
+
+	.popup-content {
+		background-color: #fff;
+		height: 70vh;
+		/* padding: 10rpx; */
+		display: flex;
+		flex-direction: column;
+		overflow: auto;
+	}
+
+	.template-row {
+		height: 300rpx;
+		width: 100%;
+		border-bottom: 1px solid #eeeeee;
+		;
+	}
+
+	.template-type {
+		height: 10%;
+		font-size: 18rpx;
+		padding: 10rpx;
+		box-sizing: border-box;
+	}
+
+	.template-image {
+		height: 90%;
+		width: 100%;
+		padding: 0 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 20rpx;
+	}
+
+	.template-image-card {
+		height: 200rpx;
+		width: 200rpx;
+	}
 </style>

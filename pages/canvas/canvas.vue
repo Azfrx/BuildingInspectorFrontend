@@ -86,9 +86,9 @@
 			<button @click="clearCanvas" class="functionButton">清空</button>
 			<button @click="zoomIn" class="functionButton">放大</button>
 			<button @click="zoomOut" class="functionButton">缩小</button>
-			<button @click="chooseTemplate('rect')" class="functionButton">模板1</button>
+			<!-- <button @click="chooseTemplate('rect')" class="functionButton">模板1</button>
 			<button @click="chooseTemplate('bridge')" class="functionButton">模板2</button>
-			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button>
+			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button> -->
 		</view>
 		<view v-if="showTextInput" class="text-input" :style="{ top: textInputY + 'px', left: textInputX + 'px' }">
 			<input v-model="textValue" placeholder="输入文字..." class="input" @input="inputting" />
@@ -118,7 +118,7 @@
 		<canvas :style="canvasStyle" canvas-id="transparentCanvas" id="transparentCanvas" class="canvas"
 			disable-scroll="true" @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd" />
 
-		<image :src="canvasImagePath" mode="widthFix" class="imgShow"></image>
+		<!-- <image :src="canvasImagePath" mode="widthFix" class="imgShow"></image> -->
 	</view>
 </template>
 
@@ -128,13 +128,19 @@
 		onMounted,
 		reactive,
 		h,
-		nextTick
+		nextTick,
+		getCurrentInstance
 	} from 'vue';
+
 	import {
 		drawRulerRectTemplate,
 		drawArchBridgeTemplate,
 		drawRulerRectTemplate4
 	} from '../../utils/drawTemplate';
+
+	import {
+		onLoad
+	} from '@dcloudio/uni-app'
 
 	const canvasId = 'myCanvas';
 	const transparentCanvasId = 'transparentCanvas';
@@ -280,7 +286,27 @@
 		ctx.value = uni.createCanvasContext(canvasId);
 		transparentCtx.value = uni.createCanvasContext(transparentCanvasId);
 		ctx.value.setFontSize(textFontSize.value);
+		redrawCanvas();
 	});
+
+	onLoad((options) => {
+		switch (options.template) {
+			case '1':
+				template.value = 'rect';
+				break;
+			case '2':
+				template.value = 'bridge';
+				break;
+			case '3':
+				template.value = 'rect4';
+				break;
+			default:
+				template.value = '';
+		}
+	})
+
+	// 获取传入的 eventChannel
+	const eventChannel = getCurrentInstance().proxy.getOpenerEventChannel()
 
 	const changeColor = (color) => {
 		drawColor.value = color;
@@ -1023,6 +1049,12 @@
 				const filePath = res.tempFilePath;
 				//展示
 				canvasImagePath.value = filePath;
+
+				eventChannel.emit('returnData', {
+					msg: 'SaveImage',
+					src: filePath
+				})
+				uni.navigateBack()
 				// 保存到相册
 				// uni.saveImageToPhotosAlbum({
 				// 	filePath: filePath,
@@ -1141,25 +1173,7 @@
 		}
 	};
 
-	const redrawCanvas = () => {
-		const now = Date.now();
-		if (now - lastRedrawTime < 16) return;
-		lastRedrawTime = now;
-
-		ctx.value.save(); // 保存当前上下文
-		ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
-
-		// 应用画布的平移和缩放
-		ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
-		// ctx.value.scale(scale.value, scale.value);
-
-		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
-		ctx.value.scale(scale.value, scale.value); // 执行缩放
-		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
-		// // 画背景图片
-		// if (templateImage.value) {
-		// 	ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
-		// }
+	const drawTemplate = () => {
 		//绘制模板
 		if (template.value === 'rect') {
 			// ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
@@ -1186,6 +1200,28 @@
 				unit: rectTemplateParam4.value.unit,
 			});
 		}
+	}
+
+	const redrawCanvas = () => {
+		const now = Date.now();
+		if (now - lastRedrawTime < 16) return;
+		lastRedrawTime = now;
+
+		ctx.value.save(); // 保存当前上下文
+		ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
+
+		// 应用画布的平移和缩放
+		ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
+		// ctx.value.scale(scale.value, scale.value);
+
+		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
+		ctx.value.scale(scale.value, scale.value); // 执行缩放
+		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+		// // 画背景图片
+		// if (templateImage.value) {
+		// 	ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
+		// }
+		drawTemplate();
 		ctx.value.restore(); // 恢复原始状态
 
 		// 重新绘制所有历史记录
