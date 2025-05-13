@@ -36,7 +36,8 @@
 				</picker>
 
 
-				<picker class="picker-number" @change="numberPickerChange" :value="componentCodeindex" :range="componentCode">
+				<picker class="picker-number" @change="numberPickerChange" :value="componentCodeindex"
+					:range="componentCode">
 					<view class="picker-content">
 						<view class="part-titleandcontent">
 							<view class="part-title" style="position: relative;">
@@ -53,8 +54,7 @@
 			</view>
 
 			<view class="part-Typeofdefect">
-				<picker class="picker-Typeofdefect" @change="TypeofdefectPickerChange" :value="typeindex"
-					:range="type">
+				<picker class="picker-Typeofdefect" @change="TypeofdefectPickerChange" :value="typeindex" :range="type">
 					<view class="picker-content">
 						<view class="part-titleandcontent">
 							<view class="part-title" style="position: relative;">
@@ -226,7 +226,39 @@
 						:auto-upload="false"></uni-file-picker>
 				</view>
 			</view>
+
+			<view class="part-ADImages">
+				<view class="part-title">上传简图</view>
+				<view class="ADImages">
+					<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
+						<image :src="img.src" class="ADImage" mode="widthFix" />
+						<view class="close-btn" @click="removeImage(index)">×</view>
+					</view>
+					<view class="ADImage-container" @click="selectCanvasTemplate()">
+						<image src="/static/image/AD.svg" class="ADImageButton"></image>
+					</view>
+				</view>
+			</view>
 		</view>
+
+		<!-- 底部弹出层 -->
+		<uni-popup ref="popup" type="bottom">
+			<view class="popup-content">
+				<view class="template-row">
+					<view class="template-type">
+						模板
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template1.png" class="template-image-card"
+							@click="onClickTemplate(1)"></image>
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate(2)"></image>
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate(3)"></image>
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
@@ -238,10 +270,15 @@
 		onUnmounted,
 		watch
 	} from 'vue';
-	import { getObject } from '../../utils/readJsonNew.js';
-	import { saveDiseaseImages } from '../../utils/reviseNew.js';
+	import {
+		getObject
+	} from '../../utils/readJsonNew.js';
+	import {
+		saveDiseaseImages
+	} from '../../utils/reviseNew.js';
 
-
+	const popup = ref(null);
+	const ADImgs = ref([]);
 	const userId = '3';
 	const buildingId = '39';
 	// 判断是编辑模式还是新增模式
@@ -331,12 +368,12 @@
 			// 用户ID和建筑ID
 			const userId = "3";
 			const buildingId = "39";
-			
+
 			// 在实际应用中，这些可能来自于路由参数或全局状态
 			const data = await getObject(userId, buildingId);
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
-			
+
 			// 初始化部件类型列表
 			updateBiObjectOptions();
 		} catch (error) {
@@ -354,25 +391,25 @@
 			console.log('结构数据不完整');
 			return;
 		}
-		
+
 		console.log('更新部件类型选项，当前选择:', parentObjectName.value);
-		
+
 		// 找到对应的结构部分（上部结构、下部结构、桥面系）
 		const structurePart = structureData.value.children.find(
 			item => item.name === parentObjectName.value
 		);
-		
+
 		if (!structurePart || !structurePart.children) {
 			console.log('未找到对应的结构部分或其子项');
 			biObjectName.value = [];
 			return;
 		}
-		
+
 		// 提取部件类型名称列表
 		biObjectNameOptions.value = structurePart.children;
 		biObjectName.value = structurePart.children.map(item => item.name);
 		console.log('部件类型选项更新为:', biObjectName.value);
-		
+
 		// 重置部件类型选择
 		biObjectindex.value = -1;
 		// 重置缺损类型选择
@@ -390,25 +427,26 @@
 			componentCode.value = [];
 			return;
 		}
-		
+
 		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
 		if (!selectedBiObject) {
 			console.log('选中的部件类型不存在');
 			componentCode.value = [];
 			return;
 		}
-		
+
 		// 检查是否有comments字段
-		if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments.length === 0) {
+		if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments
+			.length === 0) {
 			console.log('当前部件类型没有构件编号信息');
 			componentCode.value = ['1', '2', '3']; // 使用默认值
 			return;
 		}
-		
+
 		// 从comments中提取code字段作为构件编号
 		componentCode.value = selectedBiObject.comments.map(item => item.code);
 		console.log('构件编号选项更新为:', componentCode.value);
-		
+
 		// 重置构件编号选择
 		componentCodeindex.value = -1;
 	};
@@ -420,19 +458,19 @@
 			type.value = [];
 			return;
 		}
-		
+
 		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
 		if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
 			console.log('选中的部件类型没有缺损类型定义');
 			type.value = [];
 			return;
 		}
-		
+
 		// 提取缺损类型名称列表
 		diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
 		type.value = selectedBiObject.diseaseTypes.map(item => item.name);
 		console.log('缺损类型选项更新为:', type.value);
-		
+
 		// 重置缺损类型选择
 		typeindex.value = -1;
 	};
@@ -456,7 +494,7 @@
 	onMounted(() => {
 		// 获取结构数据
 		fetchStructureData();
-		
+
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
@@ -506,13 +544,13 @@
 	// 根据接收的数据填充表单
 	const fillFormWithData = (data) => {
 		console.log('开始填充表单数据:', data);
-		
+
 		// 保存病害所属类型（上部结构/下部结构/桥面系）
 		if (data.component?.parentObjectName) {
 			parentObjectName.value = data.component.parentObjectName;
 			console.log('设置病害类型:', parentObjectName.value);
 		}
-		
+
 		// 等待biObjectName更新后再设置其他值
 		setTimeout(() => {
 			// 设置部件类型
@@ -521,12 +559,13 @@
 				if (index !== -1) {
 					biObjectindex.value = index;
 					console.log('设置部件类型:', data.component.biObject.name);
-					
+
 					// 等待构件编号列表更新后设置构件编号
 					setTimeout(() => {
 						// 设置构件编号
 						if (data.component?.code) {
-							const codeIndex = componentCode.value.findIndex(item => item === data.component.code);
+							const codeIndex = componentCode.value.findIndex(item => item === data
+								.component.code);
 							if (codeIndex !== -1) {
 								componentCodeindex.value = codeIndex;
 								console.log('设置构件编号:', data.component.code);
@@ -535,7 +574,7 @@
 					}, 50);
 				}
 			}
-			
+
 			// 等待type更新后再设置
 			setTimeout(() => {
 				// 设置缺损类型
@@ -614,7 +653,7 @@
 				size: 0
 			}));
 		}
-		
+
 		console.log('表单数据填充完成');
 	};
 
@@ -773,19 +812,20 @@
 		if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
 			diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
 		}
-		
+
 		// 获取选中的部件对象（如果有）
 		let biObjectObj = null;
-		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex
+				.value]) {
 			biObjectObj = biObjectNameOptions.value[biObjectindex.value];
 		}
-		
+
 		// 获取选中的构件对象（如果有）
 		let componentObj = null;
 		if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
 			componentObj = biObjectObj.comments[componentCodeindex.value];
 		}
-		
+
 		// 创建符合要求的病害数据对象
 		const diseaseData = {
 			createBy: "crh@znjc",
@@ -848,19 +888,19 @@
 			});
 			return null;
 		}
-		
+
 		return diseaseData;
 	}
 
 	// 保存但不返回上一页的方法
 	const saveWithoutNavigateBack = (diseaseData) => {
 		console.log('保存但不返回');
-		
+
 		// 显示加载提示
 		uni.showLoading({
 			title: '保存中...'
 		});
-		
+
 		// 使用公共方法保存图片和更新病害数据
 		saveImagesAndUpdateDisease(diseaseData, false)
 			.then(() => {
@@ -869,13 +909,13 @@
 					title: '保存成功',
 					icon: 'success'
 				});
-				
+
 				// 只清空图片列表，保留其他表单数据
 				setTimeout(() => {
 					// 清空图片列表
 					fileList.value = [];
 					console.log('已清空图片列表，保留其他表单数据');
-					
+
 					// 显示提示
 					uni.showToast({
 						title: '已保存，可继续添加下一条',
@@ -901,7 +941,7 @@
 			const pages = getCurrentPages();
 			const currentPage = pages[pages.length - 1];
 			const options = currentPage.$page?.options;
-			
+
 			// 如果是编辑模式，获取原始数据中的图片
 			let originalImages = [];
 			if (isEditMode && options && options.data) {
@@ -912,25 +952,25 @@
 					console.error('解析原始数据失败:', error);
 				}
 			}
-			
+
 			// 获取当前文件列表中的图片URL
 			const currentImageUrls = fileList.value.map(img => img.url);
-			
+
 			// 找出需要保留的原有图片（没有被删除的）
-			const imagesToKeep = originalImages.filter(img => 
+			const imagesToKeep = originalImages.filter(img =>
 				currentImageUrls.includes(img)
 			);
-			
+
 			// 找出需要删除的原有图片（被删除的）
-			const imagesToDelete = originalImages.filter(img => 
+			const imagesToDelete = originalImages.filter(img =>
 				!currentImageUrls.includes(img)
 			);
-			
+
 			// 找出新增的图片（不在原有图片列表中的）
-			const newImages = currentImageUrls.filter(url => 
+			const newImages = currentImageUrls.filter(url =>
 				!originalImages.includes(url)
 			);
-			
+
 			// 如果有需要删除的图片，删除它们
 			if (imagesToDelete.length > 0) {
 				imagesToDelete.forEach(imgPath => {
@@ -945,21 +985,21 @@
 					});
 				});
 			}
-			
+
 			// 如果有新增图片，保存它们
 			if (newImages.length > 0) {
 				saveDiseaseImages(userId, buildingId, newImages)
 					.then(savedPaths => {
 						// 合并保留的原有图片和新保存的图片
 						diseaseData.images = [...imagesToKeep, ...savedPaths];
-						
+
 						// 根据模式发送不同的事件
 						if (isEditMode) {
 							uni.$emit('updateDisease', diseaseData);
 						} else {
 							uni.$emit('addNewDisease', diseaseData);
 						}
-						
+
 						resolve();
 					})
 					.catch(error => {
@@ -969,14 +1009,14 @@
 			} else {
 				// 如果没有新增图片，直接使用保留的原有图片
 				diseaseData.images = imagesToKeep;
-				
+
 				// 根据模式发送不同的事件
 				if (isEditMode) {
 					uni.$emit('updateDisease', diseaseData);
 				} else {
 					uni.$emit('addNewDisease', diseaseData);
 				}
-				
+
 				resolve();
 			}
 		});
@@ -990,19 +1030,20 @@
 		if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
 			diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
 		}
-		
+
 		// 获取选中的部件对象（如果有）
 		let biObjectObj = null;
-		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex
+				.value]) {
 			biObjectObj = biObjectNameOptions.value[biObjectindex.value];
 		}
-		
+
 		// 获取选中的构件对象（如果有）
 		let componentObj = null;
 		if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
 			componentObj = biObjectObj.comments[componentCodeindex.value];
 		}
-		
+
 		// 创建符合要求的病害数据对象
 		const diseaseData = {
 			createBy: "crh@znjc",
@@ -1079,7 +1120,7 @@
 					title: '保存成功',
 					icon: 'success'
 				});
-				
+
 				// 返回上一页
 				setTimeout(() => {
 					uni.navigateBack();
@@ -1106,7 +1147,7 @@
 		const index = parseInt(e.detail.value)
 		biObjectindex.value = index
 		console.log('biObjectindex设置为:', index, '对应的值为:', biObjectName.value[index])
-		
+
 		// 更新缺损类型选项
 		updateDiseaseTypeOptions()
 		// 更新构件编号选项
@@ -1251,19 +1292,20 @@
 		if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
 			diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
 		}
-		
+
 		// 获取选中的部件对象（如果有）
 		let biObjectObj = null;
-		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex
+				.value]) {
 			biObjectObj = biObjectNameOptions.value[biObjectindex.value];
 		}
-		
+
 		// 获取选中的构件对象（如果有）
 		let componentObj = null;
 		if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
 			componentObj = biObjectObj.comments[componentCodeindex.value];
 		}
-		
+
 		// 创建符合要求的病害数据对象
 		const diseaseData = {
 			createBy: "crh@znjc",
@@ -1340,7 +1382,7 @@
 					title: '保存成功',
 					icon: 'success'
 				});
-				
+
 				// 返回上一页
 				setTimeout(() => {
 					uni.navigateBack();
@@ -1458,6 +1500,27 @@
 		});
 
 		return paths;
+	}
+
+	const onClickTemplate = (templateIndex) => {
+		uni.navigateTo({
+			url: `/pages/canvas/canvas?template=${templateIndex}`,
+			success: (res) => {
+				// 监听从 B 页面返回的数据
+				res.eventChannel.once('returnData', (data) => {
+					ADImgs.value.push({
+						src: data.src
+					});
+				})
+				popup.value.close();
+			},
+		})
+	}
+	const selectCanvasTemplate = () => {
+		popup.value.open()
+	}
+	const removeImage = (index) => {
+		ADImgs.value.splice(index, 1)
 	}
 </script>
 
@@ -1803,6 +1866,107 @@
 	}
 
 	.file-picker {}
+
+	.part-ADImages {
+		display: flex;
+		flex-direction: column;
+		border-bottom: 1px solid #EEEEEE;
+		padding: 12rpx 16rpx;
+	}
+
+
+	.ADImages {
+		width: 100%;
+		margin-top: 10rpx;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
+
+	.img-wrapper {
+		position: relative;
+		display: inline-block;
+		margin: 10rpx;
+		border: 1px solid #EEEEEE;
+		border-radius: 5rpx;
+	}
+
+	.ADImage {
+		height: 140rpx;
+		width: 140rpx;
+		border-radius: 8rpx;
+	}
+
+	/* 右上角的删除按钮 */
+	.close-btn {
+		position: absolute;
+		top: 0rpx;
+		right: 0rpx;
+		width: 20rpx;
+		height: 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 50%;
+		background-color: rgba(0, 0, 0, 0.6);
+		color: #fff;
+		font-size: 24rpx;
+		z-index: 1;
+	}
+
+	.ADImage-container {
+		height: 140rpx;
+		width: 140rpx;
+		border: 1px solid #eeeeee;
+		border-radius: 5rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.ADImageButton {
+		height: 100rpx;
+		width: 100rpx;
+	}
+
+	.popup-content {
+		background-color: #fff;
+		height: 70vh;
+		/* padding: 10rpx; */
+		display: flex;
+		flex-direction: column;
+		overflow: auto;
+	}
+
+	.template-row {
+		height: 300rpx;
+		width: 100%;
+		border-bottom: 1px solid #eeeeee;
+		;
+	}
+
+	.template-type {
+		height: 10%;
+		font-size: 18rpx;
+		padding: 10rpx;
+		box-sizing: border-box;
+	}
+
+	.template-image {
+		height: 90%;
+		width: 100%;
+		padding: 0 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 20rpx;
+	}
+
+	.template-image-card {
+		height: 200rpx;
+		width: 200rpx;
+	}
 
 	/* 横屏适配 */
 	@media screen and (orientation: landscape) {
