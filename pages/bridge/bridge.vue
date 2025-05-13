@@ -1,32 +1,32 @@
 <template>
-  <!-- 导航栏 -->
+	<!-- 导航栏 -->
   <uni-nav-bar class="uni-nav-bar" dark :fixed="true" shadow background-color="#0F4687" status-bar left-icon="left"
     title="桥梁定期检查项目列表" @clickLeft="back" />
   <!-- 内容区 -->
-  <view class="container">
+    <view class="container">
     <!-- 信息卡片 -->
     <view class="info-card" v-if="fileData && fileData.data && fileData.data.projects && fileData.data.projects.length > 0">
       <view class="info-boxes">
         <view class="info-box">
           <text class="label">检测单位</text>
           <text class="value">{{ fileData.data.projects[0].dept.deptName || '暂无数据' }}</text>
-        </view>
+    </view>
         <view class="info-box">
           <text class="label">检测人员</text>
           <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text>
-        </view>
+		</view>
         <view class="info-box">
           <text class="label">检测年度</text>
           <picker class="year-picker" :value="selectedYearIndex" :range="years" @change="changeYear">
-            <view class="picker-content">
+				<view class="picker-content">
               <text class="value">{{ years[selectedYearIndex] }}年度</text>
               <text class="arrow">▼</text>
-            </view>
-          </picker>
+				</view>
+			</picker>
         </view>
-      </view>
-    </view>
-
+		</view>
+	</view>
+	
     <!-- 项目列表 -->
     <view class="bridge-list" v-if="fileData && fileData.data && fileData.data.projects && fileData.data.projects.length > 0">
       <view class="bridge-item" v-for="(item, index) in fileData.data.projects" :key="index" @click="goToList(item)">
@@ -39,7 +39,7 @@
           <text class="bridge-status" :class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>
           <text class="bridge-progress">{{item.number||'0/0' }}</text>
           <text class="arrow">></text>
-        </view>
+			</view>
       </view>
     </view>
     
@@ -51,8 +51,8 @@
     <!-- 无数据状态 -->
     <view v-else class="no-data">
       <text>暂无数据</text>
-    </view>
-  </view>
+		</view>
+	</view>
 </template>
 
 <script setup>
@@ -119,7 +119,7 @@ const back = () => {
 };
 
 const goToList = (item) => {
-  uni.navigateTo({
+    uni.navigateTo({
     url: `/pages/List/List?projectId=${item.code || ''}&projectName=${encodeURIComponent(item.projectName || '')}&company=${encodeURIComponent(item.company || '')}&status=${encodeURIComponent(item.status || '')}&progress=${encodeURIComponent(item.progress || '')}`
   });
 };
@@ -154,7 +154,7 @@ onMounted(() => {
 }
 
 .container {
-  min-height: 100vh;
+    min-height: 100vh;
   background-color: #fff;
   padding: 0;
   margin: 0;
@@ -172,12 +172,12 @@ onMounted(() => {
   font-size: 34px;
   font-weight: bold;
   background-color: #0F4687 !important;
-}
+	}
 
 ::v-deep .uni-nav-bar__header-container-inner {
   font-size: 34px;
   font-weight: bold;
-}
+	}
 
 .info-card {
   background-color: #bdcbe0;
@@ -186,7 +186,7 @@ onMounted(() => {
   margin-top: -14px;
 
   .info-boxes {
-    display: flex;
+			display: flex;
     justify-content: flex-start;
     gap: 6px;
     padding: 0 12px;
@@ -195,8 +195,8 @@ onMounted(() => {
       border: 1px solid #0f4687;
       border-radius: 4px;
       padding: 8px 10px;
-      display: flex;
-      flex-direction: column;
+				display: flex;
+				flex-direction: column;
       background-color: #bdcbe0;
       min-height: 62px;
       justify-content: flex-start;
@@ -224,7 +224,7 @@ onMounted(() => {
 
       .label {
         font-size: 13px;
-        color: #666;
+					color: #666;
         line-height: 1.2;
         margin-bottom: 3px;
       }
@@ -233,13 +233,13 @@ onMounted(() => {
         color: #333;
         font-weight: 500;
         line-height: 1.2;
-      }
-    }
-  }
+			}
+		}
+	}
 }
 
 .year-picker {
-  width: 100%;
+    width: 100%;
   
   .picker-content {
     display: flex;
@@ -279,8 +279,8 @@ onMounted(() => {
         font-size: 14px;
         color: #666;
         margin-bottom: 4px;
-      }
-
+    }
+    
       .bridge-name {
         font-size: 16px;
         color: #333;
@@ -293,21 +293,21 @@ onMounted(() => {
         color: #999;
       }
     }
-
+    
     .bridge-meta {
       text-align: right;
       margin-left: 10px;
-
+        
       .bridge-status {
-        font-size: 16px;
+            font-size: 16px;
         color: #333;
         display: block;
         
         &.completed {
           color: #00B578;
         }
-      }
-
+        }
+        
       .bridge-progress {
         font-size: 14px;
         color: #666;
@@ -318,17 +318,17 @@ onMounted(() => {
       .arrow {
         color: #999;
         margin-left: 5px;
-      }
+        }
     }
-  }
+}
 }
 
 .loading, .no-data {
-  display: flex;
+    display: flex;
   justify-content: center;
   align-items: center;
   height: 200px;
   color: #666;
   font-size: 16px;
 }
-</style> 
+</style>

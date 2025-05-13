@@ -13,15 +13,18 @@
 
 			<!-- 右侧内容区 -->
 			<view class="content">
-				<view v-for="(item, index) in activeStructures" class="structure-item">
+				<view v-for="(item, index) in activeStructures" class="structure-item" 
+					  @click="selectStructure(item, index)" 
+					  :class="{'selected': selectedStructure === item}">
 					<view :key="index" class="structure-name">
 						{{item.name}}
 					</view>
-					<view :class="['structure-state-button', item.state === 'on' ? 'button-on': 'button-off']"
-						@click="changeStructureState(item)">
+					<view :class="['structure-state-button', item.state === 'on' ? 'button-on': 'button-off', selectedStructure !== item ? 'disabled' : '']"
+						@click.stop="selectedStructure === item && changeStructureState(item)">
 						{{item.state === 'on' ? '启用部件' : '停用部件'}}
 					</view>
-					<view class="structure-number-button" @click="showPopup(item)">
+					<view :class="['structure-number-button', selectedStructure !== item ? 'disabled' : '']"
+						@click.stop="selectedStructure === item && showPopup(item)">
 						{{item.structureNumber.length === 0 ? '创建编号' : '查看编号'}}
 					</view>
 				</view>
@@ -91,9 +94,12 @@
 						<view class="create-placeholder"></view>
 						<template class="create-row-right">
 							<text class="create-number">{{ index + 1 }}</text>
-							<picker mode="selector" :range="['固定值', '序号']" v-model:value="item.typeIndex"
-								@change="typeChange({ id: item.id, event: $event })" class="create-class">
-								<view class="create-class-value">{{ ['固定值', '序号'][item.typeIndex] }}</view>
+							<picker mode="selector" :range="['固定值', '序号']" :value="item.typeIndex"
+								@change="(e) => typeChange({ id: item.id, event: e })" class="create-class">
+								<view class="create-class-value">
+									{{ ['固定值', '序号'][item.typeIndex] }}
+									<text class="arrow-down">▼</text>
+								</view>
 							</picker>
 							<view class="create-value">
 								<input v-if="item.typeIndex === 0" v-model="item.value" class="create-value-input" />
@@ -156,12 +162,14 @@
 		computed,
 		onMounted
 	} from 'vue';
+import { getProperty } from '../utils/readJsonNew';
 	// 数据
-	const tabItems = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
+	const tabItems = ref([]);  // 初始化为空数组
 	const activeTab = ref(0);
 	const popupContent = ref('');
 	const currentStructure = ref();
 	const currentEdit = ref();
+	const selectedStructure = ref(null);
 	const structures = ref([{
 		name: '钢拱圈',
 		from: '上部结构',
@@ -380,6 +388,22 @@
 		// currentEdit.value.suffix
 		popupContent.value = 'read';
 	};
+
+	const selectStructure = (item, index) => {
+		selectedStructure.value = item;
+	};
+
+	onMounted(async () => {
+		const data = await getProperty(1, 5);
+		console.log('获取到的数据:', data);
+		
+		// 从数据中提取第一个 children 数组的 name 值
+		if (data && data.data && data.data.children && data.data.children.length > 0) {
+			tabItems.value = data.data.children.map(item => item.name);
+			// 更新 activeStructures
+			activeStructures.value = structures.value.filter(item => item.from === tabItems.value[0]);
+		}
+	})
 </script>
 
 <style scoped>
@@ -466,6 +490,11 @@
 		align-items: center;
 		padding: 14rpx 12rpx;
 		border-bottom: 1rpx solid #eee;
+		cursor: pointer;
+	}
+
+	.structure-item.selected {
+		background-color: #f0f5ff;
 	}
 
 	.structure-name {
@@ -493,6 +522,12 @@
 
 	.button-off {
 		background-color: #f56c6c;
+	}
+
+	.disabled {
+		background-color: #cccccc;
+		opacity: 0.6;
+		cursor: not-allowed;
 	}
 
 	.popup-content {
@@ -722,6 +757,15 @@
 	.create-class-value {
 		font-size: 20rpx;
 		color: #666;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.arrow-down {
+		font-size: 12rpx;
+		color: #666;
+		margin-left: 4rpx;
 	}
 
 	.create-value {
