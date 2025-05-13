@@ -162,7 +162,7 @@
 		computed,
 		onMounted
 	} from 'vue';
-import { getProperty } from '../utils/readJsonNew';
+  import {getObject} from '../utils/readJsonNew';
 	// 数据
 	const tabItems = ref([]);  // 初始化为空数组
 	const activeTab = ref(0);
@@ -394,12 +394,12 @@ import { getProperty } from '../utils/readJsonNew';
 	};
 
 	onMounted(async () => {
-		const data = await getProperty(1, 5);
+		const data = await getObject(3, 39);
 		console.log('获取到的数据:', data);
 		
 		// 从数据中提取第一个 children 数组的 name 值
-		if (data && data.data && data.data.children && data.data.children.length > 0) {
-			tabItems.value = data.data.children.map(item => item.name);
+		if (data && data.children && data.children.length > 0) {
+			tabItems.value = data.children.map(item => item.name);
 			// 更新 activeStructures
 			activeStructures.value = structures.value.filter(item => item.from === tabItems.value[0]);
 		}

@@ -79,14 +79,14 @@
 	// 当前活动标签
 	const activeTab = ref(0);
 
-	// 存储桥梁数据 - 初始化为空对象
+/*	// 存储桥梁数据 - 初始化为空对象
 	const bridgeData = ref({
 		currentDisease: [],
 		historyDisease: [],
 		frontFhoto: [],
 		bridgeArchive: {},
 		structureInfo: {}
-	});
+	});*/
 
 /*	// 组件引用
 	const currentDiseaseRef = ref(null);
