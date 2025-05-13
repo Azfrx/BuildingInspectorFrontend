@@ -1,154 +1,21 @@
 <template>
 	<view>
-
-    <view class="line">
-      <view class="line-title">
-        桥梁总长(m)
-      </view>
-      <view class="line-content">
-        {{ data.totalLength || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥面总宽(m)
-      </view>
-      <view class="line-content">
-        {{ data.totalDeckWidth || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        车道宽度(m)
-      </view>
-      <view class="line-content">
-        {{ data.laneWidth || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        人行道宽度(m)
-      </view>
-      <view class="line-content">
-        {{ data.sidewalkWidth || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        护栏或防护墙宽度(m)
-      </view>
-      <view class="line-content">
-        {{ data.guardrailHeight || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        中央分隔带宽度(m)
-      </view>
-      <view class="line-content">
-        {{ data.centralMedianWidth || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥面标准净空(m)
-      </view>
-      <view class="line-content">
-        {{ data.standardDeckClearance || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥面实际净空(m)
-      </view>
-      <view class="line-content">
-        {{ data.actualDeckClearance || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥下通航等级及标准净空(m)
-      </view>
-      <view class="line-content">
-        {{ data.navigationGradeUnderBridge || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥下实际净空(m)
-      </view>
-      <view class="line-content">
-        {{ data.actualClearanceUnderBridge || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        引道总宽(m)
-      </view>
-      <view class="line-content">
-        {{ data.approachTotalWidth || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        引道线形或曲线半径(m)
-      </view>
-      <view class="line-content">
-        <text class="line-content-left">{{data.approachRoadLinear || '/'}}</text>
-        <text class="line-content-middle">|</text>
-        <text class="line-content-right">{{data.approachRoadRadius  || '/'}}</text>
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        设计洪水频率及其水位
-      </view>
-      <view class="line-content">
-        <text class="line-content-left">{{data.floodFrequency || '/'}}</text>
-        <text class="line-content-middle">|</text>
-        <text class="line-content-right">{{data.waterLevel || '/'}}</text>
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        历史洪水位
-      </view>
-      <view class="line-content">
-        {{ data.historicalFloodLevel || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        设计地震动峰值加速度系数
-      </view>
-      <view class="line-content">
-        {{ data.seismicPeakAcceleration || '/'}}
-      </view>
-    </view>
-
-    <view class="line">
-      <view class="line-title">
-        桥面高度(m)
-      </view>
-      <view class="line-content">
-        {{ data.deckElevation || '/'}}
-      </view>
-    </view>
-
+		<view class="line" v-for="(item, index) in data" :key="item.id">
+			<view class="line-title">
+				{{ item.name }}
+			</view>
+			<view class="line-content">
+				<template v-if="item.children && item.children.length">
+					<template v-for="(child, childIndex) in item.children" :key="child.id">
+						{{ child.name }}: {{ child.value || '/' }}
+						<text v-if="childIndex < item.children.length - 1" class="line-content-middle"></text>
+					</template>
+				</template>
+				<template v-else>
+					{{ item.value || '/' }}
+				</template>
+			</view>
+		</view>
 	</view>
 </template>
 

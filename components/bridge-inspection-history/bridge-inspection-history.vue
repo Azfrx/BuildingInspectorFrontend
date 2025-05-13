@@ -1,60 +1,30 @@
 <template>
 	<view>
-
-		<view v-for="(item , index) in data" :key="index" class="type-group">
-			<view class="type-header" @click="toggleTypeExpand(item.inspectionDate)">
-				<text>评定时间：{{item.inspectionDate}}</text>
-				<text class="expand-icon">{{ expandedTypes[item.inspectionDate] ? '▼' : '▶' }}</text>
+		<view v-for="(item, index) in data" :key="item.id" class="type-group">
+			<view class="type-header" @click="toggleTypeExpand(item.name)">
+				<text>{{item.name}}</text>
+				<text class="expand-icon">{{ expandedTypes[item.name] ? '▼' : '▶' }}</text>
 			</view>
 
-      <view v-if="expandedTypes[item.inspectionDate]">
-        <view class="line">
-          <view class="line-title">
-            检测类别
-          </view>
-          <view class="line-content">
-            {{ item.inspectionType || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            桥梁技术状况评定结果/特殊检查结论
-          </view>
-          <view class="line-content">
-            {{ item.technicalCondition || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            处治对策
-          </view>
-          <view class="line-content">
-            {{ item.treatmentPlan || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            下次检测时间
-          </view>
-          <view class="line-content">
-            {{ item.nextInspectionDate || '/'}}
-          </view>
-        </view>
-      </view>
-
-
+			<view v-if="expandedTypes[item.name] && item.children">
+				<view class="line" v-for="(child, childIndex) in item.children" :key="child.id">
+					<view class="line-title">
+						{{ child.name }}
+					</view>
+					<view class="line-content">
+						{{ child.value || '/' }}
+					</view>
+				</view>
+			</view>
 		</view>
-
 	</view>
 </template>
 
 <script setup>
 	import {
 		reactive,
-		ref
+		ref,
+		onMounted
 	} from 'vue'
 
 /*	const data = ref([{
@@ -80,20 +50,26 @@
     }
 	])*/
 
-  const props = defineProps({
-    data: {
-      type: Array,
-      default: () => []
-    }
-  })
+	const props = defineProps({
+		data: {
+			type: Array,
+			default: () => []
+		}
+	})
 
 	// 展开状态
 	const expandedTypes = reactive({});
 
-  // 初始化默认展开
-  props.data.forEach(item => {
-    expandedTypes[item.inspectionDate] = true; // 或使用 index
-  });
+	// 初始化默认展开
+	onMounted(() => {
+		initExpandState();
+	});
+
+	const initExpandState = () => {
+		props.data.forEach(item => {
+			expandedTypes[item.name] = true;
+		});
+	};
 
 	// 切换类型展开
 	const toggleTypeExpand = (type) => {
@@ -124,28 +100,27 @@
 		color: #666;
 	}
 
-  .line {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14rpx 12rpx;
-    border-bottom: 1rpx solid #eee;
-  }
+	.line {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 14rpx 12rpx;
+		border-bottom: 1rpx solid #eee;
+	}
 
-  .line-title {
-    color: #666666;
-    font-size: 20rpx;
-  }
+	.line-title {
+		color: #666666;
+		font-size: 20rpx;
+	}
 
-  .line-content {
-    color: #333333;
-    font-size: 20rpx;
-  }
-  .line-content-middle{
-    margin-left: 10rpx;
-    margin-right: 10rpx;
-    color: #BDCBE0;
-  }
-
+	.line-content {
+		color: #333333;
+		font-size: 20rpx;
+	}
+	.line-content-middle{
+		margin-left: 10rpx;
+		margin-right: 10rpx;
+		color: #BDCBE0;
+	}
 </style>

@@ -44,80 +44,179 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
+import { getDisease } from '../utils/readJsonNew.js';
+import { setDisease } from '../utils/reviseNew.js';
 
 // 数据
-const tabItems = ref(['上部结构', '下部结构', '桥面系']);
+const tabItems = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
 const activeTab = ref(0);
 const searchText = ref('');
 const showAddPopup = ref(false);
-const diseaseList = ref([
-	{
-		id: '1',
-    partType:'T梁',
-    partNumber:'3-2',
-    disease:'剥落、掉角',
-		description: '上部结构的T梁出现剥落情况',
-		count: '2',
-		collectTime: '2024-04-25 14:25:25',
-		length: 50,
-		width: 20,
-		grade: '2',
-		reference: '是',
-		type: '上部结构'
-	},
-	{
-		id: '2',
-    partType: '墩柱',
-    partNumber:'2-1',
-    disease: '裂缝',
-		description: '下部结构的墩柱出现裂缝',
-		count: '1',
-		collectTime: '2024-04-24 09:15:30',
-		grade: '3',
-		reference: '是',
-		type: '下部结构'
-	},
-	{
-		id: '3',
-    partType: '桥面',
-    partNumber:'1-3',
-    disease: '破损',
-		description: '桥面系出现破损',
-		count: '3',
-		collectTime: '2024-04-23 16:45:10',
-		grade: '1',
-		reference: '否',
-		type: '桥面系'
-	},
-	{
-		id: '4',
-    partType: 'T梁',
-    partNumber:'2-1',
-    disease: '锈蚀',
-		description: '上部结构的T梁出现锈蚀',
-		count: '1',
-		collectTime: '2024-04-22 11:30:45',
-		grade: '2',
-		reference: '是',
-		type: '上部结构'
-	},
-  {
-    id: '5',
-    partType: '墩身',
-    partNumber:'2-1',
-    disease: '空洞、孔洞',
-    position: 'R21-1#桥墩,距墩顶0cm',
-    area: '120×10cm²',
-    description: '桥墩破损一处，距墩顶0cm，S=120×10cm²',
-    count: '1',
-    collectTime: '2024-04-23 11:30:45',
-    grade: '1',
-    reference: '是',
-    type: '上部结构',
-    imageUrl: '/static/image/disease.png'
+const diseaseList = ref([]);
+
+// 加载当前年份病害数据
+const loadCurrentYearDiseaseData = async () => {
+  try {
+    const userId = '3';
+    const buildingId = '39';
+    const currentYear = new Date().getFullYear().toString();
+    
+    // 调用getDisease获取当前年份数据
+    const yearData = await getDisease(userId, buildingId, currentYear);
+    console.log(`获取到${currentYear}年病害数据:`, yearData);
+    
+    // 直接使用diseases数组
+    if (yearData && yearData.diseases && yearData.diseases.length > 0) {
+      diseaseList.value = yearData.diseases;
+    } else {
+      diseaseList.value = [];
+    }
+    
+    console.log('病害数据加载完成:', diseaseList.value);
+  } catch (error) {
+    console.error('读取病害数据失败:', error);
+    uni.showToast({
+      title: '读取数据失败',
+      icon: 'none'
+    });
   }
-]);
+};
+
+// 添加新增病害数据的方法
+const addNewDiseaseData = async (newDisease) => {
+  try {
+    console.log('接收到新增病害数据:', newDisease);
+    
+    // 将新病害数据添加到列表中
+    diseaseList.value.push(newDisease);
+    
+    // 准备要保存的数据
+    const userId = '3';
+    const buildingId = '39';
+    const currentYear = new Date().getFullYear().toString();
+    
+    // 构建要保存的数据对象
+    const saveData = {
+      year: parseInt(currentYear),
+      buildingId: parseInt(buildingId),
+      diseases: diseaseList.value
+    };
+    
+    console.log('准备保存的数据:', saveData);
+    
+    // 调用setDisease方法保存数据
+    await setDisease(userId, buildingId, currentYear, saveData);
+    
+    console.log('新增病害数据保存成功');
+    uni.showToast({
+      title: '保存成功',
+      icon: 'success'
+    });
+  } catch (error) {
+    console.error('保存新增病害数据失败:', error);
+    uni.showToast({
+      title: '保存失败',
+      icon: 'none'
+    });
+  }
+};
+
+// 处理删除病害事件的方法
+const handleDeleteDisease = async (deleteData) => {
+  try {
+    console.log('接收到删除病害事件:', deleteData);
+    
+    if (!deleteData || !deleteData.id) {
+      console.error('删除数据无效');
+      return;
+    }
+    
+    // 在列表中查找病害数据
+    const index = diseaseList.value.findIndex(item => item.id == deleteData.id);
+    if (index === -1) {
+      console.error('未找到要删除的病害数据:', deleteData.id);
+      return;
+    }
+    
+    // 标记为删除而不是从数组中移除
+    diseaseList.value[index].isDelete = true;
+    console.log(`病害ID:${deleteData.id}已标记为删除`);
+    
+    // 准备要保存的数据
+    const userId = '3';
+    const buildingId = '39';
+    const currentYear = new Date().getFullYear().toString();
+    
+    // 构建要保存的数据对象
+    const saveData = {
+      year: parseInt(currentYear),
+      buildingId: parseInt(buildingId),
+      diseases: diseaseList.value
+    };
+    
+    console.log('准备保存删除后的数据:', saveData);
+    
+    // 调用setDisease方法保存数据
+    await setDisease(userId, buildingId, currentYear, saveData);
+    
+    console.log('删除标记保存成功');
+  } catch (error) {
+    console.error('保存删除标记失败:', error);
+    uni.showToast({
+      title: '删除失败',
+      icon: 'none'
+    });
+  }
+};
+
+// 处理更新病害事件的方法
+const handleUpdateDisease = async (updatedDisease) => {
+  try {
+    console.log('接收到更新病害事件:', updatedDisease);
+    
+    if (!updatedDisease || !updatedDisease.id) {
+      console.error('更新数据无效');
+      return;
+    }
+    
+    // 在列表中查找病害数据
+    const index = diseaseList.value.findIndex(item => item.id == updatedDisease.id);
+    if (index === -1) {
+      console.error('未找到要更新的病害数据:', updatedDisease.id);
+      return;
+    }
+    
+    // 更新病害数据
+    diseaseList.value[index] = updatedDisease;
+    console.log(`病害ID:${updatedDisease.id}已更新`);
+    
+    // 准备要保存的数据
+    const userId = '3';
+    const buildingId = '39';
+    const currentYear = new Date().getFullYear().toString();
+    
+    // 构建要保存的数据对象
+    const saveData = {
+      year: parseInt(currentYear),
+      buildingId: parseInt(buildingId),
+      diseases: diseaseList.value
+    };
+    
+    console.log('准备保存更新后的数据:', saveData);
+    
+    // 调用setDisease方法保存数据
+    await setDisease(userId, buildingId, currentYear, saveData);
+    
+    console.log('更新数据保存成功');
+  } catch (error) {
+    console.error('保存更新数据失败:', error);
+    uni.showToast({
+      title: '更新失败',
+      icon: 'none'
+    });
+  }
+};
 
 // 计算属性
 const filteredDiseases = computed(() => {
@@ -125,15 +224,20 @@ const filteredDiseases = computed(() => {
 	const selectedType = tabItems.value[activeTab.value];
 	
 	return diseaseList.value.filter(item => {
-		// 先按类型过滤
-		if (item.type !== selectedType) {
+		// 过滤掉已删除的记录
+		if (item.isDelete === true) {
+			return false;
+		}
+		
+		// 按类型过滤 - 使用component.parentObjectName
+		if (item.component?.parentObjectName !== selectedType) {
 			return false;
 		}
 		
 		// 如果有搜索关键词，再按关键词过滤
 		if (searchText.value) {
-			return item.title.includes(searchText.value) || 
-				   item.description.includes(searchText.value);
+			return item.description?.includes(searchText.value) || 
+				   item.type?.includes(searchText.value);
 		}
 		
 		return true;
@@ -152,14 +256,20 @@ const changeTab = (index) => {
 };
 
 const getTpyeItemCount = (type) => {
-	// 根据type获取该类型的病害数量
-	return diseaseList.value.filter(item => item.type === type).length;
+	// 根据type获取该类型的病害数量，排除已删除的项目
+	return diseaseList.value.filter(item => 
+    item.component?.parentObjectName === type && 
+    item.isDelete !== true
+  ).length;
 };
 
 const addNewDisease = () => {
-	// 打开新增病害页面
+	// 获取当前选中的类型（上部结构/下部结构/桥面系）
+	const selectedType = tabItems.value[activeTab.value];
+	
+	// 打开新增病害页面，并传递当前选中的类型
 	uni.navigateTo({
-		url: '/pages/add-disease/add-disease'
+		url: `/pages/add-disease/add-disease?type=${encodeURIComponent(selectedType)}`
 	});
 };
 
@@ -170,21 +280,69 @@ const deleteDisease = (itemId) => {
 		content: '确定要删除这条病害记录吗？',
 		success: (res) => {
 			if (res.confirm) {
-				// 从列表中移除
+				// 查找病害数据
 				const index = diseaseList.value.findIndex(item => item.id === itemId);
 				if (index !== -1) {
-					diseaseList.value.splice(index, 1);
+					// 标记为删除而不是直接从数组中移除
+					diseaseList.value[index].isDelete = true;
 					
-					// 删除成功提示
-					uni.showToast({
-						title: '删除成功',
-						icon: 'success'
-					});
+					// 准备要保存的数据
+					const userId = '3';
+					const buildingId = '39';
+					const currentYear = new Date().getFullYear().toString();
+					
+					// 构建要保存的数据对象
+					const saveData = {
+						year: parseInt(currentYear),
+						buildingId: parseInt(buildingId),
+						diseases: diseaseList.value
+					};
+					
+					// 调用setDisease方法保存数据
+					setDisease(userId, buildingId, currentYear, saveData)
+						.then(() => {
+							// 删除成功提示
+							uni.showToast({
+								title: '删除成功',
+								icon: 'success'
+							});
+						})
+						.catch(error => {
+							console.error('保存删除标记失败:', error);
+							uni.showToast({
+								title: '删除失败',
+								icon: 'none'
+							});
+						});
 				}
 			}
 		}
 	});
 };
+
+// 组件挂载时
+onMounted(() => {
+  console.log('current-disease组件挂载，准备加载数据');
+  // 加载数据
+  loadCurrentYearDiseaseData();
+  
+  // 添加新增病害事件监听
+  uni.$on('addNewDisease', addNewDiseaseData);
+  
+  // 添加删除病害事件监听
+  uni.$on('deleteDisease', handleDeleteDisease);
+  
+  // 添加更新病害事件监听
+  uni.$on('updateDisease', handleUpdateDisease);
+});
+
+// 组件卸载时
+onUnmounted(() => {
+  // 移除事件监听
+  uni.$off('addNewDisease');
+  uni.$off('deleteDisease');
+  uni.$off('updateDisease');
+});
 </script>
 
 <style scoped>

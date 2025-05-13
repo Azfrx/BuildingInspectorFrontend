@@ -6,7 +6,9 @@ const FILE_NAMING = {
     task: (userId, projectId) => `${userId}/project/${projectId}/task.json`,
     property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
     disease: (userId, buildingId, yearId) =>
-        `${userId}/building/${buildingId}/disease/${yearId}.json`
+        `${userId}/building/${buildingId}/disease/${yearId}.json`,
+    diseaseImages: (userId, buildingId) =>
+        `${userId}/building/${buildingId}/disease/images`
 };
 
 let __currentFilePath = null;
@@ -50,13 +52,13 @@ export function saveData(data) {
         const wait = plus.nativeUI.showWaiting("正在保存信息");
 
         setJsonData(fullPath, data)
-           .then(() => {
+            .then(() => {
                 wait.close();
                 console.log('写入成功');
                 plus.nativeUI.toast("保存成功");
                 resolve(true);
             })
-           .catch((error) => {
+            .catch((error) => {
                 wait.close();
                 console.error("写入失败:", error);
                 plus.nativeUI.toast("保存失败");
@@ -95,3 +97,75 @@ export function setDisease(userId, buildingId, yearId, data) {
     trackPath(path);
     return saveData(data);
 }
+
+// 保存图片到与JSON文件同级目录
+export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
+    return new Promise((resolve, reject) => {
+        // 构建目标目录路径
+        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId, buildingId);
+        const fullTargetPath = getFullPath(targetDirPath);
+        
+        console.log('准备保存图片到目录:', fullTargetPath);
+        
+        // 显示加载提示
+        const wait = plus.nativeUI.showWaiting("正在保存图片");
+        
+        // 确保目录存在
+        plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+            // 创建目录
+            fs.root.getDirectory(targetDirPath, { create: true }, dirEntry => {
+                console.log('目标目录已创建或已存在');
+                
+                // 保存所有图片
+                const savePromises = tempImagePaths.map((tempPath, index) => {
+                    return new Promise((resolveFile, rejectFile) => {
+                        // 生成唯一的文件名
+                        const fileName = `disease_${Date.now()}_${index}.jpg`;
+                        const targetPath = `${targetDirPath}/${fileName}`;
+                        
+                        // 复制文件
+                        plus.io.resolveLocalFileSystemURL(tempPath, fileEntry => {
+                            fileEntry.copyTo(dirEntry, fileName, newFile => {
+                                console.log(`图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                                resolveFile(newFile.fullPath);
+                            }, error => {
+                                console.error(`图片 ${index + 1} 保存失败:`, error);
+                                rejectFile(error);
+                            });
+                        }, error => {
+                            console.error(`无法访问临时文件 ${tempPath}:`, error);
+                            rejectFile(error);
+                        });
+                    });
+                });
+                
+                // 等待所有图片保存完成
+                Promise.all(savePromises)
+                    .then(savedPaths => {
+                        wait.close();
+                        console.log('所有图片保存成功:', savedPaths);
+                        plus.nativeUI.toast("图片保存成功");
+                        resolve(savedPaths);
+                    })
+                    .catch(error => {
+                        wait.close();
+                        console.error("图片保存失败:", error);
+                        plus.nativeUI.toast("图片保存失败");
+                        reject(error);
+                    });
+            }, error => {
+                wait.close();
+                console.error("创建目录失败:", error);
+                plus.nativeUI.toast("创建图片目录失败");
+                reject(error);
+            });
+        }, error => {
+            wait.close();
+            console.error("文件系统访问失败:", error);
+            plus.nativeUI.toast("文件系统访问失败");
+            reject(error);
+        });
+    });
+}
+
+

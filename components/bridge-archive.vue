@@ -17,22 +17,22 @@
 				<!--行政识别数据 -->
 				<administrative-identification-data
 					v-if="activeTab === 0"
-					:data="bridgeArchive.administrativeIdentificationData">
+					:data="bridgeArchive.children[0].children">
 				</administrative-identification-data>
 				<!--桥梁技术指标-->
-				<bridge-tech v-else-if="activeTab === 1" :data="bridgeArchive.bridgeTechnicalIndicators"></bridge-tech>
+				<bridge-tech v-else-if="activeTab === 1" :data="bridgeArchive.children[1].children"></bridge-tech>
 				<!--桥梁结构信息-->
-				<bridge-structure v-else-if="activeTab === 2" :data="bridgeArchive.bridgeStructuralInfo"></bridge-structure>
+				<bridge-structure v-else-if="activeTab === 2" :data="bridgeArchive.children[2].children"></bridge-structure>
 				<!--桥梁档案资料-->
-				<bridge-files v-else-if="activeTab === 3" :data="bridgeArchive.bridgeArchiveRecords"></bridge-files>
+				<bridge-files v-else-if="activeTab === 3" :data="bridgeArchive.children[3].children"></bridge-files>
 				<!--桥梁检测评定历史-->
-				<bridge-inspection-history v-else-if="activeTab === 4" :data="bridgeArchive.bridgeInspectionHistory"></bridge-inspection-history>
+				<bridge-inspection-history v-else-if="activeTab === 4" :data="bridgeArchive.children[4].children"></bridge-inspection-history>
 				<!--养护处置记录-->
-				<maintenance-records v-else-if="activeTab === 5" :data="bridgeArchive.maintenanceRecords"></maintenance-records>
+				<maintenance-records v-else-if="activeTab === 5" :data="bridgeArchive.children[5].children"></maintenance-records>
 				<!--需要说明的事项-->
-				<notes v-else-if="activeTab === 6" :data="bridgeArchive.additionalNotes"></notes>
+				<notes v-else-if="activeTab === 6" :data="bridgeArchive.children[6]"></notes>
 				<!--其他-->
-				<other-info v-else-if="activeTab === 7" :data="bridgeArchive.additionalInfo"></other-info>
+				<other-info v-else-if="activeTab === 7" :data="bridgeArchive.children[7]"></other-info>
 			</view>
 		</view>
 	</view>
@@ -42,48 +42,42 @@
 <script setup>
 import {
   ref,
-  computed, onMounted
+  watch, 
+  onMounted
 } from 'vue';
-	// 数据
-	const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
-	const activeTab = ref(0);
-	//左侧导航栏选择
-	const changeTab = (index) => {
-		activeTab.value = index;
-	};
+import { getProperty } from '../utils/readJsonNew.js';
 
+// 本地状态，用于组件内部使用
 const bridgeArchive = ref({
-  administrativeIdentificationData: {},
-  bridgeTechnicalIndicators: {},
-  bridgeStructuralInfo: {},
-  bridgeArchiveRecords: {},
-  bridgeInspectionHistory: [],
-  maintenanceRecords: [],
-  additionalNotes:'',
-  additionalInfo: {}
-})
+  children: [{}, {}, {}, {}, {}, {}, {}, {}]  // 初始化8个空对象，对应8个标签页
+});
+const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
+const activeTab = ref(0);
 
-// 获取数据
-const getData = () => {
-  uni.request({
-    url: '/static/data/bridgeArchive.json',
-    method: 'GET',
-    success: (res) => {
-      console.log('获取数据成功:', res.data)
-      bridgeArchive.value = res.data
-    },
-    fail: (err) => {
-      console.error('获取数据失败:', err)
+// 左侧导航栏选择
+const changeTab = (index) => {
+	activeTab.value = index;
+};
+
+// 组件挂载时直接获取数据
+onMounted(async () => {
+  try {
+    // 直接调用getProperty方法获取数据，传入userId=3和buildingId=39
+    const data = await getProperty('3', '39');
+    console.log('获取到桥梁档案数据:', data);
+    
+    // 将获取的数据赋值给本地状态
+    if (data && Object.keys(data).length > 0) {
+      bridgeArchive.value = data;
     }
-  })
-}
-
-// 页面加载时获取数据
-onMounted(() => {
-  getData()
-})
-
-
+  } catch (error) {
+    console.error('获取桥梁档案数据失败:', error);
+    uni.showToast({
+      title: '获取数据失败',
+      icon: 'none'
+    });
+  }
+});
 </script>
 
 <style scoped>

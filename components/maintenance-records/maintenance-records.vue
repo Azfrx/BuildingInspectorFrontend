@@ -1,107 +1,30 @@
 <template>
 	<view>
+		<view v-for="(item, index) in data" :key="item.id" class="type-group">
+			<view class="type-header" @click="toggleTypeExpand(item.id)">
+				<text>时间（段）：{{item.name}}</text>
+				<text class="expand-icon">{{ expandedTypes[item.id] ? '▼' : '▶' }}</text>
+			</view>
 
-    <view v-for="(item , index) in data" :key="index" class="type-group">
-      <view class="type-header" @click="toggleTypeExpand(item.timePeriod)">
-        <text>时间（段）：{{item.timePeriod || '/'}}</text>
-        <text class="expand-icon">{{ expandedTypes[item.timePeriod] ? '▼' : '▶' }}</text>
-      </view>
-
-      <view v-if="expandedTypes[item.timePeriod]">
-        <view class="line">
-          <view class="line-title">
-            处治类别（维修、加固、改造）
-          </view>
-          <view class="line-content">
-            {{ item.treatmentType || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            处置原因
-          </view>
-          <view class="line-content">
-            {{ item.treatmentReason || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            工程费用（万元）
-          </view>
-          <view class="line-content">
-            {{ item.treatmentScope || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            经费来源
-          </view>
-          <view class="line-content">
-            {{ item.fundingSource || '/'}}
-          </view>
-        </view>
-
-         <view class="line">
-            <view class="line-title">
-              处治质量评定
-            </view>
-            <view class="line-content">
-              {{ item.treatmentQualityAssessment || '/'}}
-            </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            建设单位
-          </view>
-          <view class="line-content">
-            {{ item.constructionUnit || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            设计单位
-          </view>
-          <view class="line-content">
-            {{ item.designUnit || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            施工单位
-          </view>
-          <view class="line-content">
-            {{ item.constructionOrganization || '/'}}
-          </view>
-        </view>
-
-        <view class="line">
-          <view class="line-title">
-            监理单位
-          </view>
-          <view class="line-content">
-            {{ item.supervisionUnit || '/'}}
-          </view>
-        </view>
-
-      </view>
-
-    </view>
-
-
+			<view v-if="expandedTypes[item.id] && item.children">
+				<view class="line" v-for="(child, childIndex) in item.children" :key="child.id">
+					<view class="line-title">
+						{{ child.name }}
+					</view>
+					<view class="line-content">
+						{{ child.value || '/' }}
+					</view>
+				</view>
+			</view>
+		</view>
 	</view>
 </template>
 
 <script setup>
-
 import {
-  reactive,
-  ref
+	reactive,
+	ref,
+	onMounted
 } from 'vue'
 
 /*const data = ref([
@@ -121,71 +44,79 @@ import {
 ]);*/
 
 const props = defineProps({
-  data: {
-    type: Object,
-    default: () => ({})
-  }
+	data: {
+		type: Object,
+		default: () => ({})
+	}
 })
 
 // 展开状态
 const expandedTypes = reactive({});
 
 // 初始化默认展开
-props.data.forEach(item => {
-  expandedTypes[item.timePeriod] = true; // 或使用 index
+onMounted(() => {
+	initExpandState();
 });
 
-// 切换类型展开
-const toggleTypeExpand = (type) => {
-  expandedTypes[type] = !expandedTypes[type];
+const initExpandState = () => {
+	if (props.data && props.data) {
+		props.data.forEach(item => {
+			expandedTypes[item.id] = true;
+		});
+	}
 };
 
+// 切换类型展开
+const toggleTypeExpand = (id) => {
+	expandedTypes[id] = !expandedTypes[id];
+};
 </script>
 
 <style scoped>
 /* 下拉收缩 */
 .type-header {
-  height: 30rpx;
-  font-size: 15rpx;
-  font-weight: bold;
-  background-color: #BDCBE0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 5rpx 10rpx;
-  border-radius: 2rpx;
-  color: #0F4687;
-  border-bottom: 1rpx solid #0F4687;
-  border-top: 1rpx solid #0F4687;
+	height: 30rpx;
+	font-size: 15rpx;
+	font-weight: bold;
+	background-color: #BDCBE0;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 5rpx 10rpx;
+	border-radius: 2rpx;
+	color: #0F4687;
+	border-bottom: 1rpx solid #0F4687;
+	border-top: 1rpx solid #0F4687;
 }
 
 .expand-icon {
-  margin-left: 5rpx;
-  font-size: 12rpx;
-  color: #666;
+	margin-left: 5rpx;
+	font-size: 12rpx;
+	color: #666;
 }
 
 .line {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14rpx 12rpx;
-  border-bottom: 1rpx solid #eee;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	padding: 14rpx 12rpx;
+	border-bottom: 1rpx solid #eee;
 }
 
 .line-title {
-  color: #666666;
-  font-size: 20rpx;
+	color: #666666;
+	font-size: 20rpx;
 }
 
 .line-content {
-  color: #333333;
-  font-size: 20rpx;
+	color: #333333;
+	font-size: 20rpx;
 }
+
 .line-content-middle{
-  margin-left: 10rpx;
-  margin-right: 10rpx;
-  color: #BDCBE0;
+	margin-left: 10rpx;
+	margin-right: 10rpx;
+	color: #BDCBE0;
 }
 </style>

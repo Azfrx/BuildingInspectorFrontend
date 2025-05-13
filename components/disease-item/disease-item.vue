@@ -11,32 +11,28 @@
 				
 				<view :class="['disease-content', selectMode ? 'with-select' : '']">
 					<view class="item-header">
-						<text class="title">{{item.partType}}/{{item.partNumber}}/{{item.disease}}</text>
+						<text class="title">{{item.component.biObject.name}}/{{item.component.name}}/{{item.type}}</text>
 					</view>
-					<view class="description-row">
-						<view class="description">
-							<text class="label">病害描述：</text>
-							<text>{{item.description}}</text>
-<!--              <text>{{item.disease}}</text>-->
-<!--						  <text v-if="item.length != null && item.width !=null">,S={{item.length}}*{{item.width}}cm²</text>-->
+					<view class="content-container">
+						<view class="left-column">
+							<view class="info-row">
+								<text class="label">病害描述：</text>
+								<text class="description-text">{{item.description}}</text>
+							</view>
+							<view class="info-row">
+								<text class="label">采集时间：</text>
+								<text>{{item.createTime}}</text>
+							</view>
 						</view>
-						<view class="count">
-							<text class="label">缺损数量：</text>
-							<text>{{item.count}}</text>
-						</view>
-					</view>
-					<view class="item-footer">
-						<view class="collect-time">
-							<text class="label">采集时间：</text>
-							<text>{{item.collectTime}}</text>
-						</view>
-						<!-- <view class="grade">
-							<text class="label">评定标度：</text>
-							<text>{{item.grade}}</text>
-						</view> -->
-						<view class="grade-reference">
-							<text class="label">评定标度/参考评定：</text>
-							<text>{{item.grade}}/{{item.reference}}</text>
+						<view class="right-column">
+							<view class="info-row">
+								<text class="label">缺损数量：</text>
+								<text>{{item.quantity}}</text>
+							</view>
+							<view class="info-row">
+								<text class="label">评定标度/参考评定：</text>
+								<text>{{item.level}}/{{item.participateAssess === '1' ? '是' : '否'}}</text>
+							</view>
 						</view>
 					</view>
 					<image class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
@@ -54,18 +50,48 @@ const props = defineProps({
 	item: {
 		type: Object,
 		default: () => ({
-      id: '',
-      partType: '',
-      partNumber: '',
-      disease: '',
-			title: '',
-			description: '',
-			count: '',
-			collectTime: '',
-			grade: '',
-			reference: '',
-			type: ''
-		})
+      "createBy": "crh@znjc",
+      "createTime": "2023-05-02 16:52:18",
+      "updateTime": "2023-05-02 16:52:17",
+      "id": 54,
+      "diseaseType": {
+        "id": 17,
+        "code": "5.2.1-3",
+        "name": "焊缝开裂",
+        "maxScale": 5,
+        "minScale": 1,
+        "status": "0"
+      },
+      "diseaseTypeId": 17,
+      "description": "焊缝部位涂层有大量裂纹，受拉翼缘边焊缝存在裂缝，其他部位焊缝无裂缝，主梁、纵横梁受拉翼缘边焊缝开裂长度≤5mm",
+      "trend": "稳定",
+      "level": 2,
+      "quantity": 1,
+      "type": "焊缝开裂",
+      "participateAssess": "0",
+      "deductPoints": 35,
+      "biObjectId": 709,
+      "projectId": 2,
+      "component": {
+        "createBy": "admin",
+        "createTime": "2025-04-21 16:53:39",
+        "updateTime": "2025-04-21 16:53:38",
+        "id": 244,
+        "code": "R-1-1#上部承重构件（主梁、挂梁）",
+        "name": "上部承重构件（主梁、挂梁）1",
+        "biObjectId": 709,
+        "status": "0",
+        "delFlag": "0",
+        "biObject": {
+          "id": 709,
+          "name": "上部承重构件（主梁、挂梁）",
+          "count": 0
+        },
+        "parentObjectName": "上部结构"
+      },
+      "componentId": 244,
+      "buildingId": 37
+    })
 	},
 	selectMode: {
 		type: Boolean,
@@ -128,7 +154,29 @@ const handleSwipeClick = (e) => {
     });
 	}
 	if(e.index === 2){
-		emit('delete', props.item.id);
+		// 确认删除
+		uni.showModal({
+			title: '确认删除',
+			content: '确定要删除这条病害记录吗？',
+			success: (res) => {
+				if (res.confirm) {
+					// 创建删除数据对象
+					const deleteData = {
+						id: props.item.id,
+						isDelete: true
+					};
+					
+					// 使用事件发送删除请求
+					console.log('准备发送deleteDisease事件，ID:', props.item.id);
+					uni.$emit('deleteDisease', deleteData);
+					
+					uni.showToast({
+						title: '删除成功',
+						icon: 'success'
+					});
+				}
+			}
+		});
 		closeSwipe();
 	}
 };
@@ -159,7 +207,7 @@ const swipeChange = (e) => {
 <style scoped>
 .disease-item {
 	position: relative;
-	padding: 10rpx;
+	padding: 10rpx 10rpx 2rpx 10rpx;
 	background-color: #FFFFFF;
 	border-bottom: 1rpx solid #EEEEEE;
 	display: flex;
@@ -204,83 +252,77 @@ const swipeChange = (e) => {
 
 .disease-content {
 	flex: 1;
+	width: 100%;
+	position: relative;
 }
 
 .item-header {
 	display: flex;
 	align-items: center;
 	margin-bottom: 8rpx;
+	width: 100%;
 }
 
 .title {
 	font-size: 20rpx;
 	color: #333333;
 	font-weight: 600;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 70%;
+	display: inline-block;
 }
 
-.description-row {
+.content-container {
 	display: flex;
-	justify-content: space-between;
-	margin-bottom: 6rpx;
+	width: 100%;
+
 }
 
-.description {
-	font-size: 15rpx;
-	color: #666666;
-	line-height: 1.5;
-	flex: 3;
+.left-column {
+	width: 65%;
 }
 
-.count {
-	font-size: 15rpx;
-	color: #666666;
-  margin-right: 8rpx;
-	flex: 1;
-	text-align: right;
+.right-column {
+	width: 35%;
 }
 
-.item-footer {
+.info-row {
 	display: flex;
-	justify-content: space-between;
-	align-items: center;
-}
-
-.collect-time {
 	font-size: 15rpx;
 	color: #666666;
-	flex: 2;
-	padding-right: 10rpx;
+	margin-bottom: 8rpx;
+	align-items: flex-start;
 }
 
-.grade {
-	font-size: 15rpx;
-	color: #666666;
-	flex: 0.8;
-	text-align: center;
+.left-column .info-row {
+	width: 100%;
 }
 
-.reference {
-	font-size: 15rpx;
-	color: #666666;
-	flex: 0.8;
+.right-column .info-row {
+	justify-content: flex-end;
 	text-align: right;
-}
-.grade-reference{
-  font-size: 15rpx;
-  color: #666666;
-  flex: 1;
-  text-align: right;
-  margin-right: 8rpx;
+	width: 100%;
 }
 
 .label {
 	color: #999999;
+	flex-shrink: 0;
+}
+
+.description-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 65%;
+	display: inline-block;
 }
 
 .image-icon {
 	position: absolute;
-	top: 10rpx;
-  right: 16rpx;
+	top: 0;
+	right: 10rpx;
 	width: 25rpx;
 	height: 25rpx;
 }

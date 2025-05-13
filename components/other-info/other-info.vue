@@ -1,110 +1,108 @@
 <template>
 	<view>
-
-		<view class="image-line">
-			<view class="image-line-part">
-				<view class="image-line-part-title">
-					桥梁正面照
+		<!-- 照片区域，每行两张照片 -->
+		<view class="image-container">
+			<view v-for="(item, index) in imageItems" :key="item.id" class="image-item">
+				<view class="image-title">
+					{{ item.name }}
 				</view>
-				<view class="image-line-part-image">
-					<image src="/static/image/zjl.png" mode="aspectFill" class="image"></image>
+				<view class="image-wrapper">
+					<image :src="getImageUrl(item.value)" mode="aspectFill" class="image" @click="clickImg(item)"></image>
 				</view>
-			</view>
-
-			<view class="image-line-part">
-				<view class="image-line-part-title">
-					桥梁立面照
-				</view>
-				<view class="image-line-part-image">
-					<image src="/static/image/zjl.png" mode="aspectFill" class="image"></image>
-				</view>
-
 			</view>
 		</view>
 
-		<view class="image-line">
-			<view class="image-line-part">
-				<view class="image-line-part-title">
-					桥梁正面照
-				</view>
-				<view class="image-line-part-image">
-					<image src="/static/image/zjl.png" mode="aspectFill" class="image"></image>
-				</view>
-			</view>
-
-			<view class="image-line-part">
-				<view class="image-line-part-title">
-					桥梁立面照
-				</view>
-				<view class="image-line-part-image">
-					<image src="/static/image/zjl.png" mode="aspectFill" class="image"></image>
-				</view>
-
-			</view>
-		</view>
-
-
-		<view class="line">
+		<!-- 文本信息区域 -->
+		<view class="line" v-for="(item, index) in textItems" :key="item.id">
 			<view class="line-title">
-				桥梁工程师
+				{{ item.name }}
 			</view>
 			<view class="line-content">
-				{{data.engineer}}
-			</view>
-
-		</view>
-
-		<view class="line">
-			<view class="line-title">
-				填卡人
-			</view>
-			<view class="line-content">
-				{{data.filler}}
-			</view>
-
-		</view>
-
-		<view class="line">
-			<view class="line-title">
-				填卡时间
-			</view>
-			<view class="line-content">
-				{{data.date}}
+				{{ item.value || '/' }}
 			</view>
 		</view>
-
 	</view>
 </template>
 
 <script setup>
 	import {
-		ref
+		ref,
+		computed
 	} from "vue";
 
-	const data = ref({
-		engineer: '张三', //桥梁工程师
-		filler: '李四', //填卡人
-		date: '2024-11', //填卡时间
-	})
+	const props = defineProps({
+		data: {
+			type: Object,
+			default: () => ({})
+		}
+	});
+
+	// 获取实际数据数组
+	const dataArray = computed(() => {
+		// 检查是否是数组
+		if (Array.isArray(props.data)) {
+			return props.data;
+		}
+		// 检查是否有children属性
+		if (props.data && props.data.children && Array.isArray(props.data.children)) {
+			return props.data.children;
+		}
+		// 默认返回空数组
+		return [];
+	});
+
+	// 分离图片项和文本项
+	const imageItems = computed(() => {
+		return dataArray.value.filter(item => 
+			item.name.includes('照片') || item.name.includes('照')
+		);
+	});
+
+	const textItems = computed(() => {
+		return dataArray.value.filter(item => 
+			!item.name.includes('照片') && !item.name.includes('照')
+		);
+	});
+
+	// 获取图片URL，如果值为"/"或不存在，则使用默认图片
+	const getImageUrl = (value) => {
+		if (!value || value === '/') {
+			return '/static/image/zjl.png';
+		}
+		return value;
+	};
+
+	// 点击预览图片
+	const clickImg = (item) => {
+		const url = getImageUrl(item.value);
+		uni.previewImage({
+			urls: [url],
+			current: 0
+		});
+	};
 </script>
 
 <style scoped>
-	.image-line {
+	/* 照片区域样式 */
+	.image-container {
 		display: flex;
+		flex-wrap: wrap;
+		width: 100%;
 		border-bottom: 1rpx solid #eee;
 	}
 
-	.image-line-part {
+	.image-item {
 		width: 50%;
+		box-sizing: border-box;
 		padding: 20rpx;
 	}
 
-	.image-line-part-title {
+	.image-title {
 		font-size: 18px;
 		color: #666666;
 	}
 
-	.image-line-part-image {
+	.image-wrapper {
 		margin-top: 12rpx;
 	}
 
@@ -113,6 +111,7 @@
 		height: 120rpx;
 	}
 
+	/* 文本区域样式 */
 	.line {
 		display: flex;
 		flex-direction: row;

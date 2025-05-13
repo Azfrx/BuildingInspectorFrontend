@@ -3,7 +3,7 @@
 
     <view class="part-area">
       <view class="part-area-title">需要说明的事项(含桥梁管养单位的变更情况)</view>
-      <view class="part-area-content" > {{data || '/'}}</view>
+      <view class="part-area-content" > {{data.value || '/'}}</view>
     </view>
 
 	</view>

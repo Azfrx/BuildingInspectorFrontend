@@ -33,7 +33,7 @@
 			<!-- 右侧内容区 -->
 			<view class="content">
 				<!-- 按结构类型分组显示 -->
-				<view v-for="type in ['上部结构', '下部结构', '桥面系']" :key="type" class="type-group">
+				<view v-for="type in ['上部结构', '下部结构', '桥面系', '附属设施']" :key="type" class="type-group">
 					<!-- 只有该类型有数据时才显示分组 -->
 					<template v-if="getFilteredDiseasesByType(type).length > 0">
 						<view class="type-header" @click="toggleTypeExpand(type)">
@@ -65,7 +65,8 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick } from 'vue';
+import { ref, reactive, computed, nextTick, watch, onMounted } from 'vue';
+import { getDisease } from '../utils/readJsonNew.js';
 
 // 组件名称 
 defineOptions({
@@ -83,95 +84,50 @@ const currentOpenSwipe = ref(null);
 const diseaseItems = ref(null);
 
 // 病害列表数据
-const diseaseList = ref([
-  {
-    id: '1',
-    partType: 'T梁',
-    partNumber: '3-2',
-    disease: '剥落、掉角',
-    description: '上部结构的T梁出现剥落情况',
-    count: '2',
-    collectTime: '2024-04-25 14:25:25',
-    grade: '2',
-    reference: '是',
-    type: '上部结构'
-  },
-  {
-    id: '2',
-    partType: '墩柱',
-    partNumber: '2-1',
-    disease: '裂缝',
-    description: '下部结构的墩柱出现裂缝',
-    count: '2',
-    collectTime: '2024-04-25 14:25:25',
-    grade: '2',
-    reference: '是',
-    type: '下部结构'
-  },
-  {
-    id: '3',
-    partType: '桥面',
-    partNumber: '1-3',
-    disease: '破损',
-    description: '桥面系出现破损',
-    count: '3',
-    collectTime: '2024-04-23 16:45:10',
-    grade: '1',
-    reference: '否',
-    type: '桥面系'
-  },
-  {
-    id: '4',
-    partType: '墩柱',
-    partNumber: '2-1',
-    disease: '裂缝',
-    description: '下部结构的墩柱出现裂缝',
-    count: '1',
-    collectTime: '2023-04-24 09:15:30',
-    grade: '3',
-    reference: '是',
-    type: '下部结构'
-  },
-  {
-    id: '5',
-    partType: '桥面',
-    partNumber: '1-3',
-    disease: '破损',
-    description: '桥面系出现破损',
-    count: '3',
-    collectTime: '2023-04-23 16:45:10',
-    grade: '1',
-    reference: '否',
-    type: '桥面系'
-  },
-  {
-    id: '6',
-    partType: 'T梁',
-    partNumber: '4-1',
-    disease: '锈蚀',
-    description: '上部结构的T梁出现锈蚀',
-    count: '1',
-    collectTime: '2022-04-22 11:30:45',
-    grade: '2',
-    reference: '是',
-    type: '上部结构'
-  },
-  {
-    id: '7',
-    partType: 'T梁',
-    partNumber: '3-3',
-    disease: '剥落、掉角',
-    description: '上部结构的T梁出现掉角情况',
-    count: '2',
-    collectTime: '2024-04-26 14:25:25',
-    grade: '2',
-    reference: '是',
-    type: '上部结构'
-  },
-]);
+const diseaseList = ref([]);
+
+// 加载数据
+const loadDiseaseData = async () => {
+  try {
+    const userId = '3';
+    const buildingId = '39';
+    const years = ['2024', '2023', '2022'];
+    
+    // 清空现有数据
+    diseaseList.value = [];
+    
+    // 依次读取各年份数据
+    for (const year of years) {
+      try {
+        const yearData = await getDisease(userId, buildingId, year);
+        console.log(`获取到${year}年病害数据:`, yearData);
+        
+        // 直接添加原始数据，不额外添加year字段
+        if (yearData && yearData.diseases && yearData.diseases.length > 0) {
+          diseaseList.value = [...diseaseList.value, ...yearData.diseases];
+        }
+      } catch (yearError) {
+        console.warn(`获取${year}年数据失败:`, yearError);
+      }
+    }
+    
+    console.log('所有年份病害数据加载完成:', diseaseList.value);
+  } catch (error) {
+    console.error('读取病害数据失败:', error);
+    uni.showToast({
+      title: '读取数据失败',
+      icon: 'none'
+    });
+  }
+};
 
 // 展开状态
-const expandedTypes = reactive({});
+const expandedTypes = reactive({
+  '上部结构': true,
+  '下部结构': true,
+  '桥面系': true,
+  '附属设施': true
+});
 
 // 计算属性 - 过滤后的病害列表
 const filteredDiseases = computed(() => {
@@ -180,15 +136,16 @@ const filteredDiseases = computed(() => {
   
   return diseaseList.value.filter(item => {
     // 先按年份过滤
-    const itemYear = item.collectTime.substring(0, 4);
+    const itemYear = item.createTime.substring(0, 4);
     if (itemYear !== selectedYear) {
       return false;
     }
     
     // 如果有搜索关键词，再按关键词过滤
     if (searchText.value) {
-      return (item.title?.includes(searchText.value) || 
-             item.description?.includes(searchText.value));
+      return (item.description?.includes(searchText.value) || 
+             item.type?.includes(searchText.value) ||
+             item.component?.parentObjectName?.includes(searchText.value));
     }
     
     return true;
@@ -285,24 +242,25 @@ const changeTab = (index) => {
 
 // 获取指定年份的项目数量
 const getYearItemCount = (year) => {
-  return diseaseList.value.filter(item => item.collectTime.substring(0, 4) === year).length;
+  return diseaseList.value.filter(item => item.createTime.substring(0, 4) === year).length;
 };
 
 // 按类型获取过滤后的病害列表
 const getFilteredDiseasesByType = (type) => {
   const selectedYear = tabItems.value[activeTab.value];
   return diseaseList.value.filter(item => {
-    const itemYear = item.collectTime.substring(0, 4);
+    const itemYear = item.createTime.substring(0, 4);
+    const parentObjectName = item.component?.parentObjectName;
     
     // 按年份和类型过滤
-    if (itemYear !== selectedYear || item.type !== type) {
+    if (itemYear !== selectedYear || parentObjectName !== type) {
       return false;
     }
     
     // 如果有搜索关键词，还需按关键词过滤
     if (searchText.value) {
-      return (item.title?.includes(searchText.value) || 
-             item.description?.includes(searchText.value));
+      return (item.description?.includes(searchText.value) || 
+             item.type?.includes(searchText.value));
     }
     
     return true;
@@ -343,16 +301,18 @@ const toggleTypeExpand = (type) => {
 // 展开所有类型
 const expandAllTypes = () => {
   // 展开所有类型
-  ['上部结构', '下部结构', '桥面系'].forEach(type => {
+  ['上部结构', '下部结构', '桥面系', '附属设施'].forEach(type => {
     expandedTypes[type] = true;
   });
 };
 
-// 初始化
-// 相当于 created 生命周期
-// Initialize all type groups as expanded
-['上部结构', '下部结构', '桥面系'].forEach(type => {
-  expandedTypes[type] = true;
+// 组件挂载时
+onMounted(() => {
+  console.log('history-disease组件挂载，准备加载数据');
+  // 加载数据
+  loadDiseaseData();
+  // 初始化所有类型为展开状态
+  expandAllTypes();
 });
 </script>
 
