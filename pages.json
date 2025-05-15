@@ -8,17 +8,6 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-				  // {
-				  // 	"path": "pages/fileIO/fileIO"
-				  // },
-
-/*				{
-					"path" : "pages/test/test",
-					"style" :
-					{
-						"navigationBarTitleText" : ""
-					}
-				},*/
 		{
 			"path": "pages/login/login",
 			"style": {
@@ -31,17 +20,17 @@
 				}
 			}
 		},
-//		{
-//			"path" : "pages/test/test",
-//			"style" :
-//			{
-//				"navigationBarTitleText" : ""
-//			}
-//		},
+		//		{
+		//			"path" : "pages/test/test",
+		//			"style" :
+		//			{
+		//				"navigationBarTitleText" : ""
+		//			}
+		//		},
 
-//		{
-//			"path": "pages/fileIO/fileIO"
-//		},
+		//		{
+		//			"path": "pages/fileIO/fileIO"
+		//		},
 		{
 			"path": "pages/home/home",
 			"style": {
@@ -111,10 +100,9 @@
 		},
 
 		{
-			"path" : "pages/testWrite/testWrite",
-			"style" :
-			{
-				"navigationBarTitleText" : ""
+			"path": "pages/testWrite/testWrite",
+			"style": {
+				"navigationBarTitleText": ""
 			}
 		},
 		{
@@ -146,18 +134,16 @@
 			}
 		},
 		{
-			"path" : "pages/add-disease/add-disease",
-			"style" : 
-			{
-				"navigationBarTitleText" : "新增病害",
-				"navigationBarBackgroundColor" : "#0F4687"
+			"path": "pages/add-disease/add-disease",
+			"style": {
+				"navigationBarTitleText": "新增病害",
+				"navigationBarBackgroundColor": "#0F4687"
 			}
 		},
 		{
-			"path" : "pages/canvas/canvas",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
+			"path": "pages/canvas/canvas",
+			"style": {
+				"navigationBarTitleText": ""
 			}
 		}
 	],

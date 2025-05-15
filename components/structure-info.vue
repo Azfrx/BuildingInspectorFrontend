@@ -1,10 +1,28 @@
 <template>
 	<view class="container">
+		<view class="confirm-row">
+			<span class="confirm-text">结构信息状态：</span>
+			<span class="confirm-status"
+				:style="{color: confirmed ? '#00dd00': '#f56c6c'}">{{ confirmed ? '已确认': '未确认'}}</span>
+			<view class="confirm-button-container">
+				<button @click="confirmStructure" class="confirm-button">确定构件信息</button>
+			</view>
+		</view>
+		<uni-popup ref="confirmPopup" type="center">
+			<view class="confirmPopup-content">
+				<text class="confirmPopup-text">确定当前结构信息状态吗？</text>
+				<view class="confirmPopup-buttons">
+					<button class="confirmPopup-buttons-cancel" @click="closeConfirmPopup">取消</button>
+					<button class="confirmPopup-buttons-confirm" @click="confirmConfirm">确定</button>
+				</view>
+			</view>
+		</uni-popup>
+
 		<view class="content-layout">
 			<!--左侧边栏-->
 			<view class="sidebar">
 				<view v-for="(item, index) in tabItems" :key="index"
-					:class="['sidebar-item', activeTab === index ? 'active' : '']" @click="changeTab(index)">
+					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
 					<view class="sidebar-item-content">
 						{{item}}
 					</view>
@@ -13,19 +31,19 @@
 
 			<!-- 右侧内容区 -->
 			<view class="content">
-				<view v-for="(item, index) in activeStructures" class="structure-item" 
-					  @click="selectStructure(item, index)" 
-					  :class="{'selected': selectedStructure === item}">
+				<view v-for="(item, index) in structures.children[selectedIndex].children" class="structure-item"
+					@click="selectStructure(item, index)" :class="{'selected': selectedStructure === item}">
 					<view :key="index" class="structure-name">
 						{{item.name}}
 					</view>
-					<view :class="['structure-state-button', item.state === 'on' ? 'button-on': 'button-off', selectedStructure !== item ? 'disabled' : '']"
-						@click.stop="selectedStructure === item && changeStructureState(item)">
-						{{item.state === 'on' ? '启用部件' : '停用部件'}}
+					<view
+						:class="['structure-state-button', item.status === '0' ? 'button-on': 'button-off', confirmed ? 'disabled' : '']"
+						@click.stop="selectedStructure === item && !confirmed && changeStructureState(item)">
+						{{item.status === '0' ? '启用部件' : '停用部件'}}
 					</view>
-					<view :class="['structure-number-button', selectedStructure !== item ? 'disabled' : '']"
-						@click.stop="selectedStructure === item && showPopup(item)">
-						{{item.structureNumber.length === 0 ? '创建编号' : '查看编号'}}
+					<view :class="['structure-number-button', confirmed ? 'disabled' : '']"
+						@click.stop="selectedStructure === item && !confirmed && showPopup(item)">
+						{{item.comments ? '查看编号' : '创建编号'}}
 					</view>
 				</view>
 			</view>
@@ -53,14 +71,14 @@
 
 				<!-- 列表 -->
 				<scroll-view scroll-y class="read-table-body">
-					<view v-for="(item, index) in currentStructure.structureNumber" :key="index" class="read-table-row">
+					<view v-for="(item, index) in currentStructure.comments" :key="item.id" class="read-table-row">
 						<view class="read-cell name">
 							<checkbox :checked="item.selected" @click="selectItem(index)" shape="circle" />
-							<text class="text-hide">{{ item.number + item.suffix }}</text>
+							<text class="text-hide">{{ item.code }}</text>
 						</view>
-						<text class="read-cell code text-hide">{{ item.number }}</text>
+						<text class="read-cell code text-hide">{{ item.code.split("#")[0] }}</text>
 						<view class="read-cell actions">
-							<button class="btn delete" @click="singleDelete(item.number)">删除</button>
+							<button class="btn delete" @click="singleDelete(item)">删除</button>
 							<button class="btn edit" @click="edit(item)">编辑</button>
 						</view>
 					</view>
@@ -135,13 +153,13 @@
 				<!-- 名称后缀 -->
 				<view class="create-suffix bottomBorder">
 					<text class="create-suffix-text">名称后缀</text>
-					<input v-model="currentEdit.suffix" class="create-suffix-input" placeholder="如 #锚具" />
+					<input v-model="editSuffix" class="create-suffix-input" placeholder="如 #锚具" />
 				</view>
 
 				<!-- 编号 -->
 				<view class="create-suffix">
 					<text class="create-suffix-text">编号</text>
-					<input v-model="currentEdit.number" class="create-suffix-input" placeholder="如 1-01-1" />
+					<input v-model="editNumber" class="create-suffix-input" placeholder="如 1-01-1" />
 				</view>
 
 				<!-- 操作按钮 -->
@@ -162,93 +180,38 @@
 		computed,
 		onMounted
 	} from 'vue';
-  import {getObject} from '../utils/readJsonNew';
+	// import {getObject} from '../utils/readJsonNew';
+	import structureJSON from '../static/data/structure.json'
 	// 数据
-	const tabItems = ref([]);  // 初始化为空数组
+	const tabItems = ref([]); // 初始化为空数组
+	const structures = ref([])
+	const selectedIndex = ref(0)
+	const confirmed = ref(false)
+
 	const activeTab = ref(0);
 	const popupContent = ref('');
 	const currentStructure = ref();
 	const currentEdit = ref();
+	const editSuffix = ref('');
+	const editNumber = ref('');
 	const selectedStructure = ref(null);
-	const structures = ref([{
-		name: '钢拱圈',
-		from: '上部结构',
-		state: 'on',
-		structureNumber: [{
-			number: '1-01-1',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-2',
-			selected: true,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-3',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-4',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-5',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-6',
-			selected: false,
-			suffix: '#斜拉索'
-		}, ]
-	}, {
-		name: '混凝土拱圈',
-		from: '上部结构',
-		state: 'off',
-		structureNumber: []
-	}, {
-		name: '拱上结构',
-		from: '下部结构',
-		state: 'on',
-		structureNumber: [{
-			number: '1-01-1',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-2',
-			selected: true,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-3',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-4',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-5',
-			selected: false,
-			suffix: '#斜拉索'
-		}, {
-			number: '1-01-6',
-			selected: false,
-			suffix: '#斜拉索'
-		}, ]
-	}, {
-		name: '桥面板',
-		from: '桥面系',
-		state: 'off',
-		structureNumber: []
-	}, {
-		name: '连接件',
-		from: '附属设施',
-		state: 'off',
-		structureNumber: []
-	}, ])
-	const activeStructures = ref(structures.value.filter(item => item.from === tabItems.value[0]))
+
+	const popup = ref(null);
+	const confirmPopup = ref(null);
+
+	const confirmStructure = () => {
+		confirmPopup.value.open()
+	}
+	const confirmConfirm = () => {
+		confirmed.value = true
+		confirmPopup.value.close()
+	}
+	const closeConfirmPopup = () => {
+		confirmPopup.value.close()
+	}
+
 	const changeTab = (index) => {
-		const selected = tabItems.value[index]
-		activeTab.value = index
-		activeStructures.value = structures.value.filter(item => item.from === selected)
+		selectedIndex.value = index
 	};
 	const suffix = ref('');
 	const segments = ref([{
@@ -263,38 +226,41 @@
 		return 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
 	}
 
-	const popup = ref(null);
-	const isAllSelected = computed(() => currentStructure.value.structureNumber.every(item => item.selected));
-	const hasSelection = computed(() => currentStructure.value.structureNumber.some(item => item.selected));
+	const isAllSelected = computed(() => currentStructure.value.comments.every(item => item.selected));
+	const hasSelection = computed(() => currentStructure.value.comments.some(item => item.selected));
 
 	const showPopup = (item) => {
 		currentStructure.value = item;
-		if (item.structureNumber.length === 0) {
+		if (!item.comments) {
 			popupContent.value = 'create'
+			suffix.value = '#' + currentStructure.value.name
 		} else {
 			popupContent.value = 'read'
+			item.comments.forEach(item => {
+				item.selected = false
+			})
 		}
 		popup.value.open();
 	};
 
 	const changeStructureState = (structure) => {
-		structure.state = structure.state === 'on' ? 'off' : 'on';
+		console.log(structure);
+		structure.status = structure.status === '0' ? '1' : '0';
 	}
 
 	const toggleSelectAll = () => {
 		const all = isAllSelected.value;
-		currentStructure.value.structureNumber.forEach(item => (item.selected = !all));
+		currentStructure.value.comments.forEach(item => (item.selected = !all));
 	};
 
 	const selectItem = (index) => {
-		currentStructure.value.structureNumber[index].selected = !currentStructure.value.structureNumber[index]
+		currentStructure.value.comments[index].selected = !currentStructure.value.comments[index]
 			.selected;
 	};
 
-	const singleDelete = (number) => {
-		if (!number) return;
-		currentStructure.value.structureNumber = currentStructure.value.structureNumber.filter(item => item.number !==
-			number);
+	const singleDelete = (comment) => {
+		if (!comment) return;
+		currentStructure.value.comments = currentStructure.value.comments.filter(item => item !== comment);
 		uni.showToast({
 			title: '删除成功',
 			icon: 'none'
@@ -302,7 +268,7 @@
 	};
 	const batchDelete = () => {
 		if (!hasSelection.value) return;
-		currentStructure.value.structureNumber = currentStructure.value.structureNumber.filter(item => !item.selected);
+		currentStructure.value.comments = currentStructure.value.comments.filter(item => !item.selected);
 		uni.showToast({
 			title: '批量删除成功',
 			icon: 'none'
@@ -311,6 +277,8 @@
 
 	const edit = (structure) => {
 		currentEdit.value = structure;
+		editSuffix.value = '#' + structure.code.split('#')[1]
+		editNumber.value = structure.code.split('#')[0]
 		popupContent.value = 'edit';
 	}
 
@@ -339,15 +307,37 @@
 		segments.value.splice(index, 1);
 	};
 
+	function getCurrentFormattedTime() {
+		const now = new Date();
+
+		const year = now.getFullYear();
+		const month = String(now.getMonth() + 1).padStart(2, "0"); // 月份是从 0 开始的
+		const day = String(now.getDate()).padStart(2, "0");
+
+		const hours = String(now.getHours()).padStart(2, "0");
+		const minutes = String(now.getMinutes()).padStart(2, "0");
+		const seconds = String(now.getSeconds()).padStart(2, "0");
+
+		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+	}
+
 	// 递归生成组合（深度优先）
 	const generateCombinations = (segs, index = 0, path = [], result = []) => {
 		if (index === segs.length) {
 			const combined = path.join('-')
 			result.push({
 				// name: `${combined}${suffix.value}`,
-				number: combined,
-				selected: false,
-				suffix: suffix.value
+				// number: combined,
+				// suffix: suffix.value
+				biObjectId: currentStructure.value.id,
+				code: `${combined}${suffix.value}`,
+				createBy: "user",
+				createTime: getCurrentFormattedTime(),
+				delFlag: "0", // 未知属性
+				// id: ,//不知道id是啥
+				name: `${suffix.value.split('#')[1] + (result.length + 1)}`,
+				status: "0",
+				updateTime: getCurrentFormattedTime(),
 			})
 			return
 		}
@@ -376,7 +366,8 @@
 	};
 
 	const confirm = () => {
-		currentStructure.value.structureNumber = generateNameObjects()
+		currentStructure.value.comments = generateNameObjects()
+		currentStructure.value.count = currentStructure.value.comments.length
 		popup.value.close();
 	};
 
@@ -385,7 +376,12 @@
 	};
 
 	const editConfirm = () => {
-		// currentEdit.value.suffix
+		// 提取 name 中末尾的数字部分
+		const match = currentEdit.value.name.match(/\d+$/);
+		const number = match ? match[0] : '';
+		// 拼接 b 和数字部分
+		currentEdit.value.name = editSuffix.value.split('#')[1] + number;
+		currentEdit.value.code = `${editNumber.value + editSuffix.value}`
 		popupContent.value = 'read';
 	};
 
@@ -393,16 +389,21 @@
 		selectedStructure.value = item;
 	};
 
-	onMounted(async () => {
-		const data = await getObject(3, 39);
-		console.log('获取到的数据:', data);
-		
-		// 从数据中提取第一个 children 数组的 name 值
-		if (data && data.children && data.children.length > 0) {
-			tabItems.value = data.children.map(item => item.name);
-			// 更新 activeStructures
-			activeStructures.value = structures.value.filter(item => item.from === tabItems.value[0]);
-		}
+	// onMounted(async () => {
+	// 	const data = await getObject(3, 39);
+	// 	console.log('获取到的数据:', data);
+
+	// 	从数据中提取第一个 children 数组的 name 值
+	// 	if (data && data.children && data.children.length > 0) {
+	// 		tabItems.value = data.children.map(item => item.name);
+	// 		// 更新 activeStructures
+	// 		activeStructures.value = structures.value.filter(item => item.from === tabItems.value[0]);
+	// 	}
+	// })
+	onMounted(() => {
+		structures.value = JSON.parse(JSON.stringify(structureJSON.data));
+		tabItems.value = structures.value.children.map(item => item.name);
+		console.log(structures.value);
 	})
 </script>
 
@@ -421,9 +422,43 @@
 
 	/* 内容布局 */
 	.content-layout {
+		height: 100%;
 		display: flex;
 		flex: 1;
 		overflow: hidden;
+	}
+
+	.confirm-row {
+		width: 100%;
+		height: 129px;
+		background-color: #BDCBE0;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		padding: 10rpx;
+		box-sizing: border-box;
+	}
+
+	.confirm-text {
+		text-align: center;
+		font-size: 20px;
+		color: #333;
+	}
+
+	.confirm-status {
+		text-align: center;
+		font-size: 20px;
+	}
+
+	.confirm-button-container {
+		margin-left: auto;
+	}
+
+	.confirm-button {
+		background-color: #0F4687;
+		color: #fff;
+		font-size: 20px;
+		border-radius: 5rpx;
 	}
 
 	/* 侧边栏样式 */
@@ -880,5 +915,37 @@
 
 	.bottomBorder {
 		border-bottom: 1px solid #f5f5f5;
+	}
+
+
+	.confirmPopup-content {
+		padding: 20rpx 10rpx;
+		background-color: #fff;
+		border-radius: 15rpx;
+		width: 300rpx;
+		text-align: center;
+	}
+
+	.confirmPopup-text {
+		font-size: 20rpx;
+		color: #333;
+		margin-bottom: 20rpx;
+		display: block;
+	}
+
+	.confirmPopup-buttons {
+		display: flex;
+		justify-content: space-around;
+	}
+
+	.confirmPopup-buttons-cancel {
+		background: #ffffff;
+		border: 1px solid #0F4687;
+		color: #0F4687;
+	}
+
+	.confirmPopup-buttons-confirm {
+		background-color: #0F4687;
+		color: #fff;
 	}
 </style>
