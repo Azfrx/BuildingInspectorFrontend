@@ -87,7 +87,6 @@ const loadCurrentYearDiseaseData = async () => {
 const addNewDiseaseData = async (newDisease) => {
   try {
     console.log('接收到新增病害数据:', newDisease);
-    
     // 将新病害数据添加到列表中
     diseaseList.value.push(newDisease);
     
@@ -264,12 +263,9 @@ const getTpyeItemCount = (type) => {
 };
 
 const addNewDisease = () => {
-	// 获取当前选中的类型（上部结构/下部结构/桥面系）
-	const selectedType = tabItems.value[activeTab.value];
-	
-	// 打开新增病害页面，并传递当前选中的类型
+	// 打开新增病害页面，不再传递类型参数
 	uni.navigateTo({
-		url: `/pages/add-disease/add-disease?type=${encodeURIComponent(selectedType)}`
+		url: `/pages/add-disease/add-disease`
 	});
 };
 

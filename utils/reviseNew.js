@@ -8,7 +8,9 @@ const FILE_NAMING = {
     disease: (userId, buildingId, yearId) =>
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
     diseaseImages: (userId, buildingId) =>
-        `${userId}/building/${buildingId}/disease/images`
+        `${userId}/building/${buildingId}/disease/images`,
+    ADImages: (userId, buildingId, yearId) =>
+        `${userId}/building/${buildingId}/ADImages`,
 };
 
 let __currentFilePath = null;
@@ -168,4 +170,6 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
     });
 }
 
+export function saveADImages(userId, buildingId, yearId, ADImagesPaths) {
 
+}

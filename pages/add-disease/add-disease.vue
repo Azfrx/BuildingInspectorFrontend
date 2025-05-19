@@ -19,7 +19,155 @@
 
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
 		<view class="form-container">
-			<view class="part-typeandnumber">
+
+			<view>
+				<view class="head">
+					<view class="head-text">
+						病害基础信息
+					</view>
+				</view>
+
+				<!-- 将原来的部件类型picker改为multiSelector -->
+				<picker class="picker" mode="multiSelector" @change="typeMultiPickerChange"
+					@columnchange="typeColumnChange" :value="typeMultiIndex" :range="typeMultiArray">
+					<view class="picker-titleAndContent">
+						<view class="picker-left">
+							<text class="picker-must">*</text>
+							<view class="picker-title">
+								部件类型
+							</view>
+						</view>
+						<view class="picker-right">
+							<view class="picker-content" :style="biObjectindex === -1 ? 'color: #CCCCCC;' : ''">
+								{{ biObjectName[biObjectindex] || '请选择部件类型'}}
+							</view>
+							<text class="picker-icon">&gt;</text>
+						</view>
+					</view>
+				</picker>
+
+
+				<!-- 替换原来的构件编号picker为view -->
+				<view class="picker" @click="openComponentCodePopup">
+					<view class="picker-titleAndContent">
+						<view class="picker-left">
+							<text class="picker-must">*</text>
+							<view class="picker-title">
+								构件编号
+							</view>
+						</view>
+						<view class="picker-right">
+							<view class="picker-content" :style="componentCodeindex === -1 ? 'color: #CCCCCC;' : ''">
+								{{ componentCode[componentCodeindex] || '请选择构件编号'}}
+							</view>
+							<text class="picker-icon">&gt;</text>
+						</view>
+					</view>
+				</view>
+
+				<picker class="picker" @change="TypeofdefectPickerChange" :value="typeindex" :range="type">
+					<view class="picker-titleAndContent">
+						<view class="picker-left">
+							<text class="picker-must">*</text>
+							<view class="picker-title">
+								病害类型
+							</view>
+						</view>
+						<view class="picker-right">
+							<view class="picker-content" :style="typeindex === -1 ? 'color: #CCCCCC;' : ''">
+								{{type[typeindex] || '请选择缺损类型'}}
+							</view>
+							<text class="picker-icon">&gt;</text>
+						</view>
+					</view>
+				</picker>
+
+				<!-- 修改病害位置区域 - 添加点击事件 -->
+				<view class="picker" @click="openDiseasePositionPopup">
+					<view class="picker-titleAndContent">
+						<view class="picker-left">
+							<text class="picker-must">*</text>
+							<view class="picker-title">
+								病害位置
+							</view>
+						</view>
+						<view class="picker-right">
+							<view class="picker-content" :style="!position ? 'color: #CCCCCC;' : ''">
+								{{position || '请选择病害位置'}}
+							</view>
+							<text class="picker-icon">&gt;</text>
+						</view>
+					</view>
+				</view>
+
+				<view class="location-description">
+					<view class="location-description-left">
+						纵向位置描述
+					</view>
+					<view class="location-description-right">
+						距
+						<view class="location-description-right-position"
+							@click="openLocationPositionPopup('longitudinal')">
+							<view class="location-description-right-position-input" :style="!longitudinalPosition ? 'color: #CCCCCC;' : ''">{{ longitudinalPosition ||"请选择" }}							</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="location-description-right-distance"
+							@click="openLocationDistancePopup('longitudinal')">
+							<view class="location-description-right-distance-input" :style="!longitudinalDistance ? 'color: #CCCCCC;' : ''">{{ longitudinalDistance || "请选择" }}							</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="clear">
+							×
+						</view>
+					</view>
+				</view>
+
+				<view class="location-description">
+					<view class="location-description-left">
+						横向位置描述
+					</view>
+					<view class="location-description-right">
+						距
+						<view class="location-description-right-position" @click="openLocationPositionPopup('lateral')">
+							<view class="location-description-right-position-input" :style="!lateralPosition ? 'color: #CCCCCC;' : ''">{{ lateralPosition ||"请选择" }}</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="location-description-right-distance" @click="openLocationDistancePopup('lateral')">
+							<view class="location-description-right-distance-input" :style="!lateralDistance ? 'color: #CCCCCC;' : ''">{{ lateralDistance ||"请选择" }}</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="clear">
+							×
+						</view>
+					</view>
+				</view>
+
+				<view class="location-description">
+					<view class="location-description-left">
+						竖向位置描述
+					</view>
+					<view class="location-description-right">
+						距
+						<view class="location-description-right-position"
+							@click="openLocationPositionPopup('vertical')">
+							<view class="location-description-right-distance-input" :style="!verticalPosition ? 'color: #CCCCCC;' : ''">{{ verticalPosition ||"请选择" }}							</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="location-description-right-distance"
+							@click="openLocationDistancePopup('vertical')">
+							<view class="location-description-right-distance-input" :style="!verticalDistance ? 'color: #CCCCCC;' : ''">{{ verticalDistance ||"请选择" }}							</view>
+							<view class="right-icon">&gt;</view>
+						</view>
+						<view class="clear">
+							×
+						</view>
+					</view>
+				</view>
+
+
+			</view>
+
+			<!--			<view class="part-typeandnumber">
 
 				<picker class="picker-type" @change="typePickerChange" :value="biObjectindex" :range="biObjectName">
 					<view class="picker-content">
@@ -80,9 +228,241 @@
 							placeholder-class="input-text-placeholder" v-model="position">
 					</view>
 				</view>
+			</view>-->
+
+			<view>
+				<view class="head">
+					<view class="head-text">
+						病害定量数据
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						缺损数量
+					</view>
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="quantityUnitChange"
+							:value="quantityUnitIndex" :range="quantityUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{quantityUnitOptions[quantityUnitIndex]}}
+							</view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						长度
+					</view>
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="lengthUnitChange" :value="lengthUnitIndex"
+							:range="lengthUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{lengthUnitOptions[lengthUnitIndex]}}
+							</view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						宽度
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="widthUnitChange" :value="widthUnitIndex"
+							:range="widthUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{widthUnitOptions[widthUnitIndex]}}
+							</view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						高度/深度
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="heightUnitChange" :value="heightUnitIndex"
+							:range="heightUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{heightUnitOptions[heightUnitIndex]}}
+							</view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						缝宽
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="seamsWidthUnitChange"
+							:value="seamsWidthUnitIndex" :range="seamsWidthUnitOptions">
+							<view class="quantitative-data-right-unit-input">
+								{{seamsWidthUnitOptions[seamsWidthUnitIndex]}} </view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						面积
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="areaUnitChange" :value="areaUnitIndex"
+							:range="areaUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{areaUnitOptions[areaUnitIndex]}} </view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						体积
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<picker class="quantitative-data-right-unit" @change="volumeUnitChange" :value="volumeUnitIndex"
+							:range="volumeUnitOptions">
+							<view class="quantitative-data-right-unit-input"> {{volumeUnitOptions[volumeUnitIndex]}}
+							</view>
+							<view class="right-icon">&gt;</view>
+						</picker>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						角度
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<view class="quantitative-data-right-unit-fixed">
+							<view class="quantitative-data-right-unit-input"> 度 </view>
+							<view class="right-icon">&emsp;</view>
+						</view>
+					</view>
+				</view>
+
+				<view class="quantitative-data">
+					<view class="quantitative-data-left">
+						百分比
+					</view>
+
+					<view class="quantitative-data-right">
+						<view class="quantitative-data-right-value">
+							<input class="quantitative-data-right-value-input" placeholder="请填写">
+							<view class="clear-input">×</view>
+						</view>
+						<view class="quantitative-data-right-unit-fixed">
+							<view class="quantitative-data-right-unit-input"> % </view>
+							<view class="right-icon">&emsp;</view>
+						</view>
+					</view>
+				</view>
+
 			</view>
 
-			<view class="part-NumAndWayofDefect">
+			<view>
+				<view class="head">
+					<view class="head-text">
+						病害定性数据
+					</view>
+				</view>
+
+				<view class="input-area">
+					<view class="input-area-title">
+						<text style="color: red;">*</text>病害描述
+					</view>
+					<textarea class="input-area-content" placeholder="请填写病害信息" auto-height="" />
+				</view>
+
+				<view class="line-select">
+					<view class="line-select-left">
+						<text style="color: red;">*</text>
+						病害性质
+					</view>
+					<view class="line-select-right">
+						<uni-data-checkbox mode="tag" v-model="natureindex" :localdata="nature"></uni-data-checkbox>
+					</view>
+				</view>
+
+				<view class="line-select">
+					<view class="line-select-left">
+						<text style="color: red;">*</text>
+						参与评定（构件扣分25）
+					</view>
+					<view class="line-select-right">
+						<uni-data-checkbox mode="tag" v-model="participateAssessindex"
+							:localdata="participateAssess"></uni-data-checkbox>
+					</view>
+				</view>
+
+				<view class="line-select">
+					<view class="line-select-left">
+						<text style="color: red;">*</text>
+						评定标度
+					</view>
+					<view class="line-select-right">
+						<uni-data-checkbox mode="tag" v-model="levelindex" :localdata="level"></uni-data-checkbox>
+					</view>
+				</view>
+
+				<view class="line-select">
+					<view class="line-select-left">
+						<text style="color: red;">*</text>
+						病害维护状态
+					</view>
+					<view class="line-select-right">
+						<uni-data-checkbox mode="tag" v-model="maintenanceStatusindex"
+							:localdata="maintenanceStatus"></uni-data-checkbox>
+					</view>
+				</view>
+
+			</view>
+
+
+			<!--			<view class="part-NumAndWayofDefect">
 
 				<view class="part-NumofDefect">
 					<view class="picker-content">
@@ -164,9 +544,9 @@
 						</view>
 					</view>
 				</view>
-			</view>
+			</view>-->
 
-			<view class="part-descriptionofDefect">
+			<!--			<view class="part-descriptionofDefect">
 				<view class="input-content">
 					<view class="part-titleandcontent">
 						<view class="part-title" style="position: relative;">
@@ -216,6 +596,12 @@
 					</view>
 				</view>
 
+			</view>-->
+
+			<view class="head">
+				<view class="head-text">
+					病害附件信息
+				</view>
 			</view>
 
 			<view class="part-UploadImage">
@@ -259,6 +645,95 @@
 				</view>
 			</view>
 		</uni-popup>
+
+		<!-- 添加病害位置选择弹窗 -->
+		<uni-popup ref="diseasePositionPopup" type="center">
+			<view class="position-popup-content">
+				<view class="position-popup-title">选择病害位置</view>
+				<uni-combox class="position-combox" :candidates="diseasePosition" v-model="selectedPosition"
+					placeholder="请选择病害位置"></uni-combox>
+				<view class="position-popup-buttons">
+					<button class="position-popup-button cancel" @click="closeDiseasePositionPopup">取消</button>
+					<button class="position-popup-button confirm" @click="confirmDiseasePosition">确认</button>
+				</view>
+			</view>
+		</uni-popup>
+
+		<!-- 添加构件编号选择弹窗 -->
+		<uni-popup ref="componentCodePopup" type="center">
+			<view class="component-popup-content">
+				<view class="component-popup-title">选择构件编号</view>
+				<view class="component-search-box">
+					<input class="component-search-input" v-model="componentCodeFilter" placeholder="输入关键字筛选"
+						@input="filterComponentCodes" />
+					<text v-if="componentCodeFilter" class="component-search-clear"
+						@click="clearComponentSearch">×</text>
+				</view>
+				<scroll-view class="component-code-list" scroll-y>
+					<view v-for="(item, index) in filteredComponentCodes" :key="index" class="component-code-item"
+						:class="{'component-code-item-active': componentCode[componentCodeindex] === item}"
+						@click="selectComponentCode(index)">
+						{{ item }}
+					</view>
+				</scroll-view>
+				<view class="component-popup-buttons">
+					<button class="component-popup-button cancel" @click="closeComponentCodePopup">取消</button>
+					<button class="component-popup-button confirm" @click="confirmComponentCode">确认</button>
+				</view>
+			</view>
+		</uni-popup>
+
+		<uni-popup ref="LocationDescriptionPositionPopup" type="center">
+			<view class="location-description-position-popup-content">
+				<view class="location-description-position-popup-title">{{ currentPositionTitle }}</view>
+				<view class="location-description-position-popup-input1">
+					<input type="text" placeholder="请填写" class="location-description-popup-input"
+						v-model="positionInput1Value" />
+					<button class="location-description-popup-button" @click="confirmPositionInput1">确定</button>
+				</view>
+				<view class="location-description-position-popup-input2">
+					<input type="text" placeholder="请填写" class="location-description-popup-input"
+						v-model="positionInput2Value" />
+					<view class="location-description-position-popup-input2-right">
+						<view class="location-description-position-popup-input2-text">#墩侧</view>
+						<button class="location-description-popup-button" @click="confirmPositionInput2">确定</button>
+					</view>
+				</view>
+				<view class="location-description-position-popup-input3">
+					<view v-for="(item, index) in currentPositionOptions" :key="index"
+						class="location-description-position-popup-input3-item" @click="selectPositionItem(item)">
+						{{item}}</view>
+				</view>
+			</view>
+		</uni-popup>
+
+		<uni-popup ref="LocationDescriptionDistancePopup" type="center">
+			<view class="location-description-distance-popup-content">
+				<view class="location-description-distance-popup-title">位置</view>
+				<view class="location-description-distance-popup-input1">
+					<input type="text" v-model="distanceInput1Value" placeholder="请填写"
+						class="location-description-popup-input" />
+					<view class="location-description-distance-popup-input1-right">
+						<view class="location-description-distance-popup-input1-text">米</view>
+						<button class="location-description-popup-button" @click="confirmDistanceInput1">确定</button>
+					</view>
+				</view>
+				<view class="location-description-distance-popup-input2">
+					<input type="text" v-model="distanceInput2Numerator" placeholder="请填写"
+						class="location-description-popup-input" />
+					<view class="location-description-distance-popup-input2-mid">分之</view>
+					<input type="text" v-model="distanceInput2Denominator" placeholder="请填写"
+						class="location-description-popup-input" />
+					<button class="location-description-popup-button" @click="confirmDistanceInput2">确定</button>
+				</view>
+				<view class="location-description-distance-popup-input3">
+					<view v-for="(item, index) in ['1/2','1/3','1/4']" :key="index"
+						class="location-description-distance-popup-input3-item" @click="selectDistanceItem(item)">
+						{{item}}</view>
+				</view>
+			</view>
+		</uni-popup>
+
 	</view>
 </template>
 
@@ -300,6 +775,11 @@
 	// 构件编号
 	const componentCode = ref(['1', '2', '3']);
 	const componentCodeindex = ref(-1);
+	const componentCodePopup = ref(null);
+	// 存储过滤后的构件编号
+	const filteredComponentCodes = ref([]);
+	// 存储构件编号搜索框内容
+	const componentCodeFilter = ref('');
 
 	// 缺损类型
 	const type = ref([]);
@@ -362,135 +842,192 @@
 	}]);
 	const ratingCurrent = ref(0);
 
-	// 获取结构数据
-	const fetchStructureData = async () => {
-		try {
-			// 用户ID和建筑ID
-			const userId = "3";
-			const buildingId = "39";
+	const diseasePosition = ref(["底板", "左翼板", "右翼板", "顶板", "左腹板", "右腹板"]);
 
-			// 在实际应用中，这些可能来自于路由参数或全局状态
-			const data = await getObject(userId, buildingId);
-			console.log('结构数据获取成功:', data);
-			structureData.value = data;
 
-			// 初始化部件类型列表
-			updateBiObjectOptions();
-		} catch (error) {
-			console.error('获取结构数据失败:', error);
-			uni.showToast({
-				title: '获取结构数据失败',
-				icon: 'none'
-			});
+	const diseasePositionPopup = ref(null);
+	const selectedPosition = ref('');
+
+	// 为二级选择器添加的数据和方法
+	const structureTypes = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
+	const typeMultiArray = ref([
+		structureTypes.value,
+		[]
+	]);
+	const typeMultiIndex = ref([0, 0]);
+
+
+	//数量单位picker
+	const quantityUnitData = ref([{
+			text: '个',
+			value: 0
+		},
+		{
+			text: '条',
+			value: 1
+		},
+		{
+			text: '台',
+			value: 2
+		},
+		{
+			text: '次',
+			value: 3
+		},
+		{
+			text: '月',
+			value: 4
+		},
+		{
+			text: '处',
+			value: 5
 		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const quantityUnitOptions = ref(quantityUnitData.value.map(item => item.text));
+	const quantityUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const quantityUnitChange = (e) => {
+		quantityUnitIndex.value = e.detail.value;
 	};
 
-	// 根据当前选择的parentObjectName更新部件类型选项
-	const updateBiObjectOptions = () => {
-		if (!structureData.value || !structureData.value.children) {
-			console.log('结构数据不完整');
-			return;
+	//病害性质
+	const natureindex = ref(0);
+
+	const nature = ref([{
+		text: '新病害',
+		value: 0
+	}, {
+		text: '旧病害',
+		value: 1
+	}]);
+
+	//参与评定
+	const participateAssess = ref([{
+		text: '是',
+		value: 1
+	}, {
+		text: '否',
+		value: 0
+	}]);
+	const participateAssessindex = ref(0);
+
+	//评定标度
+	const level = ref([{
+		text: '1',
+		value: 1
+	}, {
+		text: '2',
+		value: 2
+	}, {
+		text: '3',
+		value: 3
+	}, {
+		text: '4',
+		value: 4
+	}]);
+	const levelindex = ref(1);
+
+	//维护状态
+	const maintenanceStatus = ref([{
+			text: '待修复',
+			value: 0
+		}, {
+			text: '修复中',
+			value: 1
+		},
+		{
+			text: '已修复',
+			value: 2
+		},
+		{
+			text: '修补不良',
+			value: 3
 		}
+	]);
+	const maintenanceStatusindex = ref(0);
 
-		console.log('更新部件类型选项，当前选择:', parentObjectName.value);
 
-		// 找到对应的结构部分（上部结构、下部结构、桥面系）
-		const structurePart = structureData.value.children.find(
-			item => item.name === parentObjectName.value
-		);
 
-		if (!structurePart || !structurePart.children) {
-			console.log('未找到对应的结构部分或其子项');
-			biObjectName.value = [];
-			return;
-		}
+	// 初始化二级选择器的第二列数据
+	const initMultiPickerColumn2 = () => {
+		// 根据第一列当前选中项更新第二列的数据
+		const structureType = structureTypes.value[typeMultiIndex.value[0]];
 
-		// 提取部件类型名称列表
-		biObjectNameOptions.value = structurePart.children;
-		biObjectName.value = structurePart.children.map(item => item.name);
-		console.log('部件类型选项更新为:', biObjectName.value);
+		// 设置parentObjectName以便获取对应的部件类型列表
+		parentObjectName.value = structureType;
 
-		// 重置部件类型选择
-		biObjectindex.value = -1;
-		// 重置缺损类型选择
-		type.value = [];
-		typeindex.value = -1;
-		// 重置构件编号
-		componentCode.value = [];
-		componentCodeindex.value = -1;
-	};
-
-	// 更新构件编号下拉列表
-	const updateComponentNumbers = () => {
-		if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-			console.log('无效的部件类型选择');
-			componentCode.value = [];
-			return;
-		}
-
-		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
-		if (!selectedBiObject) {
-			console.log('选中的部件类型不存在');
-			componentCode.value = [];
-			return;
-		}
-
-		// 检查是否有comments字段
-		if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments
-			.length === 0) {
-			console.log('当前部件类型没有构件编号信息');
-			componentCode.value = ['1', '2', '3']; // 使用默认值
-			return;
-		}
-
-		// 从comments中提取code字段作为构件编号
-		componentCode.value = selectedBiObject.comments.map(item => item.code);
-		console.log('构件编号选项更新为:', componentCode.value);
-
-		// 重置构件编号选择
-		componentCodeindex.value = -1;
-	};
-
-	// 根据选择的部件类型更新缺损类型选项
-	const updateDiseaseTypeOptions = () => {
-		if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-			console.log('无效的部件类型选择');
-			type.value = [];
-			return;
-		}
-
-		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
-		if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
-			console.log('选中的部件类型没有缺损类型定义');
-			type.value = [];
-			return;
-		}
-
-		// 提取缺损类型名称列表
-		diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
-		type.value = selectedBiObject.diseaseTypes.map(item => item.name);
-		console.log('缺损类型选项更新为:', type.value);
-
-		// 重置缺损类型选择
-		typeindex.value = -1;
-	};
-
-	// 监听parentObjectName变化
-	watch(parentObjectName, (newVal) => {
-		console.log('parentObjectName变化为:', newVal);
+		// 调用更新部件类型选项的方法
 		updateBiObjectOptions();
-	});
 
-	// 监听部件类型选择变化
-	watch(biObjectindex, (newVal) => {
-		console.log('部件类型选择变化为索引:', newVal);
-		if (newVal !== -1) {
-			updateDiseaseTypeOptions();
-			updateComponentNumbers();
+		// 等待biObjectName更新后再设置第二列数据
+		setTimeout(() => {
+			typeMultiArray.value = [
+				structureTypes.value,
+				biObjectName.value
+			];
+
+			// 如果第二列已经有值且索引超出范围，重置为0
+			if (typeMultiIndex.value[1] >= biObjectName.value.length) {
+				typeMultiIndex.value[1] = 0;
+			}
+		}, 100);
+	}
+
+	// 列变化事件
+	const typeColumnChange = (e) => {
+		console.log('typeColumnChange:', e);
+		const column = e.detail.column;
+		const value = e.detail.value;
+
+		// 记录变化的值
+		typeMultiIndex.value[column] = value;
+
+		// 如果第一列变化，则更新第二列数据
+		if (column === 0) {
+			// 设置parentObjectName为新选择的值
+			parentObjectName.value = structureTypes.value[value];
+
+			// 调用更新部件类型选项的方法
+			updateBiObjectOptions();
+
+			// 重置第二列索引
+			typeMultiIndex.value[1] = 0;
+
+			// 更新第二列数据
+			setTimeout(() => {
+				typeMultiArray.value = [
+					structureTypes.value,
+					biObjectName.value
+				];
+			}, 100);
+		}
+	}
+
+	// 确认选择事件
+	const typeMultiPickerChange = (e) => {
+		console.log('typeMultiPickerChange:', e);
+		typeMultiIndex.value = e.detail.value;
+
+		// 更新parentObjectName和biObjectindex
+		parentObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
+		biObjectindex.value = typeMultiIndex.value[1];
+
+		// 更新缺损类型和构件编号
+		updateDiseaseTypeOptions();
+		updateComponentNumbers();
+	}
+
+	// 监听parentObjectName的变化，更新二级选择器的第一列选中项
+	watch(parentObjectName, (newVal) => {
+		const index = structureTypes.value.findIndex(item => item === newVal);
+		if (index !== -1 && index !== typeMultiIndex.value[0]) {
+			typeMultiIndex.value[0] = index;
+			initMultiPickerColumn2();
 		}
 	});
 
-	// 页面加载时，根据参数判断是新增还是编辑模式
+	// 页面加载时初始化二级选择器
 	onMounted(() => {
 		// 获取结构数据
 		fetchStructureData();
@@ -539,6 +1076,14 @@
 				parentObjectName.value = '上部结构'; // 设置默认值
 			}
 		}
+
+		// 初始化二级选择器
+		setTimeout(() => {
+			initMultiPickerColumn2();
+		}, 200);
+
+		// 初始化过滤后的构件编号列表
+		filteredComponentCodes.value = [...componentCode.value];
 	});
 
 	// 根据接收的数据填充表单
@@ -548,6 +1093,13 @@
 		// 保存病害所属类型（上部结构/下部结构/桥面系）
 		if (data.component?.parentObjectName) {
 			parentObjectName.value = data.component.parentObjectName;
+			// 更新二级选择器的第一列选中项
+			const index = structureTypes.value.findIndex(item => item === parentObjectName.value);
+			if (index !== -1) {
+				typeMultiIndex.value[0] = index;
+				// 初始化第二列
+				initMultiPickerColumn2();
+			}
 			console.log('设置病害类型:', parentObjectName.value);
 		}
 
@@ -1522,6 +2074,550 @@
 	const removeImage = (index) => {
 		ADImgs.value.splice(index, 1)
 	}
+
+	// 打开病害位置选择弹窗
+	const openDiseasePositionPopup = () => {
+		// 打开弹窗时，使用当前position的值初始化selectedPosition
+		selectedPosition.value = position.value || '';
+		diseasePositionPopup.value.open();
+	}
+
+	// 关闭病害位置选择弹窗
+	const closeDiseasePositionPopup = () => {
+		diseasePositionPopup.value.close();
+	}
+
+	// 确认病害位置选择
+	const confirmDiseasePosition = () => {
+		position.value = selectedPosition.value;
+		closeDiseasePositionPopup();
+	}
+
+	// 恢复被删除的函数
+	// 获取结构数据
+	const fetchStructureData = async () => {
+		try {
+			// 用户ID和建筑ID
+			const userId = "3";
+			const buildingId = "39";
+
+			// 在实际应用中，这些可能来自于路由参数或全局状态
+			const data = await getObject(userId, buildingId);
+			console.log('结构数据获取成功:', data);
+			structureData.value = data;
+
+			// 初始化部件类型列表
+			updateBiObjectOptions();
+		} catch (error) {
+			console.error('获取结构数据失败:', error);
+			uni.showToast({
+				title: '获取结构数据失败',
+				icon: 'none'
+			});
+		}
+	};
+
+	// 根据当前选择的parentObjectName更新部件类型选项
+	const updateBiObjectOptions = () => {
+		if (!structureData.value || !structureData.value.children) {
+			console.log('结构数据不完整');
+			return;
+		}
+
+		console.log('更新部件类型选项，当前选择:', parentObjectName.value);
+
+		// 找到对应的结构部分（上部结构、下部结构、桥面系）
+		const structurePart = structureData.value.children.find(
+			item => item.name === parentObjectName.value
+		);
+
+		if (!structurePart || !structurePart.children) {
+			console.log('未找到对应的结构部分或其子项');
+			biObjectName.value = [];
+			return;
+		}
+
+		// 提取部件类型名称列表
+		biObjectNameOptions.value = structurePart.children;
+		biObjectName.value = structurePart.children.map(item => item.name);
+		console.log('部件类型选项更新为:', biObjectName.value);
+
+		// 重置部件类型选择
+		biObjectindex.value = -1;
+		// 重置缺损类型选择
+		type.value = [];
+		typeindex.value = -1;
+		// 重置构件编号
+		componentCode.value = [];
+		componentCodeindex.value = -1;
+
+		// 更新二级选择器的第二列数据
+		if (typeMultiArray.value) {
+			typeMultiArray.value[1] = biObjectName.value;
+		}
+	}
+
+	// 更新构件编号下拉列表
+	const updateComponentNumbers = () => {
+		if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+			console.log('无效的部件类型选择');
+			componentCode.value = [];
+			return;
+		}
+
+		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
+		if (!selectedBiObject) {
+			console.log('选中的部件类型不存在');
+			componentCode.value = [];
+			return;
+		}
+
+		// 检查是否有comments字段
+		if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments
+			.length === 0) {
+			console.log('当前部件类型没有构件编号信息');
+			componentCode.value = ['1', '2', '3']; // 使用默认值
+			return;
+		}
+
+		// 从comments中提取code字段作为构件编号
+		componentCode.value = selectedBiObject.comments.map(item => item.code);
+		console.log('构件编号选项更新为:', componentCode.value);
+
+		// 重置构件编号选择
+		componentCodeindex.value = -1;
+	}
+
+	// 根据选择的部件类型更新缺损类型选项
+	const updateDiseaseTypeOptions = () => {
+		if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+			console.log('无效的部件类型选择');
+			type.value = [];
+			return;
+		}
+
+		const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
+		if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
+			console.log('选中的部件类型没有缺损类型定义');
+			type.value = [];
+			return;
+		}
+
+		// 提取缺损类型名称列表
+		diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
+		type.value = selectedBiObject.diseaseTypes.map(item => item.name);
+		console.log('缺损类型选项更新为:', type.value);
+
+		// 重置缺损类型选择
+		typeindex.value = -1;
+	}
+
+	// 打开构件编号选择弹窗
+	const openComponentCodePopup = () => {
+		// 初始化过滤后的构件编号列表
+		filteredComponentCodes.value = [...componentCode.value];
+
+		// 打开弹窗
+		componentCodePopup.value.open();
+	}
+
+	// 关闭构件编号选择弹窗
+	const closeComponentCodePopup = () => {
+		componentCodePopup.value.close();
+	}
+
+	// 确认构件编号选择
+	const confirmComponentCode = () => {
+		// 如果已选择编号，则关闭弹窗
+		if (componentCodeindex.value !== -1) {
+			closeComponentCodePopup();
+		} else {
+			uni.showToast({
+				title: '请选择构件编号',
+				icon: 'none'
+			});
+		}
+	}
+
+	// 清除构件编号搜索框内容
+	const clearComponentSearch = () => {
+		componentCodeFilter.value = '';
+		// 重置过滤列表
+		filteredComponentCodes.value = [...componentCode.value];
+	}
+
+	// 过滤构件编号
+	const filterComponentCodes = () => {
+		// 如果搜索框为空，显示全部
+		if (!componentCodeFilter.value) {
+			filteredComponentCodes.value = [...componentCode.value];
+			return;
+		}
+
+		// 过滤匹配的构件编号
+		filteredComponentCodes.value = componentCode.value.filter(code =>
+			code.toString().includes(componentCodeFilter.value)
+		);
+	}
+
+	// 选择构件编号
+	const selectComponentCode = (index) => {
+		// 获取在原始数组中的索引
+		const selectedCode = filteredComponentCodes.value[index];
+		const originalIndex = componentCode.value.findIndex(code => code === selectedCode);
+
+		if (originalIndex !== -1) {
+			componentCodeindex.value = originalIndex;
+			closeComponentCodePopup();
+		}
+	}
+
+	// 添加位置描述中位置相关的数据
+	const longitudinalPosition = ref(''); // 纵向位置
+	const lateralPosition = ref(''); // 横向位置
+	const verticalPosition = ref(''); // 竖向位置
+
+	// 当前激活的方向类型（用于区分是哪个位置打开的弹窗）
+	const activePositionType = ref('');
+
+	// 弹窗标题
+	const currentPositionTitle = ref('位置');
+
+	// 不同方向的选项
+	const longitudinalPositionOptions = ref(['大桩号侧', '小桩号侧']);
+	const lateralPositionOptions = ref(['左侧', '右侧']);
+	const verticalPositionOptions = ref(['顶部', '底部']);
+
+	// 当前显示的选项
+	const currentPositionOptions = ref([]);
+
+	// 用于存储输入值的变量
+	const positionInput1Value = ref('');
+	const positionInput2Value = ref('');
+
+	// LocationDescriptionPositionPopup ref    
+	const LocationDescriptionPositionPopup = ref(null);
+
+	// 打开位置描述中位置弹窗
+	const openLocationPositionPopup = (type) => {
+		// 记录当前打开的是哪个方向的位置选择
+		activePositionType.value = type || 'longitudinal'; // 默认为纵向
+
+		// 根据不同方向设置标题和选项
+		if (activePositionType.value === 'longitudinal') {
+			currentPositionTitle.value = '纵向位置';
+			currentPositionOptions.value = longitudinalPositionOptions.value;
+		} else if (activePositionType.value === 'lateral') {
+			currentPositionTitle.value = '横向位置';
+			currentPositionOptions.value = lateralPositionOptions.value;
+		} else if (activePositionType.value === 'vertical') {
+			currentPositionTitle.value = '竖向位置';
+			currentPositionOptions.value = verticalPositionOptions.value;
+		}
+
+		// 打开弹窗
+		LocationDescriptionPositionPopup.value.open();
+	}
+
+	// 处理第一种输入（直接输入）的确定按钮点击
+	const confirmPositionInput1 = () => {
+		// 获取输入框的值
+		const inputValue = positionInput1Value.value;
+		if (!inputValue) {
+			uni.showToast({
+				title: '请输入内容',
+				icon: 'none'
+			});
+			return;
+		}
+
+		// 根据当前激活的方向类型更新对应的位置值
+		if (activePositionType.value === 'longitudinal') {
+			longitudinalPosition.value = inputValue;
+		} else if (activePositionType.value === 'lateral') {
+			lateralPosition.value = inputValue;
+		} else if (activePositionType.value === 'vertical') {
+			verticalPosition.value = inputValue;
+		}
+
+		// 关闭弹窗
+		LocationDescriptionPositionPopup.value.close();
+		// 清空输入值，避免影响下次输入
+		positionInput1Value.value = '';
+	}
+
+	// 处理第二种输入（输入+#墩侧）的确定按钮点击
+	const confirmPositionInput2 = () => {
+		// 获取输入框的值
+		const inputValue = positionInput2Value.value;
+		if (!inputValue) {
+			uni.showToast({
+				title: '请输入内容',
+				icon: 'none'
+			});
+			return;
+		}
+
+		// 构造完整文本
+		const fullValue = inputValue + '#墩侧';
+
+		// 根据当前激活的方向类型更新对应的位置值
+		if (activePositionType.value === 'longitudinal') {
+			longitudinalPosition.value = fullValue;
+		} else if (activePositionType.value === 'lateral') {
+			lateralPosition.value = fullValue;
+		} else if (activePositionType.value === 'vertical') {
+			verticalPosition.value = fullValue;
+		}
+
+		// 关闭弹窗
+		LocationDescriptionPositionPopup.value.close();
+		// 清空输入值
+		positionInput2Value.value = '';
+	}
+
+	// 处理第三种输入（直接点击选项）
+	const selectPositionItem = (item) => {
+		// 根据当前激活的方向类型更新对应的位置值
+		if (activePositionType.value === 'longitudinal') {
+			longitudinalPosition.value = item;
+		} else if (activePositionType.value === 'lateral') {
+			lateralPosition.value = item;
+		} else if (activePositionType.value === 'vertical') {
+			verticalPosition.value = item;
+		}
+
+		// 关闭弹窗
+		LocationDescriptionPositionPopup.value.close();
+	}
+
+	// 打开位置描述中距离弹窗
+	const LocationDescriptionDistancePopup = ref(null);
+	const openLocationDistancePopup = (type) => {
+		// 记录当前打开的是哪个方向的距离选择
+		activeDistanceType.value = type;
+		LocationDescriptionDistancePopup.value.open();
+	}
+
+	// 修改长度的单位为picker
+	const lengthUnitData = ref([{
+			text: 'm',
+			value: 0
+		},
+		{
+			text: 'cm',
+			value: 1
+		},
+		{
+			text: 'mm',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const lengthUnitOptions = ref(lengthUnitData.value.map(item => item.text));
+	const lengthUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const lengthUnitChange = (e) => {
+		lengthUnitIndex.value = e.detail.value;
+	};
+
+	// 修改宽度的单位为picker
+	const widthUnitData = ref([{
+			text: 'm',
+			value: 0
+		},
+		{
+			text: 'cm',
+			value: 1
+		},
+		{
+			text: 'mm',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const widthUnitOptions = ref(widthUnitData.value.map(item => item.text));
+	const widthUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const widthUnitChange = (e) => {
+		widthUnitIndex.value = e.detail.value;
+	};
+
+	// 修改高度/深度的单位为picker
+	const heightUnitData = ref([{
+			text: 'm',
+			value: 0
+		},
+		{
+			text: 'cm',
+			value: 1
+		},
+		{
+			text: 'mm',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const heightUnitOptions = ref(heightUnitData.value.map(item => item.text));
+	const heightUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const heightUnitChange = (e) => {
+		heightUnitIndex.value = e.detail.value;
+	};
+
+	// 修改缝宽的单位为picker
+	const seamsWidthUnitData = ref([{
+			text: 'm',
+			value: 0
+		},
+		{
+			text: 'cm',
+			value: 1
+		},
+		{
+			text: 'mm',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const seamsWidthUnitOptions = ref(seamsWidthUnitData.value.map(item => item.text));
+	const seamsWidthUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const seamsWidthUnitChange = (e) => {
+		seamsWidthUnitIndex.value = e.detail.value;
+	};
+
+	// 修改面积的单位为picker
+	const areaUnitData = ref([{
+			text: 'm²',
+			value: 0
+		},
+		{
+			text: 'cm²',
+			value: 1
+		},
+		{
+			text: 'mm²',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const areaUnitOptions = ref(areaUnitData.value.map(item => item.text));
+	const areaUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const areaUnitChange = (e) => {
+		areaUnitIndex.value = e.detail.value;
+	};
+
+	// 修改体积的单位为picker
+	const volumeUnitData = ref([{
+			text: 'm³',
+			value: 0
+		},
+		{
+			text: 'cm³',
+			value: 1
+		},
+		{
+			text: 'mm³',
+			value: 2
+		}
+	]);
+	// 创建一个字符串数组供picker使用
+	const volumeUnitOptions = ref(volumeUnitData.value.map(item => item.text));
+	const volumeUnitIndex = ref(0);
+	// 修复change事件处理方法
+	const volumeUnitChange = (e) => {
+		volumeUnitIndex.value = e.detail.value;
+	};
+
+	// 添加各方向的距离值
+	const longitudinalDistance = ref(''); // 纵向距离
+	const lateralDistance = ref(''); // 横向距离
+	const verticalDistance = ref(''); // 竖向距离
+
+	// 当前激活的方向类型（用于区分是哪个位置打开的弹窗）
+	const activeDistanceType = ref('');
+
+	// 处理第一种输入（直接输入米数）的确定按钮点击
+	const confirmDistanceInput1 = () => {
+		// 获取输入框的值
+		const inputValue = distanceInput1Value.value;
+		if (!inputValue) {
+			uni.showToast({
+				title: '请输入数值',
+				icon: 'none'
+			});
+			return;
+		}
+
+		// 根据当前激活的方向类型更新对应的距离值
+		if (activeDistanceType.value === 'longitudinal') {
+			longitudinalDistance.value = inputValue + '米';
+		} else if (activeDistanceType.value === 'lateral') {
+			lateralDistance.value = inputValue + '米';
+		} else if (activeDistanceType.value === 'vertical') {
+			verticalDistance.value = inputValue + '米';
+		}
+
+		// 关闭弹窗
+		LocationDescriptionDistancePopup.value.close();
+		// 清空输入值，避免影响下次输入
+		distanceInput1Value.value = '';
+	}
+
+	// 处理第二种输入（分数形式）的确定按钮点击
+	const confirmDistanceInput2 = () => {
+		// 获取分子和分母
+		const numerator = distanceInput2Numerator.value;
+		const denominator = distanceInput2Denominator.value;
+
+		if (!numerator || !denominator) {
+			uni.showToast({
+				title: '请完整输入分子和分母',
+				icon: 'none'
+			});
+			return;
+		}
+
+		// 构造分数形式
+		const fractionValue = denominator + '/' + numerator;
+
+		// 根据当前激活的方向类型更新对应的距离值
+		if (activeDistanceType.value === 'longitudinal') {
+			longitudinalDistance.value = fractionValue;
+		} else if (activeDistanceType.value === 'lateral') {
+			lateralDistance.value = fractionValue;
+		} else if (activeDistanceType.value === 'vertical') {
+			verticalDistance.value = fractionValue;
+		}
+
+		// 关闭弹窗
+		LocationDescriptionDistancePopup.value.close();
+		// 清空输入值
+		distanceInput2Numerator.value = '';
+		distanceInput2Denominator.value = '';
+	}
+
+	// 处理第三种输入（直接点击选项）
+	const selectDistanceItem = (item) => {
+		// 根据当前激活的方向类型更新对应的距离值
+		if (activeDistanceType.value === 'longitudinal') {
+			longitudinalDistance.value = item;
+		} else if (activeDistanceType.value === 'lateral') {
+			lateralDistance.value = item;
+		} else if (activeDistanceType.value === 'vertical') {
+			verticalDistance.value = item;
+		}
+
+		// 关闭弹窗
+		LocationDescriptionDistancePopup.value.close();
+	}
+
+	// 用于存储输入值的变量
+	const distanceInput1Value = ref('');
+	const distanceInput2Numerator = ref('');
+	const distanceInput2Denominator = ref('');
 </script>
 
 <style>
@@ -1539,6 +2635,7 @@
 		align-items: center;
 		/* 垂直居中按钮 */
 		padding: 10rpx 0;
+		border-bottom: 1px solid #0F4687;
 	}
 
 	.button-delete {
@@ -1577,6 +2674,7 @@
 		align-items: center;
 		/* 垂直居中按钮 */
 		padding: 10rpx 0;
+		border-bottom: 1px solid #0F4687;
 	}
 
 	.button-next-add {
@@ -1968,6 +3066,61 @@
 		width: 200rpx;
 	}
 
+	.head {
+		background-color: #BDCBE0;
+		border-top: 1px solid #0F4687;
+	}
+
+	.head-text {
+		padding: 4rpx 10rpx;
+		font-size: 18rpx;
+	}
+
+	.picker {
+		font-size: 20rpx;
+	}
+
+	.picker-titleAndContent {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding: 14rpx 12rpx;
+		border-bottom: 1rpx solid #eee;
+	}
+
+	.picker-title {
+		color: #666666;
+		font-size: 20rpx;
+	}
+
+	.picker-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.picker-left {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.picker-content {
+		color: #333333;
+		font-size: 20rpx;
+		margin-right: 10rpx;
+	}
+
+	.picker-icon {
+		color: #CCCCCC;
+		font-size: 20rpx;
+	}
+
+	.picker-must {
+		color: #FF0000;
+	}
+
 	/* 横屏适配 */
 	@media screen and (orientation: landscape) {
 
@@ -2103,5 +3256,427 @@
 			padding: 0 30rpx;
 			margin: 0 15rpx;
 		}
+	}
+
+	/* 病害位置弹窗样式 */
+	.position-popup-content {
+		background-color: #fff;
+		width: 600rpx;
+		height: 250rpx;
+		border-radius: 8rpx;
+		padding: 20rpx 30rpx;
+		box-sizing: border-box;
+	}
+
+	.position-popup-title {
+		text-align: center;
+		font-size: 30rpx;
+		font-weight: bold;
+		margin-bottom: 20rpx;
+	}
+
+	.position-combox {
+		margin-bottom: 20rpx;
+	}
+
+	.position-popup-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 30rpx;
+	}
+
+	.position-popup-button {
+		width: 160rpx;
+		height: 60rpx;
+		line-height: 60rpx;
+		text-align: center;
+		border-radius: 6rpx;
+		font-size: 26rpx;
+		padding: 0;
+	}
+
+	.position-popup-button.cancel {
+		border: 1rpx solid #ddd;
+		color: #666;
+	}
+
+	.position-popup-button.confirm {
+		background-color: #0F4687;
+		color: #fff;
+	}
+
+	.location-description {
+		font-size: 18rpx;
+		padding: 12rpx 16rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1rpx solid #eee;
+	}
+
+	.location-description-left {}
+
+	.location-description-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.location-description-right-position {
+		margin-left: 20rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border: 1rpx solid #EEEEEE;
+		padding: 4rpx 4rpx;
+	}
+
+	.location-description-right-distance {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		margin-left: 20rpx;
+		border: 1rpx solid #EEEEEE;
+		padding: 4rpx 4rpx;
+	}
+
+	.right-icon {
+		margin-left: 20rpx;
+		color: #CCCCCC;
+	}
+
+
+	.clear {
+		margin-left: 10rpx;
+	}
+
+	.quantitative-data {
+		font-size: 18rpx;
+		padding: 12rpx 16rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1rpx solid #eee;
+	}
+
+	.quantitative-data-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.quantitative-data-right-value {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		border: 1rpx solid #EEEEEE;
+		padding: 4rpx 4rpx;
+	}
+
+	.quantitative-data-right-value-input {
+		width: 100rpx;
+	}
+
+	.quantitative-data-right-unit {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		border: 1rpx solid #EEEEEE;
+		margin-left: 20rpx;
+		padding: 4rpx 4rpx;
+	}
+
+	.quantitative-data-right-unit-input {
+		color: #333333;
+		width: 50rpx;
+	}
+
+	.quantitative-data-right-unit-fixed {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		margin-left: 20rpx;
+		padding: 4rpx 4rpx;
+	}
+
+	.input-area {
+		padding: 12rpx 16rpx;
+		border-bottom: 1rpx solid #eee;
+	}
+
+	.input-area-title {
+		font-size: 18rpx;
+	}
+
+	.input-area-content {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+		width: 100%;
+	}
+
+	.line-select {
+		font-size: 18rpx;
+		padding: 8rpx 16rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1rpx solid #eee;
+	}
+
+	.line-select-right {}
+
+	::v-deep .uni-data-checklist .checklist-box,
+	::v-deep .uni-data-checklist .checklist-box span {
+		min-height: 20rpx;
+		min-width: 60rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.form-container {
+		height: calc(100vh - 80rpx);
+		/* 减去顶部按钮组的高度 */
+		overflow-y: auto;
+		/* 垂直方向可滚动 */
+		box-sizing: border-box;
+	}
+
+	/* 确保外部容器不滚动 */
+	view {
+		box-sizing: border-box;
+	}
+
+	/* 构件编号选择弹窗样式 */
+	.component-popup-content {
+		background-color: #fff;
+		width: 600rpx;
+		height: 500rpx;
+		/* 增加高度 */
+		border-radius: 8rpx;
+		padding: 20rpx 30rpx;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.component-popup-title {
+		text-align: center;
+		font-size: 24rpx;
+		/* 从30rpx减小到24rpx */
+		font-weight: bold;
+		margin-bottom: 20rpx;
+	}
+
+	.component-search-box {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 20rpx;
+		border: 1rpx solid #ddd;
+		border-radius: 6rpx;
+		padding: 0 10rpx;
+	}
+
+	.component-search-input {
+		flex: 1;
+		height: 40rpx;
+		padding: 4rpx;
+		font-size: 22rpx;
+		/* 从26rpx减小到22rpx */
+	}
+
+	.component-search-clear {
+		font-size: 24rpx;
+		/* 从30rpx减小到26rpx */
+		color: #999;
+		padding: 0 10rpx;
+	}
+
+	.component-code-list {
+		flex: 1;
+		overflow-y: auto;
+		margin-bottom: 20rpx;
+	}
+
+	.component-code-item {
+		padding: 12rpx 10rpx;
+		/* 从14rpx减小到12rpx */
+		border-bottom: 1rpx solid #eee;
+		font-size: 22rpx;
+		/* 从26rpx减小到22rpx */
+	}
+
+	.component-code-item-active {
+		background-color: #f0f0f0;
+	}
+
+	.component-popup-buttons {
+		display: flex;
+		justify-content: space-around;
+		margin-top: 10rpx;
+	}
+
+	.component-popup-button {
+		width: 30%;
+		height: 60rpx;
+		line-height: 60rpx;
+		text-align: center;
+		border-radius: 6rpx;
+		font-size: 24rpx;
+		/* 从28rpx减小到24rpx */
+		padding: 0;
+	}
+
+	.component-popup-button.cancel {
+		border: 1rpx solid #ddd;
+		color: #666;
+	}
+
+	.component-popup-button.confirm {
+		background-color: #0F4687;
+		color: #fff;
+	}
+
+	/*位置描述弹窗*/
+	/*位置描述中位置弹窗样式*/
+	.location-description-position-popup-content {
+		background-color: #fff;
+		width: 600rpx;
+		height: 300rpx;
+		border-radius: 8rpx;
+		padding: 20rpx 30rpx;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.location-description-position-popup-input1 {
+		margin-top: 10rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.location-description-popup-input {
+		border-bottom: 1rpx solid #eee;
+		flex: 1;
+		margin-right: 10rpx;
+	}
+
+	.location-description-position-popup-input2 {
+		margin-top: 10rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.location-description-position-popup-input2-text {
+		font-size: 16rpx;
+		margin-right: 10rpx;
+		white-space: nowrap;
+	}
+
+	.location-description-popup-button {
+		background-color: #0F4687;
+		color: white;
+		width: 60rpx;
+		height: 30rpx;
+		line-height: 30rpx;
+		font-size: 12rpx;
+		text-align: center;
+		border-radius: 4rpx;
+		padding: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		/* 防止按钮被压缩 */
+	}
+
+	.location-description-position-popup-input2-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		/* 防止这部分被压缩 */
+	}
+
+	.location-description-position-popup-input3 {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+	}
+
+	.location-description-position-popup-input3-item {
+		margin-bottom: 10rpx;
+	}
+
+
+	/*位置描述中距离弹窗样式*/
+	.location-description-distance-popup-content {
+		background-color: #fff;
+		width: 600rpx;
+		height: 300rpx;
+		border-radius: 8rpx;
+		padding: 20rpx 30rpx;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.location-description-distance-popup-input1 {
+		margin-top: 10rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.location-description-distance-popup-input1-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		/* 防止这部分被压缩 */
+	}
+
+	.location-description-distance-popup-input1-text {
+		font-size: 16rpx;
+		margin-right: 10rpx;
+		white-space: nowrap;
+	}
+
+	.location-description-distance-popup-input2 {
+		margin-top: 10rpx;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		/* 防止这部分被压缩 */
+	}
+
+	.location-description-distance-popup-input2-mid {
+		font-size: 16rpx;
+		margin-right: 10rpx;
+		white-space: nowrap;
+	}
+
+	.location-description-distance-popup-input3 {
+		margin-top: 10rpx;
+		font-size: 20rpx;
+	}
+
+	.location-description-distance-popup-input3-item {
+		margin-bottom: 10rpx;
 	}
 </style>

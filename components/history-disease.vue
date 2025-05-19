@@ -217,11 +217,76 @@ const copyDisease = () => {
     return;
   }
   
-  // 这里实现复制逻辑
-  uni.showToast({
-    title: `复制了${selectedItems.value.length}个病害`,
-    icon: 'none'
+  // 获取选中的病害完整数据
+  const selectedDiseases = diseaseList.value.filter(item => selectedItems.value.includes(item.id));
+  
+  if (selectedDiseases.length === 0) {
+    uni.showToast({
+      title: '获取选中病害数据失败',
+      icon: 'none'
+    });
+    return;
+  }
+  
+  // 处理选中的病害，更新时间戳等信息
+  const currentTime = new Date();
+  const currentYear = currentTime.getFullYear().toString();
+  
+  const copiedDiseases = selectedDiseases.map(disease => {
+    // 创建病害的深拷贝，避免修改原始数据
+    const newDisease = JSON.parse(JSON.stringify(disease));
+    
+    // 生成新的ID
+    newDisease.id = new Date().getTime() + Math.floor(Math.random() * 1000);
+    
+    // 更新创建时间和更新时间为当前时间
+    const formattedTime = formatDateTime(currentTime);
+    newDisease.createTime = formattedTime;
+    newDisease.updateTime = formattedTime;
+    
+    // 确保病害没有删除标记
+    delete newDisease.isDelete;
+    
+    return newDisease;
   });
+  
+  // 一次性添加所有选中的病害
+  Promise.all(copiedDiseases.map(disease => {
+    return new Promise((resolve) => {
+      // 发送添加新病害事件给current-disease组件
+      console.log('发送添加新病害事件给current-disease组件:', disease);
+      uni.$emit('addNewDisease', disease);
+      resolve();
+    });
+  }))
+  .then(() => {
+    // 显示成功提示
+    uni.showToast({
+      title: `成功复制${copiedDiseases.length}条病害到当前病害`,
+      icon: 'success'
+    });
+    
+    // 退出选择模式
+    toggleSelectMode();
+  })
+  .catch(error => {
+    console.error('复制病害失败:', error);
+    uni.showToast({
+      title: '复制失败，请重试',
+      icon: 'none'
+    });
+  });
+};
+
+// 添加格式化日期时间的辅助函数
+const formatDateTime = (date = new Date()) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  const h = String(date.getHours()).padStart(2, '0');
+  const mm = String(date.getMinutes()).padStart(2, '0');
+  const s = String(date.getSeconds()).padStart(2, '0');
+  return `${y}-${m}-${d} ${h}:${mm}:${s}`;
 };
 
 // 搜索
