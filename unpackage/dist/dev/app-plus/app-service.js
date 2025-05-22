@@ -31,8 +31,127 @@ if (uni.restoreGlobal) {
 }
 (function(vue) {
   "use strict";
+  const _imports_0$8 = "/static/image/loginLogo.jpg";
+  const _export_sfc = (sfc, props) => {
+    const target = sfc.__vccOpts || sfc;
+    for (const [key, val] of props) {
+      target[key] = val;
+    }
+    return target;
+  };
+  const _sfc_main$H = {
+    __name: "LoginPage",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const username = vue.ref("");
+      const password = vue.ref("");
+      const rememberPassword = vue.ref(false);
+      const offlineLogin = vue.ref(false);
+      const showPassword = vue.ref(false);
+      const toggleRememberPassword = () => {
+        rememberPassword.value = !rememberPassword.value;
+      };
+      const toggleOfflineLogin = () => {
+        offlineLogin.value = !offlineLogin.value;
+      };
+      const togglePasswordVisibility = () => {
+        showPassword.value = !showPassword.value;
+      };
+      const handleLogin = () => {
+        if (username.value === "admin" && password.value === "123456") {
+          uni.navigateTo({
+            url: "/pages/home/home"
+          });
+        } else {
+          uni.showToast({
+            title: "用户名或密码错误",
+            icon: "none"
+          });
+        }
+      };
+      const __returned__ = { username, password, rememberPassword, offlineLogin, showPassword, toggleRememberPassword, toggleOfflineLogin, togglePasswordVisibility, handleLogin, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$G(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "loginPage" }, [
+      vue.createElementVNode("view", { class: "logo" }, [
+        vue.createElementVNode("view", { class: "logo-container" }, [
+          vue.createElementVNode("image", {
+            src: _imports_0$8,
+            mode: "widthFix",
+            style: { "width": "100%", "background-color": "#ffffff" }
+          })
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "form" }, [
+        vue.createElementVNode("view", { class: "item_1" }, [
+          vue.createElementVNode("view", { class: "name" }, "用户名"),
+          vue.withDirectives(vue.createElementVNode(
+            "input",
+            {
+              class: "uni-input",
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.username = $event),
+              placeholder: "请输入用户名"
+            },
+            null,
+            512
+            /* NEED_PATCH */
+          ), [
+            [vue.vModelText, $setup.username]
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "item_2" }, [
+          vue.createElementVNode("view", { class: "name" }, "密码"),
+          vue.createElementVNode("view", { class: "container" }, [
+            vue.createElementVNode("view", { class: "container_1" }, [
+              vue.withDirectives(vue.createElementVNode("input", {
+                class: "uni-input",
+                "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.password = $event),
+                type: $setup.showPassword ? "text" : "password",
+                placeholder: "请输入密码"
+              }, null, 8, ["type"]), [
+                [vue.vModelDynamic, $setup.password]
+              ]),
+              vue.createElementVNode("view", { class: "password-icons" }, [
+                vue.createElementVNode("image", {
+                  src: $setup.showPassword ? "/static/image/EyeOutline.png" : "/static/image/open.png",
+                  mode: "widthFix",
+                  style: { "width": "5%" },
+                  class: "password-icon",
+                  onClick: $setup.togglePasswordVisibility
+                }, null, 8, ["src"])
+              ])
+            ])
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "item_3" }, [
+          vue.createElementVNode("radio-group", { name: "radio" }, [
+            vue.createElementVNode("label", { onClick: $setup.toggleRememberPassword }, [
+              vue.createElementVNode("radio", { checked: $setup.rememberPassword }, null, 8, ["checked"]),
+              vue.createTextVNode("记住密码 ")
+            ]),
+            vue.createElementVNode("label", { onClick: $setup.toggleOfflineLogin }, [
+              vue.createElementVNode("radio", { checked: $setup.offlineLogin }, null, 8, ["checked"]),
+              vue.createTextVNode("离线登录 ")
+            ])
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "item_4" }, [
+          vue.createElementVNode("button", {
+            size: "default",
+            type: "default",
+            style: { "color": "#ffffff", "backgroundColor": "#0F4687", "borderColor": "#1AAD19" },
+            "hover-class": "is-hover",
+            onClick: $setup.handleLogin
+          }, "登录")
+        ])
+      ])
+    ]);
+  }
+  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$H, [["render", _sfc_render$G], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
   const ON_LOAD = "onLoad";
-  const ON_NAVIGATION_BAR_BUTTON_TAP = "onNavigationBarButtonTap";
   function formatAppLog(type, filename, ...args) {
     if (uni.__log__) {
       uni.__log__(type, filename, ...args);
@@ -47,7 +166,2675 @@ if (uni.restoreGlobal) {
     !vue.isInSSRComponentSetup && vue.injectHook(lifecycle, hook, target);
   };
   const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
-  const onNavigationBarButtonTap = /* @__PURE__ */ createHook(ON_NAVIGATION_BAR_BUTTON_TAP);
+  const _sfc_main$G = {
+    __name: "login",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const username = vue.ref("");
+      const password = vue.ref("");
+      const rememberPassword = vue.ref(false);
+      const autoLogin = vue.ref(false);
+      onLoad(() => {
+        const isLoggedIn = uni.getStorageSync("isLoggedIn");
+        if (isLoggedIn) {
+          uni.redirectTo({
+            url: "/pages/home/home"
+          });
+        }
+        rememberPassword.value = uni.getStorageSync("rememberPassword") || false;
+        autoLogin.value = uni.getStorageSync("autoLogin") || false;
+        if (rememberPassword.value) {
+          username.value = uni.getStorageSync("username") || "";
+          password.value = uni.getStorageSync("password") || "";
+        }
+        if (autoLogin.value && username.value && password.value) {
+          login();
+        }
+      });
+      const login = () => {
+        if (!username.value || !password.value) {
+          uni.showToast({
+            title: "请输入用户名和密码",
+            icon: "none"
+          });
+          return;
+        }
+        const correctUsername = "admin";
+        const correctPassword = "123456";
+        if (username.value === correctUsername && password.value === correctPassword) {
+          uni.showToast({
+            title: "登录成功",
+            icon: "success"
+          });
+          uni.setStorageSync("isLoggedIn", true);
+          if (rememberPassword.value) {
+            uni.setStorageSync("username", username.value);
+            uni.setStorageSync("password", password.value);
+          } else {
+            uni.removeStorageSync("username");
+            uni.removeStorageSync("password");
+          }
+          uni.setStorageSync("rememberPassword", rememberPassword.value);
+          uni.setStorageSync("autoLogin", autoLogin.value);
+          uni.setStorageSync("isOnline", true);
+          uni.redirectTo({
+            url: "/pages/home/home"
+          });
+        } else {
+          uni.showToast({
+            title: "用户名或密码错误",
+            icon: "none"
+          });
+        }
+      };
+      const toggleRememberPassword = (event) => {
+        rememberPassword.value = event.detail.value.length > 0;
+        uni.setStorageSync("rememberPassword", rememberPassword.value);
+        if (!rememberPassword.value) {
+          autoLogin.value = false;
+          uni.setStorageSync("autoLogin", false);
+        }
+      };
+      const toggleAutoLogin = (event) => {
+        autoLogin.value = event.detail.value.length > 0;
+        uni.setStorageSync("autoLogin", autoLogin.value);
+        if (autoLogin.value) {
+          rememberPassword.value = true;
+          uni.setStorageSync("rememberPassword", true);
+        }
+      };
+      const offlineLogin = () => {
+        uni.showToast({
+          title: "离线登录成功",
+          icon: "success"
+        });
+        uni.setStorageSync("isLoggedIn", true);
+        uni.setStorageSync("isOnline", false);
+        uni.redirectTo({
+          url: "/pages/home/home"
+        });
+      };
+      const __returned__ = { username, password, rememberPassword, autoLogin, login, toggleRememberPassword, toggleAutoLogin, offlineLogin, ref: vue.ref, get onLoad() {
+        return onLoad;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$F(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "login" }, [
+      vue.createElementVNode("view", { class: "login-box" }, [
+        vue.createElementVNode("view", { class: "login-box-title" }, "登录"),
+        vue.withDirectives(vue.createElementVNode(
+          "input",
+          {
+            class: "login-box-username",
+            placeholder: "请输入账号",
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.username = $event)
+          },
+          null,
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vModelText, $setup.username]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "input",
+          {
+            class: "login-box-password",
+            placeholder: "请输入密码",
+            password: "",
+            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.password = $event)
+          },
+          null,
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vModelText, $setup.password]
+        ]),
+        vue.createElementVNode("view", { class: "login-box-option" }, [
+          vue.createElementVNode(
+            "checkbox-group",
+            { onChange: $setup.toggleRememberPassword },
+            [
+              vue.createElementVNode("label", { class: "login-box-option-rememberPassword" }, [
+                vue.createElementVNode("checkbox", { checked: $setup.rememberPassword }, null, 8, ["checked"]),
+                vue.createElementVNode("text", null, "记住密码")
+              ])
+            ],
+            32
+            /* NEED_HYDRATION */
+          ),
+          vue.createElementVNode(
+            "checkbox-group",
+            { onChange: $setup.toggleAutoLogin },
+            [
+              vue.createElementVNode("label", { class: "login-box-option-autoLogin" }, [
+                vue.createElementVNode("checkbox", { checked: $setup.autoLogin }, null, 8, ["checked"]),
+                vue.createElementVNode("text", null, "自动登录")
+              ])
+            ],
+            32
+            /* NEED_HYDRATION */
+          )
+        ]),
+        vue.createElementVNode("view", {
+          class: "login-box-button",
+          onClick: _cache[2] || (_cache[2] = ($event) => $setup.login())
+        }, "登录"),
+        vue.createElementVNode("view", { class: "login-box-offline" }, [
+          vue.createElementVNode("view", {
+            class: "login-box-offline-box",
+            onClick: $setup.offlineLogin
+          }, "离线登录")
+        ])
+      ])
+    ]);
+  }
+  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$G, [["render", _sfc_render$F], ["__scopeId", "data-v-e4e4508d"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/login/login.vue"]]);
+  const _imports_0$7 = "/static/image/loginLogo.png";
+  const _imports_1$3 = "/static/image/bridgenew.png";
+  const _imports_2$2 = "/static/image/setting.png";
+  const _sfc_main$F = {
+    __name: "home",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const activeSection = vue.ref("");
+      const handleClick = (section) => {
+        activeSection.value = section;
+        if (section === "bridge") {
+          uni.navigateTo({
+            url: "/pages/bridge/bridge"
+          });
+        } else if (section === "setting") {
+          uni.navigateTo({
+            url: "/pages/SystemSetting/SystemSetting"
+          });
+        }
+      };
+      const __returned__ = { activeSection, handleClick, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$E(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { id: "homePage" }, [
+      vue.createElementVNode("view", { class: "logo" }, [
+        vue.createElementVNode("image", {
+          src: _imports_0$7,
+          mode: "widthFix",
+          style: { "width": "100%" }
+        })
+      ]),
+      vue.createElementVNode("view", { class: "container" }, [
+        vue.createElementVNode("view", { class: "content" }, [
+          vue.createElementVNode(
+            "view",
+            {
+              class: vue.normalizeClass(["section", { "active": $setup.activeSection === "bridge" }]),
+              onClick: _cache[0] || (_cache[0] = ($event) => $setup.handleClick("bridge"))
+            },
+            [
+              vue.createElementVNode("view", { class: "icon-item" }, [
+                vue.createElementVNode("view", { class: "icon-box" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_1$3,
+                    mode: "widthFix",
+                    class: "home-icon"
+                  })
+                ]),
+                vue.createElementVNode("text", { class: "leftText" }, "桥梁定检")
+              ])
+            ],
+            2
+            /* CLASS */
+          ),
+          vue.createElementVNode(
+            "view",
+            {
+              class: vue.normalizeClass(["section", { "active": $setup.activeSection === "setting" }]),
+              onClick: _cache[1] || (_cache[1] = ($event) => $setup.handleClick("setting"))
+            },
+            [
+              vue.createElementVNode("view", { class: "icon-item" }, [
+                vue.createElementVNode("view", { class: "icon-box" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_2$2,
+                    mode: "widthFix",
+                    class: "home-icon"
+                  })
+                ]),
+                vue.createElementVNode("text", { class: "leftText" }, "系统设置")
+              ])
+            ],
+            2
+            /* CLASS */
+          )
+        ])
+      ])
+    ]);
+  }
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$F, [["render", _sfc_render$E], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const noMessage = "/static/image/noMessage.svg";
+  const _sfc_main$E = {
+    __name: "message",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const __returned__ = { get noMessage() {
+        return noMessage;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$D(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "message" }, [
+      vue.createElementVNode("view", { class: "message-none" }, [
+        vue.createElementVNode("image", {
+          class: "message-none-icon",
+          src: $setup.noMessage
+        }, null, 8, ["src"]),
+        vue.createElementVNode("view", { class: "message-none-text" }, "没有相关数据哦")
+      ])
+    ]);
+  }
+  const PagesMessageMessage = /* @__PURE__ */ _export_sfc(_sfc_main$E, [["render", _sfc_render$D], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/message/message.vue"]]);
+  const _sfc_main$D = {
+    __name: "infoItem",
+    props: {
+      infoKey: String,
+      infoValue: String
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const __returned__ = { props, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$C(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "infoItem" }, [
+      vue.createElementVNode(
+        "view",
+        { class: "infoItem-key" },
+        vue.toDisplayString($setup.props.infoKey),
+        1
+        /* TEXT */
+      ),
+      vue.createElementVNode(
+        "view",
+        { class: "infoItem-value" },
+        vue.toDisplayString($setup.props.infoValue),
+        1
+        /* TEXT */
+      )
+    ]);
+  }
+  const infoItem = /* @__PURE__ */ _export_sfc(_sfc_main$D, [["render", _sfc_render$C], ["__scopeId", "data-v-e152a2e4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/infoItem.vue"]]);
+  const _sfc_main$C = {
+    __name: "userinfo",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const userinfo = vue.ref([{
+        key: "姓名",
+        value: "西工院检测05"
+      }, {
+        key: "编号",
+        value: "xigy05"
+      }, {
+        key: "手机号码",
+        value: "12345678901"
+      }, {
+        key: "权属单位",
+        value: "陕西交控工程技术有限公司"
+      }]);
+      const photoSrc = vue.ref("/static/image/zjl.png");
+      const changePhoto = () => {
+        uni.chooseImage({
+          count: 1,
+          sizeType: ["original", "compressed"],
+          sourceType: ["album", "camera"],
+          success: (res) => {
+            photoSrc.value = res.tempFilePaths[0];
+          },
+          fail: (err) => {
+            formatAppLog("error", "at pages/userinfo/userinfo.vue:38", "头像选择失败", err);
+          }
+        });
+      };
+      const __returned__ = { userinfo, photoSrc, changePhoto, ref: vue.ref, infoItem };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$B(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "userinfo" }, [
+      vue.createElementVNode("view", { class: "userinfo-photoBox" }, [
+        vue.createElementVNode("image", {
+          class: "userinfo-photoBox-photo",
+          src: $setup.photoSrc,
+          onClick: $setup.changePhoto
+        }, null, 8, ["src"])
+      ]),
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($setup.userinfo, (item, index) => {
+          return vue.openBlock(), vue.createBlock($setup["infoItem"], {
+            key: index,
+            infoKey: item.key,
+            infoValue: item.value
+          }, null, 8, ["infoKey", "infoValue"]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
+    ]);
+  }
+  const PagesUserinfoUserinfo = /* @__PURE__ */ _export_sfc(_sfc_main$C, [["render", _sfc_render$B], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/userinfo/userinfo.vue"]]);
+  const _imports_0$6 = "/static/image/exclamation.svg";
+  const _imports_1$2 = "/static/image/rightArrow.svg";
+  const _sfc_main$B = {
+    __name: "setting",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const toVersionInfo = () => {
+        uni.navigateTo({
+          url: "/pages/versionInfo/versionInfo"
+        });
+      };
+      const logout = () => {
+        uni.removeStorageSync("isLoggedIn");
+        uni.removeStorageSync("autoLogin");
+        uni.redirectTo({ url: "/pages/login/login" });
+      };
+      const __returned__ = { toVersionInfo, logout };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "setting" }, [
+      vue.createElementVNode("view", {
+        class: "setting-versionInfo",
+        onClick: $setup.toVersionInfo
+      }, [
+        vue.createElementVNode("view", { class: "setting-versionInfo-left" }, [
+          vue.createElementVNode("image", {
+            class: "setting-versionInfo-left-icon",
+            src: _imports_0$6
+          }),
+          vue.createElementVNode("view", { class: "setting-versionInfo-left-text" }, "版本信息")
+        ]),
+        vue.createElementVNode("image", {
+          class: "setting-versionInfo-rightArrow",
+          src: _imports_1$2
+        })
+      ]),
+      vue.createElementVNode("view", {
+        class: "setting-logout",
+        onClick: $setup.logout
+      }, " 注销登录 ")
+    ]);
+  }
+  const PagesSettingSetting = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/setting/setting.vue"]]);
+  const popup = {
+    data() {
+      return {};
+    },
+    created() {
+      this.popup = this.getParent();
+    },
+    methods: {
+      /**
+       * 获取父元素实例
+       */
+      getParent(name = "uniPopup") {
+        let parent = this.$parent;
+        let parentName = parent.$options.name;
+        while (parentName !== name) {
+          parent = parent.$parent;
+          if (!parent)
+            return false;
+          parentName = parent.$options.name;
+        }
+        return parent;
+      }
+    }
+  };
+  const isObject = (val) => val !== null && typeof val === "object";
+  const defaultDelimiters = ["{", "}"];
+  class BaseFormatter {
+    constructor() {
+      this._caches = /* @__PURE__ */ Object.create(null);
+    }
+    interpolate(message, values, delimiters = defaultDelimiters) {
+      if (!values) {
+        return [message];
+      }
+      let tokens = this._caches[message];
+      if (!tokens) {
+        tokens = parse(message, delimiters);
+        this._caches[message] = tokens;
+      }
+      return compile(tokens, values);
+    }
+  }
+  const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
+  const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
+  function parse(format, [startDelimiter, endDelimiter]) {
+    const tokens = [];
+    let position = 0;
+    let text = "";
+    while (position < format.length) {
+      let char = format[position++];
+      if (char === startDelimiter) {
+        if (text) {
+          tokens.push({ type: "text", value: text });
+        }
+        text = "";
+        let sub = "";
+        char = format[position++];
+        while (char !== void 0 && char !== endDelimiter) {
+          sub += char;
+          char = format[position++];
+        }
+        const isClosed = char === endDelimiter;
+        const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
+        tokens.push({ value: sub, type });
+      } else {
+        text += char;
+      }
+    }
+    text && tokens.push({ type: "text", value: text });
+    return tokens;
+  }
+  function compile(tokens, values) {
+    const compiled = [];
+    let index = 0;
+    const mode = Array.isArray(values) ? "list" : isObject(values) ? "named" : "unknown";
+    if (mode === "unknown") {
+      return compiled;
+    }
+    while (index < tokens.length) {
+      const token = tokens[index];
+      switch (token.type) {
+        case "text":
+          compiled.push(token.value);
+          break;
+        case "list":
+          compiled.push(values[parseInt(token.value, 10)]);
+          break;
+        case "named":
+          if (mode === "named") {
+            compiled.push(values[token.value]);
+          } else {
+            {
+              console.warn(`Type of token '${token.type}' and format of value '${mode}' don't match!`);
+            }
+          }
+          break;
+        case "unknown":
+          {
+            console.warn(`Detect 'unknown' type of token!`);
+          }
+          break;
+      }
+      index++;
+    }
+    return compiled;
+  }
+  const LOCALE_ZH_HANS = "zh-Hans";
+  const LOCALE_ZH_HANT = "zh-Hant";
+  const LOCALE_EN = "en";
+  const LOCALE_FR = "fr";
+  const LOCALE_ES = "es";
+  const hasOwnProperty = Object.prototype.hasOwnProperty;
+  const hasOwn = (val, key) => hasOwnProperty.call(val, key);
+  const defaultFormatter = new BaseFormatter();
+  function include(str, parts) {
+    return !!parts.find((part) => str.indexOf(part) !== -1);
+  }
+  function startsWith(str, parts) {
+    return parts.find((part) => str.indexOf(part) === 0);
+  }
+  function normalizeLocale(locale, messages2) {
+    if (!locale) {
+      return;
+    }
+    locale = locale.trim().replace(/_/g, "-");
+    if (messages2 && messages2[locale]) {
+      return locale;
+    }
+    locale = locale.toLowerCase();
+    if (locale === "chinese") {
+      return LOCALE_ZH_HANS;
+    }
+    if (locale.indexOf("zh") === 0) {
+      if (locale.indexOf("-hans") > -1) {
+        return LOCALE_ZH_HANS;
+      }
+      if (locale.indexOf("-hant") > -1) {
+        return LOCALE_ZH_HANT;
+      }
+      if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
+        return LOCALE_ZH_HANT;
+      }
+      return LOCALE_ZH_HANS;
+    }
+    let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
+    if (messages2 && Object.keys(messages2).length > 0) {
+      locales = Object.keys(messages2);
+    }
+    const lang = startsWith(locale, locales);
+    if (lang) {
+      return lang;
+    }
+  }
+  class I18n {
+    constructor({ locale, fallbackLocale, messages: messages2, watcher, formater: formater2 }) {
+      this.locale = LOCALE_EN;
+      this.fallbackLocale = LOCALE_EN;
+      this.message = {};
+      this.messages = {};
+      this.watchers = [];
+      if (fallbackLocale) {
+        this.fallbackLocale = fallbackLocale;
+      }
+      this.formater = formater2 || defaultFormatter;
+      this.messages = messages2 || {};
+      this.setLocale(locale || LOCALE_EN);
+      if (watcher) {
+        this.watchLocale(watcher);
+      }
+    }
+    setLocale(locale) {
+      const oldLocale = this.locale;
+      this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
+      if (!this.messages[this.locale]) {
+        this.messages[this.locale] = {};
+      }
+      this.message = this.messages[this.locale];
+      if (oldLocale !== this.locale) {
+        this.watchers.forEach((watcher) => {
+          watcher(this.locale, oldLocale);
+        });
+      }
+    }
+    getLocale() {
+      return this.locale;
+    }
+    watchLocale(fn) {
+      const index = this.watchers.push(fn) - 1;
+      return () => {
+        this.watchers.splice(index, 1);
+      };
+    }
+    add(locale, message, override = true) {
+      const curMessages = this.messages[locale];
+      if (curMessages) {
+        if (override) {
+          Object.assign(curMessages, message);
+        } else {
+          Object.keys(message).forEach((key) => {
+            if (!hasOwn(curMessages, key)) {
+              curMessages[key] = message[key];
+            }
+          });
+        }
+      } else {
+        this.messages[locale] = message;
+      }
+    }
+    f(message, values, delimiters) {
+      return this.formater.interpolate(message, values, delimiters).join("");
+    }
+    t(key, locale, values) {
+      let message = this.message;
+      if (typeof locale === "string") {
+        locale = normalizeLocale(locale, this.messages);
+        locale && (message = this.messages[locale]);
+      } else {
+        values = locale;
+      }
+      if (!hasOwn(message, key)) {
+        console.warn(`Cannot translate the value of keypath ${key}. Use the value of keypath as default.`);
+        return key;
+      }
+      return this.formater.interpolate(message[key], values).join("");
+    }
+  }
+  function watchAppLocale(appVm, i18n) {
+    if (appVm.$watchLocale) {
+      appVm.$watchLocale((newLocale) => {
+        i18n.setLocale(newLocale);
+      });
+    } else {
+      appVm.$watch(() => appVm.$locale, (newLocale) => {
+        i18n.setLocale(newLocale);
+      });
+    }
+  }
+  function getDefaultLocale() {
+    if (typeof uni !== "undefined" && uni.getLocale) {
+      return uni.getLocale();
+    }
+    if (typeof global !== "undefined" && global.getLocale) {
+      return global.getLocale();
+    }
+    return LOCALE_EN;
+  }
+  function initVueI18n(locale, messages2 = {}, fallbackLocale, watcher) {
+    if (typeof locale !== "string") {
+      const options = [
+        messages2,
+        locale
+      ];
+      locale = options[0];
+      messages2 = options[1];
+    }
+    if (typeof locale !== "string") {
+      locale = getDefaultLocale();
+    }
+    if (typeof fallbackLocale !== "string") {
+      fallbackLocale = typeof __uniConfig !== "undefined" && __uniConfig.fallbackLocale || LOCALE_EN;
+    }
+    const i18n = new I18n({
+      locale,
+      fallbackLocale,
+      messages: messages2,
+      watcher
+    });
+    let t2 = (key, values) => {
+      if (typeof getApp !== "function") {
+        t2 = function(key2, values2) {
+          return i18n.t(key2, values2);
+        };
+      } else {
+        let isWatchedAppLocale = false;
+        t2 = function(key2, values2) {
+          const appVm = getApp().$vm;
+          if (appVm) {
+            appVm.$locale;
+            if (!isWatchedAppLocale) {
+              isWatchedAppLocale = true;
+              watchAppLocale(appVm, i18n);
+            }
+          }
+          return i18n.t(key2, values2);
+        };
+      }
+      return t2(key, values);
+    };
+    return {
+      i18n,
+      f(message, values, delimiters) {
+        return i18n.f(message, values, delimiters);
+      },
+      t(key, values) {
+        return t2(key, values);
+      },
+      add(locale2, message, override = true) {
+        return i18n.add(locale2, message, override);
+      },
+      watch(fn) {
+        return i18n.watchLocale(fn);
+      },
+      getLocale() {
+        return i18n.getLocale();
+      },
+      setLocale(newLocale) {
+        return i18n.setLocale(newLocale);
+      }
+    };
+  }
+  const en$3 = {
+    "uni-popup.cancel": "cancel",
+    "uni-popup.ok": "ok",
+    "uni-popup.placeholder": "pleace enter",
+    "uni-popup.title": "Hint",
+    "uni-popup.shareTitle": "Share to"
+  };
+  const zhHans$2 = {
+    "uni-popup.cancel": "取消",
+    "uni-popup.ok": "确定",
+    "uni-popup.placeholder": "请输入",
+    "uni-popup.title": "提示",
+    "uni-popup.shareTitle": "分享到"
+  };
+  const zhHant$2 = {
+    "uni-popup.cancel": "取消",
+    "uni-popup.ok": "確定",
+    "uni-popup.placeholder": "請輸入",
+    "uni-popup.title": "提示",
+    "uni-popup.shareTitle": "分享到"
+  };
+  const messages$2 = {
+    en: en$3,
+    "zh-Hans": zhHans$2,
+    "zh-Hant": zhHant$2
+  };
+  const {
+    t: t$3
+  } = initVueI18n(messages$2);
+  const _sfc_main$A = {
+    name: "uniPopupDialog",
+    mixins: [popup],
+    emits: ["confirm", "close", "update:modelValue", "input"],
+    props: {
+      inputType: {
+        type: String,
+        default: "text"
+      },
+      showClose: {
+        type: Boolean,
+        default: true
+      },
+      modelValue: {
+        type: [Number, String],
+        default: ""
+      },
+      placeholder: {
+        type: [String, Number],
+        default: ""
+      },
+      type: {
+        type: String,
+        default: "error"
+      },
+      mode: {
+        type: String,
+        default: "base"
+      },
+      title: {
+        type: String,
+        default: ""
+      },
+      content: {
+        type: String,
+        default: ""
+      },
+      beforeClose: {
+        type: Boolean,
+        default: false
+      },
+      cancelText: {
+        type: String,
+        default: ""
+      },
+      confirmText: {
+        type: String,
+        default: ""
+      },
+      maxlength: {
+        type: Number,
+        default: -1
+      },
+      focus: {
+        type: Boolean,
+        default: true
+      }
+    },
+    data() {
+      return {
+        dialogType: "error",
+        val: ""
+      };
+    },
+    computed: {
+      okText() {
+        return this.confirmText || t$3("uni-popup.ok");
+      },
+      closeText() {
+        return this.cancelText || t$3("uni-popup.cancel");
+      },
+      placeholderText() {
+        return this.placeholder || t$3("uni-popup.placeholder");
+      },
+      titleText() {
+        return this.title || t$3("uni-popup.title");
+      }
+    },
+    watch: {
+      type(val) {
+        this.dialogType = val;
+      },
+      mode(val) {
+        if (val === "input") {
+          this.dialogType = "info";
+        }
+      },
+      value(val) {
+        if (this.maxlength != -1 && this.mode === "input") {
+          this.val = val.slice(0, this.maxlength);
+        } else {
+          this.val = val;
+        }
+      },
+      val(val) {
+        this.$emit("update:modelValue", val);
+      }
+    },
+    created() {
+      this.popup.disableMask();
+      if (this.mode === "input") {
+        this.dialogType = "info";
+        this.val = this.value;
+        this.val = this.modelValue;
+      } else {
+        this.dialogType = this.type;
+      }
+    },
+    methods: {
+      /**
+       * 点击确认按钮
+       */
+      onOk() {
+        if (this.mode === "input") {
+          this.$emit("confirm", this.val);
+        } else {
+          this.$emit("confirm");
+        }
+        if (this.beforeClose)
+          return;
+        this.popup.close();
+      },
+      /**
+       * 点击取消按钮
+       */
+      closeDialog() {
+        this.$emit("close");
+        if (this.beforeClose)
+          return;
+        this.popup.close();
+      },
+      close() {
+        this.popup.close();
+      }
+    }
+  };
+  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "uni-popup-dialog" }, [
+      vue.createElementVNode("view", { class: "uni-dialog-title" }, [
+        vue.createElementVNode(
+          "text",
+          {
+            class: vue.normalizeClass(["uni-dialog-title-text", ["uni-popup__" + $data.dialogType]])
+          },
+          vue.toDisplayString($options.titleText),
+          3
+          /* TEXT, CLASS */
+        )
+      ]),
+      $props.mode === "base" ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "uni-dialog-content"
+      }, [
+        vue.renderSlot(_ctx.$slots, "default", {}, () => [
+          vue.createElementVNode(
+            "text",
+            { class: "uni-dialog-content-text" },
+            vue.toDisplayString($props.content),
+            1
+            /* TEXT */
+          )
+        ], true)
+      ])) : (vue.openBlock(), vue.createElementBlock("view", {
+        key: 1,
+        class: "uni-dialog-content"
+      }, [
+        vue.renderSlot(_ctx.$slots, "default", {}, () => [
+          vue.withDirectives(vue.createElementVNode("input", {
+            class: "uni-dialog-input",
+            maxlength: $props.maxlength,
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.val = $event),
+            type: $props.inputType,
+            placeholder: $options.placeholderText,
+            focus: $props.focus
+          }, null, 8, ["maxlength", "type", "placeholder", "focus"]), [
+            [vue.vModelDynamic, $data.val]
+          ])
+        ], true)
+      ])),
+      vue.createElementVNode("view", { class: "uni-dialog-button-group" }, [
+        $props.showClose ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "uni-dialog-button",
+          onClick: _cache[1] || (_cache[1] = (...args) => $options.closeDialog && $options.closeDialog(...args))
+        }, [
+          vue.createElementVNode(
+            "text",
+            { class: "uni-dialog-button-text" },
+            vue.toDisplayString($options.closeText),
+            1
+            /* TEXT */
+          )
+        ])) : vue.createCommentVNode("v-if", true),
+        vue.createElementVNode(
+          "view",
+          {
+            class: vue.normalizeClass(["uni-dialog-button", $props.showClose ? "uni-border-left" : ""]),
+            onClick: _cache[2] || (_cache[2] = (...args) => $options.onOk && $options.onOk(...args))
+          },
+          [
+            vue.createElementVNode(
+              "text",
+              { class: "uni-dialog-button-text uni-button-color" },
+              vue.toDisplayString($options.okText),
+              1
+              /* TEXT */
+            )
+          ],
+          2
+          /* CLASS */
+        )
+      ])
+    ]);
+  }
+  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-d78c88b7"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue"]]);
+  class MPAnimation {
+    constructor(options, _this) {
+      this.options = options;
+      this.animation = uni.createAnimation({
+        ...options
+      });
+      this.currentStepAnimates = {};
+      this.next = 0;
+      this.$ = _this;
+    }
+    _nvuePushAnimates(type, args) {
+      let aniObj = this.currentStepAnimates[this.next];
+      let styles = {};
+      if (!aniObj) {
+        styles = {
+          styles: {},
+          config: {}
+        };
+      } else {
+        styles = aniObj;
+      }
+      if (animateTypes1.includes(type)) {
+        if (!styles.styles.transform) {
+          styles.styles.transform = "";
+        }
+        let unit = "";
+        if (type === "rotate") {
+          unit = "deg";
+        }
+        styles.styles.transform += `${type}(${args + unit}) `;
+      } else {
+        styles.styles[type] = `${args}`;
+      }
+      this.currentStepAnimates[this.next] = styles;
+    }
+    _animateRun(styles = {}, config = {}) {
+      let ref = this.$.$refs["ani"].ref;
+      if (!ref)
+        return;
+      return new Promise((resolve, reject) => {
+        nvueAnimation.transition(ref, {
+          styles,
+          ...config
+        }, (res) => {
+          resolve();
+        });
+      });
+    }
+    _nvueNextAnimate(animates, step = 0, fn) {
+      let obj = animates[step];
+      if (obj) {
+        let {
+          styles,
+          config
+        } = obj;
+        this._animateRun(styles, config).then(() => {
+          step += 1;
+          this._nvueNextAnimate(animates, step, fn);
+        });
+      } else {
+        this.currentStepAnimates = {};
+        typeof fn === "function" && fn();
+        this.isEnd = true;
+      }
+    }
+    step(config = {}) {
+      this.animation.step(config);
+      return this;
+    }
+    run(fn) {
+      this.$.animationData = this.animation.export();
+      this.$.timer = setTimeout(() => {
+        typeof fn === "function" && fn();
+      }, this.$.durationTime);
+    }
+  }
+  const animateTypes1 = [
+    "matrix",
+    "matrix3d",
+    "rotate",
+    "rotate3d",
+    "rotateX",
+    "rotateY",
+    "rotateZ",
+    "scale",
+    "scale3d",
+    "scaleX",
+    "scaleY",
+    "scaleZ",
+    "skew",
+    "skewX",
+    "skewY",
+    "translate",
+    "translate3d",
+    "translateX",
+    "translateY",
+    "translateZ"
+  ];
+  const animateTypes2 = ["opacity", "backgroundColor"];
+  const animateTypes3 = ["width", "height", "left", "right", "top", "bottom"];
+  animateTypes1.concat(animateTypes2, animateTypes3).forEach((type) => {
+    MPAnimation.prototype[type] = function(...args) {
+      this.animation[type](...args);
+      return this;
+    };
+  });
+  function createAnimation(option, _this) {
+    if (!_this)
+      return;
+    clearTimeout(_this.timer);
+    return new MPAnimation(option, _this);
+  }
+  const _sfc_main$z = {
+    name: "uniTransition",
+    emits: ["click", "change"],
+    props: {
+      show: {
+        type: Boolean,
+        default: false
+      },
+      modeClass: {
+        type: [Array, String],
+        default() {
+          return "fade";
+        }
+      },
+      duration: {
+        type: Number,
+        default: 300
+      },
+      styles: {
+        type: Object,
+        default() {
+          return {};
+        }
+      },
+      customClass: {
+        type: String,
+        default: ""
+      },
+      onceRender: {
+        type: Boolean,
+        default: false
+      }
+    },
+    data() {
+      return {
+        isShow: false,
+        transform: "",
+        opacity: 1,
+        animationData: {},
+        durationTime: 300,
+        config: {}
+      };
+    },
+    watch: {
+      show: {
+        handler(newVal) {
+          if (newVal) {
+            this.open();
+          } else {
+            if (this.isShow) {
+              this.close();
+            }
+          }
+        },
+        immediate: true
+      }
+    },
+    computed: {
+      // 生成样式数据
+      stylesObject() {
+        let styles = {
+          ...this.styles,
+          "transition-duration": this.duration / 1e3 + "s"
+        };
+        let transform = "";
+        for (let i2 in styles) {
+          let line = this.toLine(i2);
+          transform += line + ":" + styles[i2] + ";";
+        }
+        return transform;
+      },
+      // 初始化动画条件
+      transformStyles() {
+        return "transform:" + this.transform + ";opacity:" + this.opacity + ";" + this.stylesObject;
+      }
+    },
+    created() {
+      this.config = {
+        duration: this.duration,
+        timingFunction: "ease",
+        transformOrigin: "50% 50%",
+        delay: 0
+      };
+      this.durationTime = this.duration;
+    },
+    methods: {
+      /**
+       *  ref 触发 初始化动画
+       */
+      init(obj = {}) {
+        if (obj.duration) {
+          this.durationTime = obj.duration;
+        }
+        this.animation = createAnimation(Object.assign(this.config, obj), this);
+      },
+      /**
+       * 点击组件触发回调
+       */
+      onClick() {
+        this.$emit("click", {
+          detail: this.isShow
+        });
+      },
+      /**
+       * ref 触发 动画分组
+       * @param {Object} obj
+       */
+      step(obj, config = {}) {
+        if (!this.animation)
+          return;
+        for (let i2 in obj) {
+          try {
+            if (typeof obj[i2] === "object") {
+              this.animation[i2](...obj[i2]);
+            } else {
+              this.animation[i2](obj[i2]);
+            }
+          } catch (e2) {
+            formatAppLog("error", "at uni_modules/uni-transition/components/uni-transition/uni-transition.vue:148", `方法 ${i2} 不存在`);
+          }
+        }
+        this.animation.step(config);
+        return this;
+      },
+      /**
+       *  ref 触发 执行动画
+       */
+      run(fn) {
+        if (!this.animation)
+          return;
+        this.animation.run(fn);
+      },
+      // 开始过度动画
+      open() {
+        clearTimeout(this.timer);
+        this.transform = "";
+        this.isShow = true;
+        let { opacity, transform } = this.styleInit(false);
+        if (typeof opacity !== "undefined") {
+          this.opacity = opacity;
+        }
+        this.transform = transform;
+        this.$nextTick(() => {
+          this.timer = setTimeout(() => {
+            this.animation = createAnimation(this.config, this);
+            this.tranfromInit(false).step();
+            this.animation.run();
+            this.$emit("change", {
+              detail: this.isShow
+            });
+          }, 20);
+        });
+      },
+      // 关闭过度动画
+      close(type) {
+        if (!this.animation)
+          return;
+        this.tranfromInit(true).step().run(() => {
+          this.isShow = false;
+          this.animationData = null;
+          this.animation = null;
+          let { opacity, transform } = this.styleInit(false);
+          this.opacity = opacity || 1;
+          this.transform = transform;
+          this.$emit("change", {
+            detail: this.isShow
+          });
+        });
+      },
+      // 处理动画开始前的默认样式
+      styleInit(type) {
+        let styles = {
+          transform: ""
+        };
+        let buildStyle = (type2, mode) => {
+          if (mode === "fade") {
+            styles.opacity = this.animationType(type2)[mode];
+          } else {
+            styles.transform += this.animationType(type2)[mode] + " ";
+          }
+        };
+        if (typeof this.modeClass === "string") {
+          buildStyle(type, this.modeClass);
+        } else {
+          this.modeClass.forEach((mode) => {
+            buildStyle(type, mode);
+          });
+        }
+        return styles;
+      },
+      // 处理内置组合动画
+      tranfromInit(type) {
+        let buildTranfrom = (type2, mode) => {
+          let aniNum = null;
+          if (mode === "fade") {
+            aniNum = type2 ? 0 : 1;
+          } else {
+            aniNum = type2 ? "-100%" : "0";
+            if (mode === "zoom-in") {
+              aniNum = type2 ? 0.8 : 1;
+            }
+            if (mode === "zoom-out") {
+              aniNum = type2 ? 1.2 : 1;
+            }
+            if (mode === "slide-right") {
+              aniNum = type2 ? "100%" : "0";
+            }
+            if (mode === "slide-bottom") {
+              aniNum = type2 ? "100%" : "0";
+            }
+          }
+          this.animation[this.animationMode()[mode]](aniNum);
+        };
+        if (typeof this.modeClass === "string") {
+          buildTranfrom(type, this.modeClass);
+        } else {
+          this.modeClass.forEach((mode) => {
+            buildTranfrom(type, mode);
+          });
+        }
+        return this.animation;
+      },
+      animationType(type) {
+        return {
+          fade: type ? 0 : 1,
+          "slide-top": `translateY(${type ? "0" : "-100%"})`,
+          "slide-right": `translateX(${type ? "0" : "100%"})`,
+          "slide-bottom": `translateY(${type ? "0" : "100%"})`,
+          "slide-left": `translateX(${type ? "0" : "-100%"})`,
+          "zoom-in": `scaleX(${type ? 1 : 0.8}) scaleY(${type ? 1 : 0.8})`,
+          "zoom-out": `scaleX(${type ? 1 : 1.2}) scaleY(${type ? 1 : 1.2})`
+        };
+      },
+      // 内置动画类型与实际动画对应字典
+      animationMode() {
+        return {
+          fade: "opacity",
+          "slide-top": "translateY",
+          "slide-right": "translateX",
+          "slide-bottom": "translateY",
+          "slide-left": "translateX",
+          "zoom-in": "scale",
+          "zoom-out": "scale"
+        };
+      },
+      // 驼峰转中横线
+      toLine(name) {
+        return name.replace(/([A-Z])/g, "-$1").toLowerCase();
+      }
+    }
+  };
+  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
+      ref: "ani",
+      animation: $data.animationData,
+      class: vue.normalizeClass($props.customClass),
+      style: vue.normalizeStyle($options.transformStyles),
+      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
+    }, [
+      vue.renderSlot(_ctx.$slots, "default")
+    ], 14, ["animation"])), [
+      [vue.vShow, $data.isShow]
+    ]);
+  }
+  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
+  const _sfc_main$y = {
+    name: "uniPopup",
+    components: {},
+    emits: ["change", "maskClick"],
+    props: {
+      // 开启动画
+      animation: {
+        type: Boolean,
+        default: true
+      },
+      // 弹出层类型，可选值，top: 顶部弹出层；bottom：底部弹出层；center：全屏弹出层
+      // message: 消息提示 ; dialog : 对话框
+      type: {
+        type: String,
+        default: "center"
+      },
+      // maskClick
+      isMaskClick: {
+        type: Boolean,
+        default: null
+      },
+      // TODO 2 个版本后废弃属性 ，使用 isMaskClick
+      maskClick: {
+        type: Boolean,
+        default: null
+      },
+      backgroundColor: {
+        type: String,
+        default: "none"
+      },
+      safeArea: {
+        type: Boolean,
+        default: true
+      },
+      maskBackgroundColor: {
+        type: String,
+        default: "rgba(0, 0, 0, 0.4)"
+      },
+      borderRadius: {
+        type: String
+      }
+    },
+    watch: {
+      /**
+       * 监听type类型
+       */
+      type: {
+        handler: function(type) {
+          if (!this.config[type])
+            return;
+          this[this.config[type]](true);
+        },
+        immediate: true
+      },
+      isDesktop: {
+        handler: function(newVal) {
+          if (!this.config[newVal])
+            return;
+          this[this.config[this.type]](true);
+        },
+        immediate: true
+      },
+      /**
+       * 监听遮罩是否可点击
+       * @param {Object} val
+       */
+      maskClick: {
+        handler: function(val) {
+          this.mkclick = val;
+        },
+        immediate: true
+      },
+      isMaskClick: {
+        handler: function(val) {
+          this.mkclick = val;
+        },
+        immediate: true
+      },
+      // H5 下禁止底部滚动
+      showPopup(show) {
+      }
+    },
+    data() {
+      return {
+        duration: 300,
+        ani: [],
+        showPopup: false,
+        showTrans: false,
+        popupWidth: 0,
+        popupHeight: 0,
+        config: {
+          top: "top",
+          bottom: "bottom",
+          center: "center",
+          left: "left",
+          right: "right",
+          message: "top",
+          dialog: "center",
+          share: "bottom"
+        },
+        maskClass: {
+          position: "fixed",
+          bottom: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.4)"
+        },
+        transClass: {
+          backgroundColor: "transparent",
+          borderRadius: this.borderRadius || "0",
+          position: "fixed",
+          left: 0,
+          right: 0
+        },
+        maskShow: true,
+        mkclick: true,
+        popupstyle: "top"
+      };
+    },
+    computed: {
+      getStyles() {
+        let res = { backgroundColor: this.bg };
+        if (this.borderRadius || "0") {
+          res = Object.assign(res, { borderRadius: this.borderRadius });
+        }
+        return res;
+      },
+      isDesktop() {
+        return this.popupWidth >= 500 && this.popupHeight >= 500;
+      },
+      bg() {
+        if (this.backgroundColor === "" || this.backgroundColor === "none") {
+          return "transparent";
+        }
+        return this.backgroundColor;
+      }
+    },
+    mounted() {
+      const fixSize = () => {
+        const {
+          windowWidth,
+          windowHeight,
+          windowTop,
+          safeArea,
+          screenHeight,
+          safeAreaInsets
+        } = uni.getSystemInfoSync();
+        this.popupWidth = windowWidth;
+        this.popupHeight = windowHeight + (windowTop || 0);
+        if (safeArea && this.safeArea) {
+          this.safeAreaInsets = safeAreaInsets.bottom;
+        } else {
+          this.safeAreaInsets = 0;
+        }
+      };
+      fixSize();
+    },
+    // TODO vue3
+    unmounted() {
+      this.setH5Visible();
+    },
+    activated() {
+      this.setH5Visible(!this.showPopup);
+    },
+    deactivated() {
+      this.setH5Visible(true);
+    },
+    created() {
+      if (this.isMaskClick === null && this.maskClick === null) {
+        this.mkclick = true;
+      } else {
+        this.mkclick = this.isMaskClick !== null ? this.isMaskClick : this.maskClick;
+      }
+      if (this.animation) {
+        this.duration = 300;
+      } else {
+        this.duration = 0;
+      }
+      this.messageChild = null;
+      this.clearPropagation = false;
+      this.maskClass.backgroundColor = this.maskBackgroundColor;
+    },
+    methods: {
+      setH5Visible(visible = true) {
+      },
+      /**
+       * 公用方法，不显示遮罩层
+       */
+      closeMask() {
+        this.maskShow = false;
+      },
+      /**
+       * 公用方法，遮罩层禁止点击
+       */
+      disableMask() {
+        this.mkclick = false;
+      },
+      // TODO nvue 取消冒泡
+      clear(e2) {
+        e2.stopPropagation();
+        this.clearPropagation = true;
+      },
+      open(direction) {
+        if (this.showPopup) {
+          return;
+        }
+        let innerType = ["top", "center", "bottom", "left", "right", "message", "dialog", "share"];
+        if (!(direction && innerType.indexOf(direction) !== -1)) {
+          direction = this.type;
+        }
+        if (!this.config[direction]) {
+          formatAppLog("error", "at uni_modules/uni-popup/components/uni-popup/uni-popup.vue:310", "缺少类型：", direction);
+          return;
+        }
+        this[this.config[direction]]();
+        this.$emit("change", {
+          show: true,
+          type: direction
+        });
+      },
+      close(type) {
+        this.showTrans = false;
+        this.$emit("change", {
+          show: false,
+          type: this.type
+        });
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          this.showPopup = false;
+        }, 300);
+      },
+      // TODO 处理冒泡事件，头条的冒泡事件有问题 ，先这样兼容
+      touchstart() {
+        this.clearPropagation = false;
+      },
+      onTap() {
+        if (this.clearPropagation) {
+          this.clearPropagation = false;
+          return;
+        }
+        this.$emit("maskClick");
+        if (!this.mkclick)
+          return;
+        this.close();
+      },
+      /**
+       * 顶部弹出样式处理
+       */
+      top(type) {
+        this.popupstyle = this.isDesktop ? "fixforpc-top" : "top";
+        this.ani = ["slide-top"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          right: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPopup = true;
+        this.showTrans = true;
+        this.$nextTick(() => {
+          this.showPoptrans();
+          if (this.messageChild && this.type === "message") {
+            this.messageChild.timerClose();
+          }
+        });
+      },
+      /**
+       * 底部弹出样式处理
+       */
+      bottom(type) {
+        this.popupstyle = "bottom";
+        this.ani = ["slide-bottom"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingBottom: this.safeAreaInsets + "px",
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      /**
+       * 中间弹出样式处理
+       */
+      center(type) {
+        this.popupstyle = "center";
+        this.ani = ["zoom-out", "fade"];
+        this.transClass = {
+          position: "fixed",
+          display: "flex",
+          flexDirection: "column",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      left(type) {
+        this.popupstyle = "left";
+        this.ani = ["slide-left"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          bottom: 0,
+          top: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0",
+          display: "flex",
+          flexDirection: "column"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      right(type) {
+        this.popupstyle = "right";
+        this.ani = ["slide-right"];
+        this.transClass = {
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          top: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0",
+          display: "flex",
+          flexDirection: "column"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      showPoptrans() {
+        this.$nextTick(() => {
+          this.showPopup = true;
+          this.showTrans = true;
+        });
+      }
+    }
+  };
+  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$6);
+    return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        key: 0,
+        class: vue.normalizeClass(["uni-popup", [$data.popupstyle, $options.isDesktop ? "fixforpc-z-index" : ""]])
+      },
+      [
+        vue.createElementVNode(
+          "view",
+          {
+            onTouchstart: _cache[1] || (_cache[1] = (...args) => $options.touchstart && $options.touchstart(...args))
+          },
+          [
+            $data.maskShow ? (vue.openBlock(), vue.createBlock(_component_uni_transition, {
+              key: "1",
+              name: "mask",
+              "mode-class": "fade",
+              styles: $data.maskClass,
+              duration: $data.duration,
+              show: $data.showTrans,
+              onClick: $options.onTap
+            }, null, 8, ["styles", "duration", "show", "onClick"])) : vue.createCommentVNode("v-if", true),
+            vue.createVNode(_component_uni_transition, {
+              key: "2",
+              "mode-class": $data.ani,
+              name: "content",
+              styles: $data.transClass,
+              duration: $data.duration,
+              show: $data.showTrans,
+              onClick: $options.onTap
+            }, {
+              default: vue.withCtx(() => [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["uni-popup__wrapper", [$data.popupstyle]]),
+                    style: vue.normalizeStyle($options.getStyles),
+                    onClick: _cache[0] || (_cache[0] = (...args) => $options.clear && $options.clear(...args))
+                  },
+                  [
+                    vue.renderSlot(_ctx.$slots, "default", {}, void 0, true)
+                  ],
+                  6
+                  /* CLASS, STYLE */
+                )
+              ]),
+              _: 3
+              /* FORWARDED */
+            }, 8, ["mode-class", "styles", "duration", "show", "onClick"])
+          ],
+          32
+          /* NEED_HYDRATION */
+        )
+      ],
+      2
+      /* CLASS */
+    )) : vue.createCommentVNode("v-if", true);
+  }
+  const __easycom_2$1 = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
+  const _imports_0$5 = "/static/image/bridge.svg";
+  const _sfc_main$x = {
+    __name: "versionInfo",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const versionPopup = vue.ref(null);
+      const togglePopup = () => {
+        versionPopup.value.open();
+      };
+      const handleConfirm = () => {
+        versionPopup.value.close();
+      };
+      const handleClose = () => {
+      };
+      const __returned__ = { versionPopup, togglePopup, handleConfirm, handleClose, ref: vue.ref };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup_dialog = resolveEasycom(vue.resolveDynamicComponent("uni-popup-dialog"), __easycom_0$7);
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
+    return vue.openBlock(), vue.createElementBlock(
+      vue.Fragment,
+      null,
+      [
+        vue.createElementVNode("view", { class: "versionInfo" }, [
+          vue.createElementVNode("view", { class: "versionInfo-version" }, [
+            vue.createElementVNode("image", {
+              class: "versionInfo-version-icon",
+              src: _imports_0$5
+            }),
+            vue.createElementVNode("view", { class: "versionInfo-version-text" }, "当前版本: v3.1")
+          ]),
+          vue.createElementVNode("view", {
+            class: "versionInfo-check",
+            onClick: $setup.togglePopup
+          }, "检查版本更新"),
+          vue.createElementVNode("view", { class: "versionInfo-company" }, "©2023~2025 陕西交控工程技术有限公司")
+        ]),
+        vue.createVNode(
+          _component_uni_popup,
+          {
+            ref: "versionPopup",
+            type: "dialog"
+          },
+          {
+            default: vue.withCtx(() => [
+              vue.createVNode(_component_uni_popup_dialog, {
+                title: "更新提示",
+                content: "已经是最新版本",
+                showClose: false,
+                confirmText: "确定",
+                onConfirm: $setup.handleConfirm,
+                onClose: $setup.handleClose
+              })
+            ]),
+            _: 1
+            /* STABLE */
+          },
+          512
+          /* NEED_PATCH */
+        )
+      ],
+      64
+      /* STABLE_FRAGMENT */
+    );
+  }
+  const PagesVersionInfoVersionInfo = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/versionInfo/versionInfo.vue"]]);
+  let __currentFilePath$1 = null;
+  function getFullPath$2(path) {
+    const docPath = plus.io.convertLocalFileSystemURL(path);
+    return docPath;
+  }
+  function saveData$1(data2) {
+    return new Promise((resolve, reject) => {
+      if (!__currentFilePath$1) {
+        return reject(new Error("请先执行读取操作获取文件路径"));
+      }
+      const fullPath = getFullPath$2(__currentFilePath$1);
+      formatAppLog("log", "at utils/reviseJson.js:18", "准备保存文件到路径:", fullPath);
+      plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, (fs2) => {
+        formatAppLog("log", "at utils/reviseJson.js:21", "获取文件系统成功");
+        fs2.root.getFile(fullPath, { create: true }, (fileEntry) => {
+          formatAppLog("log", "at utils/reviseJson.js:23", "获取文件入口成功");
+          fileEntry.createWriter((writer) => {
+            const wait = plus.nativeUI.showWaiting("正在保存信息");
+            writer.seek(0);
+            const jsonString = JSON.stringify(data2, null, 2);
+            formatAppLog("log", "at utils/reviseJson.js:29", "准备写入数据:", data2);
+            writer.onwrite = () => {
+              wait.close();
+              formatAppLog("log", "at utils/reviseJson.js:33", "写入成功");
+              plus.nativeUI.toast("保存成功");
+              resolve(true);
+            };
+            writer.onerror = (e2) => {
+              wait.close();
+              formatAppLog("error", "at utils/reviseJson.js:40", "写入失败:", e2.message);
+              plus.nativeUI.toast("保存失败");
+              reject(e2);
+            };
+            writer.write(jsonString);
+          }, (error) => {
+            formatAppLog("error", "at utils/reviseJson.js:47", "创建写入器失败:", error);
+            reject(error);
+          });
+        }, (error) => {
+          formatAppLog("error", "at utils/reviseJson.js:51", "获取文件入口失败:", error);
+          reject(error);
+        });
+      }, (error) => {
+        formatAppLog("error", "at utils/reviseJson.js:55", "获取文件系统失败:", error);
+        reject(error);
+      });
+    });
+  }
+  function trackPath$1(path) {
+    formatAppLog("log", "at utils/reviseJson.js:64", "设置文件路径:", path);
+    __currentFilePath$1 = path;
+  }
+  const DOC_BASE_PATH$2 = "_doc/";
+  const FILE_NAMING$2 = {
+    project: (userId2) => `${userId2}/project/projects.json`,
+    task: (userId2, projectId) => `${userId2}/project/${projectId}/task.json`,
+    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
+    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
+    Object: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/object.json`
+  };
+  async function getJsonData$1(path) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: false }, (fileEntry) => {
+          fileEntry.file((file) => {
+            const reader = new plus.io.FileReader();
+            reader.onload = () => {
+              try {
+                resolve(JSON.parse(reader.result));
+              } catch (e2) {
+                reject(`JSON解析失败: ${path}`);
+              }
+            };
+            reader.onerror = () => reject(`文件读取失败: ${path}`);
+            reader.readAsText(file);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+  function getProject(userId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.project(userId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  function getTask(userId2, projectId) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.task(userId2, projectId);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  function getProperty(userId2, buildingId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.property(userId2, buildingId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  function getDisease(userId2, buildingId2, yearId) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.disease(userId2, buildingId2, yearId);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  function getObject(userId2, buildingId2) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.Object(userId2, buildingId2);
+    trackPath$1(path);
+    return getJsonData$1(path);
+  }
+  const DOC_BASE_PATH$1 = "_doc/";
+  const FILE_NAMING$1 = {
+    project: (userId2) => `${userId2}/project/projects.json`,
+    task: (userId2, projectId) => `${userId2}/project/${projectId}/task.json`,
+    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
+    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
+    diseaseImages: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/disease/images`,
+    ADImages: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/ADImages`
+  };
+  let __currentFilePath = null;
+  function getFullPath$1(path) {
+    const docPath = plus.io.convertLocalFileSystemURL(path);
+    return docPath;
+  }
+  async function setJsonData(path, data2) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: true }, (fileEntry) => {
+          fileEntry.createWriter((writer) => {
+            writer.onwriteend = () => {
+              resolve();
+            };
+            writer.onerror = () => {
+              reject(`文件写入失败: ${path}`);
+            };
+            const jsonData = JSON.stringify(data2, null, 2);
+            writer.write(jsonData);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+  function saveData(data2) {
+    return new Promise((resolve, reject) => {
+      if (!__currentFilePath) {
+        return reject(new Error("请先执行读取操作获取文件路径"));
+      }
+      const fullPath = getFullPath$1(__currentFilePath);
+      formatAppLog("log", "at utils/reviseNew.js:52", "准备保存文件到路径:", fullPath);
+      const wait = plus.nativeUI.showWaiting("正在保存信息");
+      setJsonData(fullPath, data2).then(() => {
+        wait.close();
+        formatAppLog("log", "at utils/reviseNew.js:59", "写入成功");
+        plus.nativeUI.toast("保存成功");
+        resolve(true);
+      }).catch((error) => {
+        wait.close();
+        formatAppLog("error", "at utils/reviseNew.js:65", "写入失败:", error);
+        plus.nativeUI.toast("保存失败");
+        reject(error);
+      });
+    });
+  }
+  function trackPath(path) {
+    formatAppLog("log", "at utils/reviseNew.js:74", "设置文件路径:", path);
+    __currentFilePath = path;
+  }
+  function setDisease(userId2, buildingId2, yearId, data2) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.disease(userId2, buildingId2, yearId);
+    trackPath(path);
+    return saveData(data2);
+  }
+  function saveDiseaseImages(userId2, buildingId2, tempImagePaths) {
+    return new Promise((resolve, reject) => {
+      const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.diseaseImages(userId2, buildingId2);
+      const fullTargetPath = getFullPath$1(targetDirPath);
+      formatAppLog("log", "at utils/reviseNew.js:110", "准备保存图片到目录:", fullTargetPath);
+      const wait = plus.nativeUI.showWaiting("正在保存图片");
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
+          formatAppLog("log", "at utils/reviseNew.js:119", "目标目录已创建或已存在");
+          const savePromises = tempImagePaths.map((tempPath, index) => {
+            return new Promise((resolveFile, rejectFile) => {
+              const fileName = `disease_${Date.now()}_${index}.jpg`;
+              plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
+                fileEntry.copyTo(dirEntry, fileName, (newFile) => {
+                  formatAppLog("log", "at utils/reviseNew.js:131", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                  resolveFile(newFile.fullPath);
+                }, (error) => {
+                  formatAppLog("error", "at utils/reviseNew.js:134", `图片 ${index + 1} 保存失败:`, error);
+                  rejectFile(error);
+                });
+              }, (error) => {
+                formatAppLog("error", "at utils/reviseNew.js:138", `无法访问临时文件 ${tempPath}:`, error);
+                rejectFile(error);
+              });
+            });
+          });
+          Promise.all(savePromises).then((savedPaths) => {
+            wait.close();
+            formatAppLog("log", "at utils/reviseNew.js:148", "所有图片保存成功:", savedPaths);
+            plus.nativeUI.toast("图片保存成功");
+            resolve(savedPaths);
+          }).catch((error) => {
+            wait.close();
+            formatAppLog("error", "at utils/reviseNew.js:154", "图片保存失败:", error);
+            plus.nativeUI.toast("图片保存失败");
+            reject(error);
+          });
+        }, (error) => {
+          wait.close();
+          formatAppLog("error", "at utils/reviseNew.js:160", "创建目录失败:", error);
+          plus.nativeUI.toast("创建图片目录失败");
+          reject(error);
+        });
+      }, (error) => {
+        wait.close();
+        formatAppLog("error", "at utils/reviseNew.js:166", "文件系统访问失败:", error);
+        plus.nativeUI.toast("文件系统访问失败");
+        reject(error);
+      });
+    });
+  }
+  const _sfc_main$w = {
+    __name: "testWrite",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const writeResult = vue.ref(null);
+      const readResult = vue.ref(null);
+      const testData = {
+        test: {
+          name: "测试项目",
+          description: "这是一个测试项目"
+        }
+      };
+      const testProject = async () => {
+        try {
+          const userId2 = "1";
+          const path = `_doc/${userId2}/project/projects.json`;
+          trackPath(path);
+          const data2 = await getProject(userId2);
+          readResult.value = data2;
+          await saveData(testData.test);
+          writeResult.value = "项目文件操作成功";
+        } catch (error) {
+          writeResult.value = "项目文件操作失败: " + error.message;
+        }
+      };
+      const testTask = async () => {
+        try {
+          const userId2 = "1";
+          const projectId = "1";
+          const path = `_doc/${userId2}/project/${projectId}/task.json`;
+          trackPath(path);
+          const data2 = await getTask(userId2, projectId);
+          readResult.value = data2;
+          await saveData(testData.test);
+          writeResult.value = "任务文件操作成功";
+        } catch (error) {
+          writeResult.value = "任务文件操作失败: " + error.message;
+        }
+      };
+      const testProperty = async () => {
+        try {
+          const userId2 = "1";
+          const buildingId2 = "5";
+          const path = `_doc/${userId2}/building/${buildingId2}/property.json`;
+          trackPath(path);
+          const data2 = await getProperty(userId2, buildingId2);
+          readResult.value = data2;
+          await saveData(testData.test);
+          writeResult.value = "属性文件操作成功";
+        } catch (error) {
+          writeResult.value = "属性文件操作失败: " + error.message;
+        }
+      };
+      const testDisease = async () => {
+        try {
+          const userId2 = "1";
+          const buildingId2 = "5";
+          const yearId = "2023";
+          const path = `_doc/${userId2}/building/${buildingId2}/disease/${yearId}.json`;
+          trackPath(path);
+          const data2 = await getDisease(userId2, buildingId2, yearId);
+          readResult.value = data2;
+          await saveData(testData.test);
+          writeResult.value = "病害文件操作成功";
+        } catch (error) {
+          writeResult.value = "病害文件操作失败: " + error.message;
+        }
+      };
+      const __returned__ = { writeResult, readResult, testData, testProject, testTask, testProperty, testDisease, ref: vue.ref, get getProject() {
+        return getProject;
+      }, get getTask() {
+        return getTask;
+      }, get getProperty() {
+        return getProperty;
+      }, get getDisease() {
+        return getDisease;
+      }, get saveData() {
+        return saveData;
+      }, get trackPath() {
+        return trackPath;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createElementVNode("view", { class: "button-group" }, [
+        vue.createElementVNode("button", { onClick: $setup.testProject }, "测试项目文件"),
+        vue.createElementVNode("button", { onClick: $setup.testTask }, "测试任务文件"),
+        vue.createElementVNode("button", { onClick: $setup.testProperty }, "测试属性文件"),
+        vue.createElementVNode("button", { onClick: $setup.testDisease }, "测试病害文件")
+      ]),
+      $setup.writeResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+        vue.createElementVNode("text", null, "写入结果: "),
+        vue.createElementVNode(
+          "text",
+          null,
+          vue.toDisplayString($setup.writeResult),
+          1
+          /* TEXT */
+        )
+      ])) : vue.createCommentVNode("v-if", true),
+      $setup.readResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 1 }, [
+        vue.createElementVNode("text", null, "读取结果: "),
+        vue.createElementVNode(
+          "text",
+          null,
+          vue.toDisplayString(JSON.stringify($setup.readResult, null, 2)),
+          1
+          /* TEXT */
+        )
+      ])) : vue.createCommentVNode("v-if", true)
+    ]);
+  }
+  const PagesTestWriteTestWrite = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-5a80cfda"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/testWrite/testWrite.vue"]]);
+  const _imports_0$4 = "/static/image/RightOutline.svg";
+  const _sfc_main$v = {
+    __name: "bridge",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const detectUnit = vue.ref("");
+      const detectPerson = vue.ref("");
+      const years = vue.ref([2024, 2023, 2022]);
+      const selectedYearIndex = vue.ref(0);
+      const fileData = vue.ref(null);
+      const getData = async () => {
+        try {
+          const response = await getProject(3);
+          formatAppLog("log", "at pages/bridge/bridge.vue:81", "获取到的原始数据:", JSON.stringify(response));
+          if (!response || response.code !== 0) {
+            formatAppLog("error", "at pages/bridge/bridge.vue:85", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
+            fileData.value = null;
+            return;
+          }
+          fileData.value = {
+            data: {
+              projects: response.data.projects || []
+            }
+          };
+          formatAppLog("log", "at pages/bridge/bridge.vue:96", "处理后的数据:", JSON.stringify(fileData.value));
+          if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {
+            const projectYear = fileData.value.data.projects[0].year;
+            formatAppLog("log", "at pages/bridge/bridge.vue:101", "项目年份:", projectYear);
+            const index = years.value.findIndex((year) => year === projectYear);
+            if (index !== -1) {
+              selectedYearIndex.value = index;
+              formatAppLog("log", "at pages/bridge/bridge.vue:107", "设置年份索引:", index);
+            } else {
+              formatAppLog("log", "at pages/bridge/bridge.vue:109", "未找到匹配的年份，使用默认索引 0");
+            }
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/bridge/bridge.vue:113", "获取数据失败:", error);
+          fileData.value = null;
+        }
+      };
+      const changeYear = (e2) => {
+        selectedYearIndex.value = e2.detail.value;
+      };
+      const back = () => {
+        uni.navigateBack();
+      };
+      const goToList = (item) => {
+        uni.navigateTo({
+          url: `/pages/List/List?projectId=${item.code || ""}&projectName=${encodeURIComponent(item.projectName || "")}&company=${encodeURIComponent(item.company || "")}&status=${encodeURIComponent(item.status || "")}&progress=${encodeURIComponent(item.progress || "")}`
+        });
+      };
+      const getInspectorNames = (inspectors) => {
+        if (!inspectors || !Array.isArray(inspectors))
+          return "暂无数据";
+        return inspectors.map((inspector) => inspector.userName).join(" / ");
+      };
+      const getStatusText = (status) => {
+        switch (status) {
+          case "0":
+            return "未完成";
+          case "1":
+            return "已完成";
+          default:
+            return "未知状态";
+        }
+      };
+      vue.onMounted(() => {
+        getData();
+      });
+      const __returned__ = { detectUnit, detectPerson, years, selectedYearIndex, fileData, getData, changeYear, back, goToList, getInspectorNames, getStatusText, ref: vue.ref, onMounted: vue.onMounted, get getProject() {
+        return getProject;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock(
+      vue.Fragment,
+      null,
+      [
+        vue.createCommentVNode(" 内容区 "),
+        vue.createElementVNode("view", { class: "container" }, [
+          vue.createCommentVNode(" 信息卡片 "),
+          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "info-card"
+          }, [
+            vue.createElementVNode("view", { class: "info-boxes" }, [
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测单位"),
+                vue.createElementVNode(
+                  "text",
+                  { class: "value" },
+                  vue.toDisplayString($setup.fileData.data.projects[0].dept.deptName || "暂无数据"),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测人员"),
+                vue.createCommentVNode(` <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text> `),
+                vue.createElementVNode("text", { class: "value" }, "张三三")
+              ]),
+              vue.createElementVNode("view", { class: "info-box" }, [
+                vue.createElementVNode("text", { class: "label" }, "检测年度"),
+                vue.createElementVNode("picker", {
+                  class: "year-picker",
+                  value: $setup.selectedYearIndex,
+                  range: $setup.years,
+                  onChange: $setup.changeYear
+                }, [
+                  vue.createElementVNode("view", { class: "picker-content" }, [
+                    vue.createElementVNode(
+                      "text",
+                      { class: "value" },
+                      vue.toDisplayString($setup.years[$setup.selectedYearIndex]) + "年度",
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode("image", {
+                      src: _imports_0$4,
+                      mode: "scaleToFill"
+                    })
+                  ])
+                ], 40, ["value", "range"])
+              ])
+            ])
+          ])) : vue.createCommentVNode("v-if", true),
+          vue.createCommentVNode(" 项目列表 "),
+          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 1,
+            class: "bridge-list"
+          }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.fileData.data.projects, (item, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  class: "bridge-item",
+                  key: index,
+                  onClick: ($event) => $setup.goToList(item)
+                }, [
+                  vue.createElementVNode("view", { class: "bridge-info" }, [
+                    vue.createElementVNode(
+                      "view",
+                      { class: "bridge-code" },
+                      vue.toDisplayString(item.code || "暂无编号"),
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode(
+                      "view",
+                      { class: "bridge-name" },
+                      vue.toDisplayString(item.name || "暂无名称"),
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode(
+                      "view",
+                      { class: "bridge-location" },
+                      vue.toDisplayString(item.ownerDept.deptName || "暂无公司"),
+                      1
+                      /* TEXT */
+                    )
+                  ]),
+                  vue.createElementVNode("view", { class: "bridge-meta" }, [
+                    vue.createElementVNode("view", { class: "text-group" }, [
+                      vue.createElementVNode(
+                        "text",
+                        {
+                          class: vue.normalizeClass(["bridge-status", { "completed": item.status === "1" }])
+                        },
+                        vue.toDisplayString($setup.getStatusText(item.status)),
+                        3
+                        /* TEXT, CLASS */
+                      ),
+                      vue.createElementVNode(
+                        "text",
+                        { class: "bridge-progress" },
+                        vue.toDisplayString(item.number || "0/0"),
+                        1
+                        /* TEXT */
+                      )
+                    ]),
+                    vue.createElementVNode("image", {
+                      src: _imports_0$4,
+                      mode: "scaleToFill"
+                    })
+                  ])
+                ], 8, ["onClick"]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])) : !$setup.fileData ? (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 2 },
+            [
+              vue.createCommentVNode(" 加载状态 "),
+              vue.createElementVNode("view", { class: "loading" }, [
+                vue.createElementVNode("text", null, "加载中...")
+              ])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          )) : (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 3 },
+            [
+              vue.createCommentVNode(" 无数据状态 "),
+              vue.createElementVNode("view", { class: "no-data" }, [
+                vue.createElementVNode("text", null, "暂无数据")
+              ])
+            ],
+            2112
+            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+          ))
+        ])
+      ],
+      2112
+      /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+    );
+  }
+  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
+  const _sfc_main$u = {
+    __name: "List",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const back = () => {
+        uni.navigateBack();
+      };
+      const projectInfo = vue.ref({});
+      const searchText = vue.ref("");
+      const bridges = vue.ref([]);
+      const getProjectData = async () => {
+        var _a, _b, _c;
+        try {
+          const response = await getProject(3);
+          formatAppLog("log", "at pages/List/List.vue:82", "获取到的原始数据:", JSON.stringify(response));
+          if (!response || response.code !== 0) {
+            formatAppLog("error", "at pages/List/List.vue:86", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
+            return;
+          }
+          if (response.data && response.data.projects && response.data.projects.length > 0) {
+            const project = response.data.projects[0];
+            projectInfo.value = {
+              projectName: project.name,
+              code: project.code,
+              status: project.status === "1" ? "已完成" : "未完成",
+              company: ((_a = project.ownerDept) == null ? void 0 : _a.deptName) || "",
+              progress: project.number || "0/0",
+              year: project.year,
+              timeRange: `${project.startDate || ""} - ${project.endDate || ""}`,
+              detectionUnit: ((_b = project.dept) == null ? void 0 : _b.deptName) || "",
+              inspector: ((_c = project.inspectors) == null ? void 0 : _c.map((i2) => i2.userName).join(" / ")) || ""
+            };
+          }
+          const bridgeData = await getTask(3, 1);
+          90;
+          formatAppLog("log", "at pages/List/List.vue:108", "获取到的桥梁数据:", bridgeData);
+          if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
+            bridges.value = bridgeData.data.tasks.map((task) => {
+              var _a2, _b2, _c2, _d, _e2, _f, _g;
+              return {
+                id: task.id,
+                code: ((_a2 = task.building) == null ? void 0 : _a2.buildingCode) || "",
+                name: ((_b2 = task.building) == null ? void 0 : _b2.name) || "",
+                location: `${((_c2 = task.building) == null ? void 0 : _c2.routeCode) || ""} / ${((_d = task.building) == null ? void 0 : _d.routeName) || ""} / ${((_e2 = task.building) == null ? void 0 : _e2.bridgePileNumber) || ""}`,
+                type: "small",
+                // 默认类型
+                length: ((_f = task.building) == null ? void 0 : _f.bridgeLength) || "",
+                class: ((_g = task.building) == null ? void 0 : _g.rootPropertyId) || ""
+              };
+            });
+            formatAppLog("log", "at pages/List/List.vue:120", "处理后的桥梁列表:", bridges.value);
+          } else {
+            bridges.value = [];
+            formatAppLog("error", "at pages/List/List.vue:123", "桥梁数据格式不正确");
+            uni.showToast({
+              title: "桥梁数据格式不正确",
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/List/List.vue:130", "获取数据失败:", error);
+          uni.showToast({
+            title: "获取数据失败",
+            icon: "none"
+          });
+        }
+      };
+      vue.onMounted(() => {
+        getProjectData();
+      });
+      const getBridgeIcon = (type) => {
+        const icons = {
+          "small": "/static/image/bridge-small.png",
+          "cross": "/static/image/bridge-cross.png",
+          "arch": "/static/image/bridge-arch.png",
+          "suspension": "/static/images/bridge-suspension.png",
+          "main": "/static/image/bridge-arch.png",
+          // 暂时使用拱桥图标代替主线桥图标
+          "ramp": "/static/image/bridge-cross.png"
+          // 暂时使用立交桥图标代替匝道桥图标
+        };
+        return icons[type] || icons["small"];
+      };
+      const goToDetail = (bridge) => {
+        uni.navigateTo({
+          url: `/pages/bridge-disease/bridge-disease`
+        });
+      };
+      const filteredBridges = vue.computed(() => {
+        if (!searchText.value) {
+          return bridges.value;
+        }
+        const searchLower = searchText.value.toLowerCase();
+        return bridges.value.filter((bridge) => {
+          return bridge.name.toLowerCase().includes(searchLower) || bridge.code.toLowerCase().includes(searchLower) || bridge.location.toLowerCase().includes(searchLower);
+        });
+      });
+      const handleSearch = () => {
+        formatAppLog("log", "at pages/List/List.vue:178", "搜索关键词:", searchText.value);
+      };
+      const __returned__ = { back, projectInfo, searchText, bridges, getProjectData, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
+        return getProject;
+      }, get getTask() {
+        return getTask;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createCommentVNode(" 顶部信息卡片 "),
+      vue.createElementVNode("view", { class: "info-card" }, [
+        vue.createElementVNode("view", { class: "content-box" }, [
+          vue.createElementVNode(
+            "view",
+            { class: "title" },
+            vue.toDisplayString($setup.projectInfo.projectName || "项目名称"),
+            1
+            /* TEXT */
+          ),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "项目编号: " + vue.toDisplayString($setup.projectInfo.code),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测状态: " + vue.toDisplayString($setup.projectInfo.status),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "项目单位: " + vue.toDisplayString($setup.projectInfo.company),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测数量: " + vue.toDisplayString($setup.projectInfo.progress),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测年度: " + vue.toDisplayString($setup.projectInfo.year),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              null,
+              "起止时间: " + vue.toDisplayString($setup.projectInfo.timeRange),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测单位: " + vue.toDisplayString($setup.projectInfo.detectionUnit),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "info-row" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              "检测人员: " + vue.toDisplayString($setup.projectInfo.inspector),
+              1
+              /* TEXT */
+            )
+          ])
+        ])
+      ]),
+      vue.createCommentVNode(" 搜索框 "),
+      vue.createElementVNode("view", { class: "search-box" }, [
+        vue.createElementVNode("text", { class: "search-icon" }, ""),
+        vue.withDirectives(vue.createElementVNode(
+          "input",
+          {
+            type: "text",
+            placeholder: "搜索桥梁名称/编号/位置",
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.searchText = $event),
+            onInput: $setup.handleSearch
+          },
+          null,
+          544
+          /* NEED_HYDRATION, NEED_PATCH */
+        ), [
+          [vue.vModelText, $setup.searchText]
+        ])
+      ]),
+      vue.createCommentVNode(" 桥梁列表 "),
+      vue.createElementVNode("view", { class: "bridge-list" }, [
+        (vue.openBlock(true), vue.createElementBlock(
+          vue.Fragment,
+          null,
+          vue.renderList($setup.filteredBridges, (bridge) => {
+            return vue.openBlock(), vue.createElementBlock("view", {
+              class: "bridge-item",
+              key: bridge.id,
+              onClick: ($event) => $setup.goToDetail(bridge)
+            }, [
+              vue.createElementVNode("view", { class: "bridge-icon" }, [
+                vue.createElementVNode("image", {
+                  src: $setup.getBridgeIcon(bridge.type),
+                  mode: "aspectFit"
+                }, null, 8, ["src"])
+              ]),
+              vue.createElementVNode("view", { class: "bridge-info" }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-code" },
+                  vue.toDisplayString(bridge.code),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-name" },
+                  vue.toDisplayString(bridge.name),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode(
+                  "view",
+                  { class: "bridge-location" },
+                  vue.toDisplayString(bridge.location),
+                  1
+                  /* TEXT */
+                )
+              ]),
+              vue.createElementVNode("view", { class: "bridge-meta" }, [
+                vue.createElementVNode("view", { class: "text-group" }, [
+                  vue.createElementVNode(
+                    "text",
+                    { class: "bridge-length" },
+                    vue.toDisplayString(bridge.length),
+                    1
+                    /* TEXT */
+                  ),
+                  vue.createElementVNode(
+                    "text",
+                    { class: "bridge-class" },
+                    vue.toDisplayString(bridge.class) + "类",
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("image", { src: _imports_0$4 })
+              ])
+            ], 8, ["onClick"]);
+          }),
+          128
+          /* KEYED_FRAGMENT */
+        )),
+        vue.createCommentVNode(" 无搜索结果提示 "),
+        $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "no-result"
+        }, [
+          vue.createElementVNode("text", null, "未找到匹配的桥梁")
+        ])) : vue.createCommentVNode("v-if", true)
+      ])
+    ]);
+  }
+  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
   const fontData = [
     {
       "font_class": "arrow-down",
@@ -694,18 +3481,11 @@ if (uni.restoreGlobal) {
       "unicode": ""
     }
   ];
-  const _export_sfc = (sfc, props) => {
-    const target = sfc.__vccOpts || sfc;
-    for (const [key, val] of props) {
-      target[key] = val;
-    }
-    return target;
-  };
-  const getVal$1 = (val) => {
+  const getVal = (val) => {
     const reg = /^[0-9]*$/g;
     return typeof val === "number" || reg.test(val) ? val + "px" : val;
   };
-  const _sfc_main$F = {
+  const _sfc_main$t = {
     name: "UniIcons",
     emits: ["click"],
     props: {
@@ -737,14 +3517,14 @@ if (uni.restoreGlobal) {
     },
     computed: {
       unicode() {
-        let code = this.icons.find((v2) => v2.font_class === this.type);
-        if (code) {
-          return code.unicode;
+        let code2 = this.icons.find((v2) => v2.font_class === this.type);
+        if (code2) {
+          return code2.unicode;
         }
         return "";
       },
       iconSize() {
-        return getVal$1(this.size);
+        return getVal(this.size);
       },
       styleObj() {
         if (this.fontFamily !== "") {
@@ -759,7 +3539,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$E(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "text",
       {
@@ -774,3616 +3554,18 @@ if (uni.restoreGlobal) {
       /* CLASS, STYLE */
     );
   }
-  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$F, [["render", _sfc_render$E], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
-  const _sfc_main$E = {
-    name: "UniStatusBar",
-    data() {
-      return {
-        statusBarHeight: uni.getSystemInfoSync().statusBarHeight + "px"
-      };
-    }
-  };
-  function _sfc_render$D(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock(
-      "view",
-      {
-        style: vue.normalizeStyle({ height: $data.statusBarHeight }),
-        class: "uni-status-bar"
-      },
-      [
-        vue.renderSlot(_ctx.$slots, "default", {}, void 0, true)
-      ],
-      4
-      /* STYLE */
-    );
-  }
-  const statusBar = /* @__PURE__ */ _export_sfc(_sfc_main$E, [["render", _sfc_render$D], ["__scopeId", "data-v-7920e3e0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-status-bar.vue"]]);
-  const getVal = (val) => typeof val === "number" ? val + "px" : val;
-  const _sfc_main$D = {
-    name: "UniNavBar",
-    components: {
-      statusBar
-    },
-    emits: ["clickLeft", "clickRight", "clickTitle"],
-    props: {
-      dark: {
-        type: Boolean,
-        default: false
-      },
-      title: {
-        type: String,
-        default: ""
-      },
-      leftText: {
-        type: String,
-        default: ""
-      },
-      rightText: {
-        type: String,
-        default: ""
-      },
-      leftIcon: {
-        type: String,
-        default: ""
-      },
-      rightIcon: {
-        type: String,
-        default: ""
-      },
-      fixed: {
-        type: [Boolean, String],
-        default: false
-      },
-      color: {
-        type: String,
-        default: ""
-      },
-      backgroundColor: {
-        type: String,
-        default: ""
-      },
-      statusBar: {
-        type: [Boolean, String],
-        default: false
-      },
-      shadow: {
-        type: [Boolean, String],
-        default: false
-      },
-      border: {
-        type: [Boolean, String],
-        default: true
-      },
-      height: {
-        type: [Number, String],
-        default: 44
-      },
-      leftWidth: {
-        type: [Number, String],
-        default: 60
-      },
-      rightWidth: {
-        type: [Number, String],
-        default: 60
-      },
-      stat: {
-        type: [Boolean, String],
-        default: ""
-      }
-    },
-    computed: {
-      themeBgColor() {
-        if (this.dark) {
-          if (this.backgroundColor) {
-            return this.backgroundColor;
-          } else {
-            return this.dark ? "#333" : "#FFF";
-          }
-        }
-        return this.backgroundColor || "#FFF";
-      },
-      themeColor() {
-        if (this.dark) {
-          if (this.color) {
-            return this.color;
-          } else {
-            return this.dark ? "#fff" : "#333";
-          }
-        }
-        return this.color || "#333";
-      },
-      navbarHeight() {
-        return getVal(this.height);
-      },
-      leftIconWidth() {
-        return getVal(this.leftWidth);
-      },
-      rightIconWidth() {
-        return getVal(this.rightWidth);
-      }
-    },
-    mounted() {
-      if (uni.report && this.stat && this.title !== "") {
-        uni.report("title", this.title);
-      }
-    },
-    methods: {
-      onClickLeft() {
-        this.$emit("clickLeft");
-      },
-      onClickRight() {
-        this.$emit("clickRight");
-      },
-      onClickTitle() {
-        this.$emit("clickTitle");
-      }
-    }
-  };
-  function _sfc_render$C(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_status_bar = vue.resolveComponent("status-bar");
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
-    return vue.openBlock(), vue.createElementBlock(
-      "view",
-      {
-        class: vue.normalizeClass(["uni-navbar", { "uni-dark": $props.dark, "uni-nvue-fixed": $props.fixed }])
-      },
-      [
-        vue.createElementVNode(
-          "view",
-          {
-            class: vue.normalizeClass(["uni-navbar__content", { "uni-navbar--fixed": $props.fixed, "uni-navbar--shadow": $props.shadow, "uni-navbar--border": $props.border }]),
-            style: vue.normalizeStyle({ "background-color": $options.themeBgColor, "border-bottom-color": $options.themeColor })
-          },
-          [
-            $props.statusBar ? (vue.openBlock(), vue.createBlock(_component_status_bar, { key: 0 })) : vue.createCommentVNode("v-if", true),
-            vue.createElementVNode(
-              "view",
-              {
-                style: vue.normalizeStyle({ color: $options.themeColor, backgroundColor: $options.themeBgColor, height: $options.navbarHeight }),
-                class: "uni-navbar__header"
-              },
-              [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    onClick: _cache[0] || (_cache[0] = (...args) => $options.onClickLeft && $options.onClickLeft(...args)),
-                    class: "uni-navbar__header-btns uni-navbar__header-btns-left",
-                    style: vue.normalizeStyle({ width: $options.leftIconWidth })
-                  },
-                  [
-                    vue.renderSlot(_ctx.$slots, "left", {}, () => [
-                      $props.leftIcon.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-                        key: 0,
-                        class: "uni-navbar__content_view"
-                      }, [
-                        vue.createVNode(_component_uni_icons, {
-                          color: $options.themeColor,
-                          type: $props.leftIcon,
-                          size: "20"
-                        }, null, 8, ["color", "type"])
-                      ])) : vue.createCommentVNode("v-if", true),
-                      $props.leftText.length ? (vue.openBlock(), vue.createElementBlock(
-                        "view",
-                        {
-                          key: 1,
-                          class: vue.normalizeClass([{ "uni-navbar-btn-icon-left": !$props.leftIcon.length > 0 }, "uni-navbar-btn-text"])
-                        },
-                        [
-                          vue.createElementVNode(
-                            "text",
-                            {
-                              style: vue.normalizeStyle({ color: $options.themeColor, fontSize: "12px" })
-                            },
-                            vue.toDisplayString($props.leftText),
-                            5
-                            /* TEXT, STYLE */
-                          )
-                        ],
-                        2
-                        /* CLASS */
-                      )) : vue.createCommentVNode("v-if", true)
-                    ], true)
-                  ],
-                  4
-                  /* STYLE */
-                ),
-                vue.createElementVNode("view", {
-                  class: "uni-navbar__header-container",
-                  onClick: _cache[1] || (_cache[1] = (...args) => $options.onClickTitle && $options.onClickTitle(...args))
-                }, [
-                  vue.renderSlot(_ctx.$slots, "default", {}, () => [
-                    $props.title.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-                      key: 0,
-                      class: "uni-navbar__header-container-inner"
-                    }, [
-                      vue.createElementVNode(
-                        "text",
-                        {
-                          class: "uni-nav-bar-text uni-ellipsis-1",
-                          style: vue.normalizeStyle({ color: $options.themeColor })
-                        },
-                        vue.toDisplayString($props.title),
-                        5
-                        /* TEXT, STYLE */
-                      )
-                    ])) : vue.createCommentVNode("v-if", true)
-                  ], true)
-                ]),
-                vue.createElementVNode(
-                  "view",
-                  {
-                    onClick: _cache[2] || (_cache[2] = (...args) => $options.onClickRight && $options.onClickRight(...args)),
-                    class: "uni-navbar__header-btns uni-navbar__header-btns-right",
-                    style: vue.normalizeStyle({ width: $options.rightIconWidth })
-                  },
-                  [
-                    vue.renderSlot(_ctx.$slots, "right", {}, () => [
-                      $props.rightIcon.length ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-                        vue.createVNode(_component_uni_icons, {
-                          color: $options.themeColor,
-                          type: $props.rightIcon,
-                          size: "22"
-                        }, null, 8, ["color", "type"])
-                      ])) : vue.createCommentVNode("v-if", true),
-                      $props.rightText.length && !$props.rightIcon.length ? (vue.openBlock(), vue.createElementBlock("view", {
-                        key: 1,
-                        class: "uni-navbar-btn-text"
-                      }, [
-                        vue.createElementVNode(
-                          "text",
-                          {
-                            class: "uni-nav-bar-right-text",
-                            style: vue.normalizeStyle({ color: $options.themeColor })
-                          },
-                          vue.toDisplayString($props.rightText),
-                          5
-                          /* TEXT, STYLE */
-                        )
-                      ])) : vue.createCommentVNode("v-if", true)
-                    ], true)
-                  ],
-                  4
-                  /* STYLE */
-                )
-              ],
-              4
-              /* STYLE */
-            )
-          ],
-          6
-          /* CLASS, STYLE */
-        ),
-        $props.fixed ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "uni-navbar__placeholder"
-        }, [
-          $props.statusBar ? (vue.openBlock(), vue.createBlock(_component_status_bar, { key: 0 })) : vue.createCommentVNode("v-if", true),
-          vue.createElementVNode(
-            "view",
-            {
-              class: "uni-navbar__placeholder-view",
-              style: vue.normalizeStyle({ height: $options.navbarHeight })
-            },
-            null,
-            4
-            /* STYLE */
-          )
-        ])) : vue.createCommentVNode("v-if", true)
-      ],
-      2
-      /* CLASS */
-    );
-  }
-  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$D, [["render", _sfc_render$C], ["__scopeId", "data-v-26544265"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-nav-bar/components/uni-nav-bar/uni-nav-bar.vue"]]);
-  function trackPath$1(path) {
-    formatAppLog("log", "at utils/reviseJson.js:62", "设置文件路径:", path);
-  }
-  const DOC_BASE_PATH$2 = "_doc/";
-  const FILE_NAMING$1 = {
-    project: (userId2) => `${userId2}/project/projects.json`,
-    task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
-    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
-    disease: (userId2, buildingId2, yearId2) => `${userId2}/building/${buildingId2}/disease/${yearId2}.json`
-  };
-  async function getJsonData$1(path) {
-    return new Promise((resolve, reject) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getFile(path, { create: false }, (fileEntry) => {
-          fileEntry.file((file) => {
-            const reader = new plus.io.FileReader();
-            reader.onload = () => {
-              try {
-                resolve(JSON.parse(reader.result));
-              } catch (e2) {
-                reject(`JSON解析失败: ${path}`);
-              }
-            };
-            reader.onerror = () => reject(`文件读取失败: ${path}`);
-            reader.readAsText(file);
-          }, reject);
-        }, reject);
-      }, reject);
-    });
-  }
-  function getProject(userId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.project(userId2);
-    trackPath$1(path);
-    return getJsonData$1(path);
-  }
-  function getTask(userId2, projectId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.task(userId2, projectId2);
-    trackPath$1(path);
-    return getJsonData$1(path);
-  }
-  function getProperty(userId2, buildingId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.property(userId2, buildingId2);
-    trackPath$1(path);
-    return getJsonData$1(path);
-  }
-  function getDisease(userId2, buildingId2, yearId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$1.disease(userId2, buildingId2, yearId2);
-    trackPath$1(path);
-    return getJsonData$1(path);
-  }
-  const _sfc_main$C = {
-    __name: "bridge",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const detectUnit = vue.ref("");
-      const detectPerson = vue.ref("");
-      const years = vue.ref([2024, 2023, 2022]);
-      const selectedYearIndex = vue.ref(0);
-      const fileData = vue.ref(null);
-      const getData = async () => {
-        try {
-          const response = await getProject(1);
-          formatAppLog("log", "at pages/bridge/bridge.vue:75", "获取到的原始数据:", JSON.stringify(response));
-          if (!response || response.code !== 0) {
-            formatAppLog("error", "at pages/bridge/bridge.vue:79", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
-            fileData.value = null;
-            return;
-          }
-          fileData.value = {
-            data: {
-              projects: response.data.projects || []
-            }
-          };
-          formatAppLog("log", "at pages/bridge/bridge.vue:90", "处理后的数据:", JSON.stringify(fileData.value));
-          if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {
-            const projectYear = fileData.value.data.projects[0].year;
-            formatAppLog("log", "at pages/bridge/bridge.vue:95", "项目年份:", projectYear);
-            const index = years.value.findIndex((year) => year === projectYear);
-            if (index !== -1) {
-              selectedYearIndex.value = index;
-              formatAppLog("log", "at pages/bridge/bridge.vue:101", "设置年份索引:", index);
-            } else {
-              formatAppLog("log", "at pages/bridge/bridge.vue:103", "未找到匹配的年份，使用默认索引 0");
-            }
-          }
-        } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:107", "获取数据失败:", error);
-          fileData.value = null;
-        }
-      };
-      const changeYear = (e2) => {
-        selectedYearIndex.value = e2.detail.value;
-      };
-      const back = () => {
-        uni.navigateBack();
-      };
-      const goToList = (item) => {
-        uni.navigateTo({
-          url: `/pages/List/List?projectId=${item.code || ""}&projectName=${encodeURIComponent(item.projectName || "")}&company=${encodeURIComponent(item.company || "")}&status=${encodeURIComponent(item.status || "")}&progress=${encodeURIComponent(item.progress || "")}`
-        });
-      };
-      const getInspectorNames = (inspectors) => {
-        if (!inspectors || !Array.isArray(inspectors))
-          return "暂无数据";
-        return inspectors.map((inspector) => inspector.userName).join(" / ");
-      };
-      const getStatusText = (status) => {
-        switch (status) {
-          case "0":
-            return "未完成";
-          case "1":
-            return "已完成";
-          default:
-            return "未知状态";
-        }
-      };
-      vue.onMounted(() => {
-        getData();
-      });
-      const __returned__ = { detectUnit, detectPerson, years, selectedYearIndex, fileData, getData, changeYear, back, goToList, getInspectorNames, getStatusText, ref: vue.ref, onMounted: vue.onMounted, get getProject() {
-        return getProject;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$B(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$6);
-    return vue.openBlock(), vue.createElementBlock(
-      vue.Fragment,
-      null,
-      [
-        vue.createCommentVNode(" 导航栏 "),
-        vue.createVNode(_component_uni_nav_bar, {
-          class: "uni-nav-bar",
-          dark: "",
-          fixed: true,
-          shadow: "",
-          "background-color": "#0F4687",
-          "status-bar": "",
-          "left-icon": "left",
-          title: "桥梁定期检查项目列表",
-          onClickLeft: $setup.back
-        }),
-        vue.createCommentVNode(" 内容区 "),
-        vue.createElementVNode("view", { class: "container" }, [
-          vue.createCommentVNode(" 信息卡片 "),
-          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 0,
-            class: "info-card"
-          }, [
-            vue.createElementVNode("view", { class: "info-boxes" }, [
-              vue.createElementVNode("view", { class: "info-box" }, [
-                vue.createElementVNode("text", { class: "label" }, "检测单位"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "value" },
-                  vue.toDisplayString($setup.fileData.data.projects[0].dept.deptName || "暂无数据"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "info-box" }, [
-                vue.createElementVNode("text", { class: "label" }, "检测人员"),
-                vue.createElementVNode(
-                  "text",
-                  { class: "value" },
-                  vue.toDisplayString($setup.getInspectorNames($setup.fileData.data.projects[0].inspectors) || "暂无数据"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "info-box" }, [
-                vue.createElementVNode("text", { class: "label" }, "检测年度"),
-                vue.createElementVNode("picker", {
-                  class: "year-picker",
-                  value: $setup.selectedYearIndex,
-                  range: $setup.years,
-                  onChange: $setup.changeYear
-                }, [
-                  vue.createElementVNode("view", { class: "picker-content" }, [
-                    vue.createElementVNode(
-                      "text",
-                      { class: "value" },
-                      vue.toDisplayString($setup.years[$setup.selectedYearIndex]) + "年度",
-                      1
-                      /* TEXT */
-                    ),
-                    vue.createElementVNode("text", { class: "arrow" }, "▼")
-                  ])
-                ], 40, ["value", "range"])
-              ])
-            ])
-          ])) : vue.createCommentVNode("v-if", true),
-          vue.createCommentVNode(" 项目列表 "),
-          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 1,
-            class: "bridge-list"
-          }, [
-            (vue.openBlock(true), vue.createElementBlock(
-              vue.Fragment,
-              null,
-              vue.renderList($setup.fileData.data.projects, (item, index) => {
-                return vue.openBlock(), vue.createElementBlock("view", {
-                  class: "bridge-item",
-                  key: index,
-                  onClick: ($event) => $setup.goToList(item)
-                }, [
-                  vue.createElementVNode("view", { class: "bridge-info" }, [
-                    vue.createElementVNode(
-                      "view",
-                      { class: "bridge-code" },
-                      vue.toDisplayString(item.code || "暂无编号"),
-                      1
-                      /* TEXT */
-                    ),
-                    vue.createElementVNode(
-                      "view",
-                      { class: "bridge-name" },
-                      vue.toDisplayString(item.name || "暂无名称"),
-                      1
-                      /* TEXT */
-                    ),
-                    vue.createElementVNode(
-                      "view",
-                      { class: "bridge-location" },
-                      vue.toDisplayString(item.ownerDept.deptName || "暂无公司"),
-                      1
-                      /* TEXT */
-                    )
-                  ]),
-                  vue.createElementVNode("view", { class: "bridge-meta" }, [
-                    vue.createElementVNode(
-                      "text",
-                      {
-                        class: vue.normalizeClass(["bridge-status", { "completed": item.status === "1" }])
-                      },
-                      vue.toDisplayString($setup.getStatusText(item.status)),
-                      3
-                      /* TEXT, CLASS */
-                    ),
-                    vue.createElementVNode(
-                      "text",
-                      { class: "bridge-progress" },
-                      vue.toDisplayString(item.number || "0/0"),
-                      1
-                      /* TEXT */
-                    ),
-                    vue.createElementVNode("text", { class: "arrow" }, ">")
-                  ])
-                ], 8, ["onClick"]);
-              }),
-              128
-              /* KEYED_FRAGMENT */
-            ))
-          ])) : !$setup.fileData ? (vue.openBlock(), vue.createElementBlock(
-            vue.Fragment,
-            { key: 2 },
-            [
-              vue.createCommentVNode(" 加载状态 "),
-              vue.createElementVNode("view", { class: "loading" }, [
-                vue.createElementVNode("text", null, "加载中...")
-              ])
-            ],
-            2112
-            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-          )) : (vue.openBlock(), vue.createElementBlock(
-            vue.Fragment,
-            { key: 3 },
-            [
-              vue.createCommentVNode(" 无数据状态 "),
-              vue.createElementVNode("view", { class: "no-data" }, [
-                vue.createElementVNode("text", null, "暂无数据")
-              ])
-            ],
-            2112
-            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-          ))
-        ])
-      ],
-      64
-      /* STABLE_FRAGMENT */
-    );
-  }
-  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$C, [["render", _sfc_render$B], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
-  let __currentFilePath = null;
-  function getFullPath$1(path) {
-    const docPath = plus.io.convertLocalFileSystemURL(path);
-    return docPath;
-  }
-  async function setJsonData(path, data) {
-    return new Promise((resolve, reject) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getFile(path, { create: true }, (fileEntry) => {
-          fileEntry.createWriter((writer) => {
-            writer.onwriteend = () => {
-              resolve();
-            };
-            writer.onerror = () => {
-              reject(`文件写入失败: ${path}`);
-            };
-            const jsonData = JSON.stringify(data, null, 2);
-            writer.write(jsonData);
-          }, reject);
-        }, reject);
-      }, reject);
-    });
-  }
-  function saveData(data) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath$1(__currentFilePath);
-      formatAppLog("log", "at utils/reviseNew.js:48", "准备保存文件到路径:", fullPath);
-      const wait = plus.nativeUI.showWaiting("正在保存信息");
-      setJsonData(fullPath, data).then(() => {
-        wait.close();
-        formatAppLog("log", "at utils/reviseNew.js:55", "写入成功");
-        plus.nativeUI.toast("保存成功");
-        resolve(true);
-      }).catch((error) => {
-        wait.close();
-        formatAppLog("error", "at utils/reviseNew.js:61", "写入失败:", error);
-        plus.nativeUI.toast("保存失败");
-        reject(error);
-      });
-    });
-  }
-  function trackPath(path) {
-    formatAppLog("log", "at utils/reviseNew.js:70", "设置文件路径:", path);
-    __currentFilePath = path;
-  }
-  const _sfc_main$B = {
-    __name: "testWrite",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const writeResult = vue.ref(null);
-      const readResult = vue.ref(null);
-      const testData = {
-        test: {
-          name: "测试项目",
-          description: "这是一个测试项目"
-        }
-      };
-      const testProject = async () => {
-        try {
-          const userId2 = "1";
-          const path = `_doc/${userId2}/project/projects.json`;
-          trackPath(path);
-          const data = await getProject(userId2);
-          readResult.value = data;
-          await saveData(testData.test);
-          writeResult.value = "项目文件操作成功";
-        } catch (error) {
-          writeResult.value = "项目文件操作失败: " + error.message;
-        }
-      };
-      const testTask = async () => {
-        try {
-          const userId2 = "1";
-          const projectId2 = "1";
-          const path = `_doc/${userId2}/project/${projectId2}/task.json`;
-          trackPath(path);
-          const data = await getTask(userId2, projectId2);
-          readResult.value = data;
-          await saveData(testData.test);
-          writeResult.value = "任务文件操作成功";
-        } catch (error) {
-          writeResult.value = "任务文件操作失败: " + error.message;
-        }
-      };
-      const testProperty = async () => {
-        try {
-          const userId2 = "1";
-          const buildingId2 = "5";
-          const path = `_doc/${userId2}/building/${buildingId2}/property.json`;
-          trackPath(path);
-          const data = await getProperty(userId2, buildingId2);
-          readResult.value = data;
-          await saveData(testData.test);
-          writeResult.value = "属性文件操作成功";
-        } catch (error) {
-          writeResult.value = "属性文件操作失败: " + error.message;
-        }
-      };
-      const testDisease = async () => {
-        try {
-          const userId2 = "1";
-          const buildingId2 = "5";
-          const yearId2 = "2023";
-          const path = `_doc/${userId2}/building/${buildingId2}/disease/${yearId2}.json`;
-          trackPath(path);
-          const data = await getDisease(userId2, buildingId2, yearId2);
-          readResult.value = data;
-          await saveData(testData.test);
-          writeResult.value = "病害文件操作成功";
-        } catch (error) {
-          writeResult.value = "病害文件操作失败: " + error.message;
-        }
-      };
-      const __returned__ = { writeResult, readResult, testData, testProject, testTask, testProperty, testDisease, ref: vue.ref, get getProject() {
-        return getProject;
-      }, get getTask() {
-        return getTask;
-      }, get getProperty() {
-        return getProperty;
-      }, get getDisease() {
-        return getDisease;
-      }, get saveData() {
-        return saveData;
-      }, get trackPath() {
-        return trackPath;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "button-group" }, [
-        vue.createElementVNode("button", { onClick: $setup.testProject }, "测试项目文件"),
-        vue.createElementVNode("button", { onClick: $setup.testTask }, "测试任务文件"),
-        vue.createElementVNode("button", { onClick: $setup.testProperty }, "测试属性文件"),
-        vue.createElementVNode("button", { onClick: $setup.testDisease }, "测试病害文件")
-      ]),
-      $setup.writeResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-        vue.createElementVNode("text", null, "写入结果: "),
-        vue.createElementVNode(
-          "text",
-          null,
-          vue.toDisplayString($setup.writeResult),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true),
-      $setup.readResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 1 }, [
-        vue.createElementVNode("text", null, "读取结果: "),
-        vue.createElementVNode(
-          "text",
-          null,
-          vue.toDisplayString(JSON.stringify($setup.readResult, null, 2)),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true)
-    ]);
-  }
-  const PagesTestWriteTestWrite = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__scopeId", "data-v-5a80cfda"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/testWrite/testWrite.vue"]]);
-  const DOC_BASE_PATH$1 = "_doc/";
-  const userId = "1";
-  const projectId = "3";
-  const buildingId = "5";
-  const yearId = "2023";
-  const _sfc_main$A = {
-    __name: "test",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      function trackPath2(path) {
-        formatAppLog("log", "at pages/test/test.vue:19", "Tracked path:", path);
-      }
-      const FILE_NAMING2 = {
-        project: (userId2) => `${userId2}/project/projects.json`,
-        task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
-        property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
-        disease: (userId2, buildingId2, yearId2) => `${userId2}/building/${buildingId2}/disease/${yearId2}.json`
-      };
-      async function getJsonData2(path) {
-        return new Promise((resolve, reject) => {
-          plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-            fs2.root.getFile(path, { create: false }, (fileEntry) => {
-              fileEntry.file((file) => {
-                const reader = new plus.io.FileReader();
-                reader.onload = () => {
-                  try {
-                    resolve(JSON.parse(reader.result));
-                  } catch (e2) {
-                    reject(`JSON解析失败: ${path}`);
-                  }
-                };
-                reader.onerror = () => reject(`文件读取失败: ${path}`);
-                reader.readAsText(file);
-              }, reject);
-            }, reject);
-          }, reject);
-        });
-      }
-      function getProject2(userId2) {
-        const path = DOC_BASE_PATH$1 + FILE_NAMING2.project(userId2);
-        trackPath2(path);
-        return getJsonData2(path);
-      }
-      function getTask2(userId2, projectId2) {
-        const path = DOC_BASE_PATH$1 + FILE_NAMING2.task(userId2, projectId2);
-        trackPath2(path);
-        return getJsonData2(path);
-      }
-      function getProperty2(userId2, buildingId2) {
-        const path = DOC_BASE_PATH$1 + FILE_NAMING2.property(userId2, buildingId2);
-        trackPath2(path);
-        return getJsonData2(path);
-      }
-      function getDisease2(userId2, buildingId2, yearId2) {
-        const path = DOC_BASE_PATH$1 + FILE_NAMING2.disease(userId2, buildingId2, yearId2);
-        trackPath2(path);
-        return getJsonData2(path);
-      }
-      const data = vue.ref(null);
-      const fetchProject = async () => {
-        try {
-          data.value = await getProject2(userId);
-        } catch (error) {
-          formatAppLog("error", "at pages/test/test.vue:88", error);
-        }
-      };
-      const fetchTask = async () => {
-        try {
-          data.value = await getTask2(userId, projectId);
-        } catch (error) {
-          formatAppLog("error", "at pages/test/test.vue:96", error);
-        }
-      };
-      const fetchProperty = async () => {
-        try {
-          data.value = await getProperty2(userId, buildingId);
-        } catch (error) {
-          formatAppLog("error", "at pages/test/test.vue:104", error);
-        }
-      };
-      const fetchDisease = async () => {
-        try {
-          data.value = await getDisease2(userId, buildingId, yearId);
-        } catch (error) {
-          formatAppLog("error", "at pages/test/test.vue:112", error);
-        }
-      };
-      const __returned__ = { DOC_BASE_PATH: DOC_BASE_PATH$1, trackPath: trackPath2, FILE_NAMING: FILE_NAMING2, getJsonData: getJsonData2, getProject: getProject2, getTask: getTask2, getProperty: getProperty2, getDisease: getDisease2, data, userId, projectId, buildingId, yearId, fetchProject, fetchTask, fetchProperty, fetchDisease, ref: vue.ref };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("button", { onClick: $setup.fetchProject }, "获取项目数据"),
-      vue.createElementVNode("button", { onClick: $setup.fetchTask }, "获取任务数据"),
-      vue.createElementVNode("button", { onClick: $setup.fetchProperty }, "获取属性数据"),
-      vue.createElementVNode("button", { onClick: $setup.fetchDisease }, "获取疾病数据"),
-      $setup.data ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-        vue.createElementVNode(
-          "pre",
-          null,
-          vue.toDisplayString(JSON.stringify($setup.data, null, 2)),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true)
-    ]);
-  }
-  const PagesTestTest = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-727d09f0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/test/test.vue"]]);
-  const _sfc_main$z = {
-    __name: "login",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const username = vue.ref("");
-      const password = vue.ref("");
-      const rememberPassword = vue.ref(false);
-      const autoLogin = vue.ref(false);
-      onLoad(() => {
-        const isLoggedIn = uni.getStorageSync("isLoggedIn");
-        if (isLoggedIn) {
-          uni.redirectTo({
-            url: "/pages/home/home"
-          });
-        }
-        rememberPassword.value = uni.getStorageSync("rememberPassword") || false;
-        autoLogin.value = uni.getStorageSync("autoLogin") || false;
-        if (rememberPassword.value) {
-          username.value = uni.getStorageSync("username") || "";
-          password.value = uni.getStorageSync("password") || "";
-        }
-        if (autoLogin.value && username.value && password.value) {
-          login();
-        }
-      });
-      const login = () => {
-        if (!username.value || !password.value) {
-          uni.showToast({
-            title: "请输入用户名和密码",
-            icon: "none"
-          });
-          return;
-        }
-        const correctUsername = "admin";
-        const correctPassword = "123456";
-        if (username.value === correctUsername && password.value === correctPassword) {
-          uni.showToast({
-            title: "登录成功",
-            icon: "success"
-          });
-          uni.setStorageSync("isLoggedIn", true);
-          if (rememberPassword.value) {
-            uni.setStorageSync("username", username.value);
-            uni.setStorageSync("password", password.value);
-          } else {
-            uni.removeStorageSync("username");
-            uni.removeStorageSync("password");
-          }
-          uni.setStorageSync("rememberPassword", rememberPassword.value);
-          uni.setStorageSync("autoLogin", autoLogin.value);
-          uni.setStorageSync("isOnline", true);
-          uni.redirectTo({
-            url: "/pages/home/home"
-          });
-        } else {
-          uni.showToast({
-            title: "用户名或密码错误",
-            icon: "none"
-          });
-        }
-      };
-      const toggleRememberPassword = (event) => {
-        rememberPassword.value = event.detail.value.length > 0;
-        uni.setStorageSync("rememberPassword", rememberPassword.value);
-        if (!rememberPassword.value) {
-          autoLogin.value = false;
-          uni.setStorageSync("autoLogin", false);
-        }
-      };
-      const toggleAutoLogin = (event) => {
-        autoLogin.value = event.detail.value.length > 0;
-        uni.setStorageSync("autoLogin", autoLogin.value);
-        if (autoLogin.value) {
-          rememberPassword.value = true;
-          uni.setStorageSync("rememberPassword", true);
-        }
-      };
-      const offlineLogin = () => {
-        uni.showToast({
-          title: "离线登录成功",
-          icon: "success"
-        });
-        uni.setStorageSync("isLoggedIn", true);
-        uni.setStorageSync("isOnline", false);
-        uni.redirectTo({
-          url: "/pages/home/home"
-        });
-      };
-      const __returned__ = { username, password, rememberPassword, autoLogin, login, toggleRememberPassword, toggleAutoLogin, offlineLogin, ref: vue.ref, get onLoad() {
-        return onLoad;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "login" }, [
-      vue.createElementVNode("view", { class: "login-box" }, [
-        vue.createElementVNode("view", { class: "login-box-title" }, "登录"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "login-box-username",
-            placeholder: "请输入账号",
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.username = $event)
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.username]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "login-box-password",
-            placeholder: "请输入密码",
-            password: "",
-            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.password = $event)
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.password]
-        ]),
-        vue.createElementVNode("view", { class: "login-box-option" }, [
-          vue.createElementVNode(
-            "checkbox-group",
-            { onChange: $setup.toggleRememberPassword },
-            [
-              vue.createElementVNode("label", { class: "login-box-option-rememberPassword" }, [
-                vue.createElementVNode("checkbox", { checked: $setup.rememberPassword }, null, 8, ["checked"]),
-                vue.createElementVNode("text", null, "记住密码")
-              ])
-            ],
-            32
-            /* NEED_HYDRATION */
-          ),
-          vue.createElementVNode(
-            "checkbox-group",
-            { onChange: $setup.toggleAutoLogin },
-            [
-              vue.createElementVNode("label", { class: "login-box-option-autoLogin" }, [
-                vue.createElementVNode("checkbox", { checked: $setup.autoLogin }, null, 8, ["checked"]),
-                vue.createElementVNode("text", null, "自动登录")
-              ])
-            ],
-            32
-            /* NEED_HYDRATION */
-          )
-        ]),
-        vue.createElementVNode("view", {
-          class: "login-box-button",
-          onClick: _cache[2] || (_cache[2] = ($event) => $setup.login())
-        }, "登录"),
-        vue.createElementVNode("view", { class: "login-box-offline" }, [
-          vue.createElementVNode("view", {
-            class: "login-box-offline-box",
-            onClick: $setup.offlineLogin
-          }, "离线登录")
-        ])
-      ])
-    ]);
-  }
-  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__scopeId", "data-v-e4e4508d"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/login/login.vue"]]);
-  class MPAnimation {
-    constructor(options, _this) {
-      this.options = options;
-      this.animation = uni.createAnimation({
-        ...options
-      });
-      this.currentStepAnimates = {};
-      this.next = 0;
-      this.$ = _this;
-    }
-    _nvuePushAnimates(type, args) {
-      let aniObj = this.currentStepAnimates[this.next];
-      let styles = {};
-      if (!aniObj) {
-        styles = {
-          styles: {},
-          config: {}
-        };
-      } else {
-        styles = aniObj;
-      }
-      if (animateTypes1.includes(type)) {
-        if (!styles.styles.transform) {
-          styles.styles.transform = "";
-        }
-        let unit = "";
-        if (type === "rotate") {
-          unit = "deg";
-        }
-        styles.styles.transform += `${type}(${args + unit}) `;
-      } else {
-        styles.styles[type] = `${args}`;
-      }
-      this.currentStepAnimates[this.next] = styles;
-    }
-    _animateRun(styles = {}, config = {}) {
-      let ref = this.$.$refs["ani"].ref;
-      if (!ref)
-        return;
-      return new Promise((resolve, reject) => {
-        nvueAnimation.transition(ref, {
-          styles,
-          ...config
-        }, (res) => {
-          resolve();
-        });
-      });
-    }
-    _nvueNextAnimate(animates, step = 0, fn) {
-      let obj = animates[step];
-      if (obj) {
-        let {
-          styles,
-          config
-        } = obj;
-        this._animateRun(styles, config).then(() => {
-          step += 1;
-          this._nvueNextAnimate(animates, step, fn);
-        });
-      } else {
-        this.currentStepAnimates = {};
-        typeof fn === "function" && fn();
-        this.isEnd = true;
-      }
-    }
-    step(config = {}) {
-      this.animation.step(config);
-      return this;
-    }
-    run(fn) {
-      this.$.animationData = this.animation.export();
-      this.$.timer = setTimeout(() => {
-        typeof fn === "function" && fn();
-      }, this.$.durationTime);
-    }
-  }
-  const animateTypes1 = [
-    "matrix",
-    "matrix3d",
-    "rotate",
-    "rotate3d",
-    "rotateX",
-    "rotateY",
-    "rotateZ",
-    "scale",
-    "scale3d",
-    "scaleX",
-    "scaleY",
-    "scaleZ",
-    "skew",
-    "skewX",
-    "skewY",
-    "translate",
-    "translate3d",
-    "translateX",
-    "translateY",
-    "translateZ"
-  ];
-  const animateTypes2 = ["opacity", "backgroundColor"];
-  const animateTypes3 = ["width", "height", "left", "right", "top", "bottom"];
-  animateTypes1.concat(animateTypes2, animateTypes3).forEach((type) => {
-    MPAnimation.prototype[type] = function(...args) {
-      this.animation[type](...args);
-      return this;
-    };
-  });
-  function createAnimation(option, _this) {
-    if (!_this)
-      return;
-    clearTimeout(_this.timer);
-    return new MPAnimation(option, _this);
-  }
-  const _sfc_main$y = {
-    name: "uniTransition",
-    emits: ["click", "change"],
-    props: {
-      show: {
-        type: Boolean,
-        default: false
-      },
-      modeClass: {
-        type: [Array, String],
-        default() {
-          return "fade";
-        }
-      },
-      duration: {
-        type: Number,
-        default: 300
-      },
-      styles: {
-        type: Object,
-        default() {
-          return {};
-        }
-      },
-      customClass: {
-        type: String,
-        default: ""
-      },
-      onceRender: {
-        type: Boolean,
-        default: false
-      }
-    },
-    data() {
-      return {
-        isShow: false,
-        transform: "",
-        opacity: 1,
-        animationData: {},
-        durationTime: 300,
-        config: {}
-      };
-    },
-    watch: {
-      show: {
-        handler(newVal) {
-          if (newVal) {
-            this.open();
-          } else {
-            if (this.isShow) {
-              this.close();
-            }
-          }
-        },
-        immediate: true
-      }
-    },
-    computed: {
-      // 生成样式数据
-      stylesObject() {
-        let styles = {
-          ...this.styles,
-          "transition-duration": this.duration / 1e3 + "s"
-        };
-        let transform = "";
-        for (let i2 in styles) {
-          let line = this.toLine(i2);
-          transform += line + ":" + styles[i2] + ";";
-        }
-        return transform;
-      },
-      // 初始化动画条件
-      transformStyles() {
-        return "transform:" + this.transform + ";opacity:" + this.opacity + ";" + this.stylesObject;
-      }
-    },
-    created() {
-      this.config = {
-        duration: this.duration,
-        timingFunction: "ease",
-        transformOrigin: "50% 50%",
-        delay: 0
-      };
-      this.durationTime = this.duration;
-    },
-    methods: {
-      /**
-       *  ref 触发 初始化动画
-       */
-      init(obj = {}) {
-        if (obj.duration) {
-          this.durationTime = obj.duration;
-        }
-        this.animation = createAnimation(Object.assign(this.config, obj), this);
-      },
-      /**
-       * 点击组件触发回调
-       */
-      onClick() {
-        this.$emit("click", {
-          detail: this.isShow
-        });
-      },
-      /**
-       * ref 触发 动画分组
-       * @param {Object} obj
-       */
-      step(obj, config = {}) {
-        if (!this.animation)
-          return;
-        for (let i2 in obj) {
-          try {
-            if (typeof obj[i2] === "object") {
-              this.animation[i2](...obj[i2]);
-            } else {
-              this.animation[i2](obj[i2]);
-            }
-          } catch (e2) {
-            formatAppLog("error", "at uni_modules/uni-transition/components/uni-transition/uni-transition.vue:148", `方法 ${i2} 不存在`);
-          }
-        }
-        this.animation.step(config);
-        return this;
-      },
-      /**
-       *  ref 触发 执行动画
-       */
-      run(fn) {
-        if (!this.animation)
-          return;
-        this.animation.run(fn);
-      },
-      // 开始过度动画
-      open() {
-        clearTimeout(this.timer);
-        this.transform = "";
-        this.isShow = true;
-        let { opacity, transform } = this.styleInit(false);
-        if (typeof opacity !== "undefined") {
-          this.opacity = opacity;
-        }
-        this.transform = transform;
-        this.$nextTick(() => {
-          this.timer = setTimeout(() => {
-            this.animation = createAnimation(this.config, this);
-            this.tranfromInit(false).step();
-            this.animation.run();
-            this.$emit("change", {
-              detail: this.isShow
-            });
-          }, 20);
-        });
-      },
-      // 关闭过度动画
-      close(type) {
-        if (!this.animation)
-          return;
-        this.tranfromInit(true).step().run(() => {
-          this.isShow = false;
-          this.animationData = null;
-          this.animation = null;
-          let { opacity, transform } = this.styleInit(false);
-          this.opacity = opacity || 1;
-          this.transform = transform;
-          this.$emit("change", {
-            detail: this.isShow
-          });
-        });
-      },
-      // 处理动画开始前的默认样式
-      styleInit(type) {
-        let styles = {
-          transform: ""
-        };
-        let buildStyle = (type2, mode) => {
-          if (mode === "fade") {
-            styles.opacity = this.animationType(type2)[mode];
-          } else {
-            styles.transform += this.animationType(type2)[mode] + " ";
-          }
-        };
-        if (typeof this.modeClass === "string") {
-          buildStyle(type, this.modeClass);
-        } else {
-          this.modeClass.forEach((mode) => {
-            buildStyle(type, mode);
-          });
-        }
-        return styles;
-      },
-      // 处理内置组合动画
-      tranfromInit(type) {
-        let buildTranfrom = (type2, mode) => {
-          let aniNum = null;
-          if (mode === "fade") {
-            aniNum = type2 ? 0 : 1;
-          } else {
-            aniNum = type2 ? "-100%" : "0";
-            if (mode === "zoom-in") {
-              aniNum = type2 ? 0.8 : 1;
-            }
-            if (mode === "zoom-out") {
-              aniNum = type2 ? 1.2 : 1;
-            }
-            if (mode === "slide-right") {
-              aniNum = type2 ? "100%" : "0";
-            }
-            if (mode === "slide-bottom") {
-              aniNum = type2 ? "100%" : "0";
-            }
-          }
-          this.animation[this.animationMode()[mode]](aniNum);
-        };
-        if (typeof this.modeClass === "string") {
-          buildTranfrom(type, this.modeClass);
-        } else {
-          this.modeClass.forEach((mode) => {
-            buildTranfrom(type, mode);
-          });
-        }
-        return this.animation;
-      },
-      animationType(type) {
-        return {
-          fade: type ? 0 : 1,
-          "slide-top": `translateY(${type ? "0" : "-100%"})`,
-          "slide-right": `translateX(${type ? "0" : "100%"})`,
-          "slide-bottom": `translateY(${type ? "0" : "100%"})`,
-          "slide-left": `translateX(${type ? "0" : "-100%"})`,
-          "zoom-in": `scaleX(${type ? 1 : 0.8}) scaleY(${type ? 1 : 0.8})`,
-          "zoom-out": `scaleX(${type ? 1 : 1.2}) scaleY(${type ? 1 : 1.2})`
-        };
-      },
-      // 内置动画类型与实际动画对应字典
-      animationMode() {
-        return {
-          fade: "opacity",
-          "slide-top": "translateY",
-          "slide-right": "translateX",
-          "slide-bottom": "translateY",
-          "slide-left": "translateX",
-          "zoom-in": "scale",
-          "zoom-out": "scale"
-        };
-      },
-      // 驼峰转中横线
-      toLine(name) {
-        return name.replace(/([A-Z])/g, "-$1").toLowerCase();
-      }
-    }
-  };
-  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
-      ref: "ani",
-      animation: $data.animationData,
-      class: vue.normalizeClass($props.customClass),
-      style: vue.normalizeStyle($options.transformStyles),
-      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
-    }, [
-      vue.renderSlot(_ctx.$slots, "default")
-    ], 14, ["animation"])), [
-      [vue.vShow, $data.isShow]
-    ]);
-  }
-  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
-  const _sfc_main$x = {
-    name: "uniPopup",
-    components: {},
-    emits: ["change", "maskClick"],
-    props: {
-      // 开启动画
-      animation: {
-        type: Boolean,
-        default: true
-      },
-      // 弹出层类型，可选值，top: 顶部弹出层；bottom：底部弹出层；center：全屏弹出层
-      // message: 消息提示 ; dialog : 对话框
-      type: {
-        type: String,
-        default: "center"
-      },
-      // maskClick
-      isMaskClick: {
-        type: Boolean,
-        default: null
-      },
-      // TODO 2 个版本后废弃属性 ，使用 isMaskClick
-      maskClick: {
-        type: Boolean,
-        default: null
-      },
-      backgroundColor: {
-        type: String,
-        default: "none"
-      },
-      safeArea: {
-        type: Boolean,
-        default: true
-      },
-      maskBackgroundColor: {
-        type: String,
-        default: "rgba(0, 0, 0, 0.4)"
-      },
-      borderRadius: {
-        type: String
-      }
-    },
-    watch: {
-      /**
-       * 监听type类型
-       */
-      type: {
-        handler: function(type) {
-          if (!this.config[type])
-            return;
-          this[this.config[type]](true);
-        },
-        immediate: true
-      },
-      isDesktop: {
-        handler: function(newVal) {
-          if (!this.config[newVal])
-            return;
-          this[this.config[this.type]](true);
-        },
-        immediate: true
-      },
-      /**
-       * 监听遮罩是否可点击
-       * @param {Object} val
-       */
-      maskClick: {
-        handler: function(val) {
-          this.mkclick = val;
-        },
-        immediate: true
-      },
-      isMaskClick: {
-        handler: function(val) {
-          this.mkclick = val;
-        },
-        immediate: true
-      },
-      // H5 下禁止底部滚动
-      showPopup(show) {
-      }
-    },
-    data() {
-      return {
-        duration: 300,
-        ani: [],
-        showPopup: false,
-        showTrans: false,
-        popupWidth: 0,
-        popupHeight: 0,
-        config: {
-          top: "top",
-          bottom: "bottom",
-          center: "center",
-          left: "left",
-          right: "right",
-          message: "top",
-          dialog: "center",
-          share: "bottom"
-        },
-        maskClass: {
-          position: "fixed",
-          bottom: 0,
-          top: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.4)"
-        },
-        transClass: {
-          backgroundColor: "transparent",
-          borderRadius: this.borderRadius || "0",
-          position: "fixed",
-          left: 0,
-          right: 0
-        },
-        maskShow: true,
-        mkclick: true,
-        popupstyle: "top"
-      };
-    },
-    computed: {
-      getStyles() {
-        let res = { backgroundColor: this.bg };
-        if (this.borderRadius || "0") {
-          res = Object.assign(res, { borderRadius: this.borderRadius });
-        }
-        return res;
-      },
-      isDesktop() {
-        return this.popupWidth >= 500 && this.popupHeight >= 500;
-      },
-      bg() {
-        if (this.backgroundColor === "" || this.backgroundColor === "none") {
-          return "transparent";
-        }
-        return this.backgroundColor;
-      }
-    },
-    mounted() {
-      const fixSize = () => {
-        const {
-          windowWidth,
-          windowHeight,
-          windowTop,
-          safeArea,
-          screenHeight,
-          safeAreaInsets
-        } = uni.getSystemInfoSync();
-        this.popupWidth = windowWidth;
-        this.popupHeight = windowHeight + (windowTop || 0);
-        if (safeArea && this.safeArea) {
-          this.safeAreaInsets = safeAreaInsets.bottom;
-        } else {
-          this.safeAreaInsets = 0;
-        }
-      };
-      fixSize();
-    },
-    // TODO vue3
-    unmounted() {
-      this.setH5Visible();
-    },
-    activated() {
-      this.setH5Visible(!this.showPopup);
-    },
-    deactivated() {
-      this.setH5Visible(true);
-    },
-    created() {
-      if (this.isMaskClick === null && this.maskClick === null) {
-        this.mkclick = true;
-      } else {
-        this.mkclick = this.isMaskClick !== null ? this.isMaskClick : this.maskClick;
-      }
-      if (this.animation) {
-        this.duration = 300;
-      } else {
-        this.duration = 0;
-      }
-      this.messageChild = null;
-      this.clearPropagation = false;
-      this.maskClass.backgroundColor = this.maskBackgroundColor;
-    },
-    methods: {
-      setH5Visible(visible = true) {
-      },
-      /**
-       * 公用方法，不显示遮罩层
-       */
-      closeMask() {
-        this.maskShow = false;
-      },
-      /**
-       * 公用方法，遮罩层禁止点击
-       */
-      disableMask() {
-        this.mkclick = false;
-      },
-      // TODO nvue 取消冒泡
-      clear(e2) {
-        e2.stopPropagation();
-        this.clearPropagation = true;
-      },
-      open(direction) {
-        if (this.showPopup) {
-          return;
-        }
-        let innerType = ["top", "center", "bottom", "left", "right", "message", "dialog", "share"];
-        if (!(direction && innerType.indexOf(direction) !== -1)) {
-          direction = this.type;
-        }
-        if (!this.config[direction]) {
-          formatAppLog("error", "at uni_modules/uni-popup/components/uni-popup/uni-popup.vue:310", "缺少类型：", direction);
-          return;
-        }
-        this[this.config[direction]]();
-        this.$emit("change", {
-          show: true,
-          type: direction
-        });
-      },
-      close(type) {
-        this.showTrans = false;
-        this.$emit("change", {
-          show: false,
-          type: this.type
-        });
-        clearTimeout(this.timer);
-        this.timer = setTimeout(() => {
-          this.showPopup = false;
-        }, 300);
-      },
-      // TODO 处理冒泡事件，头条的冒泡事件有问题 ，先这样兼容
-      touchstart() {
-        this.clearPropagation = false;
-      },
-      onTap() {
-        if (this.clearPropagation) {
-          this.clearPropagation = false;
-          return;
-        }
-        this.$emit("maskClick");
-        if (!this.mkclick)
-          return;
-        this.close();
-      },
-      /**
-       * 顶部弹出样式处理
-       */
-      top(type) {
-        this.popupstyle = this.isDesktop ? "fixforpc-top" : "top";
-        this.ani = ["slide-top"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          right: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPopup = true;
-        this.showTrans = true;
-        this.$nextTick(() => {
-          this.showPoptrans();
-          if (this.messageChild && this.type === "message") {
-            this.messageChild.timerClose();
-          }
-        });
-      },
-      /**
-       * 底部弹出样式处理
-       */
-      bottom(type) {
-        this.popupstyle = "bottom";
-        this.ani = ["slide-bottom"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          paddingBottom: this.safeAreaInsets + "px",
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      /**
-       * 中间弹出样式处理
-       */
-      center(type) {
-        this.popupstyle = "center";
-        this.ani = ["zoom-out", "fade"];
-        this.transClass = {
-          position: "fixed",
-          display: "flex",
-          flexDirection: "column",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          top: 0,
-          justifyContent: "center",
-          alignItems: "center",
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      left(type) {
-        this.popupstyle = "left";
-        this.ani = ["slide-left"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          bottom: 0,
-          top: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0",
-          display: "flex",
-          flexDirection: "column"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      right(type) {
-        this.popupstyle = "right";
-        this.ani = ["slide-right"];
-        this.transClass = {
-          position: "fixed",
-          bottom: 0,
-          right: 0,
-          top: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0",
-          display: "flex",
-          flexDirection: "column"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      showPoptrans() {
-        this.$nextTick(() => {
-          this.showPopup = true;
-          this.showTrans = true;
-        });
-      }
-    }
-  };
-  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$5);
-    return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
-      "view",
-      {
-        key: 0,
-        class: vue.normalizeClass(["uni-popup", [$data.popupstyle, $options.isDesktop ? "fixforpc-z-index" : ""]])
-      },
-      [
-        vue.createElementVNode(
-          "view",
-          {
-            onTouchstart: _cache[1] || (_cache[1] = (...args) => $options.touchstart && $options.touchstart(...args))
-          },
-          [
-            $data.maskShow ? (vue.openBlock(), vue.createBlock(_component_uni_transition, {
-              key: "1",
-              name: "mask",
-              "mode-class": "fade",
-              styles: $data.maskClass,
-              duration: $data.duration,
-              show: $data.showTrans,
-              onClick: $options.onTap
-            }, null, 8, ["styles", "duration", "show", "onClick"])) : vue.createCommentVNode("v-if", true),
-            vue.createVNode(_component_uni_transition, {
-              key: "2",
-              "mode-class": $data.ani,
-              name: "content",
-              styles: $data.transClass,
-              duration: $data.duration,
-              show: $data.showTrans,
-              onClick: $options.onTap
-            }, {
-              default: vue.withCtx(() => [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: vue.normalizeClass(["uni-popup__wrapper", [$data.popupstyle]]),
-                    style: vue.normalizeStyle($options.getStyles),
-                    onClick: _cache[0] || (_cache[0] = (...args) => $options.clear && $options.clear(...args))
-                  },
-                  [
-                    vue.renderSlot(_ctx.$slots, "default", {}, void 0, true)
-                  ],
-                  6
-                  /* CLASS, STYLE */
-                )
-              ]),
-              _: 3
-              /* FORWARDED */
-            }, 8, ["mode-class", "styles", "duration", "show", "onClick"])
-          ],
-          32
-          /* NEED_HYDRATION */
-        )
-      ],
-      2
-      /* CLASS */
-    )) : vue.createCommentVNode("v-if", true);
-  }
-  const __easycom_1$4 = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
-  const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
-  const FILE_NAMING = {
-    taskList: (userId2) => `${userId2}/taskList.json`,
-    bridgeList: (userId2, bridgeListId) => `${userId2}/${bridgeListId}/bridgeList.json`,
-    bridge: (userId2, bridgeListId, bridgeId) => `${userId2}/${bridgeListId}/${bridgeId}/bridge.json`
-  };
-  function getFullPath(fileName) {
-    return `${DOC_BASE_PATH}${fileName}`;
-  }
-  async function getJsonData(fullPath) {
-    try {
-      formatAppLog("log", "at utils/readJson.js:20", "文件访问路径:", fullPath);
-      const fileSystem = await new Promise((resolve, reject) => {
-        plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, resolve, reject);
-      });
-      const fileEntry = await new Promise((resolve, reject) => {
-        fileSystem.root.getFile(fullPath, { create: false }, resolve, reject);
-      });
-      const file = await new Promise((resolve, reject) => {
-        fileEntry.file(resolve, reject);
-      });
-      const jsonString = await new Promise((resolve, reject) => {
-        const reader = new plus.io.FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsText(file);
-      });
-      try {
-        return JSON.parse(jsonString);
-      } catch (parseError) {
-        formatAppLog("error", "at utils/readJson.js:49", `JSON解析失败: ${fullPath}`, parseError);
-        throw new Error("文件内容格式不正确");
-      }
-    } catch (error) {
-      formatAppLog("error", "at utils/readJson.js:54", `文件操作失败: ${fullPath}`, error);
-      throw error;
-    }
-  }
-  function getBridge(userId2, bridgeListId, bridgeId) {
-    const fileName = FILE_NAMING.bridge(userId2, bridgeListId, bridgeId);
-    const fullPath = getFullPath(fileName);
-    trackPath$1(fullPath);
-    return getJsonData(fullPath);
-  }
-  const _sfc_main$w = {
-    __name: "tree",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const expandedItems = vue.ref(/* @__PURE__ */ new Set());
-      const treeData = vue.ref([]);
-      const popup2 = vue.ref(null);
-      const showInputs = vue.ref(false);
-      const typeOptions = ["固定值", "序号"];
-      const selectedTypeIndex = vue.ref(0);
-      const fixedValue = vue.ref("");
-      const startNum = vue.ref("");
-      const endNum = vue.ref("");
-      const allInputRecords = vue.ref([]);
-      const inputRecords = vue.ref([]);
-      const currentEditItem = vue.ref(null);
-      const currentItemRecords = vue.computed(() => {
-        if (!currentEditItem.value)
-          return [];
-        return inputRecords.value.filter((record) => record.itemId === currentEditItem.value.id);
-      });
-      const deleteRecord = (index) => {
-        const recordToDelete = inputRecords.value[index];
-        inputRecords.value.splice(index, 1);
-        const allRecordIndex = allInputRecords.value.findIndex(
-          (record) => record.itemId === recordToDelete.itemId && record.timestamp === recordToDelete.timestamp
-        );
-        if (allRecordIndex > -1) {
-          allInputRecords.value.splice(allRecordIndex, 1);
-        }
-        uni.showToast({
-          title: "删除成功",
-          icon: "success"
-        });
-      };
-      const selectedNode = vue.ref(null);
-      const isThirdLevel = (ancestors) => {
-        if (!ancestors)
-          return false;
-        const levels = ancestors.split(",");
-        return levels.length === 4;
-      };
-      const handleNodeClick = (item) => {
-        if (!isThirdLevel(item.ancestors))
-          return;
-        formatAppLog("log", "at pages/tree/tree.vue:204", "点击节点:", item);
-        selectedNode.value = item;
-      };
-      const filteredComponentsList = vue.computed(() => {
-        var _a;
-        formatAppLog("log", "at pages/tree/tree.vue:210", "过滤构件列表 - 当前节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
-        formatAppLog("log", "at pages/tree/tree.vue:211", "总构件列表长度:", componentsList.value.length);
-        if (!selectedNode.value) {
-          formatAppLog("log", "at pages/tree/tree.vue:214", "返回所有构件");
-          return componentsList.value;
-        }
-        const filtered = componentsList.value.filter((item) => item.component === selectedNode.value.name);
-        formatAppLog("log", "at pages/tree/tree.vue:219", "过滤后构件数量:", filtered.length);
-        return filtered;
-      });
-      const handleDelete = (index) => {
-        const itemToDelete = filteredComponentsList.value[index];
-        const originalIndex = componentsList.value.findIndex(
-          (item) => item.number === itemToDelete.number && item.component === itemToDelete.component
-        );
-        if (originalIndex > -1) {
-          componentsList.value.splice(originalIndex, 1);
-          uni.showToast({
-            title: "删除成功",
-            icon: "success"
-          });
-        }
-      };
-      const response = vue.ref({
-        currentDisease: [],
-        historyDisease: [],
-        frontFhoto: [],
-        bridgeArchive: {},
-        structureInfo: {}
-      });
-      const jsonData = vue.ref({});
-      vue.onMounted(async () => {
-        try {
-          const result = await getBridge(3, 1, "G6911428222L1160");
-          formatAppLog("log", "at pages/tree/tree.vue:254", "原始返回数据:", result);
-          const data = Array.isArray(result) ? result[0] : result;
-          formatAppLog("log", "at pages/tree/tree.vue:258", "处理后的数据:", data);
-          response.value = data;
-          formatAppLog("log", "at pages/tree/tree.vue:262", "response.value 更新后:", response.value);
-          if (data && data.structureInfo) {
-            jsonData.value = data.structureInfo;
-            formatAppLog("log", "at pages/tree/tree.vue:267", "structureInfo 数据:", jsonData.value);
-            if (jsonData.value.data) {
-              formatAppLog("log", "at pages/tree/tree.vue:270", "找到树形数据:", jsonData.value.data);
-              const flattenTree = (node) => {
-                if (!node)
-                  return [];
-                let result2 = [node];
-                if (node.children && Array.isArray(node.children) && node.children.length > 0) {
-                  node.children.forEach((child) => {
-                    result2 = result2.concat(flattenTree(child));
-                  });
-                }
-                return result2;
-              };
-              treeData.value = flattenTree(jsonData.value.data);
-              formatAppLog("log", "at pages/tree/tree.vue:286", "展平后的树形数据:", treeData.value);
-              formatAppLog("log", "at pages/tree/tree.vue:287", "树形数据长度:", treeData.value.length);
-              if (treeData.value.length > 0) {
-                expandedItems.value.add(549);
-                expandedItems.value.add(550);
-                expandedItems.value.add(551);
-                expandedItems.value.add(552);
-                formatAppLog("log", "at pages/tree/tree.vue:295", "已展开的节点:", Array.from(expandedItems.value));
-              }
-            } else {
-              formatAppLog("error", "at pages/tree/tree.vue:298", "structureInfo.data 不存在");
-              formatAppLog("log", "at pages/tree/tree.vue:299", "完整的 structureInfo:", jsonData.value);
-            }
-          } else {
-            formatAppLog("error", "at pages/tree/tree.vue:302", "API返回数据中没有 structureInfo");
-            formatAppLog("log", "at pages/tree/tree.vue:303", "完整的API返回数据:", data);
-          }
-        } catch (error) {
-          formatAppLog("error", "at pages/tree/tree.vue:306", "数据加载出错:", error);
-        }
-      });
-      const getLevel = (ancestors) => {
-        if (!ancestors)
-          return 0;
-        const levels = ancestors.split(",");
-        return levels.length - 1;
-      };
-      const hasChildren = (item) => {
-        return treeData.value.some((node) => node.parentId === item.id);
-      };
-      const isExpanded = (id) => {
-        return expandedItems.value.has(id);
-      };
-      const shouldShowItem = (item) => {
-        if (item.id === 549)
-          return true;
-        return isExpanded(item.parentId);
-      };
-      const toggleExpand = (item) => {
-        if (expandedItems.value.has(item.id)) {
-          expandedItems.value.delete(item.id);
-        } else {
-          expandedItems.value.add(item.id);
-        }
-      };
-      const getStatus = (status) => {
-        return status === "0" ? "正常" : "异常";
-      };
-      const showInputForm = () => {
-        showInputs.value = true;
-      };
-      const handleTypeChange = (e2) => {
-        selectedTypeIndex.value = e2.detail.value;
-        fixedValue.value = "";
-        startNum.value = "";
-        endNum.value = "";
-      };
-      const cancelInput = () => {
-        showInputs.value = false;
-        fixedValue.value = "";
-        startNum.value = "";
-        endNum.value = "";
-        selectedTypeIndex.value = 0;
-        popup2.value.close();
-      };
-      const confirmInput = () => {
-        if (selectedTypeIndex.value === 0) {
-          if (!fixedValue.value) {
-            uni.showToast({
-              title: "请输入固定值",
-              icon: "none"
-            });
-            return;
-          }
-          const newRecord = {
-            itemId: currentEditItem.value.id,
-            itemName: currentEditItem.value.name,
-            type: "固定值",
-            value: fixedValue.value,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          inputRecords.value.push(newRecord);
-          allInputRecords.value.push(newRecord);
-          formatAppLog("log", "at pages/tree/tree.vue:401", "添加固定值记录:", fixedValue.value);
-          fixedValue.value = "";
-        } else {
-          if (!startNum.value || !endNum.value) {
-            uni.showToast({
-              title: "请输入完整的序号范围",
-              icon: "none"
-            });
-            return;
-          }
-          const start = parseInt(startNum.value);
-          const end = parseInt(endNum.value);
-          if (start > end) {
-            uni.showToast({
-              title: "起始值不能大于结束值",
-              icon: "none"
-            });
-            return;
-          }
-          const newRecord = {
-            itemId: currentEditItem.value.id,
-            itemName: currentEditItem.value.name,
-            type: "序号",
-            value: `${start}-${end}`,
-            timestamp: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          inputRecords.value.push(newRecord);
-          allInputRecords.value.push(newRecord);
-          formatAppLog("log", "at pages/tree/tree.vue:438", "添加序号范围记录:", `${start}-${end}`);
-          startNum.value = "";
-          endNum.value = "";
-        }
-        uni.showToast({
-          title: "保存成功",
-          icon: "success"
-        });
-      };
-      const generateComponents = () => {
-        formatAppLog("log", "at pages/tree/tree.vue:454", "开始生成构件，当前记录数:", inputRecords.value.length);
-        if (inputRecords.value.length === 0) {
-          formatAppLog("log", "at pages/tree/tree.vue:456", "没有记录，跳过生成");
-          return;
-        }
-        const sortedRecords = [...inputRecords.value].sort(
-          (a2, b2) => new Date(a2.timestamp) - new Date(b2.timestamp)
-        );
-        formatAppLog("log", "at pages/tree/tree.vue:465", "排序后的记录:", sortedRecords);
-        const generateCombinations = (records, currentIndex = 0, prefix = "") => {
-          if (currentIndex >= records.length) {
-            return [prefix];
-          }
-          const record = records[currentIndex];
-          let combinations2 = [];
-          if (record.type === "固定值") {
-            const newPrefix = prefix ? `${prefix}-${record.value}` : record.value;
-            combinations2 = generateCombinations(records, currentIndex + 1, newPrefix);
-          } else {
-            const [start, end] = record.value.split("-").map(Number);
-            for (let i2 = start; i2 <= end; i2++) {
-              const newPrefix = prefix ? `${prefix}-${i2}` : `${i2}`;
-              combinations2 = combinations2.concat(generateCombinations(records, currentIndex + 1, newPrefix));
-            }
-          }
-          return combinations2;
-        };
-        const combinations = generateCombinations(sortedRecords);
-        formatAppLog("log", "at pages/tree/tree.vue:492", "生成的组合:", combinations);
-        const newComponents = combinations.map((number) => ({
-          number: `${number}#${currentEditItem.value.name}`,
-          component: currentEditItem.value.name,
-          status: "",
-          originalNumber: number
-        }));
-        componentsList.value = [...componentsList.value, ...newComponents];
-        formatAppLog("log", "at pages/tree/tree.vue:504", "生成完成，当前构件列表:", componentsList.value);
-      };
-      const numberItem = (item) => {
-        formatAppLog("log", "at pages/tree/tree.vue:509", "点击构件:", item);
-        currentEditItem.value = item;
-        inputRecords.value = allInputRecords.value.filter((record) => record.itemId === item.id);
-        formatAppLog("log", "at pages/tree/tree.vue:514", "当前构件的记录:", inputRecords.value);
-        showInputs.value = true;
-        popup2.value.open("center");
-      };
-      const closePopup = () => {
-        formatAppLog("log", "at pages/tree/tree.vue:522", "点击关闭按钮");
-        if (inputRecords.value.length > 0) {
-          generateComponents();
-        }
-        popup2.value.close();
-        showInputs.value = false;
-        fixedValue.value = "";
-        startNum.value = "";
-        endNum.value = "";
-        selectedTypeIndex.value = 0;
-      };
-      const handlePopupClose = () => {
-        formatAppLog("log", "at pages/tree/tree.vue:537", "弹窗关闭事件触发");
-        showInputs.value = false;
-        fixedValue.value = "";
-        startNum.value = "";
-        endNum.value = "";
-        selectedTypeIndex.value = 0;
-      };
-      const editPopup = vue.ref(null);
-      const editingComponent = vue.ref({
-        index: -1,
-        number: "",
-        component: "",
-        originalNumber: "",
-        originalComponent: ""
-      });
-      const handleEdit = (item, index) => {
-        var _a;
-        formatAppLog("log", "at pages/tree/tree.vue:558", "开始编辑构件:", item);
-        const [number] = item.number.split("#");
-        editingComponent.value = {
-          index,
-          number,
-          component: selectedNode.value ? selectedNode.value.name : item.component,
-          originalNumber: number,
-          originalComponent: item.component
-        };
-        formatAppLog("log", "at pages/tree/tree.vue:571", "当前编辑的构件信息:", editingComponent.value);
-        formatAppLog("log", "at pages/tree/tree.vue:572", "当前选中的节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
-        editPopup.value.open("center");
-      };
-      const confirmEdit = () => {
-        var _a;
-        formatAppLog("log", "at pages/tree/tree.vue:580", "确认编辑:", editingComponent.value);
-        if (!editingComponent.value.number) {
-          uni.showToast({
-            title: "请填写构件编号",
-            icon: "none"
-          });
-          return;
-        }
-        if (editingComponent.value.index > -1) {
-          const targetComponent = filteredComponentsList.value[editingComponent.value.index];
-          if (!targetComponent) {
-            uni.showToast({
-              title: "未找到要编辑的构件",
-              icon: "none"
-            });
-            return;
-          }
-          const originalIndex = componentsList.value.findIndex(
-            (item) => item.number === targetComponent.number && item.component === targetComponent.component
-          );
-          if (originalIndex > -1) {
-            const updatedList = [...componentsList.value];
-            const componentName = selectedNode.value ? selectedNode.value.name : targetComponent.component;
-            updatedList[originalIndex] = {
-              ...componentsList.value[originalIndex],
-              number: `${editingComponent.value.number}#${componentName}`,
-              component: componentName,
-              originalNumber: editingComponent.value.number
-            };
-            componentsList.value = updatedList;
-            formatAppLog("log", "at pages/tree/tree.vue:625", "更新成功，新的构件信息:", updatedList[originalIndex]);
-            formatAppLog("log", "at pages/tree/tree.vue:626", "当前构件列表长度:", updatedList.length);
-            formatAppLog("log", "at pages/tree/tree.vue:627", "当前选中节点:", (_a = selectedNode.value) == null ? void 0 : _a.name);
-            uni.showToast({
-              title: "修改成功",
-              icon: "success",
-              duration: 2e3
-            });
-            editPopup.value.close();
-            editingComponent.value = {
-              index: -1,
-              number: "",
-              component: "",
-              originalNumber: "",
-              originalComponent: ""
-            };
-          } else {
-            uni.showToast({
-              title: "未找到原始构件",
-              icon: "none"
-            });
-          }
-        }
-      };
-      const cancelEdit = () => {
-        formatAppLog("log", "at pages/tree/tree.vue:658", "取消编辑");
-        editPopup.value.close();
-        editingComponent.value = {
-          index: -1,
-          number: "",
-          component: "",
-          originalNumber: "",
-          originalComponent: ""
-        };
-      };
-      const componentsList = vue.ref([]);
-      vue.watch(componentsList, (newVal) => {
-        formatAppLog("log", "at pages/tree/tree.vue:676", "构件列表发生变化");
-        formatAppLog("log", "at pages/tree/tree.vue:677", "新的构件列表长度:", newVal.length);
-        formatAppLog("log", "at pages/tree/tree.vue:678", "构件列表内容:", JSON.stringify(newVal, null, 2));
-      }, { deep: true, immediate: true });
-      vue.watch(inputRecords, (newVal) => {
-        formatAppLog("log", "at pages/tree/tree.vue:683", "输入记录更新，新的长度:", newVal.length);
-        formatAppLog("log", "at pages/tree/tree.vue:684", "输入记录内容:", newVal);
-      }, { deep: true });
-      vue.watch(allInputRecords, (newVal) => {
-        formatAppLog("log", "at pages/tree/tree.vue:689", "所有输入记录更新，新的长度:", newVal.length);
-        formatAppLog("log", "at pages/tree/tree.vue:690", "所有输入记录内容:", newVal);
-      }, { deep: true });
-      const __returned__ = { expandedItems, treeData, popup: popup2, showInputs, typeOptions, selectedTypeIndex, fixedValue, startNum, endNum, allInputRecords, inputRecords, currentEditItem, currentItemRecords, deleteRecord, selectedNode, isThirdLevel, handleNodeClick, filteredComponentsList, handleDelete, response, jsonData, getLevel, hasChildren, isExpanded, shouldShowItem, toggleExpand, getStatus, showInputForm, handleTypeChange, cancelInput, confirmInput, generateComponents, numberItem, closePopup, handlePopupClose, editPopup, editingComponent, handleEdit, confirmEdit, cancelEdit, componentsList, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, watch: vue.watch, nextTick: vue.nextTick, get getBridge() {
-        return getBridge;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "tree-list" }, [
-        vue.createElementVNode("view", { class: "header" }, [
-          vue.createElementVNode("text", { class: "header-name" }, "名称"),
-          vue.createElementVNode("text", { class: "header-order" }, "显示顺序"),
-          vue.createElementVNode("text", { class: "header-status" }, "状态"),
-          vue.createElementVNode("text", { class: "header-action" }, "操作")
-        ]),
-        (vue.openBlock(true), vue.createElementBlock(
-          vue.Fragment,
-          null,
-          vue.renderList($setup.treeData, (item, index) => {
-            return vue.openBlock(), vue.createElementBlock(
-              vue.Fragment,
-              { key: index },
-              [
-                $setup.shouldShowItem(item) ? (vue.openBlock(), vue.createElementBlock("view", {
-                  key: 0,
-                  class: "tree-item"
-                }, [
-                  vue.createElementVNode("view", {
-                    class: "item-content",
-                    style: vue.normalizeStyle({ paddingLeft: $setup.getLevel(item.ancestors) * 20 + "px" }),
-                    onClick: ($event) => $setup.handleNodeClick(item)
-                  }, [
-                    vue.createElementVNode("view", { class: "item-left" }, [
-                      $setup.hasChildren(item) ? (vue.openBlock(), vue.createElementBlock("view", {
-                        key: 0,
-                        class: "expand-icon",
-                        onClick: vue.withModifiers(($event) => $setup.toggleExpand(item), ["stop"])
-                      }, vue.toDisplayString($setup.isExpanded(item.id) ? "▼" : "▶"), 9, ["onClick"])) : (vue.openBlock(), vue.createElementBlock("view", {
-                        key: 1,
-                        class: "expand-icon-placeholder"
-                      })),
-                      vue.createElementVNode(
-                        "text",
-                        { class: "item-name" },
-                        vue.toDisplayString(item.name),
-                        1
-                        /* TEXT */
-                      )
-                    ]),
-                    vue.createElementVNode("view", { class: "item-middle" }, [
-                      vue.createElementVNode(
-                        "text",
-                        { class: "order-num" },
-                        vue.toDisplayString(item.orderNum),
-                        1
-                        /* TEXT */
-                      )
-                    ]),
-                    vue.createElementVNode("view", { class: "item-right" }, [
-                      vue.createElementVNode(
-                        "view",
-                        { class: "status-tag" },
-                        vue.toDisplayString($setup.getStatus(item.status)),
-                        1
-                        /* TEXT */
-                      ),
-                      vue.createElementVNode("button", {
-                        type: "default",
-                        size: "mini",
-                        class: "number-btn",
-                        onClick: vue.withModifiers(($event) => $setup.numberItem(item), ["stop"])
-                      }, "构件编号", 8, ["onClick"])
-                    ])
-                  ], 12, ["onClick"])
-                ])) : vue.createCommentVNode("v-if", true)
-              ],
-              64
-              /* STABLE_FRAGMENT */
-            );
-          }),
-          128
-          /* KEYED_FRAGMENT */
-        ))
-      ]),
-      vue.createCommentVNode(" 修改构件列表显示 "),
-      $setup.filteredComponentsList.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-        key: 0,
-        class: "components-list"
-      }, [
-        vue.createElementVNode("view", { class: "list-header" }, [
-          vue.createElementVNode("text", { class: "header-cell index" }, "序号"),
-          vue.createElementVNode("text", { class: "header-cell number" }, "编号"),
-          vue.createElementVNode("text", { class: "header-cell component" }, "所属部件"),
-          vue.createElementVNode("text", { class: "header-cell action" }, "操作")
-        ]),
-        vue.createElementVNode("scroll-view", {
-          class: "list-content",
-          "scroll-y": ""
-        }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.filteredComponentsList, (item, index) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                key: index,
-                class: "list-row"
-              }, [
-                vue.createElementVNode(
-                  "text",
-                  { class: "list-cell index" },
-                  vue.toDisplayString(index + 1),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "text",
-                  { class: "list-cell number" },
-                  vue.toDisplayString(item.number),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "text",
-                  { class: "list-cell component" },
-                  vue.toDisplayString(item.component),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "list-cell action" }, [
-                  vue.createElementVNode("button", {
-                    class: "list-btn",
-                    size: "mini",
-                    type: "primary",
-                    onClick: ($event) => $setup.handleEdit(item, index)
-                  }, "编辑", 8, ["onClick"]),
-                  vue.createElementVNode("button", {
-                    class: "list-btn",
-                    size: "mini",
-                    type: "primary",
-                    onClick: ($event) => $setup.handleDelete(index)
-                  }, "删除", 8, ["onClick"])
-                ])
-              ]);
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ])
-      ])) : (vue.openBlock(), vue.createElementBlock("view", {
-        key: 1,
-        class: "empty-tip"
-      }, " 暂无构件数据 ")),
-      vue.createVNode(
-        _component_uni_popup,
-        {
-          ref: "popup",
-          type: "center",
-          maskClick: false
-        },
-        {
-          default: vue.withCtx(() => [
-            vue.createElementVNode("view", { class: "popup-box" }, [
-              vue.createElementVNode("view", { class: "popup-content" }, [
-                vue.createElementVNode("view", { class: "input-container" }, [
-                  vue.createElementVNode("view", { class: "select-container" }, [
-                    vue.createElementVNode("view", { class: "type-wrapper" }, [
-                      vue.createElementVNode("view", { class: "type-picker" }, [
-                        vue.createElementVNode(
-                          "picker",
-                          {
-                            range: $setup.typeOptions,
-                            onChange: $setup.handleTypeChange
-                          },
-                          [
-                            vue.createElementVNode("view", { class: "picker-text" }, [
-                              vue.createElementVNode(
-                                "text",
-                                null,
-                                vue.toDisplayString($setup.typeOptions[$setup.selectedTypeIndex]),
-                                1
-                                /* TEXT */
-                              ),
-                              vue.createElementVNode("text", { class: "dropdown-icon" }, "▼")
-                            ])
-                          ],
-                          32
-                          /* NEED_HYDRATION */
-                        )
-                      ]),
-                      $setup.selectedTypeIndex === 0 ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-                        "input",
-                        {
-                          key: 0,
-                          type: "text",
-                          class: "single-input",
-                          "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.fixedValue = $event),
-                          placeholder: "请输入固定值"
-                        },
-                        null,
-                        512
-                        /* NEED_PATCH */
-                      )), [
-                        [vue.vModelText, $setup.fixedValue]
-                      ]) : (vue.openBlock(), vue.createElementBlock("view", {
-                        key: 1,
-                        class: "range-inputs"
-                      }, [
-                        vue.withDirectives(vue.createElementVNode(
-                          "input",
-                          {
-                            type: "number",
-                            class: "range-input",
-                            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.startNum = $event),
-                            placeholder: "起始值"
-                          },
-                          null,
-                          512
-                          /* NEED_PATCH */
-                        ), [
-                          [vue.vModelText, $setup.startNum]
-                        ]),
-                        vue.createElementVNode("text", { class: "separator" }, "-"),
-                        vue.withDirectives(vue.createElementVNode(
-                          "input",
-                          {
-                            type: "number",
-                            class: "range-input",
-                            "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.endNum = $event),
-                            placeholder: "结束值"
-                          },
-                          null,
-                          512
-                          /* NEED_PATCH */
-                        ), [
-                          [vue.vModelText, $setup.endNum]
-                        ])
-                      ]))
-                    ]),
-                    vue.createElementVNode("view", { class: "action-buttons" }, [
-                      vue.createElementVNode("button", {
-                        class: "action-btn cancel",
-                        onClick: $setup.cancelInput
-                      }, "取消"),
-                      vue.createElementVNode("button", {
-                        class: "action-btn confirm",
-                        type: "primary",
-                        onClick: $setup.confirmInput
-                      }, "确定")
-                    ])
-                  ]),
-                  vue.createCommentVNode(" 添加记录显示区域 "),
-                  vue.createElementVNode("view", { class: "records-container" }, [
-                    vue.createElementVNode("view", { class: "records-title" }, "已添加片段："),
-                    vue.createElementVNode("view", { class: "records-header" }, [
-                      vue.createElementVNode("text", { class: "header-item" }, "序号"),
-                      vue.createElementVNode("text", { class: "header-item" }, "类型"),
-                      vue.createElementVNode("text", { class: "header-item" }, "值"),
-                      vue.createElementVNode("text", { class: "header-item" }, "操作")
-                    ]),
-                    vue.createElementVNode("scroll-view", {
-                      class: "records-list",
-                      "scroll-y": ""
-                    }, [
-                      (vue.openBlock(true), vue.createElementBlock(
-                        vue.Fragment,
-                        null,
-                        vue.renderList($setup.inputRecords, (record, index) => {
-                          return vue.openBlock(), vue.createElementBlock("view", {
-                            key: index,
-                            class: "record-item"
-                          }, [
-                            vue.createElementVNode(
-                              "text",
-                              { class: "record-index" },
-                              vue.toDisplayString(index + 1),
-                              1
-                              /* TEXT */
-                            ),
-                            vue.createElementVNode(
-                              "text",
-                              { class: "record-type" },
-                              vue.toDisplayString(record.type),
-                              1
-                              /* TEXT */
-                            ),
-                            vue.createElementVNode(
-                              "text",
-                              { class: "record-value" },
-                              vue.toDisplayString(record.value),
-                              1
-                              /* TEXT */
-                            ),
-                            vue.createElementVNode("button", {
-                              class: "delete-btn",
-                              size: "mini",
-                              onClick: ($event) => $setup.deleteRecord(index)
-                            }, "删除", 8, ["onClick"])
-                          ]);
-                        }),
-                        128
-                        /* KEYED_FRAGMENT */
-                      ))
-                    ])
-                  ])
-                ])
-              ]),
-              vue.createCommentVNode(" 添加关闭按钮 "),
-              vue.createElementVNode("view", { class: "popup-footer" }, [
-                vue.createElementVNode("button", {
-                  class: "close-btn",
-                  type: "primary",
-                  onClick: $setup.closePopup
-                }, "完成")
-              ])
-            ])
-          ]),
-          _: 1
-          /* STABLE */
-        },
-        512
-        /* NEED_PATCH */
-      ),
-      vue.createCommentVNode(" 添加编辑弹窗 "),
-      vue.createVNode(
-        _component_uni_popup,
-        {
-          ref: "editPopup",
-          type: "center"
-        },
-        {
-          default: vue.withCtx(() => [
-            vue.createElementVNode("view", { class: "edit-popup-box" }, [
-              vue.createElementVNode("view", { class: "edit-popup-header" }, [
-                vue.createElementVNode("text", { class: "edit-title" }, "编辑构件")
-              ]),
-              vue.createElementVNode("view", { class: "edit-popup-content" }, [
-                vue.createElementVNode("view", { class: "edit-form-item" }, [
-                  vue.createElementVNode("text", { class: "edit-label" }, "编号"),
-                  vue.withDirectives(vue.createElementVNode(
-                    "input",
-                    {
-                      type: "text",
-                      class: "edit-input",
-                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.editingComponent.number = $event),
-                      placeholder: "请输入编号"
-                    },
-                    null,
-                    512
-                    /* NEED_PATCH */
-                  ), [
-                    [vue.vModelText, $setup.editingComponent.number]
-                  ])
-                ]),
-                vue.createElementVNode("view", { class: "edit-form-item" }, [
-                  vue.createElementVNode("text", { class: "edit-label" }, "所属部件"),
-                  vue.withDirectives(vue.createElementVNode(
-                    "input",
-                    {
-                      type: "text",
-                      class: "edit-input",
-                      "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.editingComponent.component = $event),
-                      placeholder: "请输入所属部件"
-                    },
-                    null,
-                    512
-                    /* NEED_PATCH */
-                  ), [
-                    [vue.vModelText, $setup.editingComponent.component]
-                  ])
-                ])
-              ]),
-              vue.createElementVNode("view", { class: "edit-popup-footer" }, [
-                vue.createElementVNode("button", {
-                  class: "edit-btn cancel",
-                  onClick: $setup.cancelEdit
-                }, "取消"),
-                vue.createElementVNode("button", {
-                  class: "edit-btn confirm",
-                  type: "primary",
-                  onClick: $setup.confirmEdit
-                }, "确定")
-              ])
-            ])
-          ]),
-          _: 1
-          /* STABLE */
-        },
-        512
-        /* NEED_PATCH */
-      )
-    ]);
-  }
-  const PagesTreeTree = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-d9a31fef"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/tree/tree.vue"]]);
-  const _sfc_main$v = {
-    __name: "List",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const back = () => {
-        uni.navigateBack();
-      };
-      const projectInfo = vue.ref({});
-      const searchText = vue.ref("");
-      const bridges = vue.ref([]);
-      const getProjectData = async () => {
-        var _a, _b, _c;
-        try {
-          const response = await getProject(1);
-          formatAppLog("log", "at pages/List/List.vue:83", "获取到的原始数据:", JSON.stringify(response));
-          if (!response || response.code !== 0) {
-            formatAppLog("error", "at pages/List/List.vue:87", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
-            return;
-          }
-          if (response.data && response.data.projects && response.data.projects.length > 0) {
-            const project = response.data.projects[0];
-            projectInfo.value = {
-              projectName: project.name,
-              code: project.code,
-              status: project.status === "1" ? "已完成" : "未完成",
-              company: ((_a = project.ownerDept) == null ? void 0 : _a.deptName) || "",
-              progress: project.number || "0/0",
-              year: project.year,
-              timeRange: `${project.startDate || ""} - ${project.endDate || ""}`,
-              detectionUnit: ((_b = project.dept) == null ? void 0 : _b.deptName) || "",
-              inspector: ((_c = project.inspectors) == null ? void 0 : _c.map((i2) => i2.userName).join(" / ")) || ""
-            };
-          }
-          const bridgeData = await getTask(1, 1);
-          formatAppLog("log", "at pages/List/List.vue:109", "获取到的桥梁数据:", bridgeData);
-          if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
-            bridges.value = bridgeData.data.tasks.map((task) => {
-              var _a2, _b2, _c2, _d, _e2, _f, _g;
-              return {
-                id: task.id,
-                code: ((_a2 = task.building) == null ? void 0 : _a2.buildingCode) || "",
-                name: ((_b2 = task.building) == null ? void 0 : _b2.name) || "",
-                location: `${((_c2 = task.building) == null ? void 0 : _c2.routeCode) || ""} / ${((_d = task.building) == null ? void 0 : _d.routeName) || ""} / ${((_e2 = task.building) == null ? void 0 : _e2.bridgePileNumber) || ""}`,
-                type: "small",
-                // 默认类型
-                length: ((_f = task.building) == null ? void 0 : _f.bridgeLength) || "",
-                class: ((_g = task.building) == null ? void 0 : _g.rootPropertyId) || ""
-              };
-            });
-            formatAppLog("log", "at pages/List/List.vue:121", "处理后的桥梁列表:", bridges.value);
-          } else {
-            bridges.value = [];
-            formatAppLog("error", "at pages/List/List.vue:124", "桥梁数据格式不正确");
-            uni.showToast({
-              title: "桥梁数据格式不正确",
-              icon: "none"
-            });
-          }
-        } catch (error) {
-          formatAppLog("error", "at pages/List/List.vue:131", "获取数据失败:", error);
-          uni.showToast({
-            title: "获取数据失败",
-            icon: "none"
-          });
-        }
-      };
-      vue.onMounted(() => {
-        getProjectData();
-      });
-      const getBridgeIcon = (type) => {
-        const icons = {
-          "small": "/static/image/bridge-small.png",
-          "cross": "/static/image/bridge-cross.png",
-          "arch": "/static/image/bridge-arch.png",
-          "suspension": "/static/images/bridge-suspension.png",
-          "main": "/static/image/bridge-arch.png",
-          // 暂时使用拱桥图标代替主线桥图标
-          "ramp": "/static/image/bridge-cross.png"
-          // 暂时使用立交桥图标代替匝道桥图标
-        };
-        return icons[type] || icons["small"];
-      };
-      const goToDetail = (bridge) => {
-        uni.navigateTo({
-          url: `/pages/bridge-disease/bridge-disease`
-        });
-      };
-      const filteredBridges = vue.computed(() => {
-        if (!searchText.value) {
-          return bridges.value;
-        }
-        const searchLower = searchText.value.toLowerCase();
-        return bridges.value.filter((bridge) => {
-          return bridge.name.toLowerCase().includes(searchLower) || bridge.code.toLowerCase().includes(searchLower) || bridge.location.toLowerCase().includes(searchLower);
-        });
-      });
-      const handleSearch = () => {
-        formatAppLog("log", "at pages/List/List.vue:179", "搜索关键词:", searchText.value);
-      };
-      const __returned__ = { back, projectInfo, searchText, bridges, getProjectData, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
-        return getProject;
-      }, get getTask() {
-        return getTask;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_nav_bar = resolveEasycom(vue.resolveDynamicComponent("uni-nav-bar"), __easycom_0$6);
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createCommentVNode(" 导航栏 "),
-      vue.createVNode(_component_uni_nav_bar, {
-        class: "uni-nav-bar",
-        dark: "",
-        fixed: true,
-        shadow: "",
-        "background-color": "#0F4687",
-        "status-bar": "",
-        "left-icon": "left",
-        title: "桥梁定期检查项目列表",
-        onClickLeft: $setup.back
-      }),
-      vue.createCommentVNode(" 顶部信息卡片 "),
-      vue.createElementVNode("view", { class: "info-card" }, [
-        vue.createElementVNode("view", { class: "content-box" }, [
-          vue.createElementVNode(
-            "view",
-            { class: "title" },
-            vue.toDisplayString($setup.projectInfo.projectName || "项目名称"),
-            1
-            /* TEXT */
-          ),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "项目编号: " + vue.toDisplayString($setup.projectInfo.code),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测状态: " + vue.toDisplayString($setup.projectInfo.status),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "项目单位: " + vue.toDisplayString($setup.projectInfo.company),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测数量: " + vue.toDisplayString($setup.projectInfo.progress),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测年度: " + vue.toDisplayString($setup.projectInfo.year),
-              1
-              /* TEXT */
-            ),
-            vue.createElementVNode(
-              "text",
-              null,
-              "起止时间: " + vue.toDisplayString($setup.projectInfo.timeRange),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测单位: " + vue.toDisplayString($setup.projectInfo.detectionUnit),
-              1
-              /* TEXT */
-            )
-          ]),
-          vue.createElementVNode("view", { class: "info-row" }, [
-            vue.createElementVNode(
-              "text",
-              null,
-              "检测人员: " + vue.toDisplayString($setup.projectInfo.inspector),
-              1
-              /* TEXT */
-            )
-          ])
-        ])
-      ]),
-      vue.createCommentVNode(" 搜索框 "),
-      vue.createElementVNode("view", { class: "search-box" }, [
-        vue.createElementVNode("text", { class: "search-icon" }, ""),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            type: "text",
-            placeholder: "搜索桥梁名称/编号/位置",
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.searchText = $event),
-            onInput: $setup.handleSearch
-          },
-          null,
-          544
-          /* NEED_HYDRATION, NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.searchText]
-        ])
-      ]),
-      vue.createCommentVNode(" 桥梁列表 "),
-      vue.createElementVNode("view", { class: "bridge-list" }, [
-        (vue.openBlock(true), vue.createElementBlock(
-          vue.Fragment,
-          null,
-          vue.renderList($setup.filteredBridges, (bridge) => {
-            return vue.openBlock(), vue.createElementBlock("view", {
-              class: "bridge-item",
-              key: bridge.id,
-              onClick: ($event) => $setup.goToDetail(bridge)
-            }, [
-              vue.createElementVNode("view", { class: "bridge-icon" }, [
-                vue.createElementVNode("image", {
-                  src: $setup.getBridgeIcon(bridge.type),
-                  mode: "aspectFit"
-                }, null, 8, ["src"])
-              ]),
-              vue.createElementVNode("view", { class: "bridge-info" }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-code" },
-                  vue.toDisplayString(bridge.code),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-name" },
-                  vue.toDisplayString(bridge.name),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "view",
-                  { class: "bridge-location" },
-                  vue.toDisplayString(bridge.location),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "bridge-meta" }, [
-                vue.createElementVNode(
-                  "text",
-                  { class: "bridge-length" },
-                  vue.toDisplayString(bridge.length),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode(
-                  "text",
-                  { class: "bridge-class" },
-                  vue.toDisplayString(bridge.class) + "类",
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("text", { class: "arrow" }, ">")
-              ])
-            ], 8, ["onClick"]);
-          }),
-          128
-          /* KEYED_FRAGMENT */
-        )),
-        vue.createCommentVNode(" 无搜索结果提示 "),
-        $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "no-result"
-        }, [
-          vue.createElementVNode("text", null, "未找到匹配的桥梁")
-        ])) : vue.createCommentVNode("v-if", true)
-      ])
-    ]);
-  }
-  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
-  const message = "/static/image/message.svg";
-  const setting = "/static/image/setting.svg";
-  const _imports_0$4 = "/static/image/zjl.png";
-  const _sfc_main$u = {
-    __name: "home",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const popup2 = vue.ref(null);
-      const isOnline = vue.ref(false);
-      const buildingInspector = vue.ref([{
-        name: "桥梁病害采集",
-        iconSrc: "../../static/image/bridge.svg"
-      }, {
-        name: "隧道病害采集",
-        iconSrc: "../../static/image/tunnel.svg"
-      }]);
-      const toUserInfo = () => {
-        uni.navigateTo({
-          url: "/pages/userinfo/userinfo"
-        });
-      };
-      const toMessage = () => {
-        uni.navigateTo({
-          url: "/pages/message/message"
-        });
-      };
-      const toSetting = () => {
-        uni.navigateTo({
-          url: "/pages/setting/setting"
-        });
-      };
-      onLoad(() => {
-        isOnline.value = uni.getStorageSync("isOnline");
-      });
-      const showSidebar = () => {
-        popup2.value.open();
-      };
-      const hideSidebar = () => {
-        popup2.value.close();
-      };
-      onNavigationBarButtonTap(function(e2) {
-        if (e2.index === 0) {
-          showSidebar();
-        }
-      });
-      const clickCard = (name) => {
-        formatAppLog("log", "at pages/home/home.vue:95", "点击的卡片的名称为:" + name);
-        if (name === "桥梁病害采集") {
-          uni.navigateTo({
-            url: "/pages/bridge/bridge"
-          });
-        } else if (name === "隧道病害采集") {
-          formatAppLog("log", "at pages/home/home.vue:102", "隧道病害采集功能待开发");
-          uni.navigateTo({
-            url: "/pages/detail/detail"
-          });
-        }
-      };
-      const __returned__ = { popup: popup2, isOnline, buildingInspector, toUserInfo, toMessage, toSetting, showSidebar, hideSidebar, clickCard, onMounted: vue.onMounted, ref: vue.ref, get onLoad() {
-        return onLoad;
-      }, get message() {
-        return message;
-      }, get setting() {
-        return setting;
-      }, get onNavigationBarButtonTap() {
-        return onNavigationBarButtonTap;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
-    return vue.openBlock(), vue.createElementBlock(
-      vue.Fragment,
-      null,
-      [
-        vue.createElementVNode("view", { class: "home" }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.buildingInspector, (item, index) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                class: "home-box",
-                key: index,
-                onClick: ($event) => $setup.clickCard(item.name)
-              }, [
-                vue.createElementVNode("image", {
-                  src: item.iconSrc,
-                  class: "home-box-image"
-                }, null, 8, ["src"]),
-                vue.createElementVNode(
-                  "view",
-                  { class: "home-box-text" },
-                  vue.toDisplayString(item.name),
-                  1
-                  /* TEXT */
-                )
-              ], 8, ["onClick"]);
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ]),
-        vue.createCommentVNode(" 侧边栏 "),
-        vue.createVNode(
-          _component_uni_popup,
-          {
-            ref: "popup",
-            type: "left",
-            onMaskClick: $setup.hideSidebar
-          },
-          {
-            default: vue.withCtx(() => [
-              vue.createElementVNode("view", { class: "sidebar" }, [
-                vue.createElementVNode("view", {
-                  class: "sidebar-userinfo",
-                  onClick: $setup.toUserInfo
-                }, [
-                  vue.createElementVNode("image", {
-                    class: "sidebar-userinfo-photo",
-                    src: _imports_0$4
-                  }),
-                  vue.createElementVNode("view", { class: "sidebar-userinfo-info" }, [
-                    vue.createElementVNode("view", { class: "sidebar-userinfo-info-nameAndStatus" }, [
-                      vue.createElementVNode("view", { class: "sidebar-userinfo-info-nameAndStatus-name" }, "西工院检测05"),
-                      vue.createElementVNode(
-                        "view",
-                        { class: "sidebar-userinfo-info-nameAndStatus-status" },
-                        vue.toDisplayString($setup.isOnline ? "在线" : "离线"),
-                        1
-                        /* TEXT */
-                      )
-                    ]),
-                    vue.createElementVNode("view", { class: "sidebar-userinfo-info-number" }, "编号:xigy05")
-                  ])
-                ]),
-                vue.createElementVNode("view", {
-                  class: "sidebar-message",
-                  onClick: $setup.toMessage
-                }, [
-                  vue.createElementVNode("image", {
-                    class: "sidebar-message-icon",
-                    src: $setup.message
-                  }, null, 8, ["src"]),
-                  vue.createElementVNode("view", { class: "sidebar-message-text" }, "消息管理")
-                ]),
-                vue.createElementVNode("view", {
-                  class: "sidebar-setting",
-                  onClick: $setup.toSetting
-                }, [
-                  vue.createElementVNode("image", {
-                    class: "sidebar-setting-icon",
-                    src: $setup.setting
-                  }, null, 8, ["src"]),
-                  vue.createElementVNode("view", { class: "sidebar-setting-text" }, "设置")
-                ])
-              ])
-            ]),
-            _: 1
-            /* STABLE */
-          },
-          512
-          /* NEED_PATCH */
-        )
-      ],
-      64
-      /* STABLE_FRAGMENT */
-    );
-  }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
-  const noMessage = "/static/image/noMessage.svg";
-  const _sfc_main$t = {
-    __name: "message",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const __returned__ = { get noMessage() {
-        return noMessage;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "message" }, [
-      vue.createElementVNode("view", { class: "message-none" }, [
-        vue.createElementVNode("image", {
-          class: "message-none-icon",
-          src: $setup.noMessage
-        }, null, 8, ["src"]),
-        vue.createElementVNode("view", { class: "message-none-text" }, "没有相关数据哦")
-      ])
-    ]);
-  }
-  const PagesMessageMessage = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/message/message.vue"]]);
-  const _sfc_main$s = {
-    __name: "infoItem",
-    props: {
-      infoKey: String,
-      infoValue: String
-    },
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const props = __props;
-      const __returned__ = { props, ref: vue.ref };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "infoItem" }, [
-      vue.createElementVNode(
-        "view",
-        { class: "infoItem-key" },
-        vue.toDisplayString($setup.props.infoKey),
-        1
-        /* TEXT */
-      ),
-      vue.createElementVNode(
-        "view",
-        { class: "infoItem-value" },
-        vue.toDisplayString($setup.props.infoValue),
-        1
-        /* TEXT */
-      )
-    ]);
-  }
-  const infoItem = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-e152a2e4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/infoItem.vue"]]);
-  const _sfc_main$r = {
-    __name: "userinfo",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const userinfo = vue.ref([{
-        key: "姓名",
-        value: "西工院检测05"
-      }, {
-        key: "编号",
-        value: "xigy05"
-      }, {
-        key: "手机号码",
-        value: "12345678901"
-      }, {
-        key: "权属单位",
-        value: "陕西交控工程技术有限公司"
-      }]);
-      const photoSrc = vue.ref("/static/image/zjl.png");
-      const changePhoto = () => {
-        uni.chooseImage({
-          count: 1,
-          sizeType: ["original", "compressed"],
-          sourceType: ["album", "camera"],
-          success: (res) => {
-            photoSrc.value = res.tempFilePaths[0];
-          },
-          fail: (err) => {
-            formatAppLog("error", "at pages/userinfo/userinfo.vue:38", "头像选择失败", err);
-          }
-        });
-      };
-      const __returned__ = { userinfo, photoSrc, changePhoto, ref: vue.ref, infoItem };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "userinfo" }, [
-      vue.createElementVNode("view", { class: "userinfo-photoBox" }, [
-        vue.createElementVNode("image", {
-          class: "userinfo-photoBox-photo",
-          src: $setup.photoSrc,
-          onClick: $setup.changePhoto
-        }, null, 8, ["src"])
-      ]),
-      (vue.openBlock(true), vue.createElementBlock(
-        vue.Fragment,
-        null,
-        vue.renderList($setup.userinfo, (item, index) => {
-          return vue.openBlock(), vue.createBlock($setup["infoItem"], {
-            key: index,
-            infoKey: item.key,
-            infoValue: item.value
-          }, null, 8, ["infoKey", "infoValue"]);
-        }),
-        128
-        /* KEYED_FRAGMENT */
-      ))
-    ]);
-  }
-  const PagesUserinfoUserinfo = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/userinfo/userinfo.vue"]]);
-  const _imports_0$3 = "/static/image/exclamation.svg";
-  const _imports_1$1 = "/static/image/rightArrow.svg";
-  const _sfc_main$q = {
-    __name: "setting",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const toVersionInfo = () => {
-        uni.navigateTo({
-          url: "/pages/versionInfo/versionInfo"
-        });
-      };
-      const logout = () => {
-        uni.removeStorageSync("isLoggedIn");
-        uni.removeStorageSync("autoLogin");
-        uni.redirectTo({ url: "/pages/login/login" });
-      };
-      const __returned__ = { toVersionInfo, logout };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "setting" }, [
-      vue.createElementVNode("view", {
-        class: "setting-versionInfo",
-        onClick: $setup.toVersionInfo
-      }, [
-        vue.createElementVNode("view", { class: "setting-versionInfo-left" }, [
-          vue.createElementVNode("image", {
-            class: "setting-versionInfo-left-icon",
-            src: _imports_0$3
-          }),
-          vue.createElementVNode("view", { class: "setting-versionInfo-left-text" }, "版本信息")
-        ]),
-        vue.createElementVNode("image", {
-          class: "setting-versionInfo-rightArrow",
-          src: _imports_1$1
-        })
-      ]),
-      vue.createElementVNode("view", {
-        class: "setting-logout",
-        onClick: $setup.logout
-      }, " 注销登录 ")
-    ]);
-  }
-  const PagesSettingSetting = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/setting/setting.vue"]]);
-  const popup = {
-    data() {
-      return {};
-    },
-    created() {
-      this.popup = this.getParent();
-    },
-    methods: {
-      /**
-       * 获取父元素实例
-       */
-      getParent(name = "uniPopup") {
-        let parent = this.$parent;
-        let parentName = parent.$options.name;
-        while (parentName !== name) {
-          parent = parent.$parent;
-          if (!parent)
-            return false;
-          parentName = parent.$options.name;
-        }
-        return parent;
-      }
-    }
-  };
-  const isObject = (val) => val !== null && typeof val === "object";
-  const defaultDelimiters = ["{", "}"];
-  class BaseFormatter {
-    constructor() {
-      this._caches = /* @__PURE__ */ Object.create(null);
-    }
-    interpolate(message2, values, delimiters = defaultDelimiters) {
-      if (!values) {
-        return [message2];
-      }
-      let tokens = this._caches[message2];
-      if (!tokens) {
-        tokens = parse(message2, delimiters);
-        this._caches[message2] = tokens;
-      }
-      return compile(tokens, values);
-    }
-  }
-  const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
-  const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
-  function parse(format, [startDelimiter, endDelimiter]) {
-    const tokens = [];
-    let position = 0;
-    let text = "";
-    while (position < format.length) {
-      let char = format[position++];
-      if (char === startDelimiter) {
-        if (text) {
-          tokens.push({ type: "text", value: text });
-        }
-        text = "";
-        let sub = "";
-        char = format[position++];
-        while (char !== void 0 && char !== endDelimiter) {
-          sub += char;
-          char = format[position++];
-        }
-        const isClosed = char === endDelimiter;
-        const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
-        tokens.push({ value: sub, type });
-      } else {
-        text += char;
-      }
-    }
-    text && tokens.push({ type: "text", value: text });
-    return tokens;
-  }
-  function compile(tokens, values) {
-    const compiled = [];
-    let index = 0;
-    const mode = Array.isArray(values) ? "list" : isObject(values) ? "named" : "unknown";
-    if (mode === "unknown") {
-      return compiled;
-    }
-    while (index < tokens.length) {
-      const token = tokens[index];
-      switch (token.type) {
-        case "text":
-          compiled.push(token.value);
-          break;
-        case "list":
-          compiled.push(values[parseInt(token.value, 10)]);
-          break;
-        case "named":
-          if (mode === "named") {
-            compiled.push(values[token.value]);
-          } else {
-            {
-              console.warn(`Type of token '${token.type}' and format of value '${mode}' don't match!`);
-            }
-          }
-          break;
-        case "unknown":
-          {
-            console.warn(`Detect 'unknown' type of token!`);
-          }
-          break;
-      }
-      index++;
-    }
-    return compiled;
-  }
-  const LOCALE_ZH_HANS = "zh-Hans";
-  const LOCALE_ZH_HANT = "zh-Hant";
-  const LOCALE_EN = "en";
-  const LOCALE_FR = "fr";
-  const LOCALE_ES = "es";
-  const hasOwnProperty = Object.prototype.hasOwnProperty;
-  const hasOwn = (val, key) => hasOwnProperty.call(val, key);
-  const defaultFormatter = new BaseFormatter();
-  function include(str, parts) {
-    return !!parts.find((part) => str.indexOf(part) !== -1);
-  }
-  function startsWith(str, parts) {
-    return parts.find((part) => str.indexOf(part) === 0);
-  }
-  function normalizeLocale(locale, messages2) {
-    if (!locale) {
-      return;
-    }
-    locale = locale.trim().replace(/_/g, "-");
-    if (messages2 && messages2[locale]) {
-      return locale;
-    }
-    locale = locale.toLowerCase();
-    if (locale === "chinese") {
-      return LOCALE_ZH_HANS;
-    }
-    if (locale.indexOf("zh") === 0) {
-      if (locale.indexOf("-hans") > -1) {
-        return LOCALE_ZH_HANS;
-      }
-      if (locale.indexOf("-hant") > -1) {
-        return LOCALE_ZH_HANT;
-      }
-      if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
-        return LOCALE_ZH_HANT;
-      }
-      return LOCALE_ZH_HANS;
-    }
-    let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
-    if (messages2 && Object.keys(messages2).length > 0) {
-      locales = Object.keys(messages2);
-    }
-    const lang = startsWith(locale, locales);
-    if (lang) {
-      return lang;
-    }
-  }
-  class I18n {
-    constructor({ locale, fallbackLocale, messages: messages2, watcher, formater: formater2 }) {
-      this.locale = LOCALE_EN;
-      this.fallbackLocale = LOCALE_EN;
-      this.message = {};
-      this.messages = {};
-      this.watchers = [];
-      if (fallbackLocale) {
-        this.fallbackLocale = fallbackLocale;
-      }
-      this.formater = formater2 || defaultFormatter;
-      this.messages = messages2 || {};
-      this.setLocale(locale || LOCALE_EN);
-      if (watcher) {
-        this.watchLocale(watcher);
-      }
-    }
-    setLocale(locale) {
-      const oldLocale = this.locale;
-      this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
-      if (!this.messages[this.locale]) {
-        this.messages[this.locale] = {};
-      }
-      this.message = this.messages[this.locale];
-      if (oldLocale !== this.locale) {
-        this.watchers.forEach((watcher) => {
-          watcher(this.locale, oldLocale);
-        });
-      }
-    }
-    getLocale() {
-      return this.locale;
-    }
-    watchLocale(fn) {
-      const index = this.watchers.push(fn) - 1;
-      return () => {
-        this.watchers.splice(index, 1);
-      };
-    }
-    add(locale, message2, override = true) {
-      const curMessages = this.messages[locale];
-      if (curMessages) {
-        if (override) {
-          Object.assign(curMessages, message2);
-        } else {
-          Object.keys(message2).forEach((key) => {
-            if (!hasOwn(curMessages, key)) {
-              curMessages[key] = message2[key];
-            }
-          });
-        }
-      } else {
-        this.messages[locale] = message2;
-      }
-    }
-    f(message2, values, delimiters) {
-      return this.formater.interpolate(message2, values, delimiters).join("");
-    }
-    t(key, locale, values) {
-      let message2 = this.message;
-      if (typeof locale === "string") {
-        locale = normalizeLocale(locale, this.messages);
-        locale && (message2 = this.messages[locale]);
-      } else {
-        values = locale;
-      }
-      if (!hasOwn(message2, key)) {
-        console.warn(`Cannot translate the value of keypath ${key}. Use the value of keypath as default.`);
-        return key;
-      }
-      return this.formater.interpolate(message2[key], values).join("");
-    }
-  }
-  function watchAppLocale(appVm, i18n) {
-    if (appVm.$watchLocale) {
-      appVm.$watchLocale((newLocale) => {
-        i18n.setLocale(newLocale);
-      });
-    } else {
-      appVm.$watch(() => appVm.$locale, (newLocale) => {
-        i18n.setLocale(newLocale);
-      });
-    }
-  }
-  function getDefaultLocale() {
-    if (typeof uni !== "undefined" && uni.getLocale) {
-      return uni.getLocale();
-    }
-    if (typeof global !== "undefined" && global.getLocale) {
-      return global.getLocale();
-    }
-    return LOCALE_EN;
-  }
-  function initVueI18n(locale, messages2 = {}, fallbackLocale, watcher) {
-    if (typeof locale !== "string") {
-      const options = [
-        messages2,
-        locale
-      ];
-      locale = options[0];
-      messages2 = options[1];
-    }
-    if (typeof locale !== "string") {
-      locale = getDefaultLocale();
-    }
-    if (typeof fallbackLocale !== "string") {
-      fallbackLocale = typeof __uniConfig !== "undefined" && __uniConfig.fallbackLocale || LOCALE_EN;
-    }
-    const i18n = new I18n({
-      locale,
-      fallbackLocale,
-      messages: messages2,
-      watcher
-    });
-    let t2 = (key, values) => {
-      if (typeof getApp !== "function") {
-        t2 = function(key2, values2) {
-          return i18n.t(key2, values2);
-        };
-      } else {
-        let isWatchedAppLocale = false;
-        t2 = function(key2, values2) {
-          const appVm = getApp().$vm;
-          if (appVm) {
-            appVm.$locale;
-            if (!isWatchedAppLocale) {
-              isWatchedAppLocale = true;
-              watchAppLocale(appVm, i18n);
-            }
-          }
-          return i18n.t(key2, values2);
-        };
-      }
-      return t2(key, values);
-    };
-    return {
-      i18n,
-      f(message2, values, delimiters) {
-        return i18n.f(message2, values, delimiters);
-      },
-      t(key, values) {
-        return t2(key, values);
-      },
-      add(locale2, message2, override = true) {
-        return i18n.add(locale2, message2, override);
-      },
-      watch(fn) {
-        return i18n.watchLocale(fn);
-      },
-      getLocale() {
-        return i18n.getLocale();
-      },
-      setLocale(newLocale) {
-        return i18n.setLocale(newLocale);
-      }
-    };
-  }
+  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
   const en$2 = {
-    "uni-popup.cancel": "cancel",
-    "uni-popup.ok": "ok",
-    "uni-popup.placeholder": "pleace enter",
-    "uni-popup.title": "Hint",
-    "uni-popup.shareTitle": "Share to"
+    "uni-search-bar.cancel": "cancel",
+    "uni-search-bar.placeholder": "Search enter content"
   };
   const zhHans$1 = {
-    "uni-popup.cancel": "取消",
-    "uni-popup.ok": "确定",
-    "uni-popup.placeholder": "请输入",
-    "uni-popup.title": "提示",
-    "uni-popup.shareTitle": "分享到"
+    "uni-search-bar.cancel": "取消",
+    "uni-search-bar.placeholder": "请输入搜索内容"
   };
   const zhHant$1 = {
-    "uni-popup.cancel": "取消",
-    "uni-popup.ok": "確定",
-    "uni-popup.placeholder": "請輸入",
-    "uni-popup.title": "提示",
-    "uni-popup.shareTitle": "分享到"
+    "uni-search-bar.cancel": "取消",
+    "uni-search-bar.placeholder": "請輸入搜索內容"
   };
   const messages$1 = {
     en: en$2,
@@ -4393,311 +3575,7 @@ if (uni.restoreGlobal) {
   const {
     t: t$2
   } = initVueI18n(messages$1);
-  const _sfc_main$p = {
-    name: "uniPopupDialog",
-    mixins: [popup],
-    emits: ["confirm", "close", "update:modelValue", "input"],
-    props: {
-      inputType: {
-        type: String,
-        default: "text"
-      },
-      showClose: {
-        type: Boolean,
-        default: true
-      },
-      modelValue: {
-        type: [Number, String],
-        default: ""
-      },
-      placeholder: {
-        type: [String, Number],
-        default: ""
-      },
-      type: {
-        type: String,
-        default: "error"
-      },
-      mode: {
-        type: String,
-        default: "base"
-      },
-      title: {
-        type: String,
-        default: ""
-      },
-      content: {
-        type: String,
-        default: ""
-      },
-      beforeClose: {
-        type: Boolean,
-        default: false
-      },
-      cancelText: {
-        type: String,
-        default: ""
-      },
-      confirmText: {
-        type: String,
-        default: ""
-      },
-      maxlength: {
-        type: Number,
-        default: -1
-      },
-      focus: {
-        type: Boolean,
-        default: true
-      }
-    },
-    data() {
-      return {
-        dialogType: "error",
-        val: ""
-      };
-    },
-    computed: {
-      okText() {
-        return this.confirmText || t$2("uni-popup.ok");
-      },
-      closeText() {
-        return this.cancelText || t$2("uni-popup.cancel");
-      },
-      placeholderText() {
-        return this.placeholder || t$2("uni-popup.placeholder");
-      },
-      titleText() {
-        return this.title || t$2("uni-popup.title");
-      }
-    },
-    watch: {
-      type(val) {
-        this.dialogType = val;
-      },
-      mode(val) {
-        if (val === "input") {
-          this.dialogType = "info";
-        }
-      },
-      value(val) {
-        if (this.maxlength != -1 && this.mode === "input") {
-          this.val = val.slice(0, this.maxlength);
-        } else {
-          this.val = val;
-        }
-      },
-      val(val) {
-        this.$emit("update:modelValue", val);
-      }
-    },
-    created() {
-      this.popup.disableMask();
-      if (this.mode === "input") {
-        this.dialogType = "info";
-        this.val = this.value;
-        this.val = this.modelValue;
-      } else {
-        this.dialogType = this.type;
-      }
-    },
-    methods: {
-      /**
-       * 点击确认按钮
-       */
-      onOk() {
-        if (this.mode === "input") {
-          this.$emit("confirm", this.val);
-        } else {
-          this.$emit("confirm");
-        }
-        if (this.beforeClose)
-          return;
-        this.popup.close();
-      },
-      /**
-       * 点击取消按钮
-       */
-      closeDialog() {
-        this.$emit("close");
-        if (this.beforeClose)
-          return;
-        this.popup.close();
-      },
-      close() {
-        this.popup.close();
-      }
-    }
-  };
-  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "uni-popup-dialog" }, [
-      vue.createElementVNode("view", { class: "uni-dialog-title" }, [
-        vue.createElementVNode(
-          "text",
-          {
-            class: vue.normalizeClass(["uni-dialog-title-text", ["uni-popup__" + $data.dialogType]])
-          },
-          vue.toDisplayString($options.titleText),
-          3
-          /* TEXT, CLASS */
-        )
-      ]),
-      $props.mode === "base" ? (vue.openBlock(), vue.createElementBlock("view", {
-        key: 0,
-        class: "uni-dialog-content"
-      }, [
-        vue.renderSlot(_ctx.$slots, "default", {}, () => [
-          vue.createElementVNode(
-            "text",
-            { class: "uni-dialog-content-text" },
-            vue.toDisplayString($props.content),
-            1
-            /* TEXT */
-          )
-        ], true)
-      ])) : (vue.openBlock(), vue.createElementBlock("view", {
-        key: 1,
-        class: "uni-dialog-content"
-      }, [
-        vue.renderSlot(_ctx.$slots, "default", {}, () => [
-          vue.withDirectives(vue.createElementVNode("input", {
-            class: "uni-dialog-input",
-            maxlength: $props.maxlength,
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.val = $event),
-            type: $props.inputType,
-            placeholder: $options.placeholderText,
-            focus: $props.focus
-          }, null, 8, ["maxlength", "type", "placeholder", "focus"]), [
-            [vue.vModelDynamic, $data.val]
-          ])
-        ], true)
-      ])),
-      vue.createElementVNode("view", { class: "uni-dialog-button-group" }, [
-        $props.showClose ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "uni-dialog-button",
-          onClick: _cache[1] || (_cache[1] = (...args) => $options.closeDialog && $options.closeDialog(...args))
-        }, [
-          vue.createElementVNode(
-            "text",
-            { class: "uni-dialog-button-text" },
-            vue.toDisplayString($options.closeText),
-            1
-            /* TEXT */
-          )
-        ])) : vue.createCommentVNode("v-if", true),
-        vue.createElementVNode(
-          "view",
-          {
-            class: vue.normalizeClass(["uni-dialog-button", $props.showClose ? "uni-border-left" : ""]),
-            onClick: _cache[2] || (_cache[2] = (...args) => $options.onOk && $options.onOk(...args))
-          },
-          [
-            vue.createElementVNode(
-              "text",
-              { class: "uni-dialog-button-text uni-button-color" },
-              vue.toDisplayString($options.okText),
-              1
-              /* TEXT */
-            )
-          ],
-          2
-          /* CLASS */
-        )
-      ])
-    ]);
-  }
-  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-d78c88b7"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue"]]);
-  const _imports_0$2 = "/static/image/bridge.svg";
-  const _sfc_main$o = {
-    __name: "versionInfo",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const versionPopup = vue.ref(null);
-      const togglePopup = () => {
-        versionPopup.value.open();
-      };
-      const handleConfirm = () => {
-        versionPopup.value.close();
-      };
-      const handleClose = () => {
-      };
-      const __returned__ = { versionPopup, togglePopup, handleConfirm, handleClose, ref: vue.ref };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup_dialog = resolveEasycom(vue.resolveDynamicComponent("uni-popup-dialog"), __easycom_0$4);
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_1$4);
-    return vue.openBlock(), vue.createElementBlock(
-      vue.Fragment,
-      null,
-      [
-        vue.createElementVNode("view", { class: "versionInfo" }, [
-          vue.createElementVNode("view", { class: "versionInfo-version" }, [
-            vue.createElementVNode("image", {
-              class: "versionInfo-version-icon",
-              src: _imports_0$2
-            }),
-            vue.createElementVNode("view", { class: "versionInfo-version-text" }, "当前版本: v3.1")
-          ]),
-          vue.createElementVNode("view", {
-            class: "versionInfo-check",
-            onClick: $setup.togglePopup
-          }, "检查版本更新"),
-          vue.createElementVNode("view", { class: "versionInfo-company" }, "©2023~2025 陕西交控工程技术有限公司")
-        ]),
-        vue.createVNode(
-          _component_uni_popup,
-          {
-            ref: "versionPopup",
-            type: "dialog"
-          },
-          {
-            default: vue.withCtx(() => [
-              vue.createVNode(_component_uni_popup_dialog, {
-                title: "更新提示",
-                content: "已经是最新版本",
-                showClose: false,
-                confirmText: "确定",
-                onConfirm: $setup.handleConfirm,
-                onClose: $setup.handleClose
-              })
-            ]),
-            _: 1
-            /* STABLE */
-          },
-          512
-          /* NEED_PATCH */
-        )
-      ],
-      64
-      /* STABLE_FRAGMENT */
-    );
-  }
-  const PagesVersionInfoVersionInfo = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/versionInfo/versionInfo.vue"]]);
-  const en$1 = {
-    "uni-search-bar.cancel": "cancel",
-    "uni-search-bar.placeholder": "Search enter content"
-  };
-  const zhHans = {
-    "uni-search-bar.cancel": "取消",
-    "uni-search-bar.placeholder": "请输入搜索内容"
-  };
-  const zhHant = {
-    "uni-search-bar.cancel": "取消",
-    "uni-search-bar.placeholder": "請輸入搜索內容"
-  };
-  const messages = {
-    en: en$1,
-    "zh-Hans": zhHans,
-    "zh-Hant": zhHant
-  };
-  const {
-    t: t$1
-  } = initVueI18n(messages);
-  const _sfc_main$n = {
+  const _sfc_main$s = {
     name: "UniSearchBar",
     emits: ["input", "update:modelValue", "clear", "cancel", "confirm", "blur", "focus"],
     props: {
@@ -4759,10 +3637,10 @@ if (uni.restoreGlobal) {
     },
     computed: {
       cancelTextI18n() {
-        return this.cancelText || t$1("uni-search-bar.cancel");
+        return this.cancelText || t$2("uni-search-bar.cancel");
       },
       placeholderText() {
-        return this.placeholder || t$1("uni-search-bar.placeholder");
+        return this.placeholder || t$2("uni-search-bar.placeholder");
       }
     },
     watch: {
@@ -4839,8 +3717,8 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
+  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$5);
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-searchbar" }, [
       vue.createElementVNode(
         "view",
@@ -4915,7 +3793,7 @@ if (uni.restoreGlobal) {
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
+  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
   let mpMixins = {};
   mpMixins = {
     data() {
@@ -4987,7 +3865,7 @@ if (uni.restoreGlobal) {
     (Comp.$renderjs || (Comp.$renderjs = [])).push("renderswipe");
     (Comp.$renderjsModules || (Comp.$renderjsModules = {}))["renderswipe"] = "74bb5072";
   };
-  const _sfc_main$m = {
+  const _sfc_main$r = {
     mixins: [mpwxs, bindIngXMixins, otherMixins],
     emits: ["click", "change"],
     props: {
@@ -5057,7 +3935,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -5154,11 +4032,11 @@ if (uni.restoreGlobal) {
     );
   }
   if (typeof block0 === "function")
-    block0(_sfc_main$m);
+    block0(_sfc_main$r);
   if (typeof block1 === "function")
-    block1(_sfc_main$m);
-  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
-  const _sfc_main$l = {
+    block1(_sfc_main$r);
+  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
+  const _sfc_main$q = {
     name: "uniSwipeAction",
     data() {
       return {};
@@ -5184,30 +4062,60 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.renderSlot(_ctx.$slots, "default")
     ]);
   }
-  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
-  const _imports_0$1 = "/static/image/disease.png";
-  const _sfc_main$k = {
+  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
+  const _imports_0$3 = "/static/image/disease.png";
+  const _sfc_main$p = {
     __name: "disease-item",
     props: {
       item: {
         type: Object,
         default: () => ({
-          id: "",
-          partType: "",
-          partNumber: "",
-          disease: "",
-          title: "",
-          description: "",
-          count: "",
-          collectTime: "",
-          grade: "",
-          reference: "",
-          type: ""
+          "createBy": "crh@znjc",
+          "createTime": "2023-05-02 16:52:18",
+          "updateTime": "2023-05-02 16:52:17",
+          "id": 54,
+          "diseaseType": {
+            "id": 17,
+            "code": "5.2.1-3",
+            "name": "焊缝开裂",
+            "maxScale": 5,
+            "minScale": 1,
+            "status": "0"
+          },
+          "diseaseTypeId": 17,
+          "description": "焊缝部位涂层有大量裂纹，受拉翼缘边焊缝存在裂缝，其他部位焊缝无裂缝，主梁、纵横梁受拉翼缘边焊缝开裂长度≤5mm",
+          "trend": "稳定",
+          "level": 2,
+          "quantity": 1,
+          "type": "焊缝开裂",
+          "participateAssess": "0",
+          "deductPoints": 35,
+          "biObjectId": 709,
+          "projectId": 2,
+          "component": {
+            "createBy": "admin",
+            "createTime": "2025-04-21 16:53:39",
+            "updateTime": "2025-04-21 16:53:38",
+            "id": 244,
+            "code": "R-1-1#上部承重构件（主梁、挂梁）",
+            "name": "上部承重构件（主梁、挂梁）1",
+            "biObjectId": 709,
+            "status": "0",
+            "delFlag": "0",
+            "biObject": {
+              "id": 709,
+              "name": "上部承重构件（主梁、挂梁）",
+              "count": 0
+            },
+            "parentObjectName": "上部结构"
+          },
+          "componentId": 244,
+          "buildingId": 37
         })
       },
       selectMode: {
@@ -5263,7 +4171,24 @@ if (uni.restoreGlobal) {
           });
         }
         if (e2.index === 2) {
-          emit("delete", props.item.id);
+          uni.showModal({
+            title: "确认删除",
+            content: "确定要删除这条病害记录吗？",
+            success: (res) => {
+              if (res.confirm) {
+                const deleteData = {
+                  id: props.item.id,
+                  isDelete: true
+                };
+                formatAppLog("log", "at components/disease-item/disease-item.vue:170", "准备发送deleteDisease事件，ID:", props.item.id);
+                uni.$emit("deleteDisease", deleteData);
+                uni.showToast({
+                  title: "删除成功",
+                  icon: "success"
+                });
+              }
+            }
+          });
           closeSwipe();
         }
       };
@@ -5291,8 +4216,8 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$2);
+  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$3);
     const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$3);
     return vue.openBlock(), vue.createBlock(
       _component_uni_swipe_action,
@@ -5341,61 +4266,60 @@ if (uni.restoreGlobal) {
                       vue.createElementVNode(
                         "text",
                         { class: "title" },
-                        vue.toDisplayString($props.item.partType) + "/" + vue.toDisplayString($props.item.partNumber) + "/" + vue.toDisplayString($props.item.disease),
+                        vue.toDisplayString($props.item.component.biObject.name) + "/" + vue.toDisplayString($props.item.component.name) + "/" + vue.toDisplayString($props.item.type),
                         1
                         /* TEXT */
                       )
                     ]),
-                    vue.createElementVNode("view", { class: "description-row" }, [
-                      vue.createElementVNode("view", { class: "description" }, [
-                        vue.createElementVNode("text", { class: "label" }, "病害描述："),
-                        vue.createElementVNode(
-                          "text",
-                          null,
-                          vue.toDisplayString($props.item.description),
-                          1
-                          /* TEXT */
-                        ),
-                        vue.createCommentVNode("              <text>{{item.disease}}</text>"),
-                        vue.createCommentVNode('						  <text v-if="item.length != null && item.width !=null">,S={{item.length}}*{{item.width}}cm²</text>')
+                    vue.createElementVNode("view", { class: "content-container" }, [
+                      vue.createElementVNode("view", { class: "left-column" }, [
+                        vue.createElementVNode("view", { class: "info-row" }, [
+                          vue.createElementVNode("text", { class: "label" }, "病害描述："),
+                          vue.createElementVNode(
+                            "text",
+                            { class: "description-text" },
+                            vue.toDisplayString($props.item.description),
+                            1
+                            /* TEXT */
+                          )
+                        ]),
+                        vue.createElementVNode("view", { class: "info-row" }, [
+                          vue.createElementVNode("text", { class: "label" }, "采集时间："),
+                          vue.createElementVNode(
+                            "text",
+                            null,
+                            vue.toDisplayString($props.item.createTime),
+                            1
+                            /* TEXT */
+                          )
+                        ])
                       ]),
-                      vue.createElementVNode("view", { class: "count" }, [
-                        vue.createElementVNode("text", { class: "label" }, "缺损数量："),
-                        vue.createElementVNode(
-                          "text",
-                          null,
-                          vue.toDisplayString($props.item.count),
-                          1
-                          /* TEXT */
-                        )
-                      ])
-                    ]),
-                    vue.createElementVNode("view", { class: "item-footer" }, [
-                      vue.createElementVNode("view", { class: "collect-time" }, [
-                        vue.createElementVNode("text", { class: "label" }, "采集时间："),
-                        vue.createElementVNode(
-                          "text",
-                          null,
-                          vue.toDisplayString($props.item.collectTime),
-                          1
-                          /* TEXT */
-                        )
-                      ]),
-                      vue.createCommentVNode(' <view class="grade">\r\n							<text class="label">评定标度：</text>\r\n							<text>{{item.grade}}</text>\r\n						</view> '),
-                      vue.createElementVNode("view", { class: "grade-reference" }, [
-                        vue.createElementVNode("text", { class: "label" }, "评定标度/参考评定："),
-                        vue.createElementVNode(
-                          "text",
-                          null,
-                          vue.toDisplayString($props.item.grade) + "/" + vue.toDisplayString($props.item.reference),
-                          1
-                          /* TEXT */
-                        )
+                      vue.createElementVNode("view", { class: "right-column" }, [
+                        vue.createElementVNode("view", { class: "info-row" }, [
+                          vue.createElementVNode("text", { class: "label" }, "缺损数量："),
+                          vue.createElementVNode(
+                            "text",
+                            null,
+                            vue.toDisplayString($props.item.quantity),
+                            1
+                            /* TEXT */
+                          )
+                        ]),
+                        vue.createElementVNode("view", { class: "info-row" }, [
+                          vue.createElementVNode("text", { class: "label" }, "评定标度/参考评定："),
+                          vue.createElementVNode(
+                            "text",
+                            null,
+                            vue.toDisplayString($props.item.level) + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否"),
+                            1
+                            /* TEXT */
+                          )
+                        ])
                       ])
                     ]),
                     vue.createElementVNode("image", {
                       class: "image-icon",
-                      src: _imports_0$1,
+                      src: _imports_0$3,
                       mode: "aspectFit"
                     })
                   ],
@@ -5415,107 +4339,164 @@ if (uni.restoreGlobal) {
       /* NEED_PATCH */
     );
   }
-  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
-  const _sfc_main$j = {
+  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
+  const _sfc_main$o = {
     __name: "current-disease",
     setup(__props, { expose: __expose }) {
       __expose();
-      const tabItems = vue.ref(["上部结构", "下部结构", "桥面系"]);
+      const tabItems = vue.ref(["上部结构", "下部结构", "桥面系", "附属设施"]);
       const activeTab = vue.ref(0);
       const searchText = vue.ref("");
       const showAddPopup = vue.ref(false);
-      const diseaseList = vue.ref([
-        {
-          id: "1",
-          partType: "T梁",
-          partNumber: "3-2",
-          disease: "剥落、掉角",
-          description: "上部结构的T梁出现剥落情况",
-          count: "2",
-          collectTime: "2024-04-25 14:25:25",
-          length: 50,
-          width: 20,
-          grade: "2",
-          reference: "是",
-          type: "上部结构"
-        },
-        {
-          id: "2",
-          partType: "墩柱",
-          partNumber: "2-1",
-          disease: "裂缝",
-          description: "下部结构的墩柱出现裂缝",
-          count: "1",
-          collectTime: "2024-04-24 09:15:30",
-          grade: "3",
-          reference: "是",
-          type: "下部结构"
-        },
-        {
-          id: "3",
-          partType: "桥面",
-          partNumber: "1-3",
-          disease: "破损",
-          description: "桥面系出现破损",
-          count: "3",
-          collectTime: "2024-04-23 16:45:10",
-          grade: "1",
-          reference: "否",
-          type: "桥面系"
-        },
-        {
-          id: "4",
-          partType: "T梁",
-          partNumber: "2-1",
-          disease: "锈蚀",
-          description: "上部结构的T梁出现锈蚀",
-          count: "1",
-          collectTime: "2024-04-22 11:30:45",
-          grade: "2",
-          reference: "是",
-          type: "上部结构"
-        },
-        {
-          id: "5",
-          partType: "墩身",
-          partNumber: "2-1",
-          disease: "空洞、孔洞",
-          position: "R21-1#桥墩,距墩顶0cm",
-          area: "120×10cm²",
-          description: "桥墩破损一处，距墩顶0cm，S=120×10cm²",
-          count: "1",
-          collectTime: "2024-04-23 11:30:45",
-          grade: "1",
-          reference: "是",
-          type: "上部结构",
-          imageUrl: "/static/image/disease.png"
+      const diseaseList = vue.ref([]);
+      const loadCurrentYearDiseaseData = async () => {
+        try {
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const yearData = await getDisease(userId2, buildingId2, currentYear);
+          formatAppLog("log", "at components/current-disease.vue:67", `获取到${currentYear}年病害数据:`, yearData);
+          if (yearData && yearData.diseases && yearData.diseases.length > 0) {
+            diseaseList.value = yearData.diseases;
+          } else {
+            diseaseList.value = [];
+          }
+          formatAppLog("log", "at components/current-disease.vue:76", "病害数据加载完成:", diseaseList.value);
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:78", "读取病害数据失败:", error);
+          uni.showToast({
+            title: "读取数据失败",
+            icon: "none"
+          });
         }
-      ]);
+      };
+      const addNewDiseaseData = async (newDisease) => {
+        try {
+          formatAppLog("log", "at components/current-disease.vue:89", "接收到新增病害数据:", newDisease);
+          diseaseList.value.push(newDisease);
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const saveData2 = {
+            year: parseInt(currentYear),
+            buildingId: parseInt(buildingId2),
+            diseases: diseaseList.value
+          };
+          formatAppLog("log", "at components/current-disease.vue:105", "准备保存的数据:", saveData2);
+          await setDisease(userId2, buildingId2, currentYear, saveData2);
+          formatAppLog("log", "at components/current-disease.vue:110", "新增病害数据保存成功");
+          uni.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:116", "保存新增病害数据失败:", error);
+          uni.showToast({
+            title: "保存失败",
+            icon: "none"
+          });
+        }
+      };
+      const handleDeleteDisease = async (deleteData) => {
+        try {
+          formatAppLog("log", "at components/current-disease.vue:127", "接收到删除病害事件:", deleteData);
+          if (!deleteData || !deleteData.id) {
+            formatAppLog("error", "at components/current-disease.vue:130", "删除数据无效");
+            return;
+          }
+          const index = diseaseList.value.findIndex((item) => item.id == deleteData.id);
+          if (index === -1) {
+            formatAppLog("error", "at components/current-disease.vue:137", "未找到要删除的病害数据:", deleteData.id);
+            return;
+          }
+          diseaseList.value[index].isDelete = true;
+          formatAppLog("log", "at components/current-disease.vue:143", `病害ID:${deleteData.id}已标记为删除`);
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const saveData2 = {
+            year: parseInt(currentYear),
+            buildingId: parseInt(buildingId2),
+            diseases: diseaseList.value
+          };
+          formatAppLog("log", "at components/current-disease.vue:157", "准备保存删除后的数据:", saveData2);
+          await setDisease(userId2, buildingId2, currentYear, saveData2);
+          formatAppLog("log", "at components/current-disease.vue:162", "删除标记保存成功");
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:164", "保存删除标记失败:", error);
+          uni.showToast({
+            title: "删除失败",
+            icon: "none"
+          });
+        }
+      };
+      const handleUpdateDisease = async (updatedDisease) => {
+        try {
+          formatAppLog("log", "at components/current-disease.vue:175", "接收到更新病害事件:", updatedDisease);
+          if (!updatedDisease || !updatedDisease.id) {
+            formatAppLog("error", "at components/current-disease.vue:178", "更新数据无效");
+            return;
+          }
+          const index = diseaseList.value.findIndex((item) => item.id == updatedDisease.id);
+          if (index === -1) {
+            formatAppLog("error", "at components/current-disease.vue:185", "未找到要更新的病害数据:", updatedDisease.id);
+            return;
+          }
+          diseaseList.value[index] = updatedDisease;
+          formatAppLog("log", "at components/current-disease.vue:191", `病害ID:${updatedDisease.id}已更新`);
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const saveData2 = {
+            year: parseInt(currentYear),
+            buildingId: parseInt(buildingId2),
+            diseases: diseaseList.value
+          };
+          formatAppLog("log", "at components/current-disease.vue:205", "准备保存更新后的数据:", saveData2);
+          await setDisease(userId2, buildingId2, currentYear, saveData2);
+          formatAppLog("log", "at components/current-disease.vue:210", "更新数据保存成功");
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:212", "保存更新数据失败:", error);
+          uni.showToast({
+            title: "更新失败",
+            icon: "none"
+          });
+        }
+      };
       const filteredDiseases = vue.computed(() => {
         const selectedType = tabItems.value[activeTab.value];
         return diseaseList.value.filter((item) => {
-          if (item.type !== selectedType) {
+          var _a, _b, _c;
+          if (item.isDelete === true) {
+            return false;
+          }
+          if (((_a = item.component) == null ? void 0 : _a.parentObjectName) !== selectedType) {
             return false;
           }
           if (searchText.value) {
-            return item.title.includes(searchText.value) || item.description.includes(searchText.value);
+            return ((_b = item.description) == null ? void 0 : _b.includes(searchText.value)) || ((_c = item.type) == null ? void 0 : _c.includes(searchText.value));
           }
           return true;
         });
       });
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/current-disease.vue:147", "搜索内容:", e2);
+        formatAppLog("log", "at components/current-disease.vue:250", "搜索内容:", e2);
       };
       const changeTab = (index) => {
         activeTab.value = index;
       };
       const getTpyeItemCount = (type) => {
-        return diseaseList.value.filter((item) => item.type === type).length;
+        return diseaseList.value.filter(
+          (item) => {
+            var _a;
+            return ((_a = item.component) == null ? void 0 : _a.parentObjectName) === type && item.isDelete !== true;
+          }
+        ).length;
       };
       const addNewDisease = () => {
         uni.navigateTo({
-          url: "/pages/add-disease/add-disease"
+          url: `/pages/add-disease/add-disease`
         });
       };
       const deleteDisease = (itemId) => {
@@ -5526,23 +4507,55 @@ if (uni.restoreGlobal) {
             if (res.confirm) {
               const index = diseaseList.value.findIndex((item) => item.id === itemId);
               if (index !== -1) {
-                diseaseList.value.splice(index, 1);
-                uni.showToast({
-                  title: "删除成功",
-                  icon: "success"
+                diseaseList.value[index].isDelete = true;
+                const userId2 = "3";
+                const buildingId2 = "39";
+                const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+                const saveData2 = {
+                  year: parseInt(currentYear),
+                  buildingId: parseInt(buildingId2),
+                  diseases: diseaseList.value
+                };
+                setDisease(userId2, buildingId2, currentYear, saveData2).then(() => {
+                  uni.showToast({
+                    title: "删除成功",
+                    icon: "success"
+                  });
+                }).catch((error) => {
+                  formatAppLog("error", "at components/current-disease.vue:307", "保存删除标记失败:", error);
+                  uni.showToast({
+                    title: "删除失败",
+                    icon: "none"
+                  });
                 });
               }
             }
           }
         });
       };
-      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, deleteDisease, ref: vue.ref, computed: vue.computed };
+      vue.onMounted(() => {
+        formatAppLog("log", "at components/current-disease.vue:321", "current-disease组件挂载，准备加载数据");
+        loadCurrentYearDiseaseData();
+        uni.$on("addNewDisease", addNewDiseaseData);
+        uni.$on("deleteDisease", handleDeleteDisease);
+        uni.$on("updateDisease", handleUpdateDisease);
+      });
+      vue.onUnmounted(() => {
+        uni.$off("addNewDisease");
+        uni.$off("deleteDisease");
+        uni.$off("updateDisease");
+      });
+      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, loadCurrentYearDiseaseData, addNewDiseaseData, handleDeleteDisease, handleUpdateDisease, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, deleteDisease, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, onUnmounted: vue.onUnmounted, get getDisease() {
+        return getDisease;
+      }, get setDisease() {
+        return setDisease;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$3);
+  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$4);
     const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
@@ -5617,8 +4630,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
-  const _sfc_main$i = /* @__PURE__ */ Object.assign({
+  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
+  const _sfc_main$n = /* @__PURE__ */ Object.assign({
     name: "history-disease"
   }, {
     __name: "history-disease",
@@ -5632,103 +4645,49 @@ if (uni.restoreGlobal) {
       const selectedItems = vue.ref([]);
       const currentOpenSwipe = vue.ref(null);
       const diseaseItems = vue.ref(null);
-      const diseaseList = vue.ref([
-        {
-          id: "1",
-          partType: "T梁",
-          partNumber: "3-2",
-          disease: "剥落、掉角",
-          description: "上部结构的T梁出现剥落情况",
-          count: "2",
-          collectTime: "2024-04-25 14:25:25",
-          grade: "2",
-          reference: "是",
-          type: "上部结构"
-        },
-        {
-          id: "2",
-          partType: "墩柱",
-          partNumber: "2-1",
-          disease: "裂缝",
-          description: "下部结构的墩柱出现裂缝",
-          count: "2",
-          collectTime: "2024-04-25 14:25:25",
-          grade: "2",
-          reference: "是",
-          type: "下部结构"
-        },
-        {
-          id: "3",
-          partType: "桥面",
-          partNumber: "1-3",
-          disease: "破损",
-          description: "桥面系出现破损",
-          count: "3",
-          collectTime: "2024-04-23 16:45:10",
-          grade: "1",
-          reference: "否",
-          type: "桥面系"
-        },
-        {
-          id: "4",
-          partType: "墩柱",
-          partNumber: "2-1",
-          disease: "裂缝",
-          description: "下部结构的墩柱出现裂缝",
-          count: "1",
-          collectTime: "2023-04-24 09:15:30",
-          grade: "3",
-          reference: "是",
-          type: "下部结构"
-        },
-        {
-          id: "5",
-          partType: "桥面",
-          partNumber: "1-3",
-          disease: "破损",
-          description: "桥面系出现破损",
-          count: "3",
-          collectTime: "2023-04-23 16:45:10",
-          grade: "1",
-          reference: "否",
-          type: "桥面系"
-        },
-        {
-          id: "6",
-          partType: "T梁",
-          partNumber: "4-1",
-          disease: "锈蚀",
-          description: "上部结构的T梁出现锈蚀",
-          count: "1",
-          collectTime: "2022-04-22 11:30:45",
-          grade: "2",
-          reference: "是",
-          type: "上部结构"
-        },
-        {
-          id: "7",
-          partType: "T梁",
-          partNumber: "3-3",
-          disease: "剥落、掉角",
-          description: "上部结构的T梁出现掉角情况",
-          count: "2",
-          collectTime: "2024-04-26 14:25:25",
-          grade: "2",
-          reference: "是",
-          type: "上部结构"
+      const diseaseList = vue.ref([]);
+      const loadDiseaseData = async () => {
+        try {
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const years = ["2024", "2023", "2022"];
+          diseaseList.value = [];
+          for (const year of years) {
+            try {
+              const yearData = await getDisease(userId2, buildingId2, year);
+              formatAppLog("log", "at components/history-disease.vue:103", `获取到${year}年病害数据:`, yearData);
+              if (yearData && yearData.diseases && yearData.diseases.length > 0) {
+                diseaseList.value = [...diseaseList.value, ...yearData.diseases];
+              }
+            } catch (yearError) {
+              formatAppLog("warn", "at components/history-disease.vue:110", `获取${year}年数据失败:`, yearError);
+            }
+          }
+          formatAppLog("log", "at components/history-disease.vue:114", "所有年份病害数据加载完成:", diseaseList.value);
+        } catch (error) {
+          formatAppLog("error", "at components/history-disease.vue:116", "读取病害数据失败:", error);
+          uni.showToast({
+            title: "读取数据失败",
+            icon: "none"
+          });
         }
-      ]);
-      const expandedTypes = vue.reactive({});
+      };
+      const expandedTypes = vue.reactive({
+        "上部结构": true,
+        "下部结构": true,
+        "桥面系": true,
+        "附属设施": true
+      });
       const filteredDiseases = vue.computed(() => {
         const selectedYear = tabItems.value[activeTab.value];
         return diseaseList.value.filter((item) => {
-          var _a, _b;
-          const itemYear = item.collectTime.substring(0, 4);
+          var _a, _b, _c, _d;
+          const itemYear = item.createTime.substring(0, 4);
           if (itemYear !== selectedYear) {
             return false;
           }
           if (searchText.value) {
-            return ((_a = item.title) == null ? void 0 : _a.includes(searchText.value)) || ((_b = item.description) == null ? void 0 : _b.includes(searchText.value));
+            return ((_a = item.description) == null ? void 0 : _a.includes(searchText.value)) || ((_b = item.type) == null ? void 0 : _b.includes(searchText.value)) || ((_d = (_c = item.component) == null ? void 0 : _c.parentObjectName) == null ? void 0 : _d.includes(searchText.value));
           }
           return true;
         });
@@ -5770,7 +4729,7 @@ if (uni.restoreGlobal) {
             selectedItems.value.splice(index, 1);
           }
         }
-        formatAppLog("log", "at components/history-disease.vue:250", "当前选中项:", selectedItems.value);
+        formatAppLog("log", "at components/history-disease.vue:207", "当前选中项:", selectedItems.value);
       };
       const copyDisease = () => {
         if (selectedItems.value.length === 0) {
@@ -5780,14 +4739,57 @@ if (uni.restoreGlobal) {
           });
           return;
         }
-        uni.showToast({
-          title: `复制了${selectedItems.value.length}个病害`,
-          icon: "none"
+        const selectedDiseases = diseaseList.value.filter((item) => selectedItems.value.includes(item.id));
+        if (selectedDiseases.length === 0) {
+          uni.showToast({
+            title: "获取选中病害数据失败",
+            icon: "none"
+          });
+          return;
+        }
+        const currentTime = /* @__PURE__ */ new Date();
+        currentTime.getFullYear().toString();
+        const copiedDiseases = selectedDiseases.map((disease) => {
+          const newDisease = JSON.parse(JSON.stringify(disease));
+          newDisease.id = (/* @__PURE__ */ new Date()).getTime() + Math.floor(Math.random() * 1e3);
+          const formattedTime = formatDateTime(currentTime);
+          newDisease.createTime = formattedTime;
+          newDisease.updateTime = formattedTime;
+          delete newDisease.isDelete;
+          return newDisease;
         });
+        Promise.all(copiedDiseases.map((disease) => {
+          return new Promise((resolve) => {
+            formatAppLog("log", "at components/history-disease.vue:257", "发送添加新病害事件给current-disease组件:", disease);
+            uni.$emit("addNewDisease", disease);
+            resolve();
+          });
+        })).then(() => {
+          uni.showToast({
+            title: `成功复制${copiedDiseases.length}条病害到当前病害`,
+            icon: "success"
+          });
+          toggleSelectMode();
+        }).catch((error) => {
+          formatAppLog("error", "at components/history-disease.vue:273", "复制病害失败:", error);
+          uni.showToast({
+            title: "复制失败，请重试",
+            icon: "none"
+          });
+        });
+      };
+      const formatDateTime = (date = /* @__PURE__ */ new Date()) => {
+        const y2 = date.getFullYear();
+        const m2 = String(date.getMonth() + 1).padStart(2, "0");
+        const d2 = String(date.getDate()).padStart(2, "0");
+        const h2 = String(date.getHours()).padStart(2, "0");
+        const mm = String(date.getMinutes()).padStart(2, "0");
+        const s2 = String(date.getSeconds()).padStart(2, "0");
+        return `${y2}-${m2}-${d2} ${h2}:${mm}:${s2}`;
       };
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/history-disease.vue:274", "搜索内容:", e2);
+        formatAppLog("log", "at components/history-disease.vue:296", "搜索内容:", e2);
         closeAllSwipeActions();
         expandAllTypes();
       };
@@ -5797,18 +4799,19 @@ if (uni.restoreGlobal) {
         expandAllTypes();
       };
       const getYearItemCount = (year) => {
-        return diseaseList.value.filter((item) => item.collectTime.substring(0, 4) === year).length;
+        return diseaseList.value.filter((item) => item.createTime.substring(0, 4) === year).length;
       };
       const getFilteredDiseasesByType = (type) => {
         const selectedYear = tabItems.value[activeTab.value];
         return diseaseList.value.filter((item) => {
-          var _a, _b;
-          const itemYear = item.collectTime.substring(0, 4);
-          if (itemYear !== selectedYear || item.type !== type) {
+          var _a, _b, _c;
+          const itemYear = item.createTime.substring(0, 4);
+          const parentObjectName = (_a = item.component) == null ? void 0 : _a.parentObjectName;
+          if (itemYear !== selectedYear || parentObjectName !== type) {
             return false;
           }
           if (searchText.value) {
-            return ((_a = item.title) == null ? void 0 : _a.includes(searchText.value)) || ((_b = item.description) == null ? void 0 : _b.includes(searchText.value));
+            return ((_b = item.description) == null ? void 0 : _b.includes(searchText.value)) || ((_c = item.type) == null ? void 0 : _c.includes(searchText.value));
           }
           return true;
         });
@@ -5837,20 +4840,24 @@ if (uni.restoreGlobal) {
         closeAllSwipeActions();
       };
       const expandAllTypes = () => {
-        ["上部结构", "下部结构", "桥面系"].forEach((type) => {
+        ["上部结构", "下部结构", "桥面系", "附属设施"].forEach((type) => {
           expandedTypes[type] = true;
         });
       };
-      ["上部结构", "下部结构", "桥面系"].forEach((type) => {
-        expandedTypes[type] = true;
+      vue.onMounted(() => {
+        formatAppLog("log", "at components/history-disease.vue:376", "history-disease组件挂载，准备加载数据");
+        loadDiseaseData();
+        expandAllTypes();
       });
-      const __returned__ = { tabItems, activeTab, searchText, isSelectMode, showCopyButton, selectedItems, currentOpenSwipe, diseaseItems, diseaseList, expandedTypes, filteredDiseases, deleteDisease, toggleSelectMode, handleItemSelect, copyDisease, search, changeTab, getYearItemCount, getFilteredDiseasesByType, handleSwipeOpened, closeAllSwipeActions, closeSwipeExcept, toggleTypeExpand, expandAllTypes, ref: vue.ref, reactive: vue.reactive, computed: vue.computed, nextTick: vue.nextTick };
+      const __returned__ = { tabItems, activeTab, searchText, isSelectMode, showCopyButton, selectedItems, currentOpenSwipe, diseaseItems, diseaseList, loadDiseaseData, expandedTypes, filteredDiseases, deleteDisease, toggleSelectMode, handleItemSelect, copyDisease, formatDateTime, search, changeTab, getYearItemCount, getFilteredDiseasesByType, handleSwipeOpened, closeAllSwipeActions, closeSwipeExcept, toggleTypeExpand, expandAllTypes, ref: vue.ref, reactive: vue.reactive, computed: vue.computed, nextTick: vue.nextTick, watch: vue.watch, onMounted: vue.onMounted, get getDisease() {
+        return getDisease;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   });
-  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$3);
+  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$4);
     const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
@@ -5922,7 +4929,7 @@ if (uni.restoreGlobal) {
           (vue.openBlock(), vue.createElementBlock(
             vue.Fragment,
             null,
-            vue.renderList(["上部结构", "下部结构", "桥面系"], (type) => {
+            vue.renderList(["上部结构", "下部结构", "桥面系", "附属设施"], (type) => {
               return vue.createElementVNode("view", {
                 key: type,
                 class: "type-group"
@@ -5997,8 +5004,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
-  const _sfc_main$h = {
+  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
+  const _sfc_main$m = {
     __name: "administrative-identification-data",
     props: {
       data: {
@@ -6014,202 +5021,39 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁所处行政区划代码 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.administrativeDivisionCode || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 路线编号 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.routeNumber || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 路线名称 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.routeName || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 路线等级 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.routeGrade || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁编号 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.bridgeNumber || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁名称 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.bridgeName || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥位桩号 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.bridgeStakeNumber || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 功能类型 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.functionalType || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 被跨越道路（通道）类型 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.crossedFacilityName || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 被跨越道路（通道）桩号 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.crossedFacilityStakeNumber || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计荷载 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.designLoad || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁坡度 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.bridgeSlope || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁平曲线半径 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.bridgeHorizontalCurveRadius || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 建成时间 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.completionYear || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计单位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.designOrganization || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 施工单位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.constructionOrganization || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 监理单位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.supervisionOrganization || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 业主单位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.ownerOrganization || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 管养单位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.maintenanceOrganization || "/"),
-          1
-          /* TEXT */
-        )
-      ])
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($props.data, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            class: "line",
+            key: item.id
+          }, [
+            vue.createElementVNode(
+              "view",
+              { class: "line-title" },
+              vue.toDisplayString(item.name),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "view",
+              { class: "line-content" },
+              vue.toDisplayString(item.value || "/"),
+              1
+              /* TEXT */
+            )
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
     ]);
   }
-  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
-  const _sfc_main$g = {
+  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
+  const _sfc_main$l = {
     __name: "bridge-tech",
     props: {
       data: {
@@ -6225,192 +5069,73 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁总长(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.totalLength || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥面总宽(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.totalDeckWidth || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 车道宽度(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.laneWidth || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 人行道宽度(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.sidewalkWidth || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 护栏或防护墙宽度(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.guardrailHeight || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 中央分隔带宽度(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.centralMedianWidth || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥面标准净空(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.standardDeckClearance || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥面实际净空(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.actualDeckClearance || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥下通航等级及标准净空(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.navigationGradeUnderBridge || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥下实际净空(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.actualClearanceUnderBridge || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 引道总宽(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.approachTotalWidth || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 引道线形或曲线半径(m) "),
-        vue.createElementVNode("view", { class: "line-content" }, [
-          vue.createElementVNode(
-            "text",
-            { class: "line-content-left" },
-            vue.toDisplayString($props.data.approachRoadLinear || "/"),
-            1
-            /* TEXT */
-          ),
-          vue.createElementVNode("text", { class: "line-content-middle" }, "|"),
-          vue.createElementVNode(
-            "text",
-            { class: "line-content-right" },
-            vue.toDisplayString($props.data.approachRoadRadius || "/"),
-            1
-            /* TEXT */
-          )
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计洪水频率及其水位 "),
-        vue.createElementVNode("view", { class: "line-content" }, [
-          vue.createElementVNode(
-            "text",
-            { class: "line-content-left" },
-            vue.toDisplayString($props.data.floodFrequency || "/"),
-            1
-            /* TEXT */
-          ),
-          vue.createElementVNode("text", { class: "line-content-middle" }, "|"),
-          vue.createElementVNode(
-            "text",
-            { class: "line-content-right" },
-            vue.toDisplayString($props.data.waterLevel || "/"),
-            1
-            /* TEXT */
-          )
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 历史洪水位 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.historicalFloodLevel || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计地震动峰值加速度系数 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.seismicPeakAcceleration || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥面高度(m) "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.deckElevation || "/"),
-          1
-          /* TEXT */
-        )
-      ])
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($props.data, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            class: "line",
+            key: item.id
+          }, [
+            vue.createElementVNode(
+              "view",
+              { class: "line-title" },
+              vue.toDisplayString(item.name),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode("view", { class: "line-content" }, [
+              item.children && item.children.length ? (vue.openBlock(true), vue.createElementBlock(
+                vue.Fragment,
+                { key: 0 },
+                vue.renderList(item.children, (child, childIndex) => {
+                  return vue.openBlock(), vue.createElementBlock(
+                    vue.Fragment,
+                    {
+                      key: child.id
+                    },
+                    [
+                      vue.createTextVNode(
+                        vue.toDisplayString(child.name) + ": " + vue.toDisplayString(child.value || "/") + " ",
+                        1
+                        /* TEXT */
+                      ),
+                      childIndex < item.children.length - 1 ? (vue.openBlock(), vue.createElementBlock("text", {
+                        key: 0,
+                        class: "line-content-middle"
+                      })) : vue.createCommentVNode("v-if", true)
+                    ],
+                    64
+                    /* STABLE_FRAGMENT */
+                  );
+                }),
+                128
+                /* KEYED_FRAGMENT */
+              )) : (vue.openBlock(), vue.createElementBlock(
+                vue.Fragment,
+                { key: 1 },
+                [
+                  vue.createTextVNode(
+                    vue.toDisplayString(item.value || "/"),
+                    1
+                    /* TEXT */
+                  )
+                ],
+                64
+                /* STABLE_FRAGMENT */
+              ))
+            ])
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
     ]);
   }
-  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
-  const _sfc_main$f = {
+  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
+  const _sfc_main$k = {
     __name: "bridge-structure",
     props: {
       data: {
@@ -6421,368 +5146,213 @@ if (uni.restoreGlobal) {
     setup(__props, { expose: __expose }) {
       __expose();
       const props = __props;
-      const types = [
-        "上部结构形式与材料",
-        "桥面系形式与材料",
-        "下部结构形式与材料",
-        "基础形式与材料",
-        "支座形式、材料与附属设施"
-      ];
-      const expandedTypes = vue.reactive({});
-      types.forEach((type) => {
-        expandedTypes[type] = true;
+      const structureData = vue.computed(() => {
+        return props.data || [];
       });
+      const getBridgeSpanData = () => {
+        return structureData.value.find((item) => item.name === "桥梁分孔(m)") || {};
+      };
+      const getStructuralSystemData = () => {
+        return structureData.value.find((item) => item.name === "结构体系") || {};
+      };
+      const getStructureTypes = () => {
+        const excludeNames = ["桥梁分孔(m)", "结构体系"];
+        return structureData.value.filter((item) => !excludeNames.includes(item.name));
+      };
+      const expandedTypes = vue.reactive({});
+      const initExpandedTypes = () => {
+        const types = getStructureTypes();
+        types.forEach((type) => {
+          expandedTypes[type.name] = true;
+        });
+      };
+      if (structureData.value.length > 0) {
+        initExpandedTypes();
+      }
       const toggleTypeExpand = (type) => {
         expandedTypes[type] = !expandedTypes[type];
       };
-      const __returned__ = { props, types, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      const __returned__ = { props, structureData, getBridgeSpanData, getStructuralSystemData, getStructureTypes, expandedTypes, initExpandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref, computed: vue.computed };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
-      vue.createElementVNode("view", { class: "part-area" }, [
+      vue.createCommentVNode(" 保持桥梁分孔和结构体系单独显示 "),
+      $setup.structureData && $setup.structureData.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "part-area"
+      }, [
         vue.createElementVNode("view", { class: "part-area-title" }, "桥梁分孔（m）"),
         vue.createElementVNode(
           "view",
           { class: "part-area-content" },
-          vue.toDisplayString($props.data.bridgeSpanDivision),
+          vue.toDisplayString($setup.getBridgeSpanData().value || "/"),
           1
           /* TEXT */
         )
-      ]),
-      vue.createElementVNode("view", { class: "part-area" }, [
+      ])) : vue.createCommentVNode("v-if", true),
+      $setup.structureData && $setup.structureData.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 1,
+        class: "part-area"
+      }, [
         vue.createElementVNode("view", { class: "part-area-title" }, "结构体系"),
-        vue.createElementVNode(
-          "view",
-          { class: "part-area-content" },
-          vue.toDisplayString($props.data.structuralSystem),
-          1
-          /* TEXT */
-        )
-      ]),
-      (vue.openBlock(), vue.createElementBlock(
+        vue.createElementVNode("view", { class: "part-area-content" }, [
+          $setup.getStructuralSystemData().children && $setup.getStructuralSystemData().children.length ? (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            { key: 0 },
+            vue.renderList($setup.getStructuralSystemData().children, (child, childIndex) => {
+              return vue.openBlock(), vue.createElementBlock(
+                vue.Fragment,
+                {
+                  key: child.id
+                },
+                [
+                  vue.createTextVNode(
+                    vue.toDisplayString(child.name) + ": " + vue.toDisplayString(child.value || "/") + " ",
+                    1
+                    /* TEXT */
+                  ),
+                  childIndex < $setup.getStructuralSystemData().children.length - 1 ? (vue.openBlock(), vue.createElementBlock("text", {
+                    key: 0,
+                    class: "line-content-middle"
+                  })) : vue.createCommentVNode("v-if", true)
+                ],
+                64
+                /* STABLE_FRAGMENT */
+              );
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          )) : (vue.openBlock(), vue.createElementBlock(
+            vue.Fragment,
+            { key: 1 },
+            [
+              vue.createTextVNode(
+                vue.toDisplayString($setup.getStructuralSystemData().value || "/"),
+                1
+                /* TEXT */
+              )
+            ],
+            64
+            /* STABLE_FRAGMENT */
+          ))
+        ])
+      ])) : vue.createCommentVNode("v-if", true),
+      vue.createCommentVNode(" 动态渲染其他结构部分 "),
+      (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
         null,
-        vue.renderList($setup.types, (type) => {
-          return vue.createElementVNode("view", {
-            key: type,
+        vue.renderList($setup.getStructureTypes(), (type) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            key: type.id,
             class: "type-group"
           }, [
             vue.createElementVNode("view", {
               class: "type-header",
-              onClick: ($event) => $setup.toggleTypeExpand(type)
+              onClick: ($event) => $setup.toggleTypeExpand(type.name)
             }, [
               vue.createElementVNode(
                 "text",
                 null,
-                vue.toDisplayString(type),
+                vue.toDisplayString(type.name),
                 1
                 /* TEXT */
               ),
               vue.createElementVNode(
                 "text",
                 { class: "expand-icon" },
-                vue.toDisplayString($setup.expandedTypes[type] ? "▼" : "▶"),
+                vue.toDisplayString($setup.expandedTypes[type.name] ? "▼" : "▶"),
                 1
                 /* TEXT */
               )
             ], 8, ["onClick"]),
-            type === "上部结构形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
+            vue.withDirectives(vue.createElementVNode(
               "view",
-              { key: 0 },
+              null,
               [
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "主梁"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.mainGirder || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "主拱圈"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.mainArch || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥（索）塔"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.bridgeTower || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "拱上建筑"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.spandrelStructure || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "主缆"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.mainCable || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "斜拉索（含索力）"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.stayCable || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "吊杆（含索力）"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.hanger || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "系杆（含索力）"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.superstructureMaterial.tieRod || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ])
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList(type.children, (item) => {
+                    return vue.openBlock(), vue.createElementBlock("view", {
+                      key: item.id,
+                      class: "expand-area"
+                    }, [
+                      vue.createElementVNode(
+                        "view",
+                        { class: "expand-area-title" },
+                        vue.toDisplayString(item.name),
+                        1
+                        /* TEXT */
+                      ),
+                      vue.createElementVNode("view", { class: "expand-area-content" }, [
+                        item.children && item.children.length ? (vue.openBlock(true), vue.createElementBlock(
+                          vue.Fragment,
+                          { key: 0 },
+                          vue.renderList(item.children, (child, childIndex) => {
+                            return vue.openBlock(), vue.createElementBlock(
+                              vue.Fragment,
+                              {
+                                key: child.id
+                              },
+                              [
+                                vue.createTextVNode(
+                                  vue.toDisplayString(child.name) + ": " + vue.toDisplayString(child.value || "/") + " ",
+                                  1
+                                  /* TEXT */
+                                ),
+                                childIndex < item.children.length - 1 ? (vue.openBlock(), vue.createElementBlock("text", {
+                                  key: 0,
+                                  class: "line-content-middle"
+                                })) : vue.createCommentVNode("v-if", true)
+                              ],
+                              64
+                              /* STABLE_FRAGMENT */
+                            );
+                          }),
+                          128
+                          /* KEYED_FRAGMENT */
+                        )) : (vue.openBlock(), vue.createElementBlock(
+                          vue.Fragment,
+                          { key: 1 },
+                          [
+                            vue.createTextVNode(
+                              vue.toDisplayString(item.value || "/"),
+                              1
+                              /* TEXT */
+                            )
+                          ],
+                          64
+                          /* STABLE_FRAGMENT */
+                        ))
+                      ])
+                    ]);
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
               ],
               512
               /* NEED_PATCH */
-            )), [
-              [vue.vShow, $setup.expandedTypes[type]]
-            ]) : vue.createCommentVNode("v-if", true),
-            type === "桥面系形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-              "view",
-              { key: 1 },
-              [
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥面铺装"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.deckSystemMaterial.deckPavement || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "伸缩缝"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.deckSystemMaterial.expansionJoint || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "人行道、路缘"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.deckSystemMaterial.sidewalkCurb || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "栏杆、护栏"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.deckSystemMaterial.railing || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "照明、标志"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.deckSystemMaterial.lightingSignage || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ])
-              ],
-              512
-              /* NEED_PATCH */
-            )), [
-              [vue.vShow, $setup.expandedTypes[type]]
-            ]) : vue.createCommentVNode("v-if", true),
-            type === "下部结构形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-              "view",
-              { key: 2 },
-              [
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥台"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.substructureMaterial.abutment || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "桥墩"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.substructureMaterial.pier || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "锥坡、护坡"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.substructureMaterial.slopeProtection || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "翼墙、耳墙"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.substructureMaterial.wingWall || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ])
-              ],
-              512
-              /* NEED_PATCH */
-            )), [
-              [vue.vShow, $setup.expandedTypes[type]]
-            ]) : vue.createCommentVNode("v-if", true),
-            type === "基础形式与材料" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-              "view",
-              { key: 3 },
-              [
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "基础"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.foundationMaterial.foundation || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "锚碇"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.foundationMaterial.anchorBlock || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ])
-              ],
-              512
-              /* NEED_PATCH */
-            )), [
-              [vue.vShow, $setup.expandedTypes[type]]
-            ]) : vue.createCommentVNode("v-if", true),
-            type === "支座形式、材料与附属设施" ? vue.withDirectives((vue.openBlock(), vue.createElementBlock(
-              "view",
-              { key: 4 },
-              [
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "支座"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.bearingAncillaryFacilities.bearing || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "防碰撞设施"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.bearingAncillaryFacilities.collisionProtection || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "航标及排水系统"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.bearingAncillaryFacilities.navigationMarkDrainage || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ]),
-                vue.createElementVNode("view", { class: "expand-area" }, [
-                  vue.createElementVNode("view", { class: "expand-area-title" }, "调治构造物"),
-                  vue.createElementVNode(
-                    "view",
-                    { class: "expand-area-content" },
-                    vue.toDisplayString($props.data.bearingAncillaryFacilities.regulatingStructure || "/"),
-                    1
-                    /* TEXT */
-                  )
-                ])
-              ],
-              512
-              /* NEED_PATCH */
-            )), [
-              [vue.vShow, $setup.expandedTypes[type]]
-            ]) : vue.createCommentVNode("v-if", true)
+            ), [
+              [vue.vShow, $setup.expandedTypes[type.name]]
+            ])
           ]);
         }),
-        64
-        /* STABLE_FRAGMENT */
+        128
+        /* KEYED_FRAGMENT */
       ))
     ]);
   }
-  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
-  const _sfc_main$e = {
+  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
+  const _sfc_main$j = {
     __name: "bridge-files",
     props: {
       data: {
-        type: Object,
-        default: () => ({})
+        type: Array,
+        default: () => []
       }
     },
     setup(__props, { expose: __expose }) {
@@ -6793,132 +5363,39 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计图纸 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.designDrawings || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 设计文件 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.designDocuments || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 竣工图纸 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.asBuiltDrawings || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 施工文件（含施工缺陷文件） "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.constructionDocuments || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 验收文件 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.acceptanceDocuments || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 行政审批文件 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.administrativeApprovalDocuments || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 定期检查资料 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.regularInspectionRecords || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 特殊检查资料 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.specialInspectionRecords || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 历次维修、加固资料 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.maintenanceHistory || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 其他档案 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.otherArchives || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 档案形式 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.archiveFormats || "/"),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 建档时间 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($props.data.archiveDate || "/"),
-          1
-          /* TEXT */
-        )
-      ])
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($props.data, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            class: "line",
+            key: item.id
+          }, [
+            vue.createElementVNode(
+              "view",
+              { class: "line-title" },
+              vue.toDisplayString(item.name),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "view",
+              { class: "line-content" },
+              vue.toDisplayString(item.value || "/"),
+              1
+              /* TEXT */
+            )
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
     ]);
   }
-  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
-  const _sfc_main$d = {
+  const __easycom_3$1 = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
+  const _sfc_main$i = {
     __name: "bridge-inspection-history",
     props: {
       data: {
@@ -6930,87 +5407,79 @@ if (uni.restoreGlobal) {
       __expose();
       const props = __props;
       const expandedTypes = vue.reactive({});
-      props.data.forEach((item) => {
-        expandedTypes[item.inspectionDate] = true;
+      vue.onMounted(() => {
+        initExpandState();
       });
+      const initExpandState = () => {
+        props.data.forEach((item) => {
+          expandedTypes[item.name] = true;
+        });
+      };
       const toggleTypeExpand = (type) => {
         expandedTypes[type] = !expandedTypes[type];
       };
-      const __returned__ = { props, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      const __returned__ = { props, expandedTypes, initExpandState, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref, onMounted: vue.onMounted };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
         null,
         vue.renderList($props.data, (item, index) => {
           return vue.openBlock(), vue.createElementBlock("view", {
-            key: index,
+            key: item.id,
             class: "type-group"
           }, [
             vue.createElementVNode("view", {
               class: "type-header",
-              onClick: ($event) => $setup.toggleTypeExpand(item.inspectionDate)
+              onClick: ($event) => $setup.toggleTypeExpand(item.name)
             }, [
               vue.createElementVNode(
                 "text",
                 null,
-                "评定时间：" + vue.toDisplayString(item.inspectionDate),
+                vue.toDisplayString(item.name),
                 1
                 /* TEXT */
               ),
               vue.createElementVNode(
                 "text",
                 { class: "expand-icon" },
-                vue.toDisplayString($setup.expandedTypes[item.inspectionDate] ? "▼" : "▶"),
+                vue.toDisplayString($setup.expandedTypes[item.name] ? "▼" : "▶"),
                 1
                 /* TEXT */
               )
             ], 8, ["onClick"]),
-            $setup.expandedTypes[item.inspectionDate] ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 检测类别 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.inspectionType || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 桥梁技术状况评定结果/特殊检查结论 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.technicalCondition || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 处治对策 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.treatmentPlan || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 下次检测时间 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.nextInspectionDate || "/"),
-                  1
-                  /* TEXT */
-                )
-              ])
+            $setup.expandedTypes[item.name] && item.children ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+              (vue.openBlock(true), vue.createElementBlock(
+                vue.Fragment,
+                null,
+                vue.renderList(item.children, (child, childIndex) => {
+                  return vue.openBlock(), vue.createElementBlock("view", {
+                    class: "line",
+                    key: child.id
+                  }, [
+                    vue.createElementVNode(
+                      "view",
+                      { class: "line-title" },
+                      vue.toDisplayString(child.name),
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode(
+                      "view",
+                      { class: "line-content" },
+                      vue.toDisplayString(child.value || "/"),
+                      1
+                      /* TEXT */
+                    )
+                  ]);
+                }),
+                128
+                /* KEYED_FRAGMENT */
+              ))
             ])) : vue.createCommentVNode("v-if", true)
           ]);
         }),
@@ -7019,8 +5488,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
-  const _sfc_main$c = {
+  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
+  const _sfc_main$h = {
     __name: "maintenance-records",
     props: {
       data: {
@@ -7032,137 +5501,81 @@ if (uni.restoreGlobal) {
       __expose();
       const props = __props;
       const expandedTypes = vue.reactive({});
-      props.data.forEach((item) => {
-        expandedTypes[item.timePeriod] = true;
+      vue.onMounted(() => {
+        initExpandState();
       });
-      const toggleTypeExpand = (type) => {
-        expandedTypes[type] = !expandedTypes[type];
+      const initExpandState = () => {
+        if (props.data && props.data) {
+          props.data.forEach((item) => {
+            expandedTypes[item.id] = true;
+          });
+        }
       };
-      const __returned__ = { props, expandedTypes, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref };
+      const toggleTypeExpand = (id) => {
+        expandedTypes[id] = !expandedTypes[id];
+      };
+      const __returned__ = { props, expandedTypes, initExpandState, toggleTypeExpand, reactive: vue.reactive, ref: vue.ref, onMounted: vue.onMounted };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
         null,
         vue.renderList($props.data, (item, index) => {
           return vue.openBlock(), vue.createElementBlock("view", {
-            key: index,
+            key: item.id,
             class: "type-group"
           }, [
             vue.createElementVNode("view", {
               class: "type-header",
-              onClick: ($event) => $setup.toggleTypeExpand(item.timePeriod)
+              onClick: ($event) => $setup.toggleTypeExpand(item.id)
             }, [
               vue.createElementVNode(
                 "text",
                 null,
-                "时间（段）：" + vue.toDisplayString(item.timePeriod || "/"),
+                "时间（段）：" + vue.toDisplayString(item.name),
                 1
                 /* TEXT */
               ),
               vue.createElementVNode(
                 "text",
                 { class: "expand-icon" },
-                vue.toDisplayString($setup.expandedTypes[item.timePeriod] ? "▼" : "▶"),
+                vue.toDisplayString($setup.expandedTypes[item.id] ? "▼" : "▶"),
                 1
                 /* TEXT */
               )
             ], 8, ["onClick"]),
-            $setup.expandedTypes[item.timePeriod] ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 处治类别（维修、加固、改造） "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.treatmentType || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 处置原因 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.treatmentReason || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 工程费用（万元） "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.treatmentScope || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 经费来源 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.fundingSource || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 处治质量评定 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.treatmentQualityAssessment || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 建设单位 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.constructionUnit || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 设计单位 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.designUnit || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 施工单位 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.constructionOrganization || "/"),
-                  1
-                  /* TEXT */
-                )
-              ]),
-              vue.createElementVNode("view", { class: "line" }, [
-                vue.createElementVNode("view", { class: "line-title" }, " 监理单位 "),
-                vue.createElementVNode(
-                  "view",
-                  { class: "line-content" },
-                  vue.toDisplayString(item.supervisionUnit || "/"),
-                  1
-                  /* TEXT */
-                )
-              ])
+            $setup.expandedTypes[item.id] && item.children ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+              (vue.openBlock(true), vue.createElementBlock(
+                vue.Fragment,
+                null,
+                vue.renderList(item.children, (child, childIndex) => {
+                  return vue.openBlock(), vue.createElementBlock("view", {
+                    class: "line",
+                    key: child.id
+                  }, [
+                    vue.createElementVNode(
+                      "view",
+                      { class: "line-title" },
+                      vue.toDisplayString(child.name),
+                      1
+                      /* TEXT */
+                    ),
+                    vue.createElementVNode(
+                      "view",
+                      { class: "line-content" },
+                      vue.toDisplayString(child.value || "/"),
+                      1
+                      /* TEXT */
+                    )
+                  ]);
+                }),
+                128
+                /* KEYED_FRAGMENT */
+              ))
             ])) : vue.createCommentVNode("v-if", true)
           ]);
         }),
@@ -7171,8 +5584,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
-  const _sfc_main$b = {
+  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
+  const _sfc_main$g = {
     __name: "notes",
     props: {
       data: {
@@ -7188,162 +5601,173 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createElementVNode("view", { class: "part-area" }, [
         vue.createElementVNode("view", { class: "part-area-title" }, "需要说明的事项(含桥梁管养单位的变更情况)"),
         vue.createElementVNode(
           "view",
           { class: "part-area-content" },
-          vue.toDisplayString($props.data || "/"),
+          vue.toDisplayString($props.data.value || "/"),
           1
           /* TEXT */
         )
       ])
     ]);
   }
-  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
-  const _sfc_main$a = {
+  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
+  const _sfc_main$f = {
     __name: "other-info",
+    props: {
+      data: {
+        type: Object,
+        default: () => ({})
+      }
+    },
     setup(__props, { expose: __expose }) {
       __expose();
-      const data = vue.ref({
-        engineer: "张三",
-        //桥梁工程师
-        filler: "李四",
-        //填卡人
-        date: "2024-11"
-        //填卡时间
+      const props = __props;
+      const dataArray = vue.computed(() => {
+        if (Array.isArray(props.data)) {
+          return props.data;
+        }
+        if (props.data && props.data.children && Array.isArray(props.data.children)) {
+          return props.data.children;
+        }
+        return [];
       });
-      const __returned__ = { data, ref: vue.ref };
+      const imageItems = vue.computed(() => {
+        return dataArray.value.filter(
+          (item) => item.name.includes("照片") || item.name.includes("照")
+        );
+      });
+      const textItems = vue.computed(() => {
+        return dataArray.value.filter(
+          (item) => !item.name.includes("照片") && !item.name.includes("照")
+        );
+      });
+      const getImageUrl = (value) => {
+        if (!value || value === "/") {
+          return "/static/image/zjl.png";
+        }
+        return value;
+      };
+      const clickImg = (item) => {
+        const url = getImageUrl(item.value);
+        uni.previewImage({
+          urls: [url],
+          current: 0
+        });
+      };
+      const __returned__ = { props, dataArray, imageItems, textItems, getImageUrl, clickImg, ref: vue.ref, computed: vue.computed };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
-      vue.createElementVNode("view", { class: "image-line" }, [
-        vue.createElementVNode("view", { class: "image-line-part" }, [
-          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁正面照 "),
-          vue.createElementVNode("view", { class: "image-line-part-image" }, [
-            vue.createElementVNode("image", {
-              src: _imports_0$4,
-              mode: "aspectFill",
-              class: "image"
-            })
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "image-line-part" }, [
-          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁立面照 "),
-          vue.createElementVNode("view", { class: "image-line-part-image" }, [
-            vue.createElementVNode("image", {
-              src: _imports_0$4,
-              mode: "aspectFill",
-              class: "image"
-            })
-          ])
-        ])
+      vue.createCommentVNode(" 照片区域，每行两张照片 "),
+      vue.createElementVNode("view", { class: "image-container" }, [
+        (vue.openBlock(true), vue.createElementBlock(
+          vue.Fragment,
+          null,
+          vue.renderList($setup.imageItems, (item, index) => {
+            return vue.openBlock(), vue.createElementBlock("view", {
+              key: item.id,
+              class: "image-item"
+            }, [
+              vue.createElementVNode(
+                "view",
+                { class: "image-title" },
+                vue.toDisplayString(item.name),
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode("view", { class: "image-wrapper" }, [
+                vue.createElementVNode("image", {
+                  src: $setup.getImageUrl(item.value),
+                  mode: "aspectFill",
+                  class: "image",
+                  onClick: ($event) => $setup.clickImg(item)
+                }, null, 8, ["src", "onClick"])
+              ])
+            ]);
+          }),
+          128
+          /* KEYED_FRAGMENT */
+        ))
       ]),
-      vue.createElementVNode("view", { class: "image-line" }, [
-        vue.createElementVNode("view", { class: "image-line-part" }, [
-          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁正面照 "),
-          vue.createElementVNode("view", { class: "image-line-part-image" }, [
-            vue.createElementVNode("image", {
-              src: _imports_0$4,
-              mode: "aspectFill",
-              class: "image"
-            })
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "image-line-part" }, [
-          vue.createElementVNode("view", { class: "image-line-part-title" }, " 桥梁立面照 "),
-          vue.createElementVNode("view", { class: "image-line-part-image" }, [
-            vue.createElementVNode("image", {
-              src: _imports_0$4,
-              mode: "aspectFill",
-              class: "image"
-            })
-          ])
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 桥梁工程师 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($setup.data.engineer),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 填卡人 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($setup.data.filler),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode("view", { class: "line" }, [
-        vue.createElementVNode("view", { class: "line-title" }, " 填卡时间 "),
-        vue.createElementVNode(
-          "view",
-          { class: "line-content" },
-          vue.toDisplayString($setup.data.date),
-          1
-          /* TEXT */
-        )
-      ])
+      vue.createCommentVNode(" 文本信息区域 "),
+      (vue.openBlock(true), vue.createElementBlock(
+        vue.Fragment,
+        null,
+        vue.renderList($setup.textItems, (item, index) => {
+          return vue.openBlock(), vue.createElementBlock("view", {
+            class: "line",
+            key: item.id
+          }, [
+            vue.createElementVNode(
+              "view",
+              { class: "line-title" },
+              vue.toDisplayString(item.name),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "view",
+              { class: "line-content" },
+              vue.toDisplayString(item.value || "/"),
+              1
+              /* TEXT */
+            )
+          ]);
+        }),
+        128
+        /* KEYED_FRAGMENT */
+      ))
     ]);
   }
-  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
-  const _sfc_main$9 = {
+  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
+  const _sfc_main$e = {
     __name: "bridge-archive",
     setup(__props, { expose: __expose }) {
       __expose();
+      const bridgeArchive2 = vue.ref({
+        children: [{}, {}, {}, {}, {}, {}, {}, {}]
+        // 初始化8个空对象，对应8个标签页
+      });
       const tabItems = vue.ref(["行政识别数据", "桥梁技术指标", "桥梁结构信息", "桥梁档案资料", "桥梁检测评定历史", "养护处置记录", "需要说明的事项", "其他"]);
       const activeTab = vue.ref(0);
       const changeTab = (index) => {
         activeTab.value = index;
       };
-      const bridgeArchive2 = vue.ref({
-        administrativeIdentificationData: {},
-        bridgeTechnicalIndicators: {},
-        bridgeStructuralInfo: {},
-        bridgeArchiveRecords: {},
-        bridgeInspectionHistory: [],
-        maintenanceRecords: [],
-        additionalNotes: "",
-        additionalInfo: {}
-      });
-      const getData = () => {
-        uni.request({
-          url: "/static/data/bridgeArchive.json",
-          method: "GET",
-          success: (res) => {
-            formatAppLog("log", "at components/bridge-archive.vue:72", "获取数据成功:", res.data);
-            bridgeArchive2.value = res.data;
-          },
-          fail: (err) => {
-            formatAppLog("error", "at components/bridge-archive.vue:76", "获取数据失败:", err);
+      vue.onMounted(async () => {
+        try {
+          const data2 = await getProperty("3", "39");
+          formatAppLog("log", "at components/bridge-archive.vue:67", "获取到桥梁档案数据:", data2);
+          if (data2 && Object.keys(data2).length > 0) {
+            bridgeArchive2.value = data2;
           }
-        });
-      };
-      vue.onMounted(() => {
-        getData();
+        } catch (error) {
+          formatAppLog("error", "at components/bridge-archive.vue:74", "获取桥梁档案数据失败:", error);
+          uni.showToast({
+            title: "获取数据失败",
+            icon: "none"
+          });
+        }
       });
-      const __returned__ = { tabItems, activeTab, changeTab, bridgeArchive: bridgeArchive2, getData, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted };
+      const __returned__ = { bridgeArchive: bridgeArchive2, tabItems, activeTab, changeTab, ref: vue.ref, watch: vue.watch, onMounted: vue.onMounted, get getProperty() {
+        return getProperty;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$1);
+  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$2);
     const _component_bridge_tech = resolveEasycom(vue.resolveDynamicComponent("bridge-tech"), __easycom_1$1);
     const _component_bridge_structure = resolveEasycom(vue.resolveDynamicComponent("bridge-structure"), __easycom_2);
-    const _component_bridge_files = resolveEasycom(vue.resolveDynamicComponent("bridge-files"), __easycom_3);
+    const _component_bridge_files = resolveEasycom(vue.resolveDynamicComponent("bridge-files"), __easycom_3$1);
     const _component_bridge_inspection_history = resolveEasycom(vue.resolveDynamicComponent("bridge-inspection-history"), __easycom_4);
     const _component_maintenance_records = resolveEasycom(vue.resolveDynamicComponent("maintenance-records"), __easycom_5);
     const _component_notes = resolveEasycom(vue.resolveDynamicComponent("notes"), __easycom_6);
@@ -7380,14 +5804,14 @@ if (uni.restoreGlobal) {
           vue.createCommentVNode("行政识别数据 "),
           $setup.activeTab === 0 ? (vue.openBlock(), vue.createBlock(_component_administrative_identification_data, {
             key: 0,
-            data: $setup.bridgeArchive.administrativeIdentificationData
+            data: $setup.bridgeArchive.children[0].children
           }, null, 8, ["data"])) : $setup.activeTab === 1 ? (vue.openBlock(), vue.createElementBlock(
             vue.Fragment,
             { key: 1 },
             [
               vue.createCommentVNode("桥梁技术指标"),
               vue.createVNode(_component_bridge_tech, {
-                data: $setup.bridgeArchive.bridgeTechnicalIndicators
+                data: $setup.bridgeArchive.children[1].children
               }, null, 8, ["data"])
             ],
             2112
@@ -7398,7 +5822,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("桥梁结构信息"),
               vue.createVNode(_component_bridge_structure, {
-                data: $setup.bridgeArchive.bridgeStructuralInfo
+                data: $setup.bridgeArchive.children[2].children
               }, null, 8, ["data"])
             ],
             2112
@@ -7409,7 +5833,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("桥梁档案资料"),
               vue.createVNode(_component_bridge_files, {
-                data: $setup.bridgeArchive.bridgeArchiveRecords
+                data: $setup.bridgeArchive.children[3].children
               }, null, 8, ["data"])
             ],
             2112
@@ -7420,7 +5844,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("桥梁检测评定历史"),
               vue.createVNode(_component_bridge_inspection_history, {
-                data: $setup.bridgeArchive.bridgeInspectionHistory
+                data: $setup.bridgeArchive.children[4].children
               }, null, 8, ["data"])
             ],
             2112
@@ -7431,7 +5855,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("养护处置记录"),
               vue.createVNode(_component_maintenance_records, {
-                data: $setup.bridgeArchive.maintenanceRecords
+                data: $setup.bridgeArchive.children[5].children
               }, null, 8, ["data"])
             ],
             2112
@@ -7442,7 +5866,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("需要说明的事项"),
               vue.createVNode(_component_notes, {
-                data: $setup.bridgeArchive.additionalNotes
+                data: $setup.bridgeArchive.children[6]
               }, null, 8, ["data"])
             ],
             2112
@@ -7453,7 +5877,7 @@ if (uni.restoreGlobal) {
             [
               vue.createCommentVNode("其他"),
               vue.createVNode(_component_other_info, {
-                data: $setup.bridgeArchive.additionalInfo
+                data: $setup.bridgeArchive.children[7]
               }, null, 8, ["data"])
             ],
             2112
@@ -7463,18 +5887,1737 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
-  const _sfc_main$8 = {
-    name: "structure-info",
-    data() {
-      return {};
+  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
+  const msg = "ObjectTree success";
+  const code = 0;
+  const data = {
+    orderNum: 0,
+    delFlag: "0",
+    children: [
+      {
+        orderNum: 1,
+        delFlag: "0",
+        children: [
+          {
+            orderNum: 1,
+            delFlag: "0",
+            id: 709,
+            ancestors: "0,704,705,706",
+            templateObjectId: 2011,
+            comments: [
+              {
+                code: "R-1-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:38",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）1",
+                id: 244,
+                status: "0"
+              },
+              {
+                code: "R-1-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:38",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）2",
+                id: 245,
+                status: "0"
+              },
+              {
+                code: "R-2-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:38",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）3",
+                id: 246,
+                status: "0"
+              },
+              {
+                code: "R-2-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）4",
+                id: 247,
+                status: "0"
+              },
+              {
+                code: "R-3-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）5",
+                id: 248,
+                status: "0"
+              },
+              {
+                code: "R-3-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）6",
+                id: 249,
+                status: "0"
+              },
+              {
+                code: "R-4-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）7",
+                id: 250,
+                status: "0"
+              },
+              {
+                code: "R-4-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）8",
+                id: 251,
+                status: "0"
+              },
+              {
+                code: "R-5-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）9",
+                id: 252,
+                status: "0"
+              },
+              {
+                code: "R-5-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）10",
+                id: 253,
+                status: "0"
+              },
+              {
+                code: "R-6-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）11",
+                id: 254,
+                status: "0"
+              },
+              {
+                code: "R-6-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:39",
+                name: "上部承重构件（主梁、挂梁）12",
+                id: 255,
+                status: "0"
+              },
+              {
+                code: "R-7-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）13",
+                id: 256,
+                status: "0"
+              },
+              {
+                code: "R-7-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）14",
+                id: 257,
+                status: "0"
+              },
+              {
+                code: "R-8-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）15",
+                id: 258,
+                status: "0"
+              },
+              {
+                code: "R-8-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）16",
+                id: 259,
+                status: "0"
+              },
+              {
+                code: "R-9-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）17",
+                id: 260,
+                status: "0"
+              },
+              {
+                code: "R-9-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）18",
+                id: 261,
+                status: "0"
+              },
+              {
+                code: "R-10-1#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:39",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）19",
+                id: 262,
+                status: "0"
+              },
+              {
+                code: "R-10-2#上部承重构件（主梁、挂梁）",
+                updateTime: "2025-04-21 16:53:40",
+                delFlag: "0",
+                biObjectId: 709,
+                createBy: "admin",
+                createTime: "2025-04-21 16:53:40",
+                name: "上部承重构件（主梁、挂梁）20",
+                id: 263,
+                status: "0"
+              }
+            ],
+            count: 20,
+            weight: 0.7,
+            updateTime: "2025-04-21 16:50:36",
+            parentId: 706,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "上部承重构件（主梁、挂梁）",
+            diseaseTypes: [
+              {
+                createBy: "admin",
+                code: "5.2.1-1",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "涂层劣化",
+                updateTime: "2025-04-14 17:14:06",
+                id: 15,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-2",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "锈蚀",
+                updateTime: "2025-04-14 17:14:06",
+                id: 16,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-3",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "焊缝开裂",
+                updateTime: "2025-04-14 17:14:06",
+                id: 17,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-4",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "铆钉（螺栓）损失",
+                updateTime: "2025-04-14 17:14:06",
+                id: 18,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-5",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "构件裂缝",
+                updateTime: "2025-04-14 17:14:06",
+                id: 19,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-6",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "跨中挠度",
+                updateTime: "2025-04-14 17:14:06",
+                id: 20,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-7",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "构件变形",
+                updateTime: "2025-04-14 17:14:06",
+                id: 21,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-8",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "结构变位",
+                updateTime: "2025-04-14 17:14:06",
+                id: 22,
+                minScale: 1,
+                status: "0"
+              }
+            ],
+            status: "0"
+          },
+          {
+            orderNum: 2,
+            delFlag: "0",
+            id: 710,
+            ancestors: "0,704,705,706",
+            templateObjectId: 2012,
+            count: 0,
+            weight: 0.18,
+            updateTime: "2025-04-21 16:50:36",
+            parentId: 706,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "上部一般构件（湿接缝、横隔板等）",
+            diseaseTypes: [
+              {
+                createBy: "admin",
+                code: "5.2.1-1",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "涂层劣化",
+                updateTime: "2025-04-14 17:14:06",
+                id: 15,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-2",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "锈蚀",
+                updateTime: "2025-04-14 17:14:06",
+                id: 16,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-3",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "焊缝开裂",
+                updateTime: "2025-04-14 17:14:06",
+                id: 17,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-4",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "铆钉（螺栓）损失",
+                updateTime: "2025-04-14 17:14:06",
+                id: 18,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-5",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "构件裂缝",
+                updateTime: "2025-04-14 17:14:06",
+                id: 19,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-6",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "跨中挠度",
+                updateTime: "2025-04-14 17:14:06",
+                id: 20,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-7",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "构件变形",
+                updateTime: "2025-04-14 17:14:06",
+                id: 21,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.2.1-8",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "结构变位",
+                updateTime: "2025-04-14 17:14:06",
+                id: 22,
+                minScale: 1,
+                status: "0"
+              }
+            ],
+            status: "0"
+          },
+          {
+            orderNum: 3,
+            delFlag: "0",
+            id: 711,
+            ancestors: "0,704,705,706",
+            templateObjectId: 2013,
+            comments: [
+              {
+                code: "R-1#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:19",
+                name: "支座1",
+                id: 264,
+                status: "0"
+              },
+              {
+                code: "R-2#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座2",
+                id: 265,
+                status: "0"
+              },
+              {
+                code: "R-3#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座3",
+                id: 266,
+                status: "0"
+              },
+              {
+                code: "R-4#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座4",
+                id: 267,
+                status: "0"
+              },
+              {
+                code: "R-5#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座5",
+                id: 268,
+                status: "0"
+              },
+              {
+                code: "R-6#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座6",
+                id: 269,
+                status: "0"
+              },
+              {
+                code: "R-7#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座7",
+                id: 270,
+                status: "0"
+              },
+              {
+                code: "R-8#支座",
+                updateTime: "2025-04-21 16:57:19",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座8",
+                id: 271,
+                status: "0"
+              },
+              {
+                code: "R-9#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座9",
+                id: 272,
+                status: "0"
+              },
+              {
+                code: "R-10#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座10",
+                id: 273,
+                status: "0"
+              },
+              {
+                code: "R-11#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座11",
+                id: 274,
+                status: "0"
+              },
+              {
+                code: "R-12#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座12",
+                id: 275,
+                status: "0"
+              },
+              {
+                code: "R-13#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座13",
+                id: 276,
+                status: "0"
+              },
+              {
+                code: "R-14#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座14",
+                id: 277,
+                status: "0"
+              },
+              {
+                code: "R-15#支座",
+                updateTime: "2025-04-21 16:57:20",
+                delFlag: "0",
+                biObjectId: 711,
+                createBy: "admin",
+                createTime: "2025-04-21 16:57:20",
+                name: "支座15",
+                id: 278,
+                status: "0"
+              }
+            ],
+            count: 15,
+            weight: 0.12,
+            updateTime: "2025-04-21 16:50:36",
+            parentId: 706,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "支座",
+            diseaseTypes: [
+              {
+                createBy: "admin",
+                code: "5.3.1-1",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "橡胶支座老化变质、开裂",
+                updateTime: "2025-04-14 17:14:06",
+                id: 23,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.1-2",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "板式支座缺陷",
+                updateTime: "2025-04-14 17:14:06",
+                id: 24,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.1-3",
+                maxScale: 5,
+                createTime: "2025-04-14 17:14:06",
+                name: "板式支座位置串动、脱空或剪切超限",
+                updateTime: "2025-04-14 17:14:06",
+                id: 25,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.1-4",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "盆式支座组件损坏",
+                updateTime: "2025-04-14 17:14:06",
+                id: 26,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.1-5",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "聚四氟乙烯滑板磨损",
+                updateTime: "2025-04-14 17:14:06",
+                id: 27,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.1-6",
+                maxScale: 3,
+                createTime: "2025-04-14 17:14:06",
+                name: "盆式支座位移、转角超限",
+                updateTime: "2025-04-14 17:14:06",
+                id: 28,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.2-1",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "钢支座组件或功能缺陷",
+                updateTime: "2025-04-14 17:14:06",
+                id: 29,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.2-2",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "钢支座位移、转角超限",
+                updateTime: "2025-04-14 17:14:06",
+                id: 30,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.2-3",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "钢支座部件磨损、裂缝",
+                updateTime: "2025-04-14 17:14:06",
+                id: 31,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.3-1",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "混凝土缺损",
+                updateTime: "2025-04-14 17:14:06",
+                id: 32,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.3-2",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "活动支座滑动面不平整、生锈咬死",
+                updateTime: "2025-04-14 17:14:06",
+                id: 33,
+                minScale: 1,
+                status: "0"
+              },
+              {
+                createBy: "admin",
+                code: "5.3.3-3",
+                maxScale: 4,
+                createTime: "2025-04-14 17:14:06",
+                name: "承有裂纹、切口或偏移",
+                updateTime: "2025-04-14 17:14:06",
+                id: 34,
+                minScale: 1,
+                status: "0"
+              }
+            ],
+            status: "0"
+          }
+        ],
+        id: 706,
+        ancestors: "0,704,705",
+        templateObjectId: 201,
+        count: 0,
+        weight: 0.4,
+        updateTime: "2025-04-21 16:50:36",
+        parentId: 705,
+        createBy: "admin",
+        createTime: "2025-04-21 16:50:36",
+        name: "上部结构",
+        status: "0"
+      },
+      {
+        orderNum: 2,
+        delFlag: "0",
+        children: [
+          {
+            orderNum: 1,
+            delFlag: "0",
+            id: 712,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2021,
+            count: 0,
+            weight: 0.02,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "翼墙、耳墙",
+            status: "0"
+          },
+          {
+            orderNum: 2,
+            delFlag: "0",
+            id: 713,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2022,
+            count: 0,
+            weight: 0.01,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "锥坡、护坡",
+            status: "0"
+          },
+          {
+            orderNum: 3,
+            delFlag: "0",
+            id: 714,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2023,
+            count: 0,
+            weight: 0.3,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "桥墩",
+            status: "0"
+          },
+          {
+            orderNum: 4,
+            delFlag: "0",
+            id: 715,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2024,
+            count: 0,
+            weight: 0.3,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "桥台",
+            status: "0"
+          },
+          {
+            orderNum: 5,
+            delFlag: "0",
+            id: 716,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2025,
+            count: 0,
+            weight: 0.28,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "墩台基础",
+            status: "0"
+          },
+          {
+            orderNum: 6,
+            delFlag: "0",
+            id: 717,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2026,
+            count: 0,
+            weight: 0.07,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:37",
+            name: "河床",
+            status: "0"
+          },
+          {
+            orderNum: 7,
+            delFlag: "0",
+            id: 718,
+            ancestors: "0,704,705,707",
+            templateObjectId: 2027,
+            count: 0,
+            weight: 0.02,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 707,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "调治构造物",
+            status: "0"
+          }
+        ],
+        id: 707,
+        ancestors: "0,704,705",
+        templateObjectId: 202,
+        count: 0,
+        weight: 0.4,
+        updateTime: "2025-04-21 16:50:36",
+        parentId: 705,
+        createBy: "admin",
+        createTime: "2025-04-21 16:50:37",
+        name: "下部结构",
+        status: "0"
+      },
+      {
+        orderNum: 3,
+        delFlag: "0",
+        children: [
+          {
+            orderNum: 1,
+            delFlag: "0",
+            id: 719,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2031,
+            count: 0,
+            weight: 0.4,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "桥面铺装",
+            status: "0"
+          },
+          {
+            orderNum: 2,
+            delFlag: "0",
+            id: 720,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2032,
+            count: 0,
+            weight: 0.25,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "伸缩缝装置",
+            status: "0"
+          },
+          {
+            orderNum: 3,
+            delFlag: "0",
+            id: 721,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2033,
+            count: 0,
+            weight: 0.1,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "人行道",
+            status: "0"
+          },
+          {
+            orderNum: 4,
+            delFlag: "0",
+            id: 722,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2034,
+            count: 0,
+            weight: 0.1,
+            updateTime: "2025-04-21 16:50:37",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "栏杆、护栏",
+            status: "0"
+          },
+          {
+            orderNum: 5,
+            delFlag: "0",
+            id: 723,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2035,
+            count: 0,
+            weight: 0.1,
+            updateTime: "2025-04-21 16:50:38",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "排水系统",
+            status: "0"
+          },
+          {
+            orderNum: 6,
+            delFlag: "0",
+            id: 724,
+            ancestors: "0,704,705,708",
+            templateObjectId: 2036,
+            count: 0,
+            weight: 0.05,
+            updateTime: "2025-04-21 16:50:38",
+            parentId: 708,
+            createBy: "admin",
+            createTime: "2025-04-21 16:50:38",
+            name: "照明、标志",
+            status: "0"
+          }
+        ],
+        id: 708,
+        ancestors: "0,704,705",
+        templateObjectId: 203,
+        count: 0,
+        weight: 0.2,
+        updateTime: "2025-04-21 16:50:36",
+        parentId: 705,
+        createBy: "admin",
+        createTime: "2025-04-21 16:50:37",
+        name: "桥面系",
+        status: "0"
+      }
+    ],
+    id: 705,
+    ancestors: "0,704",
+    templateObjectId: 2,
+    count: 0,
+    updateTime: "2025-04-21 16:50:36",
+    parentId: 704,
+    createBy: "admin",
+    parentName: "K38+837白洋互通主线桥",
+    createTime: "2025-04-21 16:50:36",
+    name: "K38+837白洋互通主线桥(K1474+780)-右线(钢梁桥)",
+    status: "0"
+  };
+  const structureJSON = {
+    msg,
+    code,
+    data
+  };
+  const _sfc_main$d = {
+    __name: "structure-info",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const tabItems = vue.ref([]);
+      const structures = vue.ref([]);
+      const selectedIndex = vue.ref(0);
+      const confirmed = vue.ref(false);
+      const activeTab = vue.ref(0);
+      const popupContent = vue.ref("");
+      const currentStructure = vue.ref();
+      const currentEdit = vue.ref();
+      const editSuffix = vue.ref("");
+      const editNumber = vue.ref("");
+      const selectedStructure = vue.ref(null);
+      const popup2 = vue.ref(null);
+      const confirmPopup = vue.ref(null);
+      const confirmStructure = () => {
+        confirmPopup.value.open();
+      };
+      const confirmConfirm = () => {
+        confirmed.value = true;
+        confirmPopup.value.close();
+      };
+      const closeConfirmPopup = () => {
+        confirmPopup.value.close();
+      };
+      const changeTab = (index) => {
+        selectedIndex.value = index;
+      };
+      const suffix = vue.ref("");
+      const segments = vue.ref([{
+        id: generateId(),
+        typeIndex: 0,
+        value: "",
+        start: "",
+        end: ""
+      }]);
+      function generateId() {
+        return "id_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+      }
+      const isAllSelected = vue.computed(() => currentStructure.value.comments.every((item) => item.selected));
+      const hasSelection = vue.computed(() => currentStructure.value.comments.some((item) => item.selected));
+      const showPopup = (item) => {
+        currentStructure.value = item;
+        if (!item.comments) {
+          popupContent.value = "create";
+          suffix.value = "#" + currentStructure.value.name;
+        } else {
+          popupContent.value = "read";
+          item.comments.forEach((item2) => {
+            item2.selected = false;
+          });
+        }
+        popup2.value.open();
+      };
+      const changeStructureState = (structure) => {
+        formatAppLog("log", "at components/structure-info.vue:247", structure);
+        structure.status = structure.status === "0" ? "1" : "0";
+      };
+      const toggleSelectAll = () => {
+        const all = isAllSelected.value;
+        currentStructure.value.comments.forEach((item) => item.selected = !all);
+      };
+      const selectItem = (index) => {
+        currentStructure.value.comments[index].selected = !currentStructure.value.comments[index].selected;
+      };
+      const singleDelete = (comment) => {
+        if (!comment)
+          return;
+        currentStructure.value.comments = currentStructure.value.comments.filter((item) => item !== comment);
+        uni.showToast({
+          title: "删除成功",
+          icon: "none"
+        });
+      };
+      const batchDelete = () => {
+        if (!hasSelection.value)
+          return;
+        currentStructure.value.comments = currentStructure.value.comments.filter((item) => !item.selected);
+        uni.showToast({
+          title: "批量删除成功",
+          icon: "none"
+        });
+      };
+      const edit = (structure) => {
+        currentEdit.value = structure;
+        editSuffix.value = "#" + structure.code.split("#")[1];
+        editNumber.value = structure.code.split("#")[0];
+        popupContent.value = "edit";
+      };
+      const addSegment = () => {
+        segments.value.push({
+          id: generateId(),
+          typeIndex: 0,
+          value: "",
+          start: "",
+          end: ""
+        });
+      };
+      const typeChange = (e2) => {
+        const id = e2.id;
+        const newValue = e2.event.detail.value;
+        const index = segments.value.findIndex((segment) => segment.id === id);
+        if (index !== -1) {
+          segments.value[index].typeIndex = newValue;
+        }
+      };
+      const removeSegment = (index) => {
+        segments.value.splice(index, 1);
+      };
+      function getCurrentFormattedTime() {
+        const now = /* @__PURE__ */ new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+        const seconds = String(now.getSeconds()).padStart(2, "0");
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+      }
+      const generateCombinations = (segs, index = 0, path = [], result = []) => {
+        if (index === segs.length) {
+          const combined = path.join("-");
+          result.push({
+            // name: `${combined}${suffix.value}`,
+            // number: combined,
+            // suffix: suffix.value
+            biObjectId: currentStructure.value.id,
+            code: `${combined}${suffix.value}`,
+            createBy: "user",
+            createTime: getCurrentFormattedTime(),
+            delFlag: "0",
+            // 未知属性
+            // id: ,//不知道id是啥
+            name: `${suffix.value.split("#")[1] + (result.length + 1)}`,
+            status: "0",
+            updateTime: getCurrentFormattedTime()
+          });
+          return;
+        }
+        const seg = segs[index];
+        if (seg.typeIndex === 0) {
+          generateCombinations(segs, index + 1, [...path, seg.value], result);
+        } else if (seg.typeIndex === 1) {
+          const start = Number(seg.start);
+          const end = Number(seg.end);
+          for (let i2 = start; i2 <= end; i2++) {
+            generateCombinations(segs, index + 1, [...path, i2], result);
+          }
+        }
+        return result;
+      };
+      const generateNameObjects = () => {
+        return generateCombinations(segments.value);
+      };
+      const cancel = () => {
+        popup2.value.close();
+      };
+      const confirm = () => {
+        currentStructure.value.comments = generateNameObjects();
+        currentStructure.value.count = currentStructure.value.comments.length;
+        popup2.value.close();
+      };
+      const editCancel = () => {
+        popupContent.value = "read";
+      };
+      const editConfirm = () => {
+        const match = currentEdit.value.name.match(/\d+$/);
+        const number = match ? match[0] : "";
+        currentEdit.value.name = editSuffix.value.split("#")[1] + number;
+        currentEdit.value.code = `${editNumber.value + editSuffix.value}`;
+        popupContent.value = "read";
+      };
+      const selectStructure = (item, index) => {
+        selectedStructure.value = item;
+      };
+      vue.onMounted(() => {
+        structures.value = JSON.parse(JSON.stringify(structureJSON.data));
+        tabItems.value = structures.value.children.map((item) => item.name);
+        formatAppLog("log", "at components/structure-info.vue:406", structures.value);
+      });
+      const __returned__ = { tabItems, structures, selectedIndex, confirmed, activeTab, popupContent, currentStructure, currentEdit, editSuffix, editNumber, selectedStructure, popup: popup2, confirmPopup, confirmStructure, confirmConfirm, closeConfirmPopup, changeTab, suffix, segments, generateId, isAllSelected, hasSelection, showPopup, changeStructureState, toggleSelectAll, selectItem, singleDelete, batchDelete, edit, addSegment, typeChange, removeSegment, getCurrentFormattedTime, generateCombinations, generateNameObjects, cancel, confirm, editCancel, editConfirm, selectStructure, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, get structureJSON() {
+        return structureJSON;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
     }
   };
-  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", null, " 结构信息 ");
+  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createElementVNode("view", { class: "confirm-row" }, [
+        vue.createElementVNode("span", { class: "confirm-text" }, "结构信息状态："),
+        vue.createElementVNode(
+          "span",
+          {
+            class: "confirm-status",
+            style: vue.normalizeStyle({ color: $setup.confirmed ? "#00dd00" : "#f56c6c" })
+          },
+          vue.toDisplayString($setup.confirmed ? "已确认" : "未确认"),
+          5
+          /* TEXT, STYLE */
+        ),
+        vue.createElementVNode("view", { class: "confirm-button-container" }, [
+          vue.createElementVNode("button", {
+            onClick: $setup.confirmStructure,
+            class: "confirm-button"
+          }, "确定构件信息")
+        ])
+      ]),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "confirmPopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "confirmPopup-content" }, [
+              vue.createElementVNode("text", { class: "confirmPopup-text" }, "确定当前结构信息状态吗？"),
+              vue.createElementVNode("view", { class: "confirmPopup-buttons" }, [
+                vue.createElementVNode("button", {
+                  class: "confirmPopup-buttons-cancel",
+                  onClick: $setup.closeConfirmPopup
+                }, "取消"),
+                vue.createElementVNode("button", {
+                  class: "confirmPopup-buttons-confirm",
+                  onClick: $setup.confirmConfirm
+                }, "确定")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createElementVNode("view", { class: "content-layout" }, [
+        vue.createCommentVNode("左侧边栏"),
+        vue.createElementVNode("view", { class: "sidebar" }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.tabItems, (item, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: index,
+                class: vue.normalizeClass(["sidebar-item", $setup.selectedIndex === index ? "active" : ""]),
+                onClick: ($event) => $setup.changeTab(index)
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "sidebar-item-content" },
+                  vue.toDisplayString(item),
+                  1
+                  /* TEXT */
+                )
+              ], 10, ["onClick"]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          ))
+        ]),
+        vue.createCommentVNode(" 右侧内容区 "),
+        vue.createElementVNode("view", { class: "content" }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.structures.children[$setup.selectedIndex].children, (item, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                class: vue.normalizeClass(["structure-item", { "selected": $setup.selectedStructure === item }]),
+                onClick: ($event) => $setup.selectStructure(item, index)
+              }, [
+                (vue.openBlock(), vue.createElementBlock(
+                  "view",
+                  {
+                    key: index,
+                    class: "structure-name"
+                  },
+                  vue.toDisplayString(item.name),
+                  1
+                  /* TEXT */
+                )),
+                vue.createElementVNode("view", {
+                  class: vue.normalizeClass(["structure-state-button", item.status === "0" ? "button-on" : "button-off", $setup.confirmed ? "disabled" : ""]),
+                  onClick: vue.withModifiers(($event) => $setup.selectedStructure === item && !$setup.confirmed && $setup.changeStructureState(item), ["stop"])
+                }, vue.toDisplayString(item.status === "0" ? "启用部件" : "停用部件"), 11, ["onClick"]),
+                vue.createElementVNode("view", {
+                  class: vue.normalizeClass(["structure-number-button", $setup.confirmed ? "disabled" : ""]),
+                  onClick: vue.withModifiers(($event) => $setup.selectedStructure === item && !$setup.confirmed && $setup.showPopup(item), ["stop"])
+                }, vue.toDisplayString(item.comments ? "查看编号" : "创建编号"), 11, ["onClick"])
+              ], 10, ["onClick"]);
+            }),
+            256
+            /* UNKEYED_FRAGMENT */
+          ))
+        ])
+      ]),
+      vue.createCommentVNode(" 底部弹出层 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "popup",
+          type: "bottom"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createCommentVNode(" read 模式 "),
+            $setup.popupContent === "read" ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "popup-content"
+            }, [
+              vue.createElementVNode(
+                "view",
+                { class: "popup-header" },
+                " 构建编号 - " + vue.toDisplayString($setup.currentStructure.name),
+                1
+                /* TEXT */
+              ),
+              vue.createCommentVNode(" 表头 "),
+              vue.createElementVNode("view", { class: "read-table-header" }, [
+                vue.createElementVNode("view", { class: "read-cell name" }, [
+                  vue.createElementVNode("checkbox", {
+                    checked: $setup.isAllSelected,
+                    onClick: $setup.toggleSelectAll,
+                    shape: "circle"
+                  }, null, 8, ["checked"]),
+                  vue.createElementVNode("text", null, "名称")
+                ]),
+                vue.createElementVNode("text", { class: "read-cell code" }, "编号"),
+                vue.createElementVNode("view", { class: "read-batchDelete" }, [
+                  vue.createElementVNode("button", {
+                    class: vue.normalizeClass(["btn delete", { "disabled-btn": !$setup.hasSelection }]),
+                    disabled: !$setup.hasSelection,
+                    onClick: $setup.batchDelete
+                  }, "批量删除", 10, ["disabled"])
+                ])
+              ]),
+              vue.createCommentVNode(" 列表 "),
+              vue.createElementVNode("scroll-view", {
+                "scroll-y": "",
+                class: "read-table-body"
+              }, [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($setup.currentStructure.comments, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock("view", {
+                      key: item.id,
+                      class: "read-table-row"
+                    }, [
+                      vue.createElementVNode("view", { class: "read-cell name" }, [
+                        vue.createElementVNode("checkbox", {
+                          checked: item.selected,
+                          onClick: ($event) => $setup.selectItem(index),
+                          shape: "circle"
+                        }, null, 8, ["checked", "onClick"]),
+                        vue.createElementVNode(
+                          "text",
+                          { class: "text-hide" },
+                          vue.toDisplayString(item.code),
+                          1
+                          /* TEXT */
+                        )
+                      ]),
+                      vue.createElementVNode(
+                        "text",
+                        { class: "read-cell code text-hide" },
+                        vue.toDisplayString(item.code.split("#")[0]),
+                        1
+                        /* TEXT */
+                      ),
+                      vue.createElementVNode("view", { class: "read-cell actions" }, [
+                        vue.createElementVNode("button", {
+                          class: "btn delete",
+                          onClick: ($event) => $setup.singleDelete(item)
+                        }, "删除", 8, ["onClick"]),
+                        vue.createElementVNode("button", {
+                          class: "btn edit",
+                          onClick: ($event) => $setup.edit(item)
+                        }, "编辑", 8, ["onClick"])
+                      ])
+                    ]);
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ])
+            ])) : $setup.popupContent === "create" ? (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 1 },
+              [
+                vue.createCommentVNode(" create 模式 "),
+                vue.createElementVNode("view", { class: "popup-box" }, [
+                  vue.createElementVNode(
+                    "view",
+                    { class: "popup-header" },
+                    " 创建编号 - " + vue.toDisplayString($setup.currentStructure.name),
+                    1
+                    /* TEXT */
+                  ),
+                  vue.createCommentVNode(" 名称后缀 "),
+                  vue.createElementVNode("view", { class: "create-suffix" }, [
+                    vue.createElementVNode("text", { class: "create-suffix-text" }, "名称后缀"),
+                    vue.withDirectives(vue.createElementVNode(
+                      "input",
+                      {
+                        "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.suffix = $event),
+                        class: "create-suffix-input",
+                        placeholder: "如 #锚具"
+                      },
+                      null,
+                      512
+                      /* NEED_PATCH */
+                    ), [
+                      [vue.vModelText, $setup.suffix]
+                    ])
+                  ]),
+                  vue.createCommentVNode(" 编号片段表格 "),
+                  vue.createElementVNode("view", { class: "create-table-header" }, [
+                    vue.createElementVNode("text", { class: "numberFragment" }, "编号片段"),
+                    vue.createElementVNode("template", { class: "create-table-cols" }, [
+                      vue.createElementVNode("text", { class: "col" }, "序号"),
+                      vue.createElementVNode("text", { class: "col" }, "类型"),
+                      vue.createElementVNode("text", { class: "col" }, "值"),
+                      vue.createElementVNode("text", { class: "col" }, "操作")
+                    ])
+                  ]),
+                  vue.createElementVNode("view", { class: "create-table-body" }, [
+                    (vue.openBlock(true), vue.createElementBlock(
+                      vue.Fragment,
+                      null,
+                      vue.renderList($setup.segments, (item, index) => {
+                        return vue.openBlock(), vue.createElementBlock("view", {
+                          class: "create-row",
+                          key: index
+                        }, [
+                          vue.createElementVNode("view", { class: "create-placeholder" }),
+                          vue.createElementVNode("template", { class: "create-row-right" }, [
+                            vue.createElementVNode(
+                              "text",
+                              { class: "create-number" },
+                              vue.toDisplayString(index + 1),
+                              1
+                              /* TEXT */
+                            ),
+                            vue.createElementVNode("picker", {
+                              mode: "selector",
+                              range: ["固定值", "序号"],
+                              value: item.typeIndex,
+                              onChange: (e2) => $setup.typeChange({ id: item.id, event: e2 }),
+                              class: "create-class"
+                            }, [
+                              vue.createElementVNode("view", { class: "create-class-value" }, [
+                                vue.createTextVNode(
+                                  vue.toDisplayString(["固定值", "序号"][item.typeIndex]) + " ",
+                                  1
+                                  /* TEXT */
+                                ),
+                                vue.createElementVNode("text", { class: "arrow-down" }, "▼")
+                              ])
+                            ], 40, ["value", "onChange"]),
+                            vue.createElementVNode("view", { class: "create-value" }, [
+                              item.typeIndex === 0 ? vue.withDirectives((vue.openBlock(), vue.createElementBlock("input", {
+                                key: 0,
+                                "onUpdate:modelValue": ($event) => item.value = $event,
+                                class: "create-value-input"
+                              }, null, 8, ["onUpdate:modelValue"])), [
+                                [vue.vModelText, item.value]
+                              ]) : (vue.openBlock(), vue.createElementBlock("view", {
+                                key: 1,
+                                class: "range-input"
+                              }, [
+                                vue.withDirectives(vue.createElementVNode("input", {
+                                  "onUpdate:modelValue": ($event) => item.start = $event,
+                                  class: "create-value-input"
+                                }, null, 8, ["onUpdate:modelValue"]), [
+                                  [vue.vModelText, item.start]
+                                ]),
+                                vue.createTextVNode(),
+                                vue.createElementVNode("text", { class: "create-value-text" }, "至"),
+                                vue.createTextVNode(),
+                                vue.withDirectives(vue.createElementVNode("input", {
+                                  "onUpdate:modelValue": ($event) => item.end = $event,
+                                  class: "create-value-input"
+                                }, null, 8, ["onUpdate:modelValue"]), [
+                                  [vue.vModelText, item.end]
+                                ])
+                              ]))
+                            ]),
+                            vue.createElementVNode("view", { class: "create-delete" }, [
+                              vue.createElementVNode("button", {
+                                class: "btn-delete",
+                                onClick: ($event) => $setup.removeSegment(index)
+                              }, "删除", 8, ["onClick"])
+                            ])
+                          ])
+                        ]);
+                      }),
+                      128
+                      /* KEYED_FRAGMENT */
+                    )),
+                    vue.createCommentVNode(" 操作按钮 "),
+                    vue.createElementVNode("view", { class: "btn-row" }, [
+                      vue.createElementVNode("button", {
+                        onClick: $setup.addSegment,
+                        class: "btn-add"
+                      }, "添加片段"),
+                      vue.createElementVNode("view", { class: "right-btns" }, [
+                        vue.createElementVNode("button", {
+                          onClick: $setup.cancel,
+                          class: "btn-cancel"
+                        }, "取消"),
+                        vue.createElementVNode("button", {
+                          onClick: $setup.confirm,
+                          class: "btn-confirm"
+                        }, "确定")
+                      ])
+                    ])
+                  ])
+                ])
+              ],
+              2112
+              /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+            )) : $setup.popupContent === "edit" ? (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 2 },
+              [
+                vue.createCommentVNode(" edit 模式 "),
+                vue.createElementVNode("view", { class: "popup-content" }, [
+                  vue.createElementVNode(
+                    "view",
+                    { class: "popup-header" },
+                    " 编辑编号 - " + vue.toDisplayString($setup.currentStructure.name),
+                    1
+                    /* TEXT */
+                  ),
+                  vue.createCommentVNode(" 名称后缀 "),
+                  vue.createElementVNode("view", { class: "create-suffix bottomBorder" }, [
+                    vue.createElementVNode("text", { class: "create-suffix-text" }, "名称后缀"),
+                    vue.withDirectives(vue.createElementVNode(
+                      "input",
+                      {
+                        "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.editSuffix = $event),
+                        class: "create-suffix-input",
+                        placeholder: "如 #锚具"
+                      },
+                      null,
+                      512
+                      /* NEED_PATCH */
+                    ), [
+                      [vue.vModelText, $setup.editSuffix]
+                    ])
+                  ]),
+                  vue.createCommentVNode(" 编号 "),
+                  vue.createElementVNode("view", { class: "create-suffix" }, [
+                    vue.createElementVNode("text", { class: "create-suffix-text" }, "编号"),
+                    vue.withDirectives(vue.createElementVNode(
+                      "input",
+                      {
+                        "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.editNumber = $event),
+                        class: "create-suffix-input",
+                        placeholder: "如 1-01-1"
+                      },
+                      null,
+                      512
+                      /* NEED_PATCH */
+                    ), [
+                      [vue.vModelText, $setup.editNumber]
+                    ])
+                  ]),
+                  vue.createCommentVNode(" 操作按钮 "),
+                  vue.createElementVNode("view", { class: "edit-btn-row" }, [
+                    vue.createElementVNode("button", {
+                      onClick: $setup.editCancel,
+                      class: "btn-cancel"
+                    }, "取消"),
+                    vue.createElementVNode("button", {
+                      onClick: $setup.editConfirm,
+                      class: "btn-confirm"
+                    }, "确定")
+                  ])
+                ])
+              ],
+              2112
+              /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+            )) : vue.createCommentVNode("v-if", true)
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      )
+    ]);
   }
-  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/structure-info.vue"]]);
-  const _sfc_main$7 = {
+  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-8f2488a5"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/structure-info.vue"]]);
+  const _sfc_main$c = {
+    __name: "front-photo",
+    props: {
+      data: {
+        type: Array,
+        default: () => []
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const photoList = vue.ref([]);
+      vue.watch(() => props.data, (newData) => {
+        if (newData && newData.length > 0) {
+          formatAppLog("log", "at components/front-photo.vue:34", "接收到桥梁正面立照数据:", newData);
+          photoList.value = newData;
+        }
+      }, { immediate: true, deep: true });
+      const previewImage = (url, index) => {
+        const urls = props.data.map((item) => item.imageUrl);
+        uni.previewImage({
+          current: index,
+          urls,
+          indicator: "number",
+          loop: true
+        });
+      };
+      vue.onMounted(() => {
+        formatAppLog("log", "at components/front-photo.vue:52", "front-photo组件挂载，接收到的数据:", props.data);
+      });
+      const __returned__ = { props, photoList, previewImage, ref: vue.ref, onMounted: vue.onMounted, watch: vue.watch };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "photo-container" }, [
+      vue.createElementVNode("view", { class: "title" }, "桥梁正面立照"),
+      vue.createElementVNode("view", { class: "photos-list" }, [
+        $props.data && $props.data.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "photo-grid"
+        }, [
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($props.data, (photo, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: index,
+                class: "photo-item"
+              }, [
+                vue.createElementVNode("image", {
+                  src: photo.imageUrl,
+                  mode: "aspectFill",
+                  onClick: ($event) => $setup.previewImage(photo.imageUrl, index)
+                }, null, 8, ["src", "onClick"])
+              ]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          ))
+        ])) : (vue.openBlock(), vue.createElementBlock("view", {
+          key: 1,
+          class: "empty-data"
+        }, " 暂无桥梁正面立照数据 "))
+      ])
+    ]);
+  }
+  const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-95007593"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/front-photo.vue"]]);
+  const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
+  const FILE_NAMING = {
+    taskList: (userId2) => `${userId2}/taskList.json`,
+    bridgeList: (userId2, bridgeListId) => `${userId2}/${bridgeListId}/bridgeList.json`,
+    bridge: (userId2, bridgeListId, bridgeId) => `${userId2}/${bridgeListId}/${bridgeId}/bridge.json`
+  };
+  function getFullPath(fileName) {
+    return `${DOC_BASE_PATH}${fileName}`;
+  }
+  async function getJsonData(fullPath) {
+    try {
+      formatAppLog("log", "at utils/readJson.js:20", "文件访问路径:", fullPath);
+      const fileSystem = await new Promise((resolve, reject) => {
+        plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, resolve, reject);
+      });
+      const fileEntry = await new Promise((resolve, reject) => {
+        fileSystem.root.getFile(fullPath, { create: false }, resolve, reject);
+      });
+      const file = await new Promise((resolve, reject) => {
+        fileEntry.file(resolve, reject);
+      });
+      const jsonString = await new Promise((resolve, reject) => {
+        const reader = new plus.io.FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsText(file);
+      });
+      try {
+        return JSON.parse(jsonString);
+      } catch (parseError) {
+        formatAppLog("error", "at utils/readJson.js:49", `JSON解析失败: ${fullPath}`, parseError);
+        throw new Error("文件内容格式不正确");
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/readJson.js:54", `文件操作失败: ${fullPath}`, error);
+      throw error;
+    }
+  }
+  function getBridge(userId2, bridgeListId, bridgeId) {
+    const fileName = FILE_NAMING.bridge(userId2, bridgeListId, bridgeId);
+    const fullPath = getFullPath(fileName);
+    trackPath$1(fullPath);
+    return getJsonData(fullPath);
+  }
+  const _sfc_main$b = {
     __name: "bridge-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -7510,12 +7653,18 @@ if (uni.restoreGlobal) {
           // 移除transform
         };
       });
-      const __returned__ = { tabs, activeTab, switchTab, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, ref: vue.ref, computed: vue.computed };
+      const __returned__ = { tabs, activeTab, switchTab, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, get getBridge() {
+        return getBridge;
+      }, get saveData() {
+        return saveData$1;
+      }, get trackPath() {
+        return trackPath$1;
+      }, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createCommentVNode(" 顶部导航栏 "),
       vue.createElementVNode("view", { class: "tabs" }, [
@@ -7554,212 +7703,70 @@ if (uni.restoreGlobal) {
       ]),
       vue.createCommentVNode(" 内容区域 "),
       vue.createElementVNode("view", { class: "content" }, [
-        $setup.activeTab === 0 ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-          vue.createCommentVNode(" 当前病害内容 "),
-          vue.createVNode($setup["currentDisease"])
-        ])) : $setup.activeTab === 1 ? (vue.openBlock(), vue.createElementBlock("view", { key: 1 }, [
-          vue.createCommentVNode(" 历史病害内容 "),
-          vue.createVNode($setup["historyDisease"])
-        ])) : $setup.activeTab === 2 ? (vue.openBlock(), vue.createElementBlock("view", { key: 2 })) : $setup.activeTab === 3 ? (vue.openBlock(), vue.createElementBlock("view", { key: 3 }, [
-          vue.createCommentVNode(" 桥梁档案内容 "),
-          vue.createVNode($setup["bridgeArchive"])
-        ])) : $setup.activeTab === 4 ? (vue.openBlock(), vue.createElementBlock("view", { key: 4 }, [
-          vue.createCommentVNode(" 结构信息内容 "),
-          vue.createVNode($setup["structureInfo"])
-        ])) : vue.createCommentVNode("v-if", true)
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 当前病害内容 "),
+            vue.createVNode($setup["currentDisease"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 0]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 历史病害内容 "),
+            vue.createVNode($setup["historyDisease"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 1]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 正面立照内容 "),
+            vue.createVNode($setup["frontPhoto"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 2]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 桥梁档案内容 "),
+            vue.createVNode($setup["bridgeArchive"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 3]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 结构信息内容 "),
+            vue.createVNode($setup["structureInfo"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 4]
+        ])
       ])
     ]);
   }
-  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
-  const _sfc_main$6 = {
-    name: "UniNumberBox",
-    emits: ["change", "input", "update:modelValue", "blur", "focus"],
-    props: {
-      value: {
-        type: [Number, String],
-        default: 1
-      },
-      modelValue: {
-        type: [Number, String],
-        default: 1
-      },
-      min: {
-        type: Number,
-        default: 0
-      },
-      max: {
-        type: Number,
-        default: 100
-      },
-      step: {
-        type: Number,
-        default: 1
-      },
-      background: {
-        type: String,
-        default: "#f5f5f5"
-      },
-      color: {
-        type: String,
-        default: "#333"
-      },
-      disabled: {
-        type: Boolean,
-        default: false
-      },
-      width: {
-        type: Number,
-        default: 40
-      }
-    },
-    data() {
-      return {
-        inputValue: 0
-      };
-    },
-    watch: {
-      value(val) {
-        this.inputValue = +val;
-      },
-      modelValue(val) {
-        this.inputValue = +val;
-      }
-    },
-    computed: {
-      widthWithPx() {
-        return this.width + "px";
-      }
-    },
-    created() {
-      if (this.value === 1) {
-        this.inputValue = +this.modelValue;
-      }
-      if (this.modelValue === 1) {
-        this.inputValue = +this.value;
-      }
-    },
-    methods: {
-      _calcValue(type) {
-        if (this.disabled) {
-          return;
-        }
-        const scale = this._getDecimalScale();
-        let value = this.inputValue * scale;
-        let step = this.step * scale;
-        if (type === "minus") {
-          value -= step;
-          if (value < this.min * scale) {
-            return;
-          }
-          if (value > this.max * scale) {
-            value = this.max * scale;
-          }
-        }
-        if (type === "plus") {
-          value += step;
-          if (value > this.max * scale) {
-            return;
-          }
-          if (value < this.min * scale) {
-            value = this.min * scale;
-          }
-        }
-        this.inputValue = (value / scale).toFixed(String(scale).length - 1);
-        this.$emit("input", +this.inputValue);
-        this.$emit("update:modelValue", +this.inputValue);
-        this.$emit("change", +this.inputValue);
-      },
-      _getDecimalScale() {
-        let scale = 1;
-        if (~~this.step !== this.step) {
-          scale = Math.pow(10, String(this.step).split(".")[1].length);
-        }
-        return scale;
-      },
-      _onBlur(event) {
-        this.$emit("blur", event);
-        let value = event.detail.value;
-        if (isNaN(value)) {
-          this.inputValue = this.value;
-          return;
-        }
-        value = +value;
-        if (value > this.max) {
-          value = this.max;
-        } else if (value < this.min) {
-          value = this.min;
-        }
-        const scale = this._getDecimalScale();
-        this.inputValue = value.toFixed(String(scale).length - 1);
-        this.$emit("input", +this.inputValue);
-        this.$emit("update:modelValue", +this.inputValue);
-        this.$emit("change", +this.inputValue);
-      },
-      _onFocus(event) {
-        this.$emit("focus", event);
-      }
-    }
-  };
-  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "uni-numbox" }, [
-      vue.createElementVNode(
-        "view",
-        {
-          onClick: _cache[0] || (_cache[0] = ($event) => $options._calcValue("minus")),
-          class: "uni-numbox__minus uni-numbox-btns",
-          style: vue.normalizeStyle({ background: $props.background })
-        },
-        [
-          vue.createElementVNode(
-            "text",
-            {
-              class: vue.normalizeClass(["uni-numbox--text", { "uni-numbox--disabled": $data.inputValue <= $props.min || $props.disabled }]),
-              style: vue.normalizeStyle({ color: $props.color })
-            },
-            "-",
-            6
-            /* CLASS, STYLE */
-          )
-        ],
-        4
-        /* STYLE */
-      ),
-      vue.withDirectives(vue.createElementVNode("input", {
-        disabled: $props.disabled,
-        onFocus: _cache[1] || (_cache[1] = (...args) => $options._onFocus && $options._onFocus(...args)),
-        onBlur: _cache[2] || (_cache[2] = (...args) => $options._onBlur && $options._onBlur(...args)),
-        class: "uni-numbox__value",
-        type: $props.step < 1 ? "digit" : "number",
-        "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $data.inputValue = $event),
-        style: vue.normalizeStyle({ background: $props.background, color: $props.color, width: $options.widthWithPx })
-      }, null, 44, ["disabled", "type"]), [
-        [vue.vModelDynamic, $data.inputValue]
-      ]),
-      vue.createElementVNode(
-        "view",
-        {
-          onClick: _cache[4] || (_cache[4] = ($event) => $options._calcValue("plus")),
-          class: "uni-numbox__plus uni-numbox-btns",
-          style: vue.normalizeStyle({ background: $props.background })
-        },
-        [
-          vue.createElementVNode(
-            "text",
-            {
-              class: vue.normalizeClass(["uni-numbox--text", { "uni-numbox--disabled": $data.inputValue >= $props.max || $props.disabled }]),
-              style: vue.normalizeStyle({ color: $props.color })
-            },
-            "+",
-            6
-            /* CLASS, STYLE */
-          )
-        ],
-        4
-        /* STYLE */
-      )
-    ]);
-  }
-  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-2797c3d0"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-number-box/uni-number-box.vue"]]);
+  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
   const easycom = {
     autoscan: true,
     custom: {
@@ -7768,23 +7775,13 @@ if (uni.restoreGlobal) {
   };
   const pages = [
     {
-      path: "pages/bridge/bridge",
+      path: "pages/LoginPage/LoginPage",
       style: {
-        navigationBarTitleText: "桥梁定期检查列表",
-        navigationBarBackgroundColor: "#0F4678",
-        navigationStyle: "custom"
-      }
-    },
-    {
-      path: "pages/testWrite/testWrite",
-      style: {
-        navigationBarTitleText: ""
-      }
-    },
-    {
-      path: "pages/test/test",
-      style: {
-        navigationBarTitleText: ""
+        navigationBarTitleText: "湖北交投桥梁定检现场检测",
+        navigationBarBackgroundColor: "#0F4687",
+        "app-plus": {
+          titleNView: {}
+        }
       }
     },
     {
@@ -7800,41 +7797,12 @@ if (uni.restoreGlobal) {
       }
     },
     {
-      path: "pages/tree/tree"
-    },
-    {
-      path: "pages/List/List",
-      style: {
-        navigationBarTitleText: "桥梁定期检查项目列表",
-        navigationBarBackgroundColor: "#0F4687",
-        navigationStyle: "custom"
-      }
-    },
-    {
       path: "pages/home/home",
       style: {
-        navigationBarTitleText: "陕西交控定期检查",
-        navigationBarBackgroundColor: "#3d655f",
+        navigationBarTitleText: "湖北交投桥梁定检现场检测",
+        navigationBarBackgroundColor: "#0F4687",
         "app-plus": {
-          titleNView: {
-            autoBackButton: false,
-            buttons: [
-              {
-                text: "",
-                fontSize: "30px",
-                color: "#ffffff",
-                fontSrc: "/static/fonts/uniicons.ttf",
-                float: "left"
-              },
-              {
-                text: "",
-                fontSize: "30px",
-                color: "#ffffff",
-                fontSrc: "/static/fonts/uniicons.ttf",
-                float: "right"
-              }
-            ]
-          }
+          titleNView: {}
         }
       }
     },
@@ -7879,6 +7847,29 @@ if (uni.restoreGlobal) {
       }
     },
     {
+      path: "pages/testWrite/testWrite",
+      style: {
+        navigationBarTitleText: ""
+      }
+    },
+    {
+      path: "pages/bridge/bridge",
+      style: {
+        navigationBarTitleText: "湖北交投桥梁定检现场检测",
+        navigationBarBackgroundColor: "#0F4687",
+        "app-plus": {
+          titleNView: {}
+        }
+      }
+    },
+    {
+      path: "pages/List/List",
+      style: {
+        navigationBarTitleText: "桥梁定期检查项目列表",
+        navigationBarBackgroundColor: "#0F4687"
+      }
+    },
+    {
       path: "pages/bridge-disease/bridge-disease",
       style: {
         navigationBarTitleText: "桥梁与病害信息",
@@ -7899,6 +7890,22 @@ if (uni.restoreGlobal) {
       path: "pages/canvas/canvas",
       style: {
         navigationBarTitleText: ""
+      }
+    },
+    {
+      path: "pages/init_data_test/init_data_test",
+      style: {
+        navigationBarTitleText: ""
+      }
+    },
+    {
+      path: "pages/SystemSetting/SystemSetting",
+      style: {
+        navigationBarTitleText: "系统设置",
+        navigationBarBackgroundColor: "#0F4687",
+        "app-plus": {
+          titleNView: {}
+        }
       }
     }
   ];
@@ -7921,7 +7928,7 @@ if (uni.restoreGlobal) {
     uniIdRouter
   };
   var define_process_env_UNI_SECURE_NETWORK_CONFIG_default = [];
-  function t(e2) {
+  function t$1(e2) {
     return e2 && e2.__esModule && Object.prototype.hasOwnProperty.call(e2, "default") ? e2.default : e2;
   }
   function n(e2, t2, n2) {
@@ -9768,7 +9775,7 @@ ${i3}
     return e2.replace(new RegExp((s2 = t2) && Gt.test(s2) ? s2.replace(Vt, "\\$&") : s2, "g"), n2);
     var s2;
   }
-  const Xt = "request", Zt = "response", en = "both";
+  const Xt = "request", Zt = "response", en$1 = "both";
   const Mn = { code: 2e4, message: "System error" }, qn = { code: 20101, message: "Invalid client" };
   function jn(e2) {
     const { errSubject: t2, subject: n2, errCode: s2, errMsg: r2, code: i2, message: o2, cause: a2 } = e2 || {};
@@ -9776,7 +9783,7 @@ ${i3}
   }
   let Bn;
   function Vn({ secretType: e2 } = {}) {
-    return e2 === Xt || e2 === Zt || e2 === en;
+    return e2 === Xt || e2 === Zt || e2 === en$1;
   }
   function Gn({ name: e2, data: t2 = {} } = {}) {
     return "DCloud-clientDB" === e2 && "encryption" === t2.redirectTo && "getAppClientKey" === t2.action;
@@ -10381,7 +10388,7 @@ ${i3}
         }(t3), t3);
       };
     };
-  }), js = t(Fs);
+  }), js = t$1(Fs);
   const $s = "manual";
   function Bs(e2) {
     return { props: { localdata: { type: Array, default: () => [] }, options: { type: [Object, Array], default: () => ({}) }, spaceInfo: { type: Object, default: () => ({}) }, collection: { type: [String, Array], default: "" }, action: { type: String, default: "" }, field: { type: String, default: "" }, orderby: { type: String, default: "" }, where: { type: [String, Object], default: "" }, pageData: { type: String, default: "add" }, pageCurrent: { type: Number, default: 1 }, pageSize: { type: Number, default: 20 }, getcount: { type: [Boolean, String], default: false }, gettree: { type: [Boolean, String], default: false }, gettreepath: { type: [Boolean, String], default: false }, startwith: { type: String, default: "" }, limitlevel: { type: Number, default: 10 }, groupby: { type: String, default: "" }, groupField: { type: String, default: "" }, distinct: { type: [Boolean, String], default: false }, foreignKey: { type: String, default: "" }, loadtime: { type: String, default: "auto" }, manual: { type: Boolean, default: false } }, data: () => ({ mixinDatacomLoading: false, mixinDatacomHasMore: false, mixinDatacomResData: [], mixinDatacomErrorMessage: "", mixinDatacomPage: {}, mixinDatacomError: null }), created() {
@@ -10770,6 +10777,748 @@ ${i3}
     }
   })();
   var nr = tr;
+  const en = {
+    "uni-load-more.contentdown": "Pull up to show more",
+    "uni-load-more.contentrefresh": "loading...",
+    "uni-load-more.contentnomore": "No more data"
+  };
+  const zhHans = {
+    "uni-load-more.contentdown": "上拉显示更多",
+    "uni-load-more.contentrefresh": "正在加载...",
+    "uni-load-more.contentnomore": "没有更多数据了"
+  };
+  const zhHant = {
+    "uni-load-more.contentdown": "上拉顯示更多",
+    "uni-load-more.contentrefresh": "正在加載...",
+    "uni-load-more.contentnomore": "沒有更多數據了"
+  };
+  const messages = {
+    en,
+    "zh-Hans": zhHans,
+    "zh-Hant": zhHant
+  };
+  let platform;
+  setTimeout(() => {
+    platform = uni.getSystemInfoSync().platform;
+  }, 16);
+  const {
+    t
+  } = initVueI18n(messages);
+  const _sfc_main$a = {
+    name: "UniLoadMore",
+    emits: ["clickLoadMore"],
+    props: {
+      status: {
+        // 上拉的状态：more-loading前；loading-loading中；noMore-没有更多了
+        type: String,
+        default: "more"
+      },
+      showIcon: {
+        type: Boolean,
+        default: true
+      },
+      iconType: {
+        type: String,
+        default: "auto"
+      },
+      iconSize: {
+        type: Number,
+        default: 24
+      },
+      color: {
+        type: String,
+        default: "#777777"
+      },
+      contentText: {
+        type: Object,
+        default() {
+          return {
+            contentdown: "",
+            contentrefresh: "",
+            contentnomore: ""
+          };
+        }
+      },
+      showText: {
+        type: Boolean,
+        default: true
+      }
+    },
+    data() {
+      return {
+        webviewHide: false,
+        platform,
+        imgBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzlBMzU3OTlEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzlBMzU3OUFEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDOUEzNTc5N0Q5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDOUEzNTc5OEQ5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pt+ALSwAAA6CSURBVHja1FsLkFZVHb98LM+F5bHL8khA1iSeiyQBCRM+YGqKUnnJTDLGI0BGZlKDIU2MMglUiDApEZvSsZnQtBRJtKwQNKQMFYeRDR10WOLd8ljYXdh+v8v5fR3Od+797t1dnOnO/Ofce77z+J//+b/P+ZqtXbs2sJ9MJhNUV1cHJ06cCJo3bx7EPc2aNcvpy7pWrVoF+/fvDyoqKoI2bdoE9fX1F7TjN8a+EXBn/fkfvw942Tf+wYMHg9mzZwfjxo0LDhw4EPa1x2MbFw/fOGfPng1qa2tzcCkILsLDydq2bRsunpOTMM7TD/W/tZDZhPdeKD+yGxHhdu3aBV27dg3OnDlzMVANMheLAO3btw8KCwuDmpoaX5OxbgUIMEq7K8IcPnw4KCsrC/r37x8cP378/4cAXAB3vqSkJMuiDhTkw+XcuXNhOWbMmKBly5YhUT8xArhyFvP0BfwRsAuwxJZJsm/nzp2DTp06he/OU+cZ64K6o0ePBkOHDg2GDx8e6gEbJ5Q/NHNuAJQ1hgBeHUDlR7nVTkY8rQAvAi4z34vR/mPs1FoRsaCgIJThI0eOBC1atEiFGGV+5MiRoS45efJkqFjJFXV1dQuA012m2WcwTw98fy6CqBdsaiIO4CScrGPHjvk4odhavPquRtFWXEC25VgkREKOCh/qDSq+vn37htzD/mZTOmOc5U7zKzBPEedygWshcDyWvs30igAbU+6oyMgJBCFhwQE0fccxN60Ay9iebbjoDh06hMowjQxT4fXq1SskArmHZpkArvixp/kWzHdMeArExSJEaiXIjjRjRJ4DaAGWpibLzXN3Fm1vA5teBgh3j1Rv3bp1YgKwPdmf2p9zcyNYYgPKMfY0T5f5nNYdw158nJ8QawW4CLKwiOBSEgO/hok2eBydR+3dYH+PLxA5J8Vv0KBBwenTp0P2JWAx6+yFEBfs8lMY+y0SWMBNI9E4ThKi58VKTg3FQZS1RQF1cz27eC0QHMu+3E0SkUowjhVt5VdaWhp07949ZHv2Qd1EjDXM2cla1M0nl3GxAs3J9yREzyTdFVKVFOaE9qRA8GM0WebRuo9JGZKA7Mv2SeS/Z8+eoQ9BArMfFrLGo6jvxbhHbJZnKX2Rzz1O7QhJJ9Cs2ZMaWIyq/zhdeqPNfIoHd58clIQD+JSXl4dKlyIAuBdVXZwFVWKspSSoxE++h8x4k3uCnEhE4I5KwRiFWGOU0QWKiCYLbdoRMRKAu2kQ9vkfLU6dOhX06NEjlH+yMRZSinnuyWnYosVcji8CEA/6Cg2JF+IIUBqnGKUTCNwtwBN4f89RiK1R96DEgO2o0NDmtEdvVFdVVYV+P3UAPUEs6GFwV3PHmXkD4vh74iDFJysVI/MlaQhwKeBNTLYX5VuA8T4/gZxA4MRGFxDB6R7OmYPfyykGRJbyie+XnGYnQIC/coH9+vULiYrxrkL9ZA9+0ykaHIfEpM7ge8TiJ2CsHYwyMfafAF1yCGBHYIbCVDjDjKt7BeB51D+LgQa6OkG7IDYEEtvQ7lnXLKLtLdLuJBpE4gPUXcW2+PkZwOex+4cGDhwYDBkyRL7/HFcEwUGPo/8uWRUpYnfxGHco8HkewLHLyYmAawAPuIFZxhOpDfJQ8gbUv41yORAptMWBNr6oqMhWird5+u+iHmBb2nhjDV7HWBNQTgK8y11l5NetWzc5ULscAtSj7nbNI0skhWeUZCc0W4nyH/jO4Vz0u1IeYhbk4AiwM6tjxIWByHsoZ9qcIBPJd/y+DwPfBESOmCa/QF3WiZHucLlEDpNxcNhmheEOPgdQNx6/VZFQzFZ5TN08AHXQt2Ii3EdyFuUsPtTcGPhW5iMiCNELvz+Gdn9huG4HUJaW/w3g0wxV0XaG7arG2WeKiUWYM4Y7GO5ezshTARbbWGw/DvXkpp/ivVvE0JVoMxN4rpGzJMhE5Pl+xlATsDIqikP9F9D2z3h9nOksEUFhK+qO4rcPkoalMQ/HqJLIyb3F3JdjrCcw1yZ8joyJLR5gCo54etlag7qIoeNh1N1BRYj3DTFJ0elotxPlVzkGuYAmL0VSJVGAJA41c4Z6A3BzTLfn0HYwYKEI6CUAMzZEWvLsIcQOo1AmmyyM72nHJCfYsogflGV6jEk9vyQZXSuq6w4c16NsGcGZbwOPr+H1RkOk2LEzjNepxQkihHSCQ4ynAYNRx2zMKV92CQMWqj8J0BRE8EShxRFN6YrfCRhC0x3r/Zm4IbQCcmJoV0kMamllccR6FjHqUC5F2R/wS2dcymOlfAKOS4KmzQb5cpNC2MC7JhVn5wjXoJ44rYhLh8n0eXOCorJxa7POjbSlCGVczr34/RsAmrcvo9s+wGp3tzVhntxiXiJ4nvEYb4FJkf0O8HocAePmLvCxnL0AORraVekJk6TYjDabRVXfRE2lCN1h6ZQRN1+InUbsCpKwoBZHh0dODN9JBCUffItXxEavTQkUtnfTVAplCWL3JISz29h4NjotnuSsQKJCk8dF+kJR6RARjrqFVmfPnj3ZbK8cIJ0msd6jgHPGtfVTQ8VLmlvh4mct9sobRmPic0DyDQQnx/NlfYUgyz59+oScsH379pAwXABD32nTpoUHIToESeI5mnbE/UqDdyLcafEBf2MCqgC7NwxIbMREJQ0g4D4sfJwnD+AmRrII05cfMWJE+L1169bQr+fip06dGp4oJ83lmYd5wj/EmMa4TaHivo4EeCguYZBnkB5g2aWA69OIEnUHOaGysjIYMGBAMGnSpODYsWPZwCpFmm4lNq+4gSLQA7jcX8DwtjEyRC8wjabnXEx9kfWnTJkSJkAo90xpJVV+FmcVNeYAF5zWngS4C4O91MBxmAv8blLEpbjI5sz9MTdAhcgkCT1RO8mZkAjfiYpTEvStAS53Uw1vAiUGgZ3GpuQEYvoiBqlIan7kSDHnTwJQFNiPu0+5VxCVYhcZIjNrdXUDdp+Eq5AZ3Gkg8QAyVZRZIk4Tl4QAbF9cXJxNYZMAtAokgs4BrNxEpCtteXg7DDTMDKYNSuQdKsnJBek7HxewvxaosWxLYXtw+cJp18217wql4aKCfBNoEu0O5VU+PhctJ0YeXD4C6JQpyrlpSLTojpGGGN5YwNziChdIZLk4lvLcFJ9jMX3QdiImY9bmGQU+TRUL5CHITTRlgF8D9ouD1MfmLoEPl5xokIumZ2cfgMpHt47IW9N64Hsh7wQYYjyIugWuF5fCqYncXRd5vPMWyizzvhi/32+nvG0dZc9vR6fZOu0md5e+uC408FvKSIOZwXlGvxPv95izA2Vtvg1xKFWARI+vMX66HUhpQQb643uW1bSjuTWyw2SBvDrBvjFic1eGGlz5esq3ko9uSIlBRqPuFcCv8F4WIcN12nVaBd0SaYwI6PDDImR11JkqgHcPmQssjxIn6bUshygDFJUTxPMpHk+jfjPgupgdnYV2R/g7xSjtpah8RJBewhwf0gGK6XI92u4wXFEU40afJ4DN4h5LcAd+40HI3JgJecuT0c062W0i2hQJUTcxan3/CMW1PF2K6bbA+Daz4xRs1D3Br1Cm0OihKCqizW78/nXAF/G5TXrEcVzaNMH6CyMswqsAHqDyDLEyou8lwOXnKF8DjI6KjV3KzMBiXkDH8ij/H214J5A596ekrZ3F0zXlWeL7+P5eUrNo3/QwC15uxthuzidy7DzKRwEDaAViiDgKbTbz7CJnzo0bN7pIfIiid8SuPwn25o3QCmpnyjlZkyxPP8EomCJzrGb7GJMx7tNsq4MT2xMUYaiErZOluTzKsnz3gwCeCZyVRZJfYplNEokEjwrPtxlxjeYAk+F1F74VAzPxQRNYYdtpOUvWs8J1sGhBJMNsb7igN8plJs1eSmLIhLKE4rvaCX27gOhLpLOsIzJ7qn/i+wZzcvSOZ23/du8TZjwV8zHIXoP4R3ifBxiFz1dcVpa3aPntPE+c6TmIWE9EtcMmAcPdWAhYhAXxcLOQi9L1WhD1Sc8p1d2oL7XGiRKp8F4A2i8K/nfI+y/gsTDJ/YC/8+AD5Uh04KHiGl+cIFPnBDDrPMjwRGkLXyxO4VGbfQWnDH2v0bVWE3C9QOXlepbgjEfIJQI6XDG3z5ahD9cw2pS78ipB85wyScNTvsVzlzzhL8/jRrnmVjfFJK/m3m4nj9vbgQTguT8XZTjsm672R5uJKEaQmBI/c58gyus8ZDagLpEVSJBIyHp4jn++xqPV71OgQgJYEWOtZ/haxRtKmWOBu8xdBLftWltsY84zE6WIEy/eIOWL+BaayMx+KHtL7EAkqdNDLiEXmEMUHniedtJqg9HmZtfvt26vNi0BdG3Ft3g8ZOf7PAu59TxtzivLNIekyi+wD1i8CuUiD9FXAa8C+/xS3JPmZnomyc7H+fb4/Se0bk41Fel621r4cgVxbq91V4jVqwB7HTe2M7jgB+QWHavZkDRPmZcASoZEmBx6i75bGjPcMdL4/VKGFAGWZkGzPG0XAbdL9A81G5LOmUnC9hHKJeO7dcUMjblSl12867ElFTtaGl20xvvLGPdVz/8TVuU7y0x1PG7vtNg24oz9Uo/Z412++VFWI7Fcog9tu9Lm6gvRmIPv9x1xmQAu6RDkXtbOtlGEmpgD5Nvnyc0dcv0EE6cfdi1HmhMf9wDF3k3gtRvEedhxjpgfqPb9PU9iEJHnyOUA7bQUXh6kq/D7l2iTjWv7XOD530BDr8jIrus+srXjt4MzumJMHuTsBa63YKE1+RR5lBjEikCCnWKWiHdzOgKO+nRIBAF88za/IFmJ3eMZov4CYxGBabcpGL8EYx+SeMXJeRwHNsV/h+vdxeuhEpN3ZyNY78Gm2fknJxVGhyjixPiQvVkNzT1elD9Py/aTAL64Hb9vcYmC9zfdXdT/C1LeGbg4rnBaAihDFJH12W5ulfNCNe/xTsP3bp8ikzJs5BF+5PNfAQYAPaseTdsEcaYAAAAASUVORK5CYII="
+      };
+    },
+    computed: {
+      iconSnowWidth() {
+        return (Math.floor(this.iconSize / 24) || 1) * 2;
+      },
+      contentdownText() {
+        return this.contentText.contentdown || t("uni-load-more.contentdown");
+      },
+      contentrefreshText() {
+        return this.contentText.contentrefresh || t("uni-load-more.contentrefresh");
+      },
+      contentnomoreText() {
+        return this.contentText.contentnomore || t("uni-load-more.contentnomore");
+      }
+    },
+    mounted() {
+      var pages2 = getCurrentPages();
+      var page = pages2[pages2.length - 1];
+      var currentWebview = page.$getAppWebview();
+      currentWebview.addEventListener("hide", () => {
+        this.webviewHide = true;
+      });
+      currentWebview.addEventListener("show", () => {
+        this.webviewHide = false;
+      });
+    },
+    methods: {
+      onClick() {
+        this.$emit("clickLoadMore", {
+          detail: {
+            status: this.status
+          }
+        });
+      }
+    }
+  };
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", {
+      class: "uni-load-more",
+      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
+    }, [
+      !$data.webviewHide && ($props.iconType === "circle" || $props.iconType === "auto" && $data.platform === "android") && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
+        "view",
+        {
+          key: 0,
+          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
+          class: "uni-load-more__img uni-load-more__img--android-MP"
+        },
+        [
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          ),
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          ),
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          )
+        ],
+        4
+        /* STYLE */
+      )) : !$data.webviewHide && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
+        "view",
+        {
+          key: 1,
+          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
+          class: "uni-load-more__img uni-load-more__img--ios-H5"
+        },
+        [
+          vue.createElementVNode("image", {
+            src: $data.imgBase64,
+            mode: "widthFix"
+          }, null, 8, ["src"])
+        ],
+        4
+        /* STYLE */
+      )) : vue.createCommentVNode("v-if", true),
+      $props.showText ? (vue.openBlock(), vue.createElementBlock(
+        "text",
+        {
+          key: 2,
+          class: "uni-load-more__text",
+          style: vue.normalizeStyle({ color: $props.color })
+        },
+        vue.toDisplayString($props.status === "more" ? $options.contentdownText : $props.status === "loading" ? $options.contentrefreshText : $options.contentnomoreText),
+        5
+        /* TEXT, STYLE */
+      )) : vue.createCommentVNode("v-if", true)
+    ]);
+  }
+  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-9245e42c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-load-more/components/uni-load-more/uni-load-more.vue"]]);
+  const _sfc_main$9 = {
+    name: "uniDataChecklist",
+    mixins: [nr.mixinDatacom || {}],
+    emits: ["input", "update:modelValue", "change"],
+    props: {
+      mode: {
+        type: String,
+        default: "default"
+      },
+      multiple: {
+        type: Boolean,
+        default: false
+      },
+      value: {
+        type: [Array, String, Number],
+        default() {
+          return "";
+        }
+      },
+      // TODO vue3
+      modelValue: {
+        type: [Array, String, Number],
+        default() {
+          return "";
+        }
+      },
+      localdata: {
+        type: Array,
+        default() {
+          return [];
+        }
+      },
+      min: {
+        type: [Number, String],
+        default: ""
+      },
+      max: {
+        type: [Number, String],
+        default: ""
+      },
+      wrap: {
+        type: Boolean,
+        default: false
+      },
+      icon: {
+        type: String,
+        default: "left"
+      },
+      selectedColor: {
+        type: String,
+        default: ""
+      },
+      selectedTextColor: {
+        type: String,
+        default: ""
+      },
+      emptyText: {
+        type: String,
+        default: "暂无数据"
+      },
+      disabled: {
+        type: Boolean,
+        default: false
+      },
+      map: {
+        type: Object,
+        default() {
+          return {
+            text: "text",
+            value: "value"
+          };
+        }
+      }
+    },
+    watch: {
+      localdata: {
+        handler(newVal) {
+          this.range = newVal;
+          this.dataList = this.getDataList(this.getSelectedValue(newVal));
+        },
+        deep: true
+      },
+      mixinDatacomResData(newVal) {
+        this.range = newVal;
+        this.dataList = this.getDataList(this.getSelectedValue(newVal));
+      },
+      value(newVal) {
+        this.dataList = this.getDataList(newVal);
+      },
+      modelValue(newVal) {
+        this.dataList = this.getDataList(newVal);
+      }
+    },
+    data() {
+      return {
+        dataList: [],
+        range: [],
+        contentText: {
+          contentdown: "查看更多",
+          contentrefresh: "加载中",
+          contentnomore: "没有更多"
+        },
+        isLocal: true,
+        styles: {
+          selectedColor: "#2979ff",
+          selectedTextColor: "#666"
+        },
+        isTop: 0
+      };
+    },
+    computed: {
+      dataValue() {
+        if (this.value === "")
+          return this.modelValue;
+        if (this.modelValue === "")
+          return this.value;
+        return this.value;
+      }
+    },
+    created() {
+      if (this.localdata && this.localdata.length !== 0) {
+        this.isLocal = true;
+        this.range = this.localdata;
+        this.dataList = this.getDataList(this.getSelectedValue(this.range));
+      } else {
+        if (this.collection) {
+          this.isLocal = false;
+          this.loadData();
+        }
+      }
+    },
+    methods: {
+      loadData() {
+        this.mixinDatacomGet().then((res) => {
+          this.mixinDatacomResData = res.result.data;
+          if (this.mixinDatacomResData.length === 0) {
+            this.isLocal = false;
+            this.mixinDatacomErrorMessage = this.emptyText;
+          } else {
+            this.isLocal = true;
+          }
+        }).catch((err) => {
+          this.mixinDatacomErrorMessage = err.message;
+        });
+      },
+      /**
+       * 获取父元素实例
+       */
+      getForm(name = "uniForms") {
+        let parent = this.$parent;
+        let parentName = parent.$options.name;
+        while (parentName !== name) {
+          parent = parent.$parent;
+          if (!parent)
+            return false;
+          parentName = parent.$options.name;
+        }
+        return parent;
+      },
+      change(e2) {
+        const values = e2.detail.value;
+        let detail = {
+          value: [],
+          data: []
+        };
+        if (this.multiple) {
+          this.range.forEach((item) => {
+            if (values.includes(item[this.map.value] + "")) {
+              detail.value.push(item[this.map.value]);
+              detail.data.push(item);
+            }
+          });
+        } else {
+          const range = this.range.find((item) => item[this.map.value] + "" === values);
+          if (range) {
+            detail = {
+              value: range[this.map.value],
+              data: range
+            };
+          }
+        }
+        this.$emit("input", detail.value);
+        this.$emit("update:modelValue", detail.value);
+        this.$emit("change", {
+          detail
+        });
+        if (this.multiple) {
+          this.dataList = this.getDataList(detail.value, true);
+        } else {
+          this.dataList = this.getDataList(detail.value);
+        }
+      },
+      /**
+       * 获取渲染的新数组
+       * @param {Object} value 选中内容
+       */
+      getDataList(value) {
+        let dataList = JSON.parse(JSON.stringify(this.range));
+        let list = [];
+        if (this.multiple) {
+          if (!Array.isArray(value)) {
+            value = [];
+          }
+        }
+        dataList.forEach((item, index) => {
+          item.disabled = item.disable || item.disabled || false;
+          if (this.multiple) {
+            if (value.length > 0) {
+              let have = value.find((val) => val === item[this.map.value]);
+              item.selected = have !== void 0;
+            } else {
+              item.selected = false;
+            }
+          } else {
+            item.selected = value === item[this.map.value];
+          }
+          list.push(item);
+        });
+        return this.setRange(list);
+      },
+      /**
+       * 处理最大最小值
+       * @param {Object} list
+       */
+      setRange(list) {
+        let selectList = list.filter((item) => item.selected);
+        let min = Number(this.min) || 0;
+        let max = Number(this.max) || "";
+        list.forEach((item, index) => {
+          if (this.multiple) {
+            if (selectList.length <= min) {
+              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
+              if (have !== void 0) {
+                item.disabled = true;
+              }
+            }
+            if (selectList.length >= max && max !== "") {
+              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
+              if (have === void 0) {
+                item.disabled = true;
+              }
+            }
+          }
+          this.setStyles(item, index);
+          list[index] = item;
+        });
+        return list;
+      },
+      /**
+       * 设置 class
+       * @param {Object} item
+       * @param {Object} index
+       */
+      setStyles(item, index) {
+        item.styleBackgroud = this.setStyleBackgroud(item);
+        item.styleIcon = this.setStyleIcon(item);
+        item.styleIconText = this.setStyleIconText(item);
+        item.styleRightIcon = this.setStyleRightIcon(item);
+      },
+      /**
+       * 获取选中值
+       * @param {Object} range
+       */
+      getSelectedValue(range) {
+        if (!this.multiple)
+          return this.dataValue;
+        let selectedArr = [];
+        range.forEach((item) => {
+          if (item.selected) {
+            selectedArr.push(item[this.map.value]);
+          }
+        });
+        return this.dataValue.length > 0 ? this.dataValue : selectedArr;
+      },
+      /**
+       * 设置背景样式
+       */
+      setStyleBackgroud(item) {
+        let styles = {};
+        let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+        if (this.selectedColor) {
+          if (this.mode !== "list") {
+            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          }
+          if (this.mode === "tag") {
+            styles["background-color"] = item.selected ? selectedColor : "#f5f5f5";
+          }
+        }
+        let classles = "";
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleIcon(item) {
+        let styles = {};
+        let classles = "";
+        if (this.selectedColor) {
+          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+          styles["background-color"] = item.selected ? selectedColor : "#fff";
+          styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          if (!item.selected && item.disabled) {
+            styles["background-color"] = "#F2F6FC";
+            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          }
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleIconText(item) {
+        let styles = {};
+        let classles = "";
+        if (this.selectedColor) {
+          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+          if (this.mode === "tag") {
+            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : "#fff" : "#666";
+          } else {
+            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : selectedColor : "#666";
+          }
+          if (!item.selected && item.disabled) {
+            styles.color = "#999";
+          }
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleRightIcon(item) {
+        let styles = {};
+        let classles = "";
+        if (this.mode === "list") {
+          styles["border-color"] = item.selected ? this.styles.selectedColor : "#DCDFE6";
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      }
+    }
+  };
+  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_load_more = resolveEasycom(vue.resolveDynamicComponent("uni-load-more"), __easycom_0$1);
+    return vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        class: "uni-data-checklist",
+        style: vue.normalizeStyle({ "margin-top": $data.isTop + "px" })
+      },
+      [
+        !$data.isLocal ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "uni-data-loading"
+        }, [
+          !_ctx.mixinDatacomErrorMessage ? (vue.openBlock(), vue.createBlock(_component_uni_load_more, {
+            key: 0,
+            status: "loading",
+            iconType: "snow",
+            iconSize: 18,
+            "content-text": $data.contentText
+          }, null, 8, ["content-text"])) : (vue.openBlock(), vue.createElementBlock(
+            "text",
+            { key: 1 },
+            vue.toDisplayString(_ctx.mixinDatacomErrorMessage),
+            1
+            /* TEXT */
+          ))
+        ])) : (vue.openBlock(), vue.createElementBlock(
+          vue.Fragment,
+          { key: 1 },
+          [
+            $props.multiple ? (vue.openBlock(), vue.createElementBlock(
+              "checkbox-group",
+              {
+                key: 0,
+                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list" || $props.wrap }]),
+                onChange: _cache[0] || (_cache[0] = (...args) => $options.change && $options.change(...args))
+              },
+              [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($data.dataList, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock(
+                      "label",
+                      {
+                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
+                        style: vue.normalizeStyle(item.styleBackgroud),
+                        key: index
+                      },
+                      [
+                        vue.createElementVNode("checkbox", {
+                          class: "hidden",
+                          hidden: "",
+                          disabled: $props.disabled || !!item.disabled,
+                          value: item[$props.map.value] + "",
+                          checked: item.selected
+                        }, null, 8, ["disabled", "value", "checked"]),
+                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
+                          "view",
+                          {
+                            key: 0,
+                            class: "checkbox__inner",
+                            style: vue.normalizeStyle(item.styleIcon)
+                          },
+                          [
+                            vue.createElementVNode("view", { class: "checkbox__inner-icon" })
+                          ],
+                          4
+                          /* STYLE */
+                        )) : vue.createCommentVNode("v-if", true),
+                        vue.createElementVNode(
+                          "view",
+                          {
+                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
+                          },
+                          [
+                            vue.createElementVNode(
+                              "text",
+                              {
+                                class: "checklist-text",
+                                style: vue.normalizeStyle(item.styleIconText)
+                              },
+                              vue.toDisplayString(item[$props.map.text]),
+                              5
+                              /* TEXT, STYLE */
+                            ),
+                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
+                              "view",
+                              {
+                                key: 0,
+                                class: "checkobx__list",
+                                style: vue.normalizeStyle(item.styleBackgroud)
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )) : vue.createCommentVNode("v-if", true)
+                          ],
+                          2
+                          /* CLASS */
+                        )
+                      ],
+                      6
+                      /* CLASS, STYLE */
+                    );
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ],
+              34
+              /* CLASS, NEED_HYDRATION */
+            )) : (vue.openBlock(), vue.createElementBlock(
+              "radio-group",
+              {
+                key: 1,
+                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list", "is-wrap": $props.wrap }]),
+                onChange: _cache[1] || (_cache[1] = (...args) => $options.change && $options.change(...args))
+              },
+              [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($data.dataList, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock(
+                      "label",
+                      {
+                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
+                        style: vue.normalizeStyle(item.styleBackgroud),
+                        key: index
+                      },
+                      [
+                        vue.createElementVNode("radio", {
+                          class: "hidden",
+                          hidden: "",
+                          disabled: $props.disabled || item.disabled,
+                          value: item[$props.map.value] + "",
+                          checked: item.selected
+                        }, null, 8, ["disabled", "value", "checked"]),
+                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
+                          "view",
+                          {
+                            key: 0,
+                            class: "radio__inner",
+                            style: vue.normalizeStyle(item.styleBackgroud)
+                          },
+                          [
+                            vue.createElementVNode(
+                              "view",
+                              {
+                                class: "radio__inner-icon",
+                                style: vue.normalizeStyle(item.styleIcon)
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )
+                          ],
+                          4
+                          /* STYLE */
+                        )) : vue.createCommentVNode("v-if", true),
+                        vue.createElementVNode(
+                          "view",
+                          {
+                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
+                          },
+                          [
+                            vue.createElementVNode(
+                              "text",
+                              {
+                                class: "checklist-text",
+                                style: vue.normalizeStyle(item.styleIconText)
+                              },
+                              vue.toDisplayString(item[$props.map.text]),
+                              5
+                              /* TEXT, STYLE */
+                            ),
+                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
+                              "view",
+                              {
+                                key: 0,
+                                style: vue.normalizeStyle(item.styleRightIcon),
+                                class: "checkobx__list"
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )) : vue.createCommentVNode("v-if", true)
+                          ],
+                          2
+                          /* CLASS */
+                        )
+                      ],
+                      6
+                      /* CLASS, STYLE */
+                    );
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ],
+              34
+              /* CLASS, NEED_HYDRATION */
+            ))
+          ],
+          64
+          /* STABLE_FRAGMENT */
+        ))
+      ],
+      4
+      /* STYLE */
+    );
+  }
+  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-149d584b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-data-checkbox/uni-data-checkbox.vue"]]);
   const ERR_MSG_OK = "chooseAndUploadFile:ok";
   const ERR_MSG_FAIL = "chooseAndUploadFile:fail";
   function chooseImage(opts) {
@@ -11051,7 +11800,7 @@ ${i3}
     }
     return filedata;
   };
-  const _sfc_main$5 = {
+  const _sfc_main$8 = {
     name: "uploadImage",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -11198,7 +11947,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__container" }, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -11291,8 +12040,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
-  const _sfc_main$4 = {
+  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
+  const _sfc_main$7 = {
     name: "uploadFile",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -11428,7 +12177,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__files" }, [
       !$props.readonly ? (vue.openBlock(), vue.createElementBlock("view", {
         key: 0,
@@ -11510,8 +12259,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
-  const _sfc_main$3 = {
+  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
+  const _sfc_main$6 = {
     name: "uniFilePicker",
     components: {
       uploadImage,
@@ -11958,16 +12707,16 @@ ${i3}
        * 处理返回事件
        */
       setEmit() {
-        let data = [];
+        let data2 = [];
         if (this.returnType === "object") {
-          data = this.backObject(this.files)[0];
-          this.localValue = data ? data : null;
+          data2 = this.backObject(this.files)[0];
+          this.localValue = data2 ? data2 : null;
         } else {
-          data = this.backObject(this.files);
+          data2 = this.backObject(this.files);
           if (!this.localValue) {
             this.localValue = [];
           }
-          this.localValue = [...data];
+          this.localValue = [...data2];
         }
         this.$emit("update:modelValue", this.localValue);
       },
@@ -12018,7 +12767,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_upload_image = vue.resolveComponent("upload-image");
     const _component_upload_file = vue.resolveComponent("upload-file");
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker" }, [
@@ -12088,135 +12837,245 @@ ${i3}
       }, 8, ["readonly", "list-styles", "files-list", "showType", "delIcon", "onUploadFiles", "onChoose", "onDelFile"])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
-  const _sfc_main$2 = {
+  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
+  const _sfc_main$5 = {
+    name: "uniCombox",
+    emits: ["input", "update:modelValue"],
+    props: {
+      clearAble: {
+        type: Boolean,
+        default: false
+      },
+      border: {
+        type: Boolean,
+        default: true
+      },
+      label: {
+        type: String,
+        default: ""
+      },
+      labelWidth: {
+        type: String,
+        default: "auto"
+      },
+      placeholder: {
+        type: String,
+        default: ""
+      },
+      candidates: {
+        type: Array,
+        default() {
+          return [];
+        }
+      },
+      emptyTips: {
+        type: String,
+        default: "无匹配项"
+      },
+      modelValue: {
+        type: [String, Number],
+        default: ""
+      }
+    },
+    data() {
+      return {
+        showSelector: false,
+        inputVal: ""
+      };
+    },
+    computed: {
+      labelStyle() {
+        if (this.labelWidth === "auto") {
+          return "";
+        }
+        return `width: ${this.labelWidth}`;
+      },
+      filterCandidates() {
+        return this.candidates.filter((item) => {
+          return item.toString().indexOf(this.inputVal) > -1;
+        });
+      },
+      filterCandidatesLength() {
+        return this.filterCandidates.length;
+      }
+    },
+    watch: {
+      modelValue: {
+        handler(newVal) {
+          this.inputVal = newVal;
+        },
+        immediate: true
+      }
+    },
+    methods: {
+      toggleSelector() {
+        this.showSelector = !this.showSelector;
+      },
+      onFocus() {
+        this.showSelector = true;
+      },
+      onBlur() {
+        setTimeout(() => {
+          this.showSelector = false;
+        }, 153);
+      },
+      onSelectorClick(index) {
+        this.inputVal = this.filterCandidates[index];
+        this.showSelector = false;
+        this.$emit("input", this.inputVal);
+        this.$emit("update:modelValue", this.inputVal);
+      },
+      onInput() {
+        setTimeout(() => {
+          this.$emit("input", this.inputVal);
+          this.$emit("update:modelValue", this.inputVal);
+        });
+      },
+      clean() {
+        this.inputVal = "";
+        this.onInput();
+      }
+    }
+  };
+  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$5);
+    return vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        class: vue.normalizeClass(["uni-combox", $props.border ? "" : "uni-combox__no-border"])
+      },
+      [
+        $props.label ? (vue.openBlock(), vue.createElementBlock(
+          "view",
+          {
+            key: 0,
+            class: "uni-combox__label",
+            style: vue.normalizeStyle($options.labelStyle)
+          },
+          [
+            vue.createElementVNode(
+              "text",
+              null,
+              vue.toDisplayString($props.label),
+              1
+              /* TEXT */
+            )
+          ],
+          4
+          /* STYLE */
+        )) : vue.createCommentVNode("v-if", true),
+        vue.createElementVNode("view", { class: "uni-combox__input-box" }, [
+          vue.withDirectives(vue.createElementVNode("input", {
+            class: "uni-combox__input",
+            type: "text",
+            placeholder: $props.placeholder,
+            "placeholder-class": "uni-combox__input-plac",
+            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.inputVal = $event),
+            onInput: _cache[1] || (_cache[1] = (...args) => $options.onInput && $options.onInput(...args)),
+            onFocus: _cache[2] || (_cache[2] = (...args) => $options.onFocus && $options.onFocus(...args)),
+            onBlur: _cache[3] || (_cache[3] = (...args) => $options.onBlur && $options.onBlur(...args))
+          }, null, 40, ["placeholder"]), [
+            [vue.vModelText, $data.inputVal]
+          ]),
+          !$data.inputVal || !$props.clearAble ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+            key: 0,
+            type: $data.showSelector ? "top" : "bottom",
+            size: "14",
+            color: "#999",
+            onClick: $options.toggleSelector
+          }, null, 8, ["type", "onClick"])) : vue.createCommentVNode("v-if", true),
+          $data.inputVal && $props.clearAble ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+            key: 1,
+            type: "clear",
+            size: "24",
+            color: "#999",
+            onClick: $options.clean
+          }, null, 8, ["onClick"])) : vue.createCommentVNode("v-if", true)
+        ]),
+        $data.showSelector ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 1,
+          class: "uni-combox__selector"
+        }, [
+          vue.createElementVNode("view", { class: "uni-popper__arrow" }),
+          vue.createElementVNode("scroll-view", {
+            "scroll-y": "true",
+            class: "uni-combox__selector-scroll"
+          }, [
+            $options.filterCandidatesLength === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+              key: 0,
+              class: "uni-combox__selector-empty"
+            }, [
+              vue.createElementVNode(
+                "text",
+                null,
+                vue.toDisplayString($props.emptyTips),
+                1
+                /* TEXT */
+              )
+            ])) : vue.createCommentVNode("v-if", true),
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($options.filterCandidates, (item, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  class: "uni-combox__selector-item",
+                  key: index,
+                  onClick: ($event) => $options.onSelectorClick(index)
+                }, [
+                  vue.createElementVNode(
+                    "text",
+                    null,
+                    vue.toDisplayString(item),
+                    1
+                    /* TEXT */
+                  )
+                ], 8, ["onClick"]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])
+        ])) : vue.createCommentVNode("v-if", true)
+      ],
+      2
+      /* CLASS */
+    );
+  }
+  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-a8e6b638"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-combox/uni-combox.vue"]]);
+  const _imports_0$2 = "/static/image/AD.svg";
+  const _imports_1$1 = "/static/image/template1.png";
+  const _imports_2$1 = "/static/image/template2.png";
+  const _imports_3$1 = "/static/image/template3.png";
+  const userId = "3";
+  const buildingId = "39";
+  const _sfc_main$4 = {
     __name: "add-disease",
     setup(__props, { expose: __expose }) {
       __expose();
+      const popup2 = vue.ref(null);
+      const ADImgs = vue.ref([]);
       const isEdit = vue.ref(false);
-      vue.onMounted(() => {
-        var _a;
-        const pages2 = getCurrentPages();
-        const currentPage = pages2[pages2.length - 1];
-        const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
-        if (options && options.mode === "edit") {
-          isEdit.value = true;
-          if (options.data) {
-            try {
-              const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:252", "接收到的编辑数据:", diseaseData);
-              fillFormWithData(diseaseData);
-            } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:257", "解析编辑数据失败:", error);
-              uni.showToast({
-                title: "加载编辑数据失败",
-                icon: "none"
-              });
-            }
-          }
-        }
-      });
-      const fillFormWithData = (data) => {
-        if (data.partType) {
-          const index = type.value.findIndex((item) => item === data.partType);
-          if (index !== -1) {
-            typeindex.value = index;
-          }
-        }
-        if (data.partNumber) {
-          const index = num.value.findIndex((item) => item === data.partNumber);
-          if (index !== -1) {
-            numindex.value = index;
-          }
-        }
-        if (data.disease) {
-          const index = Typeofdefect.value.findIndex((item) => item === data.disease);
-          if (index !== -1) {
-            Typeofdefectindex.value = index;
-          }
-        }
-        if (data.position) {
-          position.value = data.position;
-        }
-        if (data.count) {
-          NumofDefect.value = parseInt(data.count) || 1;
-        }
-        if (data.grade) {
-          const index = scalesItems.findIndex((item) => item.value === data.grade);
-          if (index !== -1) {
-            scalesCurrent.value = index;
-          }
-        }
-        if (data.reference) {
-          const value = data.reference === "是" ? "1" : "2";
-          const index = ratingItems.findIndex((item) => item.value === value);
-          if (index !== -1) {
-            ratingCurrent.value = index;
-          }
-        }
-        if (data.length) {
-          length.value = data.length;
-        } else {
-          length.value = "-";
-        }
-        if (data.width) {
-          width.value = data.width;
-        } else {
-          width.value = "-";
-        }
-        if (data.SeamWidth) {
-          SeamWidth.value = data.SeamWidth;
-        } else {
-          SeamWidth.value = "-";
-        }
-        if (data.height) {
-          height.value = data.height;
-        } else {
-          height.value = "-";
-        }
-        if (data.area) {
-          area.value = data.area;
-        } else {
-          area.value = "-";
-        }
-        description.value = data.description || "";
-        if (data.images && Array.isArray(data.images)) {
-          fileList.value = data.images.map((url, index) => {
-            return {
-              name: `图片${index + 1}`,
-              url,
-              extname: "jpg",
-              // 默认扩展名，也可以从URL中解析
-              size: 0
-              // uni-file-picker需要但我们没有实际大小，设为0
-            };
-          });
-        } else if (data.imageUrl) {
-          fileList.value = [{
-            name: "图片1",
-            url: data.imageUrl,
-            size: 0
-          }];
-        }
-      };
-      const imageStyles = vue.reactive({
-        width: "150rpx",
-        height: "150rpx"
-      });
-      const type = vue.ref(["T梁", "支座", "桥面", "墩身", "墩柱"]);
+      const structureData = vue.ref(null);
+      const parentObjectName = vue.ref("上部结构");
+      const biObjectNameOptions = vue.ref([]);
+      const diseaseTypeOptions = vue.ref([]);
+      const biObjectName = vue.ref([]);
+      const biObjectindex = vue.ref(-1);
+      const componentCode = vue.ref(["1", "2", "3"]);
+      const componentCodeindex = vue.ref(-1);
+      const componentCodePopup = vue.ref(null);
+      const filteredComponentCodes = vue.ref([]);
+      const componentCodeFilter = vue.ref("");
+      const type = vue.ref([]);
       const typeindex = vue.ref(-1);
-      const num = vue.ref(["1", "2", "3"]);
-      const numindex = vue.ref(-1);
-      const Typeofdefect = vue.ref(["空洞、孔洞", "剥落、掉角", "凹凸不平", "裂缝"]);
-      const Typeofdefectindex = vue.ref(-1);
       const position = vue.ref("");
-      const NumofDefect = vue.ref(1);
+      const quantity = vue.ref(1);
       const WayofDefect = vue.ref(["数值", "记载方式2", "记载方式3"]);
       const WayofDefectindex = vue.ref(0);
       const length = vue.ref("");
       const width = vue.ref("");
-      const SeamWidth = vue.ref("");
-      const height = vue.ref("");
+      const slitWidth = vue.ref("");
+      const heightOrDepth = vue.ref("");
       const area = vue.ref("");
       const description = vue.ref("");
       const fileList = vue.ref([]);
@@ -12235,96 +13094,1349 @@ ${i3}
       }]);
       const scalesCurrent = vue.ref(0);
       const ratingItems = vue.reactive([{
+        name: "否",
+        value: "0"
+      }, {
         name: "是",
         value: "1"
-      }, {
-        name: "否",
-        value: "2"
       }]);
       const ratingCurrent = vue.ref(0);
+      const diseasePosition = vue.ref(["底板", "左翼板", "右翼板", "顶板", "左腹板", "右腹板"]);
+      const diseasePositionPopup = vue.ref(null);
+      const selectedPosition = vue.ref("");
+      const structureTypes = vue.ref(["上部结构", "下部结构", "桥面系", "附属设施"]);
+      const typeMultiArray = vue.ref([
+        structureTypes.value,
+        []
+      ]);
+      const typeMultiIndex = vue.ref([0, 0]);
+      const quantityUnitData = vue.ref([
+        {
+          text: "个",
+          value: 0
+        },
+        {
+          text: "条",
+          value: 1
+        },
+        {
+          text: "台",
+          value: 2
+        },
+        {
+          text: "次",
+          value: 3
+        },
+        {
+          text: "月",
+          value: 4
+        },
+        {
+          text: "处",
+          value: 5
+        }
+      ]);
+      const quantityUnitOptions = vue.ref(quantityUnitData.value.map((item) => item.text));
+      const quantityUnitIndex = vue.ref(0);
+      const quantityUnitChange = (e2) => {
+        quantityUnitIndex.value = e2.detail.value;
+      };
+      const natureindex = vue.ref(0);
+      const nature = vue.ref([{
+        text: "新病害",
+        value: 0
+      }, {
+        text: "旧病害",
+        value: 1
+      }]);
+      const participateAssess = vue.ref([{
+        text: "是",
+        value: 1
+      }, {
+        text: "否",
+        value: 0
+      }]);
+      const participateAssessindex = vue.ref(0);
+      const level = vue.ref([{
+        text: "1",
+        value: 1
+      }, {
+        text: "2",
+        value: 2
+      }, {
+        text: "3",
+        value: 3
+      }, {
+        text: "4",
+        value: 4
+      }]);
+      const levelindex = vue.ref(1);
+      const maintenanceStatus = vue.ref([
+        {
+          text: "待修复",
+          value: 0
+        },
+        {
+          text: "修复中",
+          value: 1
+        },
+        {
+          text: "已修复",
+          value: 2
+        },
+        {
+          text: "修补不良",
+          value: 3
+        }
+      ]);
+      const maintenanceStatusindex = vue.ref(0);
+      const initMultiPickerColumn2 = () => {
+        const structureType = structureTypes.value[typeMultiIndex.value[0]];
+        parentObjectName.value = structureType;
+        updateBiObjectOptions();
+        setTimeout(() => {
+          typeMultiArray.value = [
+            structureTypes.value,
+            biObjectName.value
+          ];
+          if (typeMultiIndex.value[1] >= biObjectName.value.length) {
+            typeMultiIndex.value[1] = 0;
+          }
+        }, 100);
+      };
+      const typeColumnChange = (e2) => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:979", "typeColumnChange:", e2);
+        const column = e2.detail.column;
+        const value = e2.detail.value;
+        typeMultiIndex.value[column] = value;
+        if (column === 0) {
+          parentObjectName.value = structureTypes.value[value];
+          updateBiObjectOptions();
+          typeMultiIndex.value[1] = 0;
+          setTimeout(() => {
+            typeMultiArray.value = [
+              structureTypes.value,
+              biObjectName.value
+            ];
+          }, 100);
+        }
+      };
+      const typeMultiPickerChange = (e2) => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1009", "typeMultiPickerChange:", e2);
+        typeMultiIndex.value = e2.detail.value;
+        parentObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
+        biObjectindex.value = typeMultiIndex.value[1];
+        updateDiseaseTypeOptions();
+        updateComponentNumbers();
+      };
+      vue.watch(parentObjectName, (newVal) => {
+        const index = structureTypes.value.findIndex((item) => item === newVal);
+        if (index !== -1 && index !== typeMultiIndex.value[0]) {
+          typeMultiIndex.value[0] = index;
+          initMultiPickerColumn2();
+        }
+      });
+      vue.onMounted(() => {
+        var _a;
+        fetchStructureData();
+        const pages2 = getCurrentPages();
+        const currentPage = pages2[pages2.length - 1];
+        const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+        if (options && options.mode === "edit") {
+          isEdit.value = true;
+          if (options.data) {
+            try {
+              const diseaseData = JSON.parse(decodeURIComponent(options.data));
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1047", "接收到的编辑数据:", diseaseData);
+              fillFormWithData(diseaseData);
+            } catch (error) {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1052", "解析编辑数据失败:", error);
+              uni.showToast({
+                title: "加载编辑数据失败",
+                icon: "none"
+              });
+            }
+          }
+        } else {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1062", "新增模式");
+          if (options && options.type) {
+            try {
+              const typeVal = decodeURIComponent(options.type);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1067", "接收到的病害类型位置:", typeVal);
+              parentObjectName.value = typeVal;
+            } catch (error) {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1070", "解析type参数失败:", error);
+              parentObjectName.value = "上部结构";
+            }
+          } else {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1075", "未接收到type参数，使用默认值: 上部结构");
+            parentObjectName.value = "上部结构";
+          }
+        }
+        setTimeout(() => {
+          initMultiPickerColumn2();
+        }, 200);
+        filteredComponentCodes.value = [...componentCode.value];
+      });
+      const fillFormWithData = (data2) => {
+        var _a;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1091", "开始填充表单数据:", data2);
+        if ((_a = data2.component) == null ? void 0 : _a.parentObjectName) {
+          parentObjectName.value = data2.component.parentObjectName;
+          const index = structureTypes.value.findIndex((item) => item === parentObjectName.value);
+          if (index !== -1) {
+            typeMultiIndex.value[0] = index;
+            initMultiPickerColumn2();
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1103", "设置病害类型:", parentObjectName.value);
+        }
+        setTimeout(() => {
+          var _a2, _b;
+          if ((_b = (_a2 = data2.component) == null ? void 0 : _a2.biObject) == null ? void 0 : _b.name) {
+            const index = biObjectName.value.findIndex((item) => item === data2.component.biObject.name);
+            if (index !== -1) {
+              biObjectindex.value = index;
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1113", "设置部件类型:", data2.component.biObject.name);
+              setTimeout(() => {
+                var _a3;
+                if ((_a3 = data2.component) == null ? void 0 : _a3.code) {
+                  const codeIndex = componentCode.value.findIndex((item) => item === data2.component.code);
+                  if (codeIndex !== -1) {
+                    componentCodeindex.value = codeIndex;
+                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1123", "设置构件编号:", data2.component.code);
+                  }
+                }
+              }, 50);
+            }
+          }
+          setTimeout(() => {
+            if (data2.type) {
+              const index = type.value.findIndex((item) => item === data2.type);
+              if (index !== -1) {
+                typeindex.value = index;
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1137", "设置缺损类型:", data2.type);
+              }
+            }
+          }, 50);
+        }, 100);
+        if (data2.position) {
+          position.value = data2.position;
+        }
+        if (data2.quantity) {
+          quantity.value = parseInt(data2.quantity) || 1;
+        }
+        if (data2.level) {
+          const index = scalesItems.findIndex((item) => item.value === data2.level.toString());
+          if (index !== -1) {
+            scalesCurrent.value = index;
+          }
+        }
+        if (data2.participateAssess !== void 0) {
+          const index = ratingItems.findIndex((item) => item.value === data2.participateAssess);
+          if (index !== -1) {
+            ratingCurrent.value = index;
+          }
+        }
+        if (data2.length) {
+          length.value = data2.length;
+        }
+        if (data2.width) {
+          width.value = data2.width;
+        }
+        if (data2.slitWidth) {
+          slitWidth.value = data2.slitWidth;
+        }
+        if (data2.heightOrDepth) {
+          heightOrDepth.value = data2.heightOrDepth;
+        }
+        if (data2.area) {
+          area.value = data2.area;
+        }
+        if (data2.description) {
+          description.value = data2.description;
+        }
+        if (data2.images && Array.isArray(data2.images)) {
+          fileList.value = data2.images.map((url, index) => ({
+            name: `图片${index + 1}`,
+            url,
+            extname: "jpg",
+            size: 0
+          }));
+        }
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1209", "表单数据填充完成");
+      };
+      const imageStyles = vue.reactive({
+        width: "150rpx",
+        height: "150rpx"
+      });
       const beforedisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:457", "上一条");
+        var _a;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1219", "上一条");
+        const pages2 = getCurrentPages();
+        const currentPage = pages2[pages2.length - 1];
+        const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+        const currentId = options == null ? void 0 : options.id;
+        if (!currentId || !parentObjectName.value) {
+          uni.showToast({
+            title: "无法获取当前病害信息",
+            icon: "none"
+          });
+          return;
+        }
+        uni.$emit("getDiseasesOfType", {
+          type: parentObjectName.value,
+          currentId,
+          callback: (diseaseList) => {
+            if (!diseaseList || diseaseList.length === 0) {
+              uni.showToast({
+                title: "没有可用的病害记录",
+                icon: "none"
+              });
+              return;
+            }
+            const validDiseases = diseaseList.filter((item) => !item.isDelete);
+            const currentIndex = validDiseases.findIndex((item) => item.id === currentId);
+            if (currentIndex === -1) {
+              uni.showToast({
+                title: "无法找到当前病害",
+                icon: "none"
+              });
+              return;
+            }
+            const prevIndex = currentIndex === 0 ? validDiseases.length - 1 : currentIndex - 1;
+            const prevDisease = validDiseases[prevIndex];
+            navigateToEditDisease(prevDisease);
+          }
+        });
       };
       const nextdisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:460", "下一条");
+        var _a;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1271", "下一条");
+        const pages2 = getCurrentPages();
+        const currentPage = pages2[pages2.length - 1];
+        const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+        const currentId = options == null ? void 0 : options.id;
+        if (!currentId || !parentObjectName.value) {
+          uni.showToast({
+            title: "无法获取当前病害信息",
+            icon: "none"
+          });
+          return;
+        }
+        uni.$emit("getDiseasesOfType", {
+          type: parentObjectName.value,
+          currentId,
+          callback: (diseaseList) => {
+            if (!diseaseList || diseaseList.length === 0) {
+              uni.showToast({
+                title: "没有可用的病害记录",
+                icon: "none"
+              });
+              return;
+            }
+            const validDiseases = diseaseList.filter((item) => !item.isDelete);
+            const currentIndex = validDiseases.findIndex((item) => item.id === currentId);
+            if (currentIndex === -1) {
+              uni.showToast({
+                title: "无法找到当前病害",
+                icon: "none"
+              });
+              return;
+            }
+            const nextIndex = currentIndex === validDiseases.length - 1 ? 0 : currentIndex + 1;
+            const nextDisease = validDiseases[nextIndex];
+            navigateToEditDisease(nextDisease);
+          }
+        });
+      };
+      const navigateToEditDisease = (disease) => {
+        if (!disease || !disease.id) {
+          uni.showToast({
+            title: "无效的病害数据",
+            icon: "none"
+          });
+          return;
+        }
+        const diseaseData = encodeURIComponent(JSON.stringify(disease));
+        uni.redirectTo({
+          url: `/pages/add-disease/add-disease?mode=edit&id=${disease.id}&data=${diseaseData}`,
+          success: () => {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1339", "成功导航到病害:", disease.id);
+          },
+          fail: (error) => {
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:1342", "导航失败:", error);
+            uni.showToast({
+              title: "切换失败，请重试",
+              icon: "none"
+            });
+          }
+        });
       };
       const savetonextdisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:463", "保存并复制到下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1352", "保存并复制到下一条");
+        const diseaseData = createDiseaseData();
+        if (diseaseData) {
+          saveWithoutNavigateBack(diseaseData);
+        }
+      };
+      const createDiseaseData = () => {
+        var _a, _b;
+        let diseaseTypeObj = null;
+        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
+          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
+        }
+        let biObjectObj = null;
+        if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+          biObjectObj = biObjectNameOptions.value[biObjectindex.value];
+        }
+        let componentObj = null;
+        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
+          componentObj = biObjectObj.comments[componentCodeindex.value];
+        }
+        const diseaseData = {
+          createBy: "crh@znjc",
+          createTime: formatDateTime(),
+          updateTime: formatDateTime(),
+          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
+          diseaseType: diseaseTypeObj ? {
+            id: diseaseTypeObj.id,
+            code: diseaseTypeObj.code || "",
+            name: diseaseTypeObj.name,
+            maxScale: diseaseTypeObj.maxScale || 5,
+            minScale: diseaseTypeObj.minScale || 1,
+            status: "0"
+          } : null,
+          diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
+          description: description.value,
+          position: position.value,
+          trend: "稳定",
+          level: parseInt(scalesItems[scalesCurrent.value].value),
+          quantity: parseInt(quantity.value),
+          length: length.value,
+          width: width.value,
+          slitWidth: slitWidth.value,
+          heightOrDepth: heightOrDepth.value,
+          area: area.value,
+          type: type.value[typeindex.value],
+          participateAssess: ratingItems[ratingCurrent.value].value,
+          deductPoints: 35,
+          biObjectId: biObjectObj ? biObjectObj.id : null,
+          projectId: 2,
+          component: componentObj ? {
+            createBy: "admin",
+            createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            id: componentObj.id,
+            code: componentObj.code,
+            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
+            biObjectId: biObjectObj ? biObjectObj.id : null,
+            status: "0",
+            delFlag: "0",
+            biObject: {
+              id: biObjectObj ? biObjectObj.id : null,
+              name: biObjectObj ? biObjectObj.name : "",
+              count: 0
+            },
+            parentObjectName: parentObjectName.value
+          } : null,
+          componentId: componentObj ? componentObj.id : null,
+          buildingId: 37,
+          images: []
+          // 初始化为空数组，等待图片保存后更新
+        };
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1435", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+          uni.hideLoading();
+          uni.showToast({
+            title: "请填写必填项",
+            icon: "none"
+          });
+          return null;
+        }
+        return diseaseData;
+      };
+      const saveWithoutNavigateBack = (diseaseData) => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1449", "保存但不返回");
+        uni.showLoading({
+          title: "保存中..."
+        });
+        saveImagesAndUpdateDisease(diseaseData, false).then(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
+          setTimeout(() => {
+            fileList.value = [];
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1469", "已清空图片列表，保留其他表单数据");
+            uni.showToast({
+              title: "已保存，可继续添加下一条",
+              icon: "none",
+              duration: 1500
+            });
+          }, 500);
+        }).catch((error) => {
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:1480", "保存失败:", error);
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存失败，请重试",
+            icon: "none"
+          });
+        });
+      };
+      const saveImagesAndUpdateDisease = (diseaseData, isEditMode) => {
+        return new Promise((resolve, reject) => {
+          var _a;
+          const pages2 = getCurrentPages();
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          let originalImages = [];
+          if (isEditMode && options && options.data) {
+            try {
+              const originalData = JSON.parse(decodeURIComponent(options.data));
+              originalImages = originalData.images || [];
+            } catch (error) {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1504", "解析原始数据失败:", error);
+            }
+          }
+          const currentImageUrls = fileList.value.map((img) => img.url);
+          const imagesToKeep = originalImages.filter(
+            (img) => currentImageUrls.includes(img)
+          );
+          const imagesToDelete = originalImages.filter(
+            (img) => !currentImageUrls.includes(img)
+          );
+          const newImages = currentImageUrls.filter(
+            (url) => !originalImages.includes(url)
+          );
+          if (imagesToDelete.length > 0) {
+            imagesToDelete.forEach((imgPath) => {
+              plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
+                fileEntry.remove(() => {
+                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1531", "删除原有图片成功:", imgPath);
+                }, (error) => {
+                  formatAppLog("error", "at pages/add-disease/add-disease.vue:1533", "删除原有图片失败:", error);
+                });
+              }, (error) => {
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:1536", "无法访问原有图片:", error);
+              });
+            });
+          }
+          if (newImages.length > 0) {
+            saveDiseaseImages(userId, buildingId, newImages).then((savedPaths) => {
+              diseaseData.images = [...imagesToKeep, ...savedPaths];
+              if (isEditMode) {
+                uni.$emit("updateDisease", diseaseData);
+              } else {
+                uni.$emit("addNewDisease", diseaseData);
+              }
+              resolve();
+            }).catch((error) => {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1558", "保存新图片失败:", error);
+              reject(error);
+            });
+          } else {
+            diseaseData.images = imagesToKeep;
+            if (isEditMode) {
+              uni.$emit("updateDisease", diseaseData);
+            } else {
+              uni.$emit("addNewDisease", diseaseData);
+            }
+            resolve();
+          }
+        });
       };
       const savedisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:466", "保存");
+        var _a, _b;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1578", "保存按钮点击");
+        let diseaseTypeObj = null;
+        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
+          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
+        }
+        let biObjectObj = null;
+        if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+          biObjectObj = biObjectNameOptions.value[biObjectindex.value];
+        }
+        let componentObj = null;
+        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
+          componentObj = biObjectObj.comments[componentCodeindex.value];
+        }
+        const diseaseData = {
+          createBy: "crh@znjc",
+          createTime: formatDateTime(),
+          updateTime: formatDateTime(),
+          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
+          diseaseType: diseaseTypeObj ? {
+            id: diseaseTypeObj.id,
+            code: diseaseTypeObj.code || "",
+            name: diseaseTypeObj.name,
+            maxScale: diseaseTypeObj.maxScale || 5,
+            minScale: diseaseTypeObj.minScale || 1,
+            status: "0"
+          } : null,
+          diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
+          description: description.value,
+          position: position.value,
+          trend: "稳定",
+          level: parseInt(scalesItems[scalesCurrent.value].value),
+          quantity: parseInt(quantity.value),
+          length: length.value,
+          width: width.value,
+          slitWidth: slitWidth.value,
+          heightOrDepth: heightOrDepth.value,
+          area: area.value,
+          type: type.value[typeindex.value],
+          participateAssess: ratingItems[ratingCurrent.value].value,
+          deductPoints: 35,
+          biObjectId: biObjectObj ? biObjectObj.id : null,
+          projectId: 2,
+          component: componentObj ? {
+            createBy: "admin",
+            createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            id: componentObj.id,
+            code: componentObj.code,
+            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
+            biObjectId: biObjectObj ? biObjectObj.id : null,
+            status: "0",
+            delFlag: "0",
+            biObject: {
+              id: biObjectObj ? biObjectObj.id : null,
+              name: biObjectObj ? biObjectObj.name : "",
+              count: 0
+            },
+            parentObjectName: parentObjectName.value
+          } : null,
+          componentId: componentObj ? componentObj.id : null,
+          buildingId: 37,
+          images: []
+          // 初始化为空数组，等待图片保存后更新
+        };
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1653", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+          uni.hideLoading();
+          uni.showToast({
+            title: "请填写必填项",
+            icon: "none"
+          });
+          return;
+        }
+        uni.showLoading({
+          title: "保存中..."
+        });
+        saveImagesAndUpdateDisease(diseaseData, isEdit.value).then(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 500);
+        }).catch((error) => {
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存失败",
+            icon: "none"
+          });
+        });
       };
       const canceldisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:469", "取消");
+        uni.navigateBack({
+          delta: 1
+          // 返回上一页
+        });
       };
       const typePickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:474", "picker发送选择改变，携带值为", e2.detail.value);
-        typeindex.value = e2.detail.value;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1698", "picker发送选择改变，携带值为", e2.detail.value);
+        const index = parseInt(e2.detail.value);
+        biObjectindex.value = index;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1701", "biObjectindex设置为:", index, "对应的值为:", biObjectName.value[index]);
+        updateDiseaseTypeOptions();
+        updateComponentNumbers();
       };
       const numberPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:479", "picker发送选择改变，携带值为", e2.detail.value);
-        numindex.value = e2.detail.value;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1710", "picker发送选择改变，携带值为", e2.detail.value);
+        const index = parseInt(e2.detail.value);
+        componentCodeindex.value = index;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1713", "componentCodeindex设置为:", index, "对应的值为:", componentCode.value[index]);
       };
       const TypeofdefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:484", "picker发送选择改变，携带值为", e2.detail.value);
-        Typeofdefectindex.value = e2.detail.value;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1717", "picker发送选择改变，携带值为", e2.detail.value);
+        const index = parseInt(e2.detail.value);
+        typeindex.value = index;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1720", "typeindex设置为:", index, "对应的值为:", type.value[index]);
       };
       const WayofDefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:489", "picker发送选择改变，携带值为", e2.detail.value);
-        WayofDefectindex.value = e2.detail.value;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1724", "picker发送选择改变，携带值为", e2.detail.value);
+        const index = parseInt(e2.detail.value);
+        WayofDefectindex.value = index;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1727", "WayofDefectindex设置为:", index, "对应的值为:", WayofDefect.value[index]);
+      };
+      const ScalesRadioChange = (e2) => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1732", "radio发送选择改变，携带值为", e2.detail.value);
+        const index = scalesItems.findIndex((item) => item.value === e2.detail.value);
+        if (index !== -1) {
+          scalesCurrent.value = index;
+        }
+      };
+      const RatingsRadioChange = (e2) => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1742", "radio发送选择改变，携带值为", e2.detail.value);
+        const index = ratingItems.findIndex((item) => item.value === e2.detail.value);
+        if (index !== -1) {
+          ratingCurrent.value = index;
+        }
+      };
+      const formatDateTime = (date = /* @__PURE__ */ new Date()) => {
+        const y2 = date.getFullYear();
+        const m2 = String(date.getMonth() + 1).padStart(2, "0");
+        const d2 = String(date.getDate()).padStart(2, "0");
+        const h2 = String(date.getHours()).padStart(2, "0");
+        const mm = String(date.getMinutes()).padStart(2, "0");
+        const s2 = String(date.getSeconds()).padStart(2, "0");
+        return `${y2}-${m2}-${d2} ${h2}:${mm}:${s2}`;
       };
       const deleteDisease = () => {
         uni.showModal({
           title: "确认删除",
           content: "确定要删除这条病害记录吗？",
           success: (res) => {
+            var _a, _b;
             if (res.confirm) {
-              uni.showToast({
-                title: "删除成功",
-                icon: "success"
-              });
-              setTimeout(() => {
-                uni.navigateBack();
-              }, 1500);
+              const currentId = (_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id;
+              if (currentId) {
+                const deleteData = {
+                  id: currentId,
+                  isDelete: true
+                };
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1780", "准备发送deleteDisease事件，标记删除ID:", currentId);
+                uni.$emit("deleteDisease", deleteData);
+                uni.showToast({
+                  title: "删除成功",
+                  icon: "success"
+                });
+                setTimeout(() => {
+                  uni.navigateBack();
+                }, 1500);
+              } else {
+                uni.showToast({
+                  title: "无法获取病害ID",
+                  icon: "none"
+                });
+              }
             }
           }
         });
       };
       const copyAndAddDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:514", "复制并新增");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1805", "复制并新增");
+        ({
+          partType: biObjectName.value[biObjectindex.value],
+          partNumber: componentCode.value[componentCodeindex.value],
+          disease: type.value[typeindex.value],
+          position: position.value,
+          quantity: quantity.value.toString(),
+          length: length.value,
+          width: width.value,
+          slitWidth: slitWidth.value,
+          heightOrDepth: heightOrDepth.value,
+          area: area.value,
+          description: description.value,
+          level: scalesItems[scalesCurrent.value].value,
+          participateAssess: ratingItems[ratingCurrent.value].value,
+          parentObjectName: parentObjectName.value
+        });
+        fileList.value = [];
         isEdit.value = false;
+        uni.showToast({
+          title: "已切换到新增模式",
+          icon: "none",
+          duration: 500
+        });
       };
       const editDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:520", "编辑");
+        var _a, _b;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1840", "编辑");
+        let diseaseTypeObj = null;
+        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
+          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
+        }
+        let biObjectObj = null;
+        if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
+          biObjectObj = biObjectNameOptions.value[biObjectindex.value];
+        }
+        let componentObj = null;
+        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
+          componentObj = biObjectObj.comments[componentCodeindex.value];
+        }
+        const diseaseData = {
+          createBy: "crh@znjc",
+          createTime: formatDateTime(),
+          updateTime: formatDateTime(),
+          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
+          diseaseType: diseaseTypeObj ? {
+            id: diseaseTypeObj.id,
+            code: diseaseTypeObj.code || "",
+            name: diseaseTypeObj.name,
+            maxScale: diseaseTypeObj.maxScale || 5,
+            minScale: diseaseTypeObj.minScale || 1,
+            status: "0"
+          } : null,
+          diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
+          description: description.value,
+          position: position.value,
+          trend: "稳定",
+          level: parseInt(scalesItems[scalesCurrent.value].value),
+          quantity: parseInt(quantity.value),
+          length: length.value,
+          width: width.value,
+          slitWidth: slitWidth.value,
+          heightOrDepth: heightOrDepth.value,
+          area: area.value,
+          type: type.value[typeindex.value],
+          participateAssess: ratingItems[ratingCurrent.value].value,
+          deductPoints: 35,
+          biObjectId: biObjectObj ? biObjectObj.id : null,
+          projectId: 2,
+          component: componentObj ? {
+            createBy: "admin",
+            createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
+            id: componentObj.id,
+            code: componentObj.code,
+            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
+            biObjectId: biObjectObj ? biObjectObj.id : null,
+            status: "0",
+            delFlag: "0",
+            biObject: {
+              id: biObjectObj ? biObjectObj.id : null,
+              name: biObjectObj ? biObjectObj.name : "",
+              count: 0
+            },
+            parentObjectName: parentObjectName.value
+          } : null,
+          componentId: componentObj ? componentObj.id : null,
+          buildingId: 37,
+          images: []
+          // 初始化为空数组，等待图片保存后更新
+        };
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1915", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+          uni.hideLoading();
+          uni.showToast({
+            title: "请填写必填项",
+            icon: "none"
+          });
+          return;
+        }
+        uni.showLoading({
+          title: "保存中..."
+        });
+        saveImagesAndUpdateDisease(diseaseData, true).then(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存成功",
+            icon: "success"
+          });
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 500);
+        }).catch((error) => {
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存失败",
+            icon: "none"
+          });
+        });
       };
       const handleFileSelect = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:524", "文件选择事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1953", "文件选择事件", e2);
+        if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1956", "选择的文件数量:", e2.tempFiles.length);
+          const newFiles = e2.tempFiles.map((file) => {
+            return {
+              name: file.name,
+              url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
+              extname: file.extname || "jpg",
+              size: file.size || 0,
+              // 保存原始文件信息，以备后用
+              originalFile: file
+            };
+          });
+          newFiles.forEach((file) => {
+            const existingIndex = fileList.value.findIndex((f2) => f2.name === file.name || f2.url === file.url);
+            if (existingIndex === -1) {
+              fileList.value.push(file);
+            } else {
+              fileList.value[existingIndex] = file;
+            }
+          });
+          fileList.value = [...fileList.value];
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1992", "更新后的fileList:", fileList.value);
+          const paths = getImagePaths(fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1996", "当前有效路径数:", paths.length);
+        }
       };
       const handleFileDelete = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:528", "文件删除事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2001", "文件删除事件", e2);
+        if (e2 && e2.tempFile && e2.tempFile.name) {
+          const fileName = e2.tempFile.name;
+          fileList.value = fileList.value.filter((file) => file.name !== fileName);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2010", "删除后的文件列表:", fileList.value);
+        } else if (e2 && e2.index !== void 0 && e2.index >= 0) {
+          fileList.value.splice(e2.index, 1);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2014", "删除后的文件列表:", fileList.value);
+        }
       };
-      const __returned__ = { isEdit, fillFormWithData, imageStyles, type, typeindex, num, numindex, Typeofdefect, Typeofdefectindex, position, NumofDefect, WayofDefect, WayofDefectindex, length, width, SeamWidth, height, area, description, fileList, scalesItems, scalesCurrent, ratingItems, ratingCurrent, beforedisease, nextdisease, savetonextdisease, savedisease, canceldisease, typePickerChange, numberPickerChange, TypeofdefectPickerChange, WayofDefectPickerChange, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch };
+      const getImagePaths = (fileListData) => {
+        const paths = [];
+        if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2023", "文件列表为空");
+          return paths;
+        }
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2027", "处理文件列表:", fileListData);
+        fileListData.forEach((file, index) => {
+          let path = "";
+          if (file.url) {
+            path = file.url;
+          } else if (file.path) {
+            path = file.path;
+          } else if (file.tempFilePath) {
+            path = file.tempFilePath;
+          } else if (file.file && file.file.path) {
+            path = file.file.path;
+          } else if (file.image && file.image.location) {
+            path = file.image.location;
+          }
+          if (path) {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2047", `文件[${index}]有效路径:`, path);
+            paths.push(path);
+          } else {
+            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2050", `文件[${index}]没有有效路径:`, file);
+          }
+        });
+        return paths;
+      };
+      const onClickTemplate = (templateIndex) => {
+        uni.navigateTo({
+          url: `/pages/canvas/canvas?template=${templateIndex}`,
+          success: (res) => {
+            res.eventChannel.once("returnData", (data2) => {
+              ADImgs.value.push({
+                src: data2.src
+              });
+            });
+            popup2.value.close();
+          }
+        });
+      };
+      const selectCanvasTemplate = () => {
+        popup2.value.open();
+      };
+      const removeImage = (index) => {
+        ADImgs.value.splice(index, 1);
+      };
+      const openDiseasePositionPopup = () => {
+        selectedPosition.value = position.value || "";
+        diseasePositionPopup.value.open();
+      };
+      const closeDiseasePositionPopup = () => {
+        diseasePositionPopup.value.close();
+      };
+      const confirmDiseasePosition = () => {
+        position.value = selectedPosition.value;
+        closeDiseasePositionPopup();
+      };
+      const fetchStructureData = async () => {
+        try {
+          const userId2 = "3";
+          const buildingId2 = "39";
+          const data2 = await getObject(userId2, buildingId2);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2106", "结构数据获取成功:", data2);
+          structureData.value = data2;
+          updateBiObjectOptions();
+        } catch (error) {
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2112", "获取结构数据失败:", error);
+          uni.showToast({
+            title: "获取结构数据失败",
+            icon: "none"
+          });
+        }
+      };
+      const updateBiObjectOptions = () => {
+        if (!structureData.value || !structureData.value.children) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2123", "结构数据不完整");
+          return;
+        }
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2127", "更新部件类型选项，当前选择:", parentObjectName.value);
+        const structurePart = structureData.value.children.find(
+          (item) => item.name === parentObjectName.value
+        );
+        if (!structurePart || !structurePart.children) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2135", "未找到对应的结构部分或其子项");
+          biObjectName.value = [];
+          return;
+        }
+        biObjectNameOptions.value = structurePart.children;
+        biObjectName.value = structurePart.children.map((item) => item.name);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2143", "部件类型选项更新为:", biObjectName.value);
+        biObjectindex.value = -1;
+        type.value = [];
+        typeindex.value = -1;
+        componentCode.value = [];
+        componentCodeindex.value = -1;
+        if (typeMultiArray.value) {
+          typeMultiArray.value[1] = biObjectName.value;
+        }
+      };
+      const updateComponentNumbers = () => {
+        if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2163", "无效的部件类型选择");
+          componentCode.value = [];
+          return;
+        }
+        const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
+        if (!selectedBiObject) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2170", "选中的部件类型不存在");
+          componentCode.value = [];
+          return;
+        }
+        if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments.length === 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2178", "当前部件类型没有构件编号信息");
+          componentCode.value = ["1", "2", "3"];
+          return;
+        }
+        componentCode.value = selectedBiObject.comments.map((item) => item.code);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2185", "构件编号选项更新为:", componentCode.value);
+        componentCodeindex.value = -1;
+      };
+      const updateDiseaseTypeOptions = () => {
+        if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2194", "无效的部件类型选择");
+          type.value = [];
+          return;
+        }
+        const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
+        if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2201", "选中的部件类型没有缺损类型定义");
+          type.value = [];
+          return;
+        }
+        diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
+        type.value = selectedBiObject.diseaseTypes.map((item) => item.name);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2209", "缺损类型选项更新为:", type.value);
+        typeindex.value = -1;
+      };
+      const openComponentCodePopup = () => {
+        filteredComponentCodes.value = [...componentCode.value];
+        componentCodePopup.value.open();
+      };
+      const closeComponentCodePopup = () => {
+        componentCodePopup.value.close();
+      };
+      const confirmComponentCode = () => {
+        if (componentCodeindex.value !== -1) {
+          closeComponentCodePopup();
+        } else {
+          uni.showToast({
+            title: "请选择构件编号",
+            icon: "none"
+          });
+        }
+      };
+      const clearComponentSearch = () => {
+        componentCodeFilter.value = "";
+        filteredComponentCodes.value = [...componentCode.value];
+      };
+      const filterComponentCodes = () => {
+        if (!componentCodeFilter.value) {
+          filteredComponentCodes.value = [...componentCode.value];
+          return;
+        }
+        filteredComponentCodes.value = componentCode.value.filter(
+          (code2) => code2.toString().includes(componentCodeFilter.value)
+        );
+      };
+      const selectComponentCode = (index) => {
+        const selectedCode = filteredComponentCodes.value[index];
+        const originalIndex = componentCode.value.findIndex((code2) => code2 === selectedCode);
+        if (originalIndex !== -1) {
+          componentCodeindex.value = originalIndex;
+          closeComponentCodePopup();
+        }
+      };
+      const longitudinalPosition = vue.ref("");
+      const lateralPosition = vue.ref("");
+      const verticalPosition = vue.ref("");
+      const activePositionType = vue.ref("");
+      const currentPositionTitle = vue.ref("位置");
+      const longitudinalPositionOptions = vue.ref(["大桩号侧", "小桩号侧"]);
+      const lateralPositionOptions = vue.ref(["左侧", "右侧"]);
+      const verticalPositionOptions = vue.ref(["顶部", "底部"]);
+      const currentPositionOptions = vue.ref([]);
+      const positionInput1Value = vue.ref("");
+      const positionInput2Value = vue.ref("");
+      const LocationDescriptionPositionPopup = vue.ref(null);
+      const openLocationPositionPopup = (type2) => {
+        activePositionType.value = type2 || "longitudinal";
+        if (activePositionType.value === "longitudinal") {
+          currentPositionTitle.value = "纵向位置";
+          currentPositionOptions.value = longitudinalPositionOptions.value;
+        } else if (activePositionType.value === "lateral") {
+          currentPositionTitle.value = "横向位置";
+          currentPositionOptions.value = lateralPositionOptions.value;
+        } else if (activePositionType.value === "vertical") {
+          currentPositionTitle.value = "竖向位置";
+          currentPositionOptions.value = verticalPositionOptions.value;
+        }
+        LocationDescriptionPositionPopup.value.open();
+      };
+      const confirmPositionInput1 = () => {
+        const inputValue = positionInput1Value.value;
+        if (!inputValue) {
+          uni.showToast({
+            title: "请输入内容",
+            icon: "none"
+          });
+          return;
+        }
+        if (activePositionType.value === "longitudinal") {
+          longitudinalPosition.value = inputValue;
+        } else if (activePositionType.value === "lateral") {
+          lateralPosition.value = inputValue;
+        } else if (activePositionType.value === "vertical") {
+          verticalPosition.value = inputValue;
+        }
+        LocationDescriptionPositionPopup.value.close();
+        positionInput1Value.value = "";
+      };
+      const confirmPositionInput2 = () => {
+        const inputValue = positionInput2Value.value;
+        if (!inputValue) {
+          uni.showToast({
+            title: "请输入内容",
+            icon: "none"
+          });
+          return;
+        }
+        const fullValue = inputValue + "#墩侧";
+        if (activePositionType.value === "longitudinal") {
+          longitudinalPosition.value = fullValue;
+        } else if (activePositionType.value === "lateral") {
+          lateralPosition.value = fullValue;
+        } else if (activePositionType.value === "vertical") {
+          verticalPosition.value = fullValue;
+        }
+        LocationDescriptionPositionPopup.value.close();
+        positionInput2Value.value = "";
+      };
+      const selectPositionItem = (item) => {
+        if (activePositionType.value === "longitudinal") {
+          longitudinalPosition.value = item;
+        } else if (activePositionType.value === "lateral") {
+          lateralPosition.value = item;
+        } else if (activePositionType.value === "vertical") {
+          verticalPosition.value = item;
+        }
+        LocationDescriptionPositionPopup.value.close();
+      };
+      const LocationDescriptionDistancePopup = vue.ref(null);
+      const openLocationDistancePopup = (type2) => {
+        activeDistanceType.value = type2;
+        LocationDescriptionDistancePopup.value.open();
+      };
+      const lengthUnitData = vue.ref([
+        {
+          text: "m",
+          value: 0
+        },
+        {
+          text: "cm",
+          value: 1
+        },
+        {
+          text: "mm",
+          value: 2
+        }
+      ]);
+      const lengthUnitOptions = vue.ref(lengthUnitData.value.map((item) => item.text));
+      const lengthUnitIndex = vue.ref(0);
+      const lengthUnitChange = (e2) => {
+        lengthUnitIndex.value = e2.detail.value;
+      };
+      const widthUnitData = vue.ref([
+        {
+          text: "m",
+          value: 0
+        },
+        {
+          text: "cm",
+          value: 1
+        },
+        {
+          text: "mm",
+          value: 2
+        }
+      ]);
+      const widthUnitOptions = vue.ref(widthUnitData.value.map((item) => item.text));
+      const widthUnitIndex = vue.ref(0);
+      const widthUnitChange = (e2) => {
+        widthUnitIndex.value = e2.detail.value;
+      };
+      const heightUnitData = vue.ref([
+        {
+          text: "m",
+          value: 0
+        },
+        {
+          text: "cm",
+          value: 1
+        },
+        {
+          text: "mm",
+          value: 2
+        }
+      ]);
+      const heightUnitOptions = vue.ref(heightUnitData.value.map((item) => item.text));
+      const heightUnitIndex = vue.ref(0);
+      const heightUnitChange = (e2) => {
+        heightUnitIndex.value = e2.detail.value;
+      };
+      const seamsWidthUnitData = vue.ref([
+        {
+          text: "m",
+          value: 0
+        },
+        {
+          text: "cm",
+          value: 1
+        },
+        {
+          text: "mm",
+          value: 2
+        }
+      ]);
+      const seamsWidthUnitOptions = vue.ref(seamsWidthUnitData.value.map((item) => item.text));
+      const seamsWidthUnitIndex = vue.ref(0);
+      const seamsWidthUnitChange = (e2) => {
+        seamsWidthUnitIndex.value = e2.detail.value;
+      };
+      const areaUnitData = vue.ref([
+        {
+          text: "m²",
+          value: 0
+        },
+        {
+          text: "cm²",
+          value: 1
+        },
+        {
+          text: "mm²",
+          value: 2
+        }
+      ]);
+      const areaUnitOptions = vue.ref(areaUnitData.value.map((item) => item.text));
+      const areaUnitIndex = vue.ref(0);
+      const areaUnitChange = (e2) => {
+        areaUnitIndex.value = e2.detail.value;
+      };
+      const volumeUnitData = vue.ref([
+        {
+          text: "m³",
+          value: 0
+        },
+        {
+          text: "cm³",
+          value: 1
+        },
+        {
+          text: "mm³",
+          value: 2
+        }
+      ]);
+      const volumeUnitOptions = vue.ref(volumeUnitData.value.map((item) => item.text));
+      const volumeUnitIndex = vue.ref(0);
+      const volumeUnitChange = (e2) => {
+        volumeUnitIndex.value = e2.detail.value;
+      };
+      const longitudinalDistance = vue.ref("");
+      const lateralDistance = vue.ref("");
+      const verticalDistance = vue.ref("");
+      const activeDistanceType = vue.ref("");
+      const confirmDistanceInput1 = () => {
+        const inputValue = distanceInput1Value.value;
+        if (!inputValue) {
+          uni.showToast({
+            title: "请输入数值",
+            icon: "none"
+          });
+          return;
+        }
+        if (activeDistanceType.value === "longitudinal") {
+          longitudinalDistance.value = inputValue + "米";
+        } else if (activeDistanceType.value === "lateral") {
+          lateralDistance.value = inputValue + "米";
+        } else if (activeDistanceType.value === "vertical") {
+          verticalDistance.value = inputValue + "米";
+        }
+        LocationDescriptionDistancePopup.value.close();
+        distanceInput1Value.value = "";
+      };
+      const confirmDistanceInput2 = () => {
+        const numerator = distanceInput2Numerator.value;
+        const denominator = distanceInput2Denominator.value;
+        if (!numerator || !denominator) {
+          uni.showToast({
+            title: "请完整输入分子和分母",
+            icon: "none"
+          });
+          return;
+        }
+        const fractionValue = denominator + "/" + numerator;
+        if (activeDistanceType.value === "longitudinal") {
+          longitudinalDistance.value = fractionValue;
+        } else if (activeDistanceType.value === "lateral") {
+          lateralDistance.value = fractionValue;
+        } else if (activeDistanceType.value === "vertical") {
+          verticalDistance.value = fractionValue;
+        }
+        LocationDescriptionDistancePopup.value.close();
+        distanceInput2Numerator.value = "";
+        distanceInput2Denominator.value = "";
+      };
+      const selectDistanceItem = (item) => {
+        if (activeDistanceType.value === "longitudinal") {
+          longitudinalDistance.value = item;
+        } else if (activeDistanceType.value === "lateral") {
+          lateralDistance.value = item;
+        } else if (activeDistanceType.value === "vertical") {
+          verticalDistance.value = item;
+        }
+        LocationDescriptionDistancePopup.value.close();
+      };
+      const distanceInput1Value = vue.ref("");
+      const distanceInput2Numerator = vue.ref("");
+      const distanceInput2Denominator = vue.ref("");
+      const __returned__ = { popup: popup2, ADImgs, userId, buildingId, isEdit, structureData, parentObjectName, biObjectNameOptions, diseaseTypeOptions, biObjectName, biObjectindex, componentCode, componentCodeindex, componentCodePopup, filteredComponentCodes, componentCodeFilter, type, typeindex, position, quantity, WayofDefect, WayofDefectindex, length, width, slitWidth, heightOrDepth, area, description, fileList, scalesItems, scalesCurrent, ratingItems, ratingCurrent, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, quantityUnitData, quantityUnitOptions, quantityUnitIndex, quantityUnitChange, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, maintenanceStatus, maintenanceStatusindex, initMultiPickerColumn2, typeColumnChange, typeMultiPickerChange, fillFormWithData, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, savedisease, canceldisease, typePickerChange, numberPickerChange, TypeofdefectPickerChange, WayofDefectPickerChange, ScalesRadioChange, RatingsRadioChange, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, openDiseasePositionPopup, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateBiObjectOptions, updateComponentNumbers, updateDiseaseTypeOptions, openComponentCodePopup, closeComponentCodePopup, confirmComponentCode, clearComponentSearch, filterComponentCodes, selectComponentCode, longitudinalPosition, lateralPosition, verticalPosition, activePositionType, currentPositionTitle, longitudinalPositionOptions, lateralPositionOptions, verticalPositionOptions, currentPositionOptions, positionInput1Value, positionInput2Value, LocationDescriptionPositionPopup, openLocationPositionPopup, confirmPositionInput1, confirmPositionInput2, selectPositionItem, LocationDescriptionDistancePopup, openLocationDistancePopup, lengthUnitData, lengthUnitOptions, lengthUnitIndex, lengthUnitChange, widthUnitData, widthUnitOptions, widthUnitIndex, widthUnitChange, heightUnitData, heightUnitOptions, heightUnitIndex, heightUnitChange, seamsWidthUnitData, seamsWidthUnitOptions, seamsWidthUnitIndex, seamsWidthUnitChange, areaUnitData, areaUnitOptions, areaUnitIndex, areaUnitChange, volumeUnitData, volumeUnitOptions, volumeUnitIndex, volumeUnitChange, longitudinalDistance, lateralDistance, verticalDistance, activeDistanceType, confirmDistanceInput1, confirmDistanceInput2, selectDistanceItem, distanceInput1Value, distanceInput2Numerator, distanceInput2Denominator, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, get getObject() {
+        return getObject;
+      }, get saveDiseaseImages() {
+        return saveDiseaseImages;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_number_box = resolveEasycom(vue.resolveDynamicComponent("uni-number-box"), __easycom_0);
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_data_checkbox = resolveEasycom(vue.resolveDynamicComponent("uni-data-checkbox"), __easycom_0);
     const _component_uni_file_picker = resolveEasycom(vue.resolveDynamicComponent("uni-file-picker"), __easycom_1);
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
+    const _component_uni_combox = resolveEasycom(vue.resolveDynamicComponent("uni-combox"), __easycom_3);
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 新增病害时显示 "),
       !$setup.isEdit ? (vue.openBlock(), vue.createElementBlock("view", {
         key: 0,
         class: "button-group-add"
       }, [
-        vue.createElementVNode("button", {
-          class: "button-before",
-          onClick: $setup.beforedisease
-        }, "上一条"),
-        vue.createElementVNode("button", {
-          class: "button-next-add",
-          onClick: $setup.nextdisease
-        }, "下一条"),
         vue.createElementVNode("button", {
           class: "button-savetonext",
           onClick: $setup.savetonextdisease
@@ -12368,427 +14480,1054 @@ ${i3}
         2112
         /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
       )),
-      vue.createElementVNode("view", { class: "part-typeandnumber" }, [
-        vue.createElementVNode("picker", {
-          class: "picker-type",
-          onChange: $setup.typePickerChange,
-          value: $setup.typeindex,
-          range: $setup.type
-        }, [
-          vue.createElementVNode("view", { class: "picker-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", {
-                class: "part-title",
-                style: { "position": "relative" }
-              }, [
-                vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-                vue.createTextVNode("部件类型 ")
-              ]),
-              vue.createElementVNode(
-                "view",
-                {
-                  class: "part-content",
-                  style: vue.normalizeStyle($setup.typeindex === -1 ? "color: #CCCCCC;" : "")
-                },
-                vue.toDisplayString($setup.type[$setup.typeindex] || "请选择部件类型"),
-                5
-                /* TEXT, STYLE */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "part-icon" }, ">")
-          ])
-        ], 40, ["value", "range"]),
-        vue.createElementVNode("picker", {
-          class: "picker-number",
-          onChange: $setup.numberPickerChange,
-          value: $setup.numindex,
-          range: $setup.num
-        }, [
-          vue.createElementVNode("view", { class: "picker-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", {
-                class: "part-title",
-                style: { "position": "relative" }
-              }, [
-                vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-                vue.createTextVNode("构件编号 ")
-              ]),
-              vue.createElementVNode(
-                "view",
-                {
-                  class: "part-content",
-                  style: vue.normalizeStyle($setup.numindex === -1 ? "color: #CCCCCC;" : "")
-                },
-                vue.toDisplayString($setup.num[$setup.numindex] || "请选择构件编号"),
-                5
-                /* TEXT, STYLE */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "part-icon" }, ">")
-          ])
-        ], 40, ["value", "range"])
-      ]),
-      vue.createElementVNode("view", { class: "part-Typeofdefect" }, [
-        vue.createElementVNode("picker", {
-          class: "picker-Typeofdefect",
-          onChange: $setup.TypeofdefectPickerChange,
-          value: $setup.Typeofdefectindex,
-          range: $setup.Typeofdefect
-        }, [
-          vue.createElementVNode("view", { class: "picker-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", {
-                class: "part-title",
-                style: { "position": "relative" }
-              }, [
-                vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-                vue.createTextVNode("缺损类型 ")
-              ]),
-              vue.createElementVNode(
-                "view",
-                {
-                  class: "part-content",
-                  style: vue.normalizeStyle($setup.Typeofdefectindex === -1 ? "color: #CCCCCC;" : "")
-                },
-                vue.toDisplayString($setup.Typeofdefect[$setup.Typeofdefectindex] || "请选择缺损类型"),
-                5
-                /* TEXT, STYLE */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "part-icon" }, ">")
-          ])
-        ], 40, ["value", "range"])
-      ]),
-      vue.createElementVNode("view", { class: "part-Positionofdefect" }, [
-        vue.createElementVNode("view", { class: "input-content" }, [
-          vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-            vue.createElementVNode("view", {
-              class: "part-title",
-              style: { "position": "relative" }
-            }, [
-              vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-              vue.createTextVNode("缺损位置 ")
-            ]),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                type: "text",
-                placeholder: "请填写缺损位置信息",
-                class: "input-text",
-                "placeholder-class": "input-text-placeholder",
-                "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.position = $event)
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $setup.position]
-            ])
-          ])
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "part-NumAndWayofDefect" }, [
-        vue.createElementVNode("view", { class: "part-NumofDefect" }, [
-          vue.createElementVNode("view", { class: "picker-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", {
-                class: "part-title",
-                style: { "position": "relative" }
-              }, [
-                vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-                vue.createTextVNode("缺损数量 ")
-              ]),
-              vue.createVNode(_component_uni_number_box, {
-                class: "NumofDefect",
-                modelValue: $setup.NumofDefect,
-                "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.NumofDefect = $event)
-              }, null, 8, ["modelValue"])
-            ])
-          ])
-        ]),
-        vue.createElementVNode("picker", {
-          class: "part-WayofDefect",
-          onChange: $setup.WayofDefectPickerChange,
-          value: $setup.WayofDefectindex,
-          range: $setup.WayofDefect
-        }, [
-          vue.createElementVNode("view", { class: "picker-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "数据记载方式"),
-              vue.createElementVNode(
-                "view",
-                {
-                  class: "part-content",
-                  style: vue.normalizeStyle($setup.WayofDefectindex === -1 ? "color: #CCCCCC;" : "")
-                },
-                vue.toDisplayString($setup.WayofDefect[$setup.WayofDefectindex] || "请选择数据记载方式"),
-                5
-                /* TEXT, STYLE */
-              )
-            ]),
-            vue.createElementVNode("view", { class: "part-icon" }, ">")
-          ])
-        ], 40, ["value", "range"])
-      ]),
-      vue.createElementVNode("view", { class: "part-LengthAndWidth" }, [
-        vue.createElementVNode("view", { class: "part-Length" }, [
-          vue.createElementVNode("view", { class: "input-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "长度(m)"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  type: "text",
-                  placeholder: "长度数据",
-                  class: "input-text",
-                  "placeholder-class": "input-text-placeholder",
-                  "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.length = $event)
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.length]
-              ])
-            ])
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "part-Width" }, [
-          vue.createElementVNode("view", { class: "input-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "宽度(m)"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  type: "text",
-                  placeholder: "宽度数据",
-                  class: "input-text",
-                  "placeholder-class": "input-text-placeholder",
-                  "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.width = $event)
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.width]
-              ])
-            ])
-          ])
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "part-SeamWidth-height-area" }, [
-        vue.createElementVNode("view", { class: "part-SeamWidth" }, [
-          vue.createElementVNode("view", { class: "input-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "缝宽(mm)"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  type: "text",
-                  placeholder: "缝宽数据",
-                  class: "input-text",
-                  "placeholder-class": "input-text-placeholder",
-                  "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.SeamWidth = $event)
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.SeamWidth]
-              ])
-            ])
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "part-height" }, [
-          vue.createElementVNode("view", { class: "input-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "高度/深度(m)"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  type: "text",
-                  placeholder: "高度/深度数据",
-                  class: "input-text",
-                  "placeholder-class": "input-text-placeholder",
-                  "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.height = $event)
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.height]
-              ])
-            ])
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "part-area" }, [
-          vue.createElementVNode("view", { class: "input-content" }, [
-            vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-              vue.createElementVNode("view", { class: "part-title" }, "面积(m²)"),
-              vue.withDirectives(vue.createElementVNode(
-                "input",
-                {
-                  type: "text",
-                  placeholder: "面积数据",
-                  class: "input-text",
-                  "placeholder-class": "input-text-placeholder",
-                  "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.area = $event)
-                },
-                null,
-                512
-                /* NEED_PATCH */
-              ), [
-                [vue.vModelText, $setup.area]
-              ])
-            ])
-          ])
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "part-descriptionofDefect" }, [
-        vue.createElementVNode("view", { class: "input-content" }, [
-          vue.createElementVNode("view", { class: "part-titleandcontent" }, [
-            vue.createElementVNode("view", {
-              class: "part-title",
-              style: { "position": "relative" }
-            }, [
-              vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-              vue.createTextVNode("病害描述(性质、范围、程度等) ")
-            ]),
-            vue.withDirectives(vue.createElementVNode(
-              "input",
-              {
-                type: "text",
-                placeholder: "请填写病害描述信息",
-                class: "input-text",
-                "placeholder-class": "input-text-placeholder",
-                "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.description = $event)
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            ), [
-              [vue.vModelText, $setup.description]
-            ])
-          ])
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "part-ScalesandRatings" }, [
-        vue.createElementVNode("view", { class: "part-Scales" }, [
-          vue.createElementVNode("view", {
-            class: "radio-title",
-            style: { "position": "relative" }
-          }, [
-            vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-            vue.createTextVNode("评定标度 ")
+      vue.createCommentVNode(" 表单内容容器 - 添加form-container类以便横屏时调整布局 "),
+      vue.createElementVNode("view", { class: "form-container" }, [
+        vue.createElementVNode("view", null, [
+          vue.createElementVNode("view", { class: "head" }, [
+            vue.createElementVNode("view", { class: "head-text" }, " 病害基础信息 ")
           ]),
-          vue.createElementVNode(
-            "radio-group",
-            {
-              onChange: _cache[8] || (_cache[8] = ($event) => _ctx.Scales - _ctx.radioChange),
-              class: "radio-group"
-            },
-            [
-              (vue.openBlock(true), vue.createElementBlock(
-                vue.Fragment,
-                null,
-                vue.renderList($setup.scalesItems, (item, index) => {
-                  return vue.openBlock(), vue.createElementBlock("label", {
-                    class: "radio-group-label",
-                    key: item.value
-                  }, [
-                    vue.createElementVNode("view", { class: "radio-item" }, [
-                      vue.createElementVNode("radio", {
-                        style: { "transform": "scale(1.2)" },
-                        value: item.value,
-                        checked: index === $setup.scalesCurrent
-                      }, null, 8, ["value", "checked"])
-                    ]),
-                    vue.createElementVNode(
-                      "view",
-                      { class: "radio-item-name" },
-                      vue.toDisplayString(item.name),
-                      1
-                      /* TEXT */
-                    )
-                  ]);
-                }),
-                128
-                /* KEYED_FRAGMENT */
-              ))
-            ],
-            32
-            /* NEED_HYDRATION */
-          ),
-          vue.createElementVNode("view", { class: "part-prompt" }, " 最大标度：4 ")
-        ]),
-        vue.createElementVNode("view", { class: "part-Ratings" }, [
-          vue.createElementVNode("view", {
-            class: "radio-title",
-            style: { "position": "relative" }
+          vue.createCommentVNode(" 将原来的部件类型picker改为multiSelector "),
+          vue.createElementVNode("picker", {
+            class: "picker",
+            mode: "multiSelector",
+            onChange: $setup.typeMultiPickerChange,
+            onColumnchange: $setup.typeColumnChange,
+            value: $setup.typeMultiIndex,
+            range: $setup.typeMultiArray
           }, [
-            vue.createElementVNode("text", { style: { "position": "absolute", "left": "-10px", "color": "red" } }, "*"),
-            vue.createTextVNode("参与评定 ")
+            vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
+              vue.createElementVNode("view", { class: "picker-left" }, [
+                vue.createElementVNode("text", { class: "picker-must" }, "*"),
+                vue.createElementVNode("view", { class: "picker-title" }, " 部件类型 ")
+              ]),
+              vue.createElementVNode("view", { class: "picker-right" }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "picker-content",
+                    style: vue.normalizeStyle($setup.biObjectindex === -1 ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.biObjectName[$setup.biObjectindex] || "请选择部件类型"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+              ])
+            ])
+          ], 40, ["value", "range"]),
+          vue.createCommentVNode(" 替换原来的构件编号picker为view "),
+          vue.createElementVNode("view", {
+            class: "picker",
+            onClick: $setup.openComponentCodePopup
+          }, [
+            vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
+              vue.createElementVNode("view", { class: "picker-left" }, [
+                vue.createElementVNode("text", { class: "picker-must" }, "*"),
+                vue.createElementVNode("view", { class: "picker-title" }, " 构件编号 ")
+              ]),
+              vue.createElementVNode("view", { class: "picker-right" }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "picker-content",
+                    style: vue.normalizeStyle($setup.componentCodeindex === -1 ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.componentCode[$setup.componentCodeindex] || "请选择构件编号"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+              ])
+            ])
           ]),
-          vue.createElementVNode(
-            "radio-group",
-            {
-              onChange: _cache[9] || (_cache[9] = ($event) => _ctx.Ratings - _ctx.radioChange),
-              class: "radio-group"
-            },
-            [
-              (vue.openBlock(true), vue.createElementBlock(
-                vue.Fragment,
-                null,
-                vue.renderList($setup.ratingItems, (item, index) => {
-                  return vue.openBlock(), vue.createElementBlock("label", {
-                    class: "radio-group-label",
-                    key: item.value
-                  }, [
-                    vue.createElementVNode("view", { class: "radio-item" }, [
-                      vue.createElementVNode("radio", {
-                        style: { "transform": "scale(1.2)" },
-                        value: item.value,
-                        checked: index === $setup.ratingCurrent
-                      }, null, 8, ["value", "checked"])
-                    ]),
-                    vue.createElementVNode(
-                      "view",
-                      { class: "radio-item-name" },
-                      vue.toDisplayString(item.name),
-                      1
-                      /* TEXT */
-                    )
-                  ]);
+          vue.createElementVNode("picker", {
+            class: "picker",
+            onChange: $setup.TypeofdefectPickerChange,
+            value: $setup.typeindex,
+            range: $setup.type
+          }, [
+            vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
+              vue.createElementVNode("view", { class: "picker-left" }, [
+                vue.createElementVNode("text", { class: "picker-must" }, "*"),
+                vue.createElementVNode("view", { class: "picker-title" }, " 病害类型 ")
+              ]),
+              vue.createElementVNode("view", { class: "picker-right" }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "picker-content",
+                    style: vue.normalizeStyle($setup.typeindex === -1 ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.type[$setup.typeindex] || "请选择缺损类型"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+              ])
+            ])
+          ], 40, ["value", "range"]),
+          vue.createCommentVNode(" 修改病害位置区域 - 添加点击事件 "),
+          vue.createElementVNode("view", {
+            class: "picker",
+            onClick: $setup.openDiseasePositionPopup
+          }, [
+            vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
+              vue.createElementVNode("view", { class: "picker-left" }, [
+                vue.createElementVNode("text", { class: "picker-must" }, "*"),
+                vue.createElementVNode("view", { class: "picker-title" }, " 病害位置 ")
+              ]),
+              vue.createElementVNode("view", { class: "picker-right" }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "picker-content",
+                    style: vue.normalizeStyle(!$setup.position ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.position || "请选择病害位置"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+              ])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "location-description" }, [
+            vue.createElementVNode("view", { class: "location-description-left" }, " 纵向位置描述 "),
+            vue.createElementVNode("view", { class: "location-description-right" }, [
+              vue.createTextVNode(" 距 "),
+              vue.createElementVNode("view", {
+                class: "location-description-right-position",
+                onClick: _cache[0] || (_cache[0] = ($event) => $setup.openLocationPositionPopup("longitudinal"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-position-input",
+                    style: vue.normalizeStyle(!$setup.longitudinalPosition ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.longitudinalPosition || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", {
+                class: "location-description-right-distance",
+                onClick: _cache[1] || (_cache[1] = ($event) => $setup.openLocationDistancePopup("longitudinal"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-distance-input",
+                    style: vue.normalizeStyle(!$setup.longitudinalDistance ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.longitudinalDistance || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", { class: "clear" }, " × ")
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "location-description" }, [
+            vue.createElementVNode("view", { class: "location-description-left" }, " 横向位置描述 "),
+            vue.createElementVNode("view", { class: "location-description-right" }, [
+              vue.createTextVNode(" 距 "),
+              vue.createElementVNode("view", {
+                class: "location-description-right-position",
+                onClick: _cache[2] || (_cache[2] = ($event) => $setup.openLocationPositionPopup("lateral"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-position-input",
+                    style: vue.normalizeStyle(!$setup.lateralPosition ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.lateralPosition || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", {
+                class: "location-description-right-distance",
+                onClick: _cache[3] || (_cache[3] = ($event) => $setup.openLocationDistancePopup("lateral"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-distance-input",
+                    style: vue.normalizeStyle(!$setup.lateralDistance ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.lateralDistance || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", { class: "clear" }, " × ")
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "location-description" }, [
+            vue.createElementVNode("view", { class: "location-description-left" }, " 竖向位置描述 "),
+            vue.createElementVNode("view", { class: "location-description-right" }, [
+              vue.createTextVNode(" 距 "),
+              vue.createElementVNode("view", {
+                class: "location-description-right-position",
+                onClick: _cache[4] || (_cache[4] = ($event) => $setup.openLocationPositionPopup("vertical"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-distance-input",
+                    style: vue.normalizeStyle(!$setup.verticalPosition ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.verticalPosition || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", {
+                class: "location-description-right-distance",
+                onClick: _cache[5] || (_cache[5] = ($event) => $setup.openLocationDistancePopup("vertical"))
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: "location-description-right-distance-input",
+                    style: vue.normalizeStyle(!$setup.verticalDistance ? "color: #CCCCCC;" : "")
+                  },
+                  vue.toDisplayString($setup.verticalDistance || "请选择"),
+                  5
+                  /* TEXT, STYLE */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ]),
+              vue.createElementVNode("view", { class: "clear" }, " × ")
+            ])
+          ])
+        ]),
+        vue.createCommentVNode(`			<view class="part-typeandnumber">\r
+\r
+				<picker class="picker-type" @change="typePickerChange" :value="biObjectindex" :range="biObjectName">\r
+					<view class="picker-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title" style="position: relative;">\r
+								<text style="position: absolute; left: -10px; color: red;">*</text>部件类型\r
+							</view>\r
+							<view class="part-content" :style="biObjectindex === -1 ? 'color: #CCCCCC;' : ''">\r
+								{{ biObjectName[biObjectindex] || '请选择部件类型'}}\r
+							</view>\r
+						</view>\r
+						<view class="part-icon">&gt;</view>\r
+					</view>\r
+				</picker>\r
+\r
+\r
+				<picker class="picker-number" @change="numberPickerChange" :value="componentCodeindex"\r
+					:range="componentCode">\r
+					<view class="picker-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title" style="position: relative;">\r
+								<text style="position: absolute; left: -10px; color: red;">*</text>构件编号\r
+							</view>\r
+							<view class="part-content" :style="componentCodeindex === -1 ? 'color: #CCCCCC;' : ''">\r
+								{{ componentCode[componentCodeindex] || '请选择构件编号'}}\r
+							</view>\r
+						</view>\r
+						<view class="part-icon">&gt;</view>\r
+					</view>\r
+				</picker>\r
+\r
+			</view>\r
+\r
+			<view class="part-Typeofdefect">\r
+				<picker class="picker-Typeofdefect" @change="TypeofdefectPickerChange" :value="typeindex" :range="type">\r
+					<view class="picker-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title" style="position: relative;">\r
+								<text style="position: absolute; left: -10px; color: red;">*</text>缺损类型\r
+							</view>\r
+							<view class="part-content" :style="typeindex === -1 ? 'color: #CCCCCC;' : ''">\r
+								{{type[typeindex] || '请选择缺损类型'}}\r
+							</view>\r
+						</view>\r
+\r
+						<view class="part-icon">&gt;</view>\r
+					</view>\r
+				</picker>\r
+			</view>\r
+\r
+			<view class="part-Positionofdefect">\r
+				<view class="input-content">\r
+					<view class="part-titleandcontent">\r
+						<view class="part-title" style="position: relative;">\r
+							<text style="position: absolute; left: -10px; color: red;">*</text>缺损位置\r
+						</view>\r
+						<input type="text" placeholder="请填写缺损位置信息" class="input-text"\r
+							placeholder-class="input-text-placeholder" v-model="position">\r
+					</view>\r
+				</view>\r
+			</view>`),
+        vue.createElementVNode("view", null, [
+          vue.createElementVNode("view", { class: "head" }, [
+            vue.createElementVNode("view", { class: "head-text" }, " 病害定量数据 ")
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 缺损数量 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
                 }),
-                128
-                /* KEYED_FRAGMENT */
-              ))
-            ],
-            32
-            /* NEED_HYDRATION */
-          ),
-          vue.createElementVNode("view", { class: "part-prompt" }, " 构件扣分：25 ")
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.quantityUnitChange,
+                value: $setup.quantityUnitIndex,
+                range: $setup.quantityUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.quantityUnitOptions[$setup.quantityUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 长度 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.lengthUnitChange,
+                value: $setup.lengthUnitIndex,
+                range: $setup.lengthUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.lengthUnitOptions[$setup.lengthUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 宽度 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.widthUnitChange,
+                value: $setup.widthUnitIndex,
+                range: $setup.widthUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.widthUnitOptions[$setup.widthUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 高度/深度 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.heightUnitChange,
+                value: $setup.heightUnitIndex,
+                range: $setup.heightUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.heightUnitOptions[$setup.heightUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 缝宽 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.seamsWidthUnitChange,
+                value: $setup.seamsWidthUnitIndex,
+                range: $setup.seamsWidthUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.seamsWidthUnitOptions[$setup.seamsWidthUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 面积 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.areaUnitChange,
+                value: $setup.areaUnitIndex,
+                range: $setup.areaUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.areaUnitOptions[$setup.areaUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 体积 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("picker", {
+                class: "quantitative-data-right-unit",
+                onChange: $setup.volumeUnitChange,
+                value: $setup.volumeUnitIndex,
+                range: $setup.volumeUnitOptions
+              }, [
+                vue.createElementVNode(
+                  "view",
+                  { class: "quantitative-data-right-unit-input" },
+                  vue.toDisplayString($setup.volumeUnitOptions[$setup.volumeUnitIndex]),
+                  1
+                  /* TEXT */
+                ),
+                vue.createElementVNode("view", { class: "right-icon" }, ">")
+              ], 40, ["value", "range"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 角度 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("view", { class: "quantitative-data-right-unit-fixed" }, [
+                vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " 度 "),
+                vue.createElementVNode("view", { class: "right-icon" }, " ")
+              ])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "quantitative-data" }, [
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 百分比 "),
+            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                vue.createElementVNode("input", {
+                  class: "quantitative-data-right-value-input",
+                  placeholder: "请填写"
+                }),
+                vue.createElementVNode("view", { class: "clear-input" }, "×")
+              ]),
+              vue.createElementVNode("view", { class: "quantitative-data-right-unit-fixed" }, [
+                vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " % "),
+                vue.createElementVNode("view", { class: "right-icon" }, " ")
+              ])
+            ])
+          ])
+        ]),
+        vue.createElementVNode("view", null, [
+          vue.createElementVNode("view", { class: "head" }, [
+            vue.createElementVNode("view", { class: "head-text" }, " 病害定性数据 ")
+          ]),
+          vue.createElementVNode("view", { class: "input-area" }, [
+            vue.createElementVNode("view", { class: "input-area-title" }, [
+              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+              vue.createTextVNode("病害描述 ")
+            ]),
+            vue.createElementVNode("textarea", {
+              class: "input-area-content",
+              placeholder: "请填写病害信息",
+              "auto-height": ""
+            })
+          ]),
+          vue.createElementVNode("view", { class: "line-select" }, [
+            vue.createElementVNode("view", { class: "line-select-left" }, [
+              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+              vue.createTextVNode(" 病害性质 ")
+            ]),
+            vue.createElementVNode("view", { class: "line-select-right" }, [
+              vue.createVNode(_component_uni_data_checkbox, {
+                mode: "tag",
+                modelValue: $setup.natureindex,
+                "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.natureindex = $event),
+                localdata: $setup.nature
+              }, null, 8, ["modelValue", "localdata"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "line-select" }, [
+            vue.createElementVNode("view", { class: "line-select-left" }, [
+              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+              vue.createTextVNode(" 参与评定（构件扣分25） ")
+            ]),
+            vue.createElementVNode("view", { class: "line-select-right" }, [
+              vue.createVNode(_component_uni_data_checkbox, {
+                mode: "tag",
+                modelValue: $setup.participateAssessindex,
+                "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.participateAssessindex = $event),
+                localdata: $setup.participateAssess
+              }, null, 8, ["modelValue", "localdata"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "line-select" }, [
+            vue.createElementVNode("view", { class: "line-select-left" }, [
+              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+              vue.createTextVNode(" 评定标度 ")
+            ]),
+            vue.createElementVNode("view", { class: "line-select-right" }, [
+              vue.createVNode(_component_uni_data_checkbox, {
+                mode: "tag",
+                modelValue: $setup.levelindex,
+                "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $setup.levelindex = $event),
+                localdata: $setup.level
+              }, null, 8, ["modelValue", "localdata"])
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "line-select" }, [
+            vue.createElementVNode("view", { class: "line-select-left" }, [
+              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+              vue.createTextVNode(" 病害维护状态 ")
+            ]),
+            vue.createElementVNode("view", { class: "line-select-right" }, [
+              vue.createVNode(_component_uni_data_checkbox, {
+                mode: "tag",
+                modelValue: $setup.maintenanceStatusindex,
+                "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => $setup.maintenanceStatusindex = $event),
+                localdata: $setup.maintenanceStatus
+              }, null, 8, ["modelValue", "localdata"])
+            ])
+          ])
+        ]),
+        vue.createCommentVNode(`			<view class="part-NumAndWayofDefect">\r
+\r
+				<view class="part-NumofDefect">\r
+					<view class="picker-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title" style="position: relative;">\r
+								<text style="position: absolute; left: -10px; color: red;">*</text>缺损数量\r
+							</view>\r
+							<uni-number-box class="NumofDefect" v-model="quantity" />\r
+						</view>\r
+\r
+					</view>\r
+				</view>\r
+\r
+				<picker class="part-WayofDefect" @change="WayofDefectPickerChange" :value="WayofDefectindex"\r
+					:range="WayofDefect">\r
+					<view class="picker-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">数据记载方式</view>\r
+							<view class="part-content" :style="WayofDefectindex === -1 ? 'color: #CCCCCC;' : ''">\r
+								{{WayofDefect[WayofDefectindex] || '请选择数据记载方式'}}\r
+							</view>\r
+						</view>\r
+						<view class="part-icon">&gt;</view>\r
+					</view>\r
+				</picker>\r
+\r
+			</view>\r
+\r
+			<view class="part-LengthAndWidth">\r
+				<view class="part-Length">\r
+					<view class="input-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">长度(m)</view>\r
+							<input type="text" placeholder="长度数据" class="input-text"\r
+								placeholder-class="input-text-placeholder" v-model="length">\r
+						</view>\r
+					</view>\r
+				</view>\r
+\r
+				<view class="part-Width">\r
+					<view class="input-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">宽度(m)</view>\r
+							<input type="text" placeholder="宽度数据" class="input-text"\r
+								placeholder-class="input-text-placeholder" v-model="width">\r
+						</view>\r
+					</view>\r
+				</view>\r
+\r
+			</view>\r
+\r
+			<view class="part-SeamWidth-height-area">\r
+				<view class="part-SeamWidth">\r
+					<view class="input-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">缝宽(mm)</view>\r
+							<input type="text" placeholder="缝宽数据" class="input-text"\r
+								placeholder-class="input-text-placeholder" v-model="slitWidth">\r
+						</view>\r
+					</view>\r
+				</view>\r
+\r
+				<view class="part-height">\r
+					<view class="input-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">高度/深度(m)</view>\r
+							<input type="text" placeholder="高度/深度数据" class="input-text"\r
+								placeholder-class="input-text-placeholder" v-model="heightOrDepth">\r
+						</view>\r
+					</view>\r
+				</view>\r
+\r
+				<view class="part-area">\r
+					<view class="input-content">\r
+						<view class="part-titleandcontent">\r
+							<view class="part-title">面积(m²)</view>\r
+							<input type="text" placeholder="面积数据" class="input-text"\r
+								placeholder-class="input-text-placeholder" v-model="area">\r
+						</view>\r
+					</view>\r
+				</view>\r
+			</view>`),
+        vue.createCommentVNode('			<view class="part-descriptionofDefect">\r\n				<view class="input-content">\r\n					<view class="part-titleandcontent">\r\n						<view class="part-title" style="position: relative;">\r\n							<text style="position: absolute; left: -10px; color: red;">*</text>病害描述(性质、范围、程度等)\r\n						</view>\r\n						<input type="text" placeholder="请填写病害描述信息" class="input-text"\r\n							placeholder-class="input-text-placeholder" v-model="description">\r\n					</view>\r\n				</view>\r\n			</view>\r\n\r\n			<view class="part-ScalesandRatings">\r\n				<view class="part-Scales">\r\n					<view class="radio-title" style="position: relative;">\r\n						<text style="position: absolute; left: -10px; color: red;">*</text>评定标度\r\n					</view>\r\n					<radio-group @change="ScalesRadioChange" class="radio-group">\r\n						<label class="radio-group-label" v-for="(item, index) in scalesItems" :key="item.value">\r\n							<view class="radio-item">\r\n								<radio style="transform:scale(1.2)" :value="item.value"\r\n									:checked="index === scalesCurrent" />\r\n							</view>\r\n							<view class="radio-item-name">{{item.name}}</view>\r\n						</label>\r\n					</radio-group>\r\n					<view class="part-prompt">\r\n						最大标度：4\r\n					</view>\r\n\r\n				</view>\r\n\r\n				<view class="part-Ratings">\r\n					<view class="radio-title" style="position: relative;">\r\n						<text style="position: absolute; left: -10px; color: red;">*</text>参与评定\r\n					</view>\r\n					<radio-group @change="RatingsRadioChange" class="radio-group">\r\n						<label class="radio-group-label" v-for="(item, index) in ratingItems" :key="item.value">\r\n							<view class="radio-item">\r\n								<radio style="transform:scale(1.2)" :value="item.value"\r\n									:checked="index === ratingCurrent" />\r\n							</view>\r\n							<view class="radio-item-name">{{item.name}}</view>\r\n						</label>\r\n					</radio-group>\r\n					<view class="part-prompt">\r\n						构件扣分：25\r\n					</view>\r\n				</view>\r\n\r\n			</view>'),
+        vue.createElementVNode("view", { class: "head" }, [
+          vue.createElementVNode("view", { class: "head-text" }, " 病害附件信息 ")
+        ]),
+        vue.createElementVNode("view", { class: "part-UploadImage" }, [
+          vue.createElementVNode("view", { class: "part-title" }, "上传图片或视频"),
+          vue.createElementVNode("view", { class: "upload-view" }, [
+            vue.createVNode(_component_uni_file_picker, {
+              class: "file-picker",
+              limit: "9",
+              "image-styles": $setup.imageStyles,
+              modelValue: $setup.fileList,
+              "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $setup.fileList = $event),
+              "file-mediatype": "image",
+              mode: "grid",
+              onSelect: $setup.handleFileSelect,
+              onDelete: $setup.handleFileDelete,
+              "auto-upload": false
+            }, null, 8, ["image-styles", "modelValue"])
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "part-ADImages" }, [
+          vue.createElementVNode("view", { class: "part-title" }, "上传简图"),
+          vue.createElementVNode("view", { class: "ADImages" }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.ADImgs, (img, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  class: "img-wrapper",
+                  key: img.src
+                }, [
+                  vue.createElementVNode("image", {
+                    src: img.src,
+                    class: "ADImage",
+                    mode: "widthFix"
+                  }, null, 8, ["src"]),
+                  vue.createElementVNode("view", {
+                    class: "close-btn",
+                    onClick: ($event) => $setup.removeImage(index)
+                  }, "×", 8, ["onClick"])
+                ]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            )),
+            vue.createElementVNode("view", {
+              class: "ADImage-container",
+              onClick: _cache[11] || (_cache[11] = ($event) => $setup.selectCanvasTemplate())
+            }, [
+              vue.createElementVNode("image", {
+                src: _imports_0$2,
+                class: "ADImageButton"
+              })
+            ])
+          ])
         ])
       ]),
-      vue.createElementVNode("view", { class: "part-UploadImage" }, [
-        vue.createElementVNode("view", { class: "part-title" }, "上传图片或视频"),
-        vue.createElementVNode("view", { class: "upload-view" }, [
-          vue.createVNode(_component_uni_file_picker, {
-            class: "file-picker",
-            limit: "9",
-            "image-styles": $setup.imageStyles,
-            modelValue: $setup.fileList,
-            "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $setup.fileList = $event),
-            "file-mediatype": "image",
-            mode: "grid",
-            onSelect: $setup.handleFileSelect,
-            onDelete: $setup.handleFileDelete
-          }, null, 8, ["image-styles", "modelValue"])
-        ])
-      ])
+      vue.createCommentVNode(" 底部弹出层 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "popup",
+          type: "bottom"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "popup-content" }, [
+              vue.createElementVNode("view", { class: "template-row" }, [
+                vue.createElementVNode("view", { class: "template-type" }, " 模板 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_1$1,
+                    class: "template-image-card",
+                    onClick: _cache[12] || (_cache[12] = ($event) => $setup.onClickTemplate(1))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_2$1,
+                    class: "template-image-card",
+                    onClick: _cache[13] || (_cache[13] = ($event) => $setup.onClickTemplate(2))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_3$1,
+                    class: "template-image-card",
+                    onClick: _cache[14] || (_cache[14] = ($event) => $setup.onClickTemplate(3))
+                  })
+                ])
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createCommentVNode(" 添加病害位置选择弹窗 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "diseasePositionPopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "position-popup-content" }, [
+              vue.createElementVNode("view", { class: "position-popup-title" }, "选择病害位置"),
+              vue.createVNode(_component_uni_combox, {
+                class: "position-combox",
+                candidates: $setup.diseasePosition,
+                modelValue: $setup.selectedPosition,
+                "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $setup.selectedPosition = $event),
+                placeholder: "请选择病害位置"
+              }, null, 8, ["candidates", "modelValue"]),
+              vue.createElementVNode("view", { class: "position-popup-buttons" }, [
+                vue.createElementVNode("button", {
+                  class: "position-popup-button cancel",
+                  onClick: $setup.closeDiseasePositionPopup
+                }, "取消"),
+                vue.createElementVNode("button", {
+                  class: "position-popup-button confirm",
+                  onClick: $setup.confirmDiseasePosition
+                }, "确认")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createCommentVNode(" 添加构件编号选择弹窗 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "componentCodePopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "component-popup-content" }, [
+              vue.createElementVNode("view", { class: "component-popup-title" }, "选择构件编号"),
+              vue.createElementVNode("view", { class: "component-search-box" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    class: "component-search-input",
+                    "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $setup.componentCodeFilter = $event),
+                    placeholder: "输入关键字筛选",
+                    onInput: $setup.filterComponentCodes
+                  },
+                  null,
+                  544
+                  /* NEED_HYDRATION, NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.componentCodeFilter]
+                ]),
+                $setup.componentCodeFilter ? (vue.openBlock(), vue.createElementBlock("text", {
+                  key: 0,
+                  class: "component-search-clear",
+                  onClick: $setup.clearComponentSearch
+                }, "×")) : vue.createCommentVNode("v-if", true)
+              ]),
+              vue.createElementVNode("scroll-view", {
+                class: "component-code-list",
+                "scroll-y": ""
+              }, [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($setup.filteredComponentCodes, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock("view", {
+                      key: index,
+                      class: vue.normalizeClass(["component-code-item", { "component-code-item-active": $setup.componentCode[$setup.componentCodeindex] === item }]),
+                      onClick: ($event) => $setup.selectComponentCode(index)
+                    }, vue.toDisplayString(item), 11, ["onClick"]);
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ]),
+              vue.createElementVNode("view", { class: "component-popup-buttons" }, [
+                vue.createElementVNode("button", {
+                  class: "component-popup-button cancel",
+                  onClick: $setup.closeComponentCodePopup
+                }, "取消"),
+                vue.createElementVNode("button", {
+                  class: "component-popup-button confirm",
+                  onClick: $setup.confirmComponentCode
+                }, "确认")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "LocationDescriptionPositionPopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "location-description-position-popup-content" }, [
+              vue.createElementVNode(
+                "view",
+                { class: "location-description-position-popup-title" },
+                vue.toDisplayString($setup.currentPositionTitle),
+                1
+                /* TEXT */
+              ),
+              vue.createElementVNode("view", { class: "location-description-position-popup-input1" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    type: "text",
+                    placeholder: "请填写",
+                    class: "location-description-popup-input",
+                    "onUpdate:modelValue": _cache[17] || (_cache[17] = ($event) => $setup.positionInput1Value = $event)
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.positionInput1Value]
+                ]),
+                vue.createElementVNode("button", {
+                  class: "location-description-popup-button",
+                  onClick: $setup.confirmPositionInput1
+                }, "确定")
+              ]),
+              vue.createElementVNode("view", { class: "location-description-position-popup-input2" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    type: "text",
+                    placeholder: "请填写",
+                    class: "location-description-popup-input",
+                    "onUpdate:modelValue": _cache[18] || (_cache[18] = ($event) => $setup.positionInput2Value = $event)
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.positionInput2Value]
+                ]),
+                vue.createElementVNode("view", { class: "location-description-position-popup-input2-right" }, [
+                  vue.createElementVNode("view", { class: "location-description-position-popup-input2-text" }, "#墩侧"),
+                  vue.createElementVNode("button", {
+                    class: "location-description-popup-button",
+                    onClick: $setup.confirmPositionInput2
+                  }, "确定")
+                ])
+              ]),
+              vue.createElementVNode("view", { class: "location-description-position-popup-input3" }, [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($setup.currentPositionOptions, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock("view", {
+                      key: index,
+                      class: "location-description-position-popup-input3-item",
+                      onClick: ($event) => $setup.selectPositionItem(item)
+                    }, vue.toDisplayString(item), 9, ["onClick"]);
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      ),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "LocationDescriptionDistancePopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "location-description-distance-popup-content" }, [
+              vue.createElementVNode("view", { class: "location-description-distance-popup-title" }, "位置"),
+              vue.createElementVNode("view", { class: "location-description-distance-popup-input1" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    type: "text",
+                    "onUpdate:modelValue": _cache[19] || (_cache[19] = ($event) => $setup.distanceInput1Value = $event),
+                    placeholder: "请填写",
+                    class: "location-description-popup-input"
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.distanceInput1Value]
+                ]),
+                vue.createElementVNode("view", { class: "location-description-distance-popup-input1-right" }, [
+                  vue.createElementVNode("view", { class: "location-description-distance-popup-input1-text" }, "米"),
+                  vue.createElementVNode("button", {
+                    class: "location-description-popup-button",
+                    onClick: $setup.confirmDistanceInput1
+                  }, "确定")
+                ])
+              ]),
+              vue.createElementVNode("view", { class: "location-description-distance-popup-input2" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    type: "text",
+                    "onUpdate:modelValue": _cache[20] || (_cache[20] = ($event) => $setup.distanceInput2Numerator = $event),
+                    placeholder: "请填写",
+                    class: "location-description-popup-input"
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.distanceInput2Numerator]
+                ]),
+                vue.createElementVNode("view", { class: "location-description-distance-popup-input2-mid" }, "分之"),
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    type: "text",
+                    "onUpdate:modelValue": _cache[21] || (_cache[21] = ($event) => $setup.distanceInput2Denominator = $event),
+                    placeholder: "请填写",
+                    class: "location-description-popup-input"
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.distanceInput2Denominator]
+                ]),
+                vue.createElementVNode("button", {
+                  class: "location-description-popup-button",
+                  onClick: $setup.confirmDistanceInput2
+                }, "确定")
+              ]),
+              vue.createElementVNode("view", { class: "location-description-distance-popup-input3" }, [
+                (vue.openBlock(), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList(["1/2", "1/3", "1/4"], (item, index) => {
+                    return vue.createElementVNode("view", {
+                      key: index,
+                      class: "location-description-distance-popup-input3-item",
+                      onClick: ($event) => $setup.selectDistanceItem(item)
+                    }, vue.toDisplayString(item), 9, ["onClick"]);
+                  }),
+                  64
+                  /* STABLE_FRAGMENT */
+                ))
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      )
     ]);
   }
-  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
+  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
   function drawRulerRectTemplate(ctx, {
     logicalWidth = 8,
     logicalHeight = 8,
@@ -13132,7 +15871,7 @@ ${i3}
       unit
     );
   }
-  const _imports_0 = "/static/image/hand.svg";
+  const _imports_0$1 = "/static/image/hand.svg";
   const _imports_1 = "/static/image/line.svg";
   const _imports_2 = "/static/image/curve.svg";
   const _imports_3 = "/static/image/rect.svg";
@@ -13142,7 +15881,7 @@ ${i3}
   const _imports_7 = "/static/image/save.svg";
   const canvasId = "myCanvas";
   const transparentCanvasId = "transparentCanvas";
-  const _sfc_main$1 = {
+  const _sfc_main$3 = {
     __name: "canvas",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -13273,7 +16012,24 @@ ${i3}
         ctx.value = uni.createCanvasContext(canvasId);
         transparentCtx.value = uni.createCanvasContext(transparentCanvasId);
         ctx.value.setFontSize(textFontSize.value);
+        redrawCanvas();
       });
+      onLoad((options) => {
+        switch (options.template) {
+          case "1":
+            template.value = "rect";
+            break;
+          case "2":
+            template.value = "bridge";
+            break;
+          case "3":
+            template.value = "rect4";
+            break;
+          default:
+            template.value = "";
+        }
+      });
+      const eventChannel = vue.getCurrentInstance().proxy.getOpenerEventChannel();
       const changeColor = (color) => {
         drawColor.value = color;
       };
@@ -13817,7 +16573,7 @@ ${i3}
             }
             break;
           default:
-            formatAppLog("warn", "at pages/canvas/canvas.vue:1012", "Unknown object mode:", object.mode);
+            formatAppLog("warn", "at pages/canvas/canvas.vue:1038", "Unknown object mode:", object.mode);
         }
         selectedObject.value = object;
       };
@@ -13828,9 +16584,14 @@ ${i3}
           success: (res) => {
             const filePath = res.tempFilePath;
             canvasImagePath.value = filePath;
+            eventChannel.emit("returnData", {
+              msg: "SaveImage",
+              src: filePath
+            });
+            uni.navigateBack();
           },
           fail: (err) => {
-            formatAppLog("error", "at pages/canvas/canvas.vue:1041", "保存画布失败", err);
+            formatAppLog("error", "at pages/canvas/canvas.vue:1073", "保存画布失败", err);
           }
         });
       };
@@ -13929,17 +16690,7 @@ ${i3}
           });
         }
       };
-      const redrawCanvas = () => {
-        const now = Date.now();
-        if (now - lastRedrawTime < 16)
-          return;
-        lastRedrawTime = now;
-        ctx.value.save();
-        ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
-        ctx.value.translate(offsetX.value, offsetY.value);
-        ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
-        ctx.value.scale(scale.value, scale.value);
-        ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
+      const drawTemplate = () => {
         if (template.value === "rect") {
           drawRulerRectTemplate(ctx.value, {
             logicalWidth: Number(rectTemplateParam.value.logicalWidth),
@@ -13965,6 +16716,19 @@ ${i3}
             unit: rectTemplateParam4.value.unit
           });
         }
+      };
+      const redrawCanvas = () => {
+        const now = Date.now();
+        if (now - lastRedrawTime < 16)
+          return;
+        lastRedrawTime = now;
+        ctx.value.save();
+        ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
+        ctx.value.translate(offsetX.value, offsetY.value);
+        ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
+        ctx.value.scale(scale.value, scale.value);
+        ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
+        drawTemplate();
         ctx.value.restore();
         history.value.forEach((action) => {
           ctx.value.save();
@@ -14046,18 +16810,20 @@ ${i3}
         return lastRedrawTime;
       }, set lastRedrawTime(v2) {
         lastRedrawTime = v2;
-      }, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, zoomIn, zoomOut, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, changeTemplateParam, applyTemplateChange, cancleTemplateChange, save, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, h: vue.h, nextTick: vue.nextTick, get drawRulerRectTemplate() {
+      }, eventChannel, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, zoomIn, zoomOut, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, changeTemplateParam, applyTemplateChange, cancleTemplateChange, save, drawTemplate, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, h: vue.h, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance, get drawRulerRectTemplate() {
         return drawRulerRectTemplate;
       }, get drawArchBridgeTemplate() {
         return drawArchBridgeTemplate;
       }, get drawRulerRectTemplate4() {
         return drawRulerRectTemplate4;
+      }, get onLoad() {
+        return onLoad;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createElementVNode("view", { class: "toolbar" }, [
         vue.createElementVNode(
@@ -14068,7 +16834,7 @@ ${i3}
           },
           [
             vue.createElementVNode("image", {
-              src: _imports_0,
+              src: _imports_0$1,
               class: "icon"
             })
           ],
@@ -14236,18 +17002,9 @@ ${i3}
           onClick: $setup.zoomOut,
           class: "functionButton"
         }, "缩小"),
-        vue.createElementVNode("button", {
-          onClick: _cache[6] || (_cache[6] = ($event) => $setup.chooseTemplate("rect")),
-          class: "functionButton"
-        }, "模板1"),
-        vue.createElementVNode("button", {
-          onClick: _cache[7] || (_cache[7] = ($event) => $setup.chooseTemplate("bridge")),
-          class: "functionButton"
-        }, "模板2"),
-        vue.createElementVNode("button", {
-          onClick: _cache[8] || (_cache[8] = ($event) => $setup.chooseTemplate("rect4")),
-          class: "functionButton"
-        }, "模板3")
+        vue.createCommentVNode(` <button @click="chooseTemplate('rect')" class="functionButton">模板1</button>\r
+			<button @click="chooseTemplate('bridge')" class="functionButton">模板2</button>\r
+			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button> `)
       ]),
       $setup.showTextInput ? (vue.openBlock(), vue.createElementBlock(
         "view",
@@ -14260,7 +17017,7 @@ ${i3}
           vue.withDirectives(vue.createElementVNode(
             "input",
             {
-              "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => $setup.textValue = $event),
+              "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.textValue = $event),
               placeholder: "输入文字...",
               class: "input",
               onInput: $setup.inputting
@@ -14285,7 +17042,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#ff0000")),
+            onClick: _cache[7] || (_cache[7] = ($event) => $setup.changeColor("#ff0000")),
             class: "colorButton",
             style: { "background-color": "#ff0000" }
           },
@@ -14296,7 +17053,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#00ff00")),
+            onClick: _cache[8] || (_cache[8] = ($event) => $setup.changeColor("#00ff00")),
             class: "colorButton",
             style: { "background-color": "#00ff00" }
           },
@@ -14307,7 +17064,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[12] || (_cache[12] = ($event) => $setup.changeColor("#0055ff")),
+            onClick: _cache[9] || (_cache[9] = ($event) => $setup.changeColor("#0055ff")),
             class: "colorButton",
             style: { "background-color": "#0055ff" }
           },
@@ -14318,7 +17075,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[13] || (_cache[13] = ($event) => $setup.changeColor("#ffff00")),
+            onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#ffff00")),
             class: "colorButton",
             style: { "background-color": "#ffff00" }
           },
@@ -14329,7 +17086,7 @@ ${i3}
         vue.createElementVNode(
           "button",
           {
-            onClick: _cache[14] || (_cache[14] = ($event) => $setup.changeColor("#000000")),
+            onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#000000")),
             class: "colorButton",
             style: { "background-color": "#000000" }
           },
@@ -14367,28 +17124,114 @@ ${i3}
         36
         /* STYLE, NEED_HYDRATION */
       ),
-      vue.createElementVNode("image", {
-        src: $setup.canvasImagePath,
-        mode: "widthFix",
-        class: "imgShow"
-      }, null, 8, ["src"])
+      vue.createCommentVNode(' <image :src="canvasImagePath" mode="widthFix" class="imgShow"></image> ')
     ]);
   }
-  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
-  __definePage("pages/bridge/bridge", PagesBridgeBridge);
-  __definePage("pages/testWrite/testWrite", PagesTestWriteTestWrite);
-  __definePage("pages/test/test", PagesTestTest);
+  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
+  const _sfc_main$2 = {};
+  function _sfc_render$1(_ctx, _cache) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "" });
+  }
+  const PagesInitDataTestInitDataTest = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/init_data_test/init_data_test.vue"]]);
+  const _imports_0 = "/static/image/user1.png";
+  const _sfc_main$1 = {};
+  function _sfc_render(_ctx, _cache) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "System" }, [
+      vue.createElementVNode("view", { class: "main" }, [
+        vue.createElementVNode("view", { class: "titleBar" }, [
+          vue.createElementVNode("image", {
+            src: _imports_0,
+            class: "avatar"
+          }),
+          vue.createElementVNode("view", { class: "textContainer" }, [
+            vue.createElementVNode("view", { class: "code" }, "zs@znjc"),
+            vue.createElementVNode("view", { class: "name" }, "张三")
+          ]),
+          vue.createElementVNode("view", { class: "button" }, [
+            vue.createElementVNode("button", {
+              size: "default",
+              type: "default",
+              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+              "hover-class": "is-hover",
+              onClick: _cache[0] || (_cache[0] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+            }, "修改密码"),
+            vue.createElementVNode("button", {
+              size: "default",
+              type: "default",
+              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+              "hover-class": "is-hover",
+              onClick: _cache[1] || (_cache[1] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+            }, "退出登录")
+          ])
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "model" }, [
+        vue.createElementVNode("view", { class: "modelTitle" }, "运行模式"),
+        vue.createElementVNode("view", { class: "switchContainer" }, [
+          vue.createElementVNode("view", { class: "title" }, "离线"),
+          vue.createElementVNode("view", null, [
+            vue.createElementVNode("switch", { name: "switch" })
+          ]),
+          vue.createElementVNode("view", { class: "title" }, "在线")
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "divider" }),
+      vue.createElementVNode("view", { class: "versionData" }, [
+        vue.createElementVNode("view", { class: "versionTitle" }, "当前数据包版本"),
+        vue.createElementVNode("view", { class: "versionNumber" }, "v25-05-20-zs@znjc")
+      ]),
+      vue.createElementVNode("view", { class: "divider" }),
+      vue.createElementVNode("view", { class: "inData" }, [
+        vue.createElementVNode("view", { class: "inDataTitle" }, "本地数据导入"),
+        vue.createElementVNode("button", {
+          size: "default",
+          type: "default",
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+          "hover-class": "is-hover",
+          onClick: _cache[2] || (_cache[2] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+        }, "数据导入")
+      ]),
+      vue.createElementVNode("view", { class: "divider" }),
+      vue.createElementVNode("view", { class: "outData" }, [
+        vue.createElementVNode("view", { class: "outDataTitle" }, "本地数据导出"),
+        vue.createElementVNode("button", {
+          size: "default",
+          type: "default",
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px", "margin-right": "0" },
+          "hover-class": "is-hover",
+          onClick: _cache[3] || (_cache[3] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+        }, "数据导出")
+      ]),
+      vue.createElementVNode("view", { class: "divider" }),
+      vue.createElementVNode("view", { class: "versionApp" }, [
+        vue.createElementVNode("view", { class: "appTitle" }, "当前应用版本"),
+        vue.createElementVNode("view", null, "v25-050-20"),
+        vue.createElementVNode("button", {
+          size: "default",
+          type: "default",
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px", "margin-right": "0" },
+          "hover-class": "is-hover",
+          onClick: _cache[4] || (_cache[4] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+        }, "版本更新")
+      ])
+    ]);
+  }
+  const PagesSystemSettingSystemSetting = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-524e171a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/SystemSetting/SystemSetting.vue"]]);
+  __definePage("pages/LoginPage/LoginPage", PagesLoginPageLoginPage);
   __definePage("pages/login/login", PagesLoginLogin);
-  __definePage("pages/tree/tree", PagesTreeTree);
-  __definePage("pages/List/List", PagesListList);
   __definePage("pages/home/home", PagesHomeHome);
   __definePage("pages/message/message", PagesMessageMessage);
   __definePage("pages/userinfo/userinfo", PagesUserinfoUserinfo);
   __definePage("pages/setting/setting", PagesSettingSetting);
   __definePage("pages/versionInfo/versionInfo", PagesVersionInfoVersionInfo);
+  __definePage("pages/testWrite/testWrite", PagesTestWriteTestWrite);
+  __definePage("pages/bridge/bridge", PagesBridgeBridge);
+  __definePage("pages/List/List", PagesListList);
   __definePage("pages/bridge-disease/bridge-disease", PagesBridgeDiseaseBridgeDisease);
   __definePage("pages/add-disease/add-disease", PagesAddDiseaseAddDisease);
   __definePage("pages/canvas/canvas", PagesCanvasCanvas);
+  __definePage("pages/init_data_test/init_data_test", PagesInitDataTestInitDataTest);
+  __definePage("pages/SystemSetting/SystemSetting", PagesSystemSettingSystemSetting);
   const _sfc_main = {
     onLaunch: function() {
       formatAppLog("log", "at App.vue:4", "App Launch");

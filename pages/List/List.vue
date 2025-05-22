@@ -1,8 +1,5 @@
 <template>
 	<view class="container">
-		<!-- 导航栏 -->
-		<uni-nav-bar class="uni-nav-bar" dark :fixed="true" shadow background-color="#0F4687" status-bar left-icon="left" 
-			title="桥梁定期检查项目列表" @clickLeft="back"/>
 		<!-- 顶部信息卡片 -->
 		<view class="info-card">
 			<view class="content-box">
@@ -46,9 +43,11 @@
 					<view class="bridge-location">{{bridge.location}}</view>
 				</view>
 				<view class="bridge-meta">
-					<text class="bridge-length">{{bridge.length}}</text>
-					<text class="bridge-class">{{bridge.class}}类</text>
-					<text class="arrow">></text>
+					<view class="text-group">
+						<text class="bridge-length">{{bridge.length}}</text>
+						<text class="bridge-class">{{bridge.class}}类</text>
+					</view>
+					<image src="/static/image/RightOutline.svg"/>
 				</view>
 			</view>
 			<!-- 无搜索结果提示 -->
@@ -79,7 +78,7 @@ const bridges = ref([])
 const getProjectData = async () => {
 	try {
 		// 获取项目数据
-		const response = await getProject(1);
+		const response = await getProject(3);
 		console.log('获取到的原始数据:', JSON.stringify(response));
 		
 		// 检查响应数据
@@ -105,7 +104,7 @@ const getProjectData = async () => {
 		}
 
 		// 获取桥梁列表数据
-		const bridgeData = await getTask(1, 1);
+		const bridgeData = await getTask(3, 1);90
 		console.log('获取到的桥梁数据:', bridgeData);
 		
 		if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
@@ -216,7 +215,7 @@ const handleSearch = () => {
 	margin: 0;
 	border-radius: 0;
 	box-shadow: none;
-	margin-top: -14px;
+	margin-top: 0px;
 
 	.content-box {
 		background-color: transparent;
@@ -302,19 +301,19 @@ const handleSearch = () => {
 			flex: 1;
 			
 			.bridge-code {
-				font-size: 14px;
+				font-size: 15rpx;
 				color: #666;
 				margin-bottom: 4px;
 			}
 
 			.bridge-name {
-				font-size: 16px;
+				font-size: 20rpx;
 				color: #333;
 				margin-bottom: 4px;
 			}
 
 			.bridge-location {
-				font-size: 14px;
+				font-size: 15rpx;
 				color: #999;
 			}
 		}
@@ -322,11 +321,21 @@ const handleSearch = () => {
 		.bridge-meta {
 			text-align: right;
 			margin-left: 10px;
+			display: flex;
+			align-items: center;
+
+			.text-group {
+				display: flex;
+				flex-direction: column;
+				align-items: flex-end;
+				margin-right: 8px;
+			}
 
 			.bridge-length {
-				font-size: 16px;
+				font-size: 18rpx;
 				color: #333;
 				display: block;
+				margin-bottom: 4px;
 			}
 
 			.bridge-class {
@@ -335,9 +344,9 @@ const handleSearch = () => {
 				display: block;
 			}
 
-			.arrow {
-				color: #999;
-				margin-left: 5px;
+			image {
+				width: 20rpx;
+				height: 20rpx;
 			}
 		}
 	}

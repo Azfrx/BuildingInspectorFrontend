@@ -1,7 +1,4 @@
 <template>
-	<!-- 导航栏 -->
-  <uni-nav-bar class="uni-nav-bar" dark :fixed="true" shadow background-color="#0F4687" status-bar left-icon="left"
-    title="桥梁定期检查项目列表" @clickLeft="back" />
   <!-- 内容区 -->
     <view class="container">
     <!-- 信息卡片 -->
@@ -10,17 +7,21 @@
         <view class="info-box">
           <text class="label">检测单位</text>
           <text class="value">{{ fileData.data.projects[0].dept.deptName || '暂无数据' }}</text>
-    </view>
+        </view>
         <view class="info-box">
           <text class="label">检测人员</text>
-          <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text>
-		</view>
+          <!-- <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text> -->
+           <text class="value">张三三</text>
+		    </view>
         <view class="info-box">
           <text class="label">检测年度</text>
           <picker class="year-picker" :value="selectedYearIndex" :range="years" @change="changeYear">
 				<view class="picker-content">
               <text class="value">{{ years[selectedYearIndex] }}年度</text>
-              <text class="arrow">▼</text>
+              <image
+                src="/static/image/RightOutline.svg"
+                mode="scaleToFill"
+              />
 				</view>
 			</picker>
         </view>
@@ -36,10 +37,15 @@
           <view class="bridge-location">{{ item.ownerDept.deptName || '暂无公司' }}</view>
         </view>
         <view class="bridge-meta">
-          <text class="bridge-status" :class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>
-          <text class="bridge-progress">{{item.number||'0/0' }}</text>
-          <text class="arrow">></text>
-			</view>
+          <view class="text-group">
+            <text class="bridge-status" :class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>
+            <text class="bridge-progress">{{item.number||'0/0' }}</text>
+          </view>
+          <image
+            src="/static/image/RightOutline.svg"
+            mode="scaleToFill"
+          />
+        </view>
       </view>
     </view>
     
@@ -71,7 +77,7 @@ const fileData = ref(null);
 
 const getData = async () => {
   try {
-    const response = await getProject(1);
+    const response = await getProject(3);
     console.log('获取到的原始数据:', JSON.stringify(response));
     
     // 检查响应数据
@@ -181,50 +187,55 @@ onMounted(() => {
 
 .info-card {
   background-color: #bdcbe0;
-  padding: 12px;
+  padding: 22px 12px 10px 12px;
   margin: 0;
   margin-top: -14px;
+  display: flex;
+  align-items: center;
 
   .info-boxes {
-			display: flex;
-    justify-content: flex-start;
-    gap: 6px;
-    padding: 0 12px;
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 12px 0 10px;
+    width: 100%;
 
     .info-box {
       border: 1px solid #0f4687;
       border-radius: 4px;
       padding: 8px 10px;
-				display: flex;
-				flex-direction: column;
+      display: flex;
+      flex-direction: column;
       background-color: #bdcbe0;
       min-height: 62px;
-      justify-content: flex-start;
+      justify-content: center;
 
       &:first-child {
         width: 42%;
+        margin-left: 0px;
         .value {
-          font-size: 15px;
+          font-size: 20rpx;
         }
       }
 
       &:nth-child(2) {
-        width: 28%;
+        width: 19%;
         .value {
-          font-size: 15px;
+          font-size: 20rpx;
         }
       }
 
       &:last-child {
-        width: 28%;
+        width: 19%;
+        margin-right: 0px;
         .value {
-          font-size: 15px;
+          font-size: 20rpx;
         }
       }
 
       .label {
-        font-size: 13px;
-					color: #666;
+        font-size: 15rpx;
+        color: #666;
         line-height: 1.2;
         margin-bottom: 3px;
       }
@@ -233,9 +244,10 @@ onMounted(() => {
         color: #333;
         font-weight: 500;
         line-height: 1.2;
-			}
-		}
-	}
+        font-size: 20rpx;
+      }
+    }
+  }
 }
 
 .year-picker {
@@ -247,17 +259,15 @@ onMounted(() => {
     align-items: center;
     
     .value {
-      font-size: 15px;
+      font-size: 20rpx;
       color: #333;
       font-weight: 500;
       line-height: 1.2;
     }
     
-    .arrow {
-      color: #666;
-      font-size: 12px;
-      margin-left: 5px;
-      transform: scale(0.8);
+    image {
+      width: 20rpx;
+      height: 20rpx;
     }
   }
 }
@@ -276,20 +286,19 @@ onMounted(() => {
       flex: 1;
       
       .bridge-code {
-        font-size: 14px;
+        font-size: 15rpx;
         color: #666;
         margin-bottom: 4px;
-    }
+      }
     
       .bridge-name {
-        font-size: 16px;
+        font-size: 20rpx;
         color: #333;
-        font-weight: bold;
         margin-bottom: 4px;
       }
 
       .bridge-location {
-        font-size: 14px;
+        font-size: 15rpx;
         color: #999;
       }
     }
@@ -297,28 +306,35 @@ onMounted(() => {
     .bridge-meta {
       text-align: right;
       margin-left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
         
-      .bridge-status {
-            font-size: 16px;
-        color: #333;
-        display: block;
+      .text-group {
+        text-align: right;
         
-        &.completed {
-          color: #00B578;
+        .bridge-status {
+          font-size: 18rpx;
+          color: #333;
+          display: block;
+          
+          &.completed {
+            color: #00B578;
+          }
         }
+          
+        .bridge-progress {
+          font-size: 15rpx;
+          color: #666;
+          display: block;
+          margin: 4px 0;
         }
-        
-      .bridge-progress {
-        font-size: 14px;
-        color: #666;
-        display: block;
-        margin: 4px 0;
       }
 
-      .arrow {
-        color: #999;
-        margin-left: 5px;
-        }
+      image {
+        width: 20rpx;
+        height: 20rpx;
+      }
     }
 }
 }
