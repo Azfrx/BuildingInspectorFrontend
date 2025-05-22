@@ -131,7 +131,7 @@
         </view>
       </view>
     </uni-popup>
-  </view>
+	</view>
 </template>
 
 <script setup>

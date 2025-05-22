@@ -718,7 +718,7 @@
 				<view class="part-title">上传简图</view>
 				<view class="ADImages">
 					<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
-						<image :src="img.src" class="ADImage" mode="widthFix" />
+						<image :src="img.src" class="ADImage"/>
 						<view class="close-btn" @click="removeImage(index)">×</view>
 					</view>
 					<view class="ADImage-container" @click="selectCanvasTemplate()">
@@ -3293,9 +3293,11 @@
 	}
 
 	.img-wrapper {
+		width: 140rpx;
+		height: 140rpx;
 		position: relative;
 		display: inline-block;
-		margin: 10rpx;
+		margin: 0 10rpx;
 		border: 1px solid #EEEEEE;
 		border-radius: 5rpx;
 	}
@@ -3303,6 +3305,7 @@
 	.ADImage {
 		height: 140rpx;
 		width: 140rpx;
+		object-fit: cover; /* 保持比例裁剪填充 */
 		border-radius: 8rpx;
 	}
 

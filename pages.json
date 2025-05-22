@@ -8,6 +8,17 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	{
+		"path" : "pages/LoginPage/LoginPage",
+		"style" : 
+		{
+			"navigationBarTitleText" : "湖北交投桥梁定检现场检测",
+			"navigationBarBackgroundColor": "#0F4687",
+			"app-plus": {
+				"titleNView": {}
+			}
+		}
+	},
 		{
 			"path": "pages/login/login",
 			"style": {
@@ -34,25 +45,10 @@
 		{
 			"path": "pages/home/home",
 			"style": {
-				"navigationBarTitleText": "陕西交控定期检查",
-				"navigationBarBackgroundColor": "#3d655f",
+				"navigationBarTitleText": "湖北交投桥梁定检现场检测",
+				"navigationBarBackgroundColor": "#0F4687",
 				"app-plus": {
 					"titleNView": {
-						"autoBackButton": false,
-						"buttons": [{
-							"text": "\ue627",
-							"fontSize": "30px",
-							"color": "#ffffff",
-							"fontSrc": "/static/fonts/uniicons.ttf",
-							"float": "left"
-						}, {
-							// "type": "menu",
-							"text": "\ue68d",
-							"fontSize": "30px",
-							"color": "#ffffff",
-							"fontSrc": "/static/fonts/uniicons.ttf",
-							"float": "right"
-						}]
 					}
 				}
 			}
@@ -107,19 +103,21 @@
 		},
 		{
 			"path": "pages/bridge/bridge",
-			"style": {
-				"navigationBarTitleText": "桥梁定期检查列表",
-				"navigationBarBackgroundColor": "#0F4678",
-				"navigationStyle": "custom" // 隐藏默认顶部导航
-
+			"style" :
+			{
+				"navigationBarTitleText" : "湖北交投桥梁定检现场检测",
+				"navigationBarBackgroundColor": "#0F4687",
+				"app-plus": {
+					"titleNView": {}
+				}
 			}
+			
 		},
 		{
 			"path": "pages/List/List",
 			"style": {
 				"navigationBarTitleText": "桥梁定期检查项目列表",
-				"navigationBarBackgroundColor": "#0F4687",
-				"navigationStyle": "custom"
+				"navigationBarBackgroundColor": "#0F4687"
 			}
 		},
 
@@ -143,8 +141,29 @@
 		{
 			"path": "pages/canvas/canvas",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#0F4687",
+				"navigationStyle": "custom" // ⬅️ 关闭原生导航栏
+				// "navigationBarLeftButtons": []
 			}
+		},
+		{
+			"path" : "pages/init_data_test/init_data_test",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "pages/SystemSetting/SystemSetting",
+			"style" : 
+					{
+						"navigationBarTitleText" : "系统设置",
+						"navigationBarBackgroundColor": "#0F4687",
+						"app-plus": {
+							"titleNView": {}
+						}
+					}
 		}
 	],
 	"globalStyle": {
