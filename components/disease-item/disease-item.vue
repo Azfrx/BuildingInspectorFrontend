@@ -9,9 +9,9 @@
 					</view>
 				</view>
 				
-				<view :class="['disease-content', selectMode ? 'with-select' : '']">
+				<view class="disease-content" @click="editDisease">
 					<view class="item-header">
-						<text class="title">{{item.component.biObject.name}}/{{item.component.name}}/{{item.type}}</text>
+						<text class="title">{{item.component.name}}/{{item.type}}</text>
 					</view>
 					<view class="content-container">
 						<view class="left-column">
@@ -140,6 +140,14 @@ onMounted(() => {
 	isSelected.value = props.selected;
 });
 
+const editDisease = () => {
+  // 打开编辑病害页面，并通过URL参数传递病害数据
+  const itemData = encodeURIComponent(JSON.stringify(props.item));
+  uni.navigateTo({
+    url: `/pages/add-disease/add-disease?mode=edit&id=${props.item.id}&data=${itemData}`
+  });
+};
+
 // 方法
 const handleSwipeClick = (e) => {
 	// 按钮点击事件，后续可实现功能
@@ -213,9 +221,13 @@ const swipeChange = (e) => {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
+	width: 100%;
+	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .select-area {
+	flex-shrink: 0;
 	width: 40rpx;
 	height: 100%;
 	display: flex;
@@ -252,8 +264,8 @@ const swipeChange = (e) => {
 
 .disease-content {
 	flex: 1;
-	width: 100%;
 	position: relative;
+	min-width: 0;
 }
 
 .item-header {
@@ -266,7 +278,6 @@ const swipeChange = (e) => {
 .title {
 	font-size: 20rpx;
 	color: #333333;
-	font-weight: 600;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
@@ -277,15 +288,18 @@ const swipeChange = (e) => {
 .content-container {
 	display: flex;
 	width: 100%;
-
 }
 
 .left-column {
-	width: 65%;
+	flex: 0 0 65%;
+	max-width: 65%;
+	overflow: hidden;
 }
 
 .right-column {
-	width: 35%;
+	flex: 0 0 35%;
+	max-width: 35%;
+	overflow: hidden;
 }
 
 .info-row {
@@ -294,6 +308,7 @@ const swipeChange = (e) => {
 	color: #666666;
 	margin-bottom: 8rpx;
 	align-items: flex-start;
+	min-width: 0;
 }
 
 .left-column .info-row {

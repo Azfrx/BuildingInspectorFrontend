@@ -177,7 +177,8 @@ const deleteDisease = (itemId) => {
 };
 
 // 切换选择模式
-const toggleSelectMode = () => {
+const
+    toggleSelectMode = () => {
   isSelectMode.value = !isSelectMode.value;
   showCopyButton.value = isSelectMode.value;
   
@@ -519,7 +520,6 @@ onMounted(() => {
   border-radius: 2rpx;
   color: #0F4687;
   border-bottom: 1rpx solid #0F4687;
-  border-top: 1rpx solid #0F4687;
 }
 
 .expand-icon {
