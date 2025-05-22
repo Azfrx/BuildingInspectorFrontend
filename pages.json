@@ -143,7 +143,10 @@
 		{
 			"path": "pages/canvas/canvas",
 			"style": {
-				"navigationBarTitleText": ""
+				"navigationBarTitleText": "",
+				"navigationBarBackgroundColor": "#0F4687",
+				"navigationStyle": "custom" // ⬅️ 关闭原生导航栏
+				// "navigationBarLeftButtons": []
 			}
 		}
 	],

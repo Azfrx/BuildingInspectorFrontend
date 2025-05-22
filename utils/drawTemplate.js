@@ -110,6 +110,10 @@ function drawRulerRectTemplate(ctx, {
 
 		ctx.fillText('桩号增大方向', x + drawWidth / 2 - 40, arrowY + 20);
 	}
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(-90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+
 }
 
 

@@ -19,16 +19,26 @@
 			<button @click="setMode('text')" :class="['iconButton', { active: mode === 'text' }]">
 				<image src='/static/image/text.svg' class="icon"></image>
 			</button>
-			<button @click="undo" class="iconButton">
-				<image src='/static/image/back.svg' class="icon"></image>
+			<view class="separateLine"></view>
+			<button @click="undo" class="functionButton">
+				<!-- <image src='/static/image/back.svg' class="icon"></image> -->
+				撤销
 			</button>
-			<button @click="saveCanvasToImage" class="iconButton">
-				<image src='/static/image/save.svg' class="icon"></image>
-			</button>
-			<button @click="changeTemplateParam" class="iconButton">
+			<button @click="clearCanvas" class="functionButton">清空</button>
+			<button @click="zoomIn" class="functionButton">放大</button>
+			<button @click="zoomOut" class="functionButton">缩小</button>
+			<view class="separateLine"></view>
+			<button @click="back" class="functionButton">取消</button>
+			<button @click="saveCanvasToImage" class="functionButton">
 				<!-- <image src='/static/image/save.svg' class="icon"></image> -->
-				修改
+				保存
 			</button>
+			<view class="separateLine"></view>
+			<button @click="changeTemplateParam" class="functionButton">
+				<!-- <image src='/static/image/save.svg' class="icon"></image> -->
+				模板参数
+			</button>
+			<!-- <button @click="deleteSelected" class="functionButton">删除</button> -->
 		</view>
 
 		<!-- 参数设置弹窗 -->
@@ -40,40 +50,6 @@
 						<input v-model="tempParams[field.key]" :type="field.type" />
 					</view>
 				</view>
-
-				<!-- <view v-if="tempParams.logicalWidth">
-					<text>逻辑宽度（单位数）</text>
-					<input v-model="tempParams.logicalWidth" type="number" />
-				</view>
-				<view v-if="tempParams.logicalHeight">
-					<text>逻辑高度（单位数）</text>
-					<input v-model="tempParams.logicalHeight" type="number" />
-				</view>
-				<view v-if="tempParams.logicalLengthl">
-					<text>逻辑长度 </text>
-					<input v-model="tempParams.logicalLength" type="number" />
-				</view>
-				<view v-if="tempParams.beamCount">
-					<text>梁数 </text>
-					<input v-model="tempParams.beamCount" type="number" />
-				</view>
-				<view v-if="tempParams.bigBeamNumber">
-					<text>大桩号墩 </text>
-					<input v-model="tempParams.bigBeamNumber" type="number" />
-				</view>
-				<view v-if="tempParams.smallBeamNumber">
-					<text>小桩号墩 </text>
-					<input v-model="tempParams.smallBeamNumber" type="number" />
-				</view>
-				<view v-if="tempParams.unit">
-					<text>单位（如 cm / m）</text>
-					<input v-model="tempParams.unit" type="text" />
-				</view>
-				<view v-if="tempParams.bridge">
-					<text>桥幅（L / R）</text>
-					<input v-model="tempParams.bridge" type="text" />
-				</view> -->
-
 				<view class="popup-actions">
 					<button @click="applyTemplateChange" type="primary">确认</button>
 					<button @click="cancleTemplateChange">取消</button>
@@ -81,37 +57,48 @@
 			</view>
 		</view>
 
-		<view class="functionBar">
+		<!-- <view class="functionBar">
 			<button @click="deleteSelected" class="functionButton">删除</button>
 			<button @click="clearCanvas" class="functionButton">清空</button>
 			<button @click="zoomIn" class="functionButton">放大</button>
 			<button @click="zoomOut" class="functionButton">缩小</button>
-			<!-- <button @click="chooseTemplate('rect')" class="functionButton">模板1</button>
-			<button @click="chooseTemplate('bridge')" class="functionButton">模板2</button>
-			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button> -->
-		</view>
-		<view v-if="showTextInput" class="text-input" :style="{ top: textInputY + 'px', left: textInputX + 'px' }">
+		</view> -->
+		<view v-if="showTextInput" class="text-input"
+			:style="{ top: logicalToScreen(textInputX, textInputY).y + 'px', left: logicalToScreen(textInputX, textInputY).x + 'px' }">
 			<input v-model="textValue" placeholder="输入文字..." class="input" @input="inputting" />
 			<view class="textButtons">
 				<button @click="cancelText">取消</button>
 				<button @click="confirmText">确定</button>
 			</view>
 		</view>
-		<!--  模拟输入框 -->
-		<!-- <input v-if="showTextInput" v-model="textValue" :style="inputStyle" @input="updateInputSize" @blur="blur"
-			@confirm="confirmText" class="text-input" focus /> -->
 
 		<view class="toolbar">
-			<button @click="changeColor('#ff0000')" class="colorButton"
-				style="background-color: #ff0000">{{drawColor=="#ff0000"? '√':''}}</button>
-			<button @click="changeColor('#00ff00')" class="colorButton"
-				style="background-color: #00ff00">{{drawColor=="#00ff00"? '√':''}}</button>
-			<button @click="changeColor('#0055ff')" class="colorButton"
-				style="background-color: #0055ff">{{drawColor=="#0055ff"? '√':''}}</button>
-			<button @click="changeColor('#ffff00')" class="colorButton"
-				style="background-color: #ffff00">{{drawColor=="#ffff00"? '√':''}}</button>
-			<button @click="changeColor('#000000')" class="colorButton"
-				style="background-color: #000000">{{drawColor=="#000000"? '√':''}}</button>
+			<image
+				:src="drawColor === '#333333' ? '/static/image/CheckedCircleFill.png' : '/static/image/CheckCircleFill.png'"
+				class="colorImg" @click="changeColor('#333333')" />
+			<image
+				:src="drawColor === '#FF3141' ? '/static/image/CheckedCircleFill-1.png' : '/static/image/CheckCircleFill-1.png'"
+				class="colorImg" @click="changeColor('#FF3141')" />
+			<image
+				:src="drawColor === '#00B578' ? '/static/image/CheckedCircleFill-2.png' : '/static/image/CheckCircleFill-2.png'"
+				class="colorImg" @click="changeColor('#00B578')" />
+			<image
+				:src="drawColor === '#1677FF' ? '/static/image/CheckedCircleFill-3.png' : '/static/image/CheckCircleFill-3.png'"
+				class="colorImg" @click="changeColor('#1677FF')" />
+			<image
+				:src="drawColor === '#FFD24A' ? '/static/image/CheckedCircleFill-4.png' : '/static/image/CheckCircleFill-4.png'"
+				class="colorImg" @click="changeColor('#FFD24A')" />
+
+			<!-- <button @click="changeColor('#FF3141')" class="colorButton"
+				style="background-color: #FF3141">{{drawColor=="#FF3141"? '√':''}}</button>
+			<button @click="changeColor('#00B578')" class="colorButton"
+				style="background-color: #00B578">{{drawColor=="#00B578"? '√':''}}</button>
+			<button @click="changeColor('#1677FF')" class="colorButton"
+				style="background-color: #1677FF">{{drawColor=="#1677FF"? '√':''}}</button>
+			<button @click="changeColor('#FFD24A')" class="colorButton"
+				style="background-color: #FFD24A">{{drawColor=="#FFD24A"? '√':''}}</button>
+			<button @click="changeColor('#333333')" class="colorButton"
+				style="background-color: #333333">{{drawColor=="#333333"? '√':''}}</button> -->
 		</view>
 
 		<canvas :style="canvasStyle" canvas-id="myCanvas" id="myCanvas" class="canvas" disable-scroll="true" />
@@ -151,7 +138,7 @@
 	const screenHeight = ref(0);
 	const canvasStyle = ref({
 		width: '100vw',
-		height: '100vh'
+		height: '100vh',
 	});
 	const offsetX = ref(0); // 画布拖拽 X 偏移
 	const offsetY = ref(0); // 画布拖拽 Y 偏移
@@ -172,9 +159,10 @@
 	const template = ref('');
 	const history = ref([]);
 	const curvePoints = ref([]);
+	const transparentCurvePoints = ref([]);
 	//记录状态 为了在只有点击没有滑动的情况下，让startX和currentX都不为0
 	const status = ref('start');
-	const drawColor = ref('#ff0000');
+	const drawColor = ref('#333333');
 
 	const textValue = ref('');
 	const showTextInput = ref(false);
@@ -421,6 +409,10 @@
 		scale.value /= 1.1; // 缩小10%
 		redrawCanvas();
 	}
+	const back = () => {
+		uni.navigateBack()
+	}
+
 	//撤销
 	const undo = () => {
 		//可能发生的事件
@@ -532,11 +524,22 @@
 		} = e.touches[0];
 		startX.value = x;
 		startY.value = y;
-		offsetStartX.value = x - offsetX.value;
-		offsetStartY.value = y - offsetY.value;
+
+		// 统一转换为逻辑坐标（未缩放、未偏移的画布坐标）
+		const logicX = (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2;
+		const logicY = (y - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2;
+		// 存储逻辑坐标，用于绘制
+		offsetStartX.value = logicX;
+		offsetStartY.value = logicY;
+		// offsetStartX.value = x - offsetX.value;
+		// offsetStartY.value = y - offsetY.value;
 		drawing.value = true;
 		if (mode.value === 'curve') {
 			curvePoints.value = [{
+				x: logicX,
+				y: logicY
+			}];
+			transparentCurvePoints.value = [{
 				x,
 				y
 			}];
@@ -563,12 +566,15 @@
 			x,
 			y
 		} = e.touches[0];
-		// x = x - offsetX.value;
-		// y = y - offsetY.value;
+		const logicX = (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2;
+		const logicY = (y - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2;
+
 		currentX.value = x;
 		currentY.value = y;
-		offsetCurrentX.value = x - offsetX.value;
-		offsetCurrentY.value = y - offsetY.value;
+		// offsetCurrentX.value = x - offsetX.value;
+		// offsetCurrentY.value = y - offsetY.value;
+		offsetCurrentX.value = logicX;
+		offsetCurrentY.value = logicY;
 
 		if (mode.value !== 'select') {
 			transparentCtx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
@@ -594,11 +600,15 @@
 			drawSmoothEllipse(transparentCtx.value, startX.value, startY.value, currentX.value, currentY.value);
 		} else if (mode.value === 'curve') {
 			curvePoints.value.push({
+				x: logicX,
+				y: logicY
+			});
+			transparentCurvePoints.value.push({
 				x,
 				y
 			});
-			transparentCtx.value.moveTo(curvePoints.value[0].x, curvePoints.value[0].y);
-			curvePoints.value.forEach((point) => {
+			transparentCtx.value.moveTo(transparentCurvePoints.value[0].x, transparentCurvePoints.value[0].y);
+			transparentCurvePoints.value.forEach((point) => {
 				transparentCtx.value.lineTo(point.x, point.y);
 			});
 		} else if (mode.value === 'select') {
@@ -660,8 +670,9 @@
 			x,
 			y
 		} = e.changedTouches[0];
-		x = x - offsetX.value;
-		y = y - offsetY.value;
+		// x = x - offsetX.value;
+		// y = y - offsetY.value;
+		const logical = screenToLogical(x, y); // 计算逻辑坐标
 
 		//移动、文字、单击都不需要保存
 		if (mode.value !== 'select' && mode.value !== 'text' && status.value !== "start") {
@@ -678,14 +689,18 @@
 				//如果不是展开状态 则检测有没有点到文字
 				if (clickIndex === -1) {
 					//没点到文字 点的是空白处 新加文字
-					textInputX.value = x + offsetX.value;
-					textInputY.value = y + 10 + offsetY.value;
-					textValue.value = ''
-					showTextInput.value = true;
+					// 保存逻辑坐标（用于 canvas 绘制和保存）
+					textInputX.value = logical.x;
+					textInputY.value = logical.y;
+					textValue.value = '';
 					textSelecting.value = true;
+					// 设置文字输入框位置（屏幕坐标）
+					const screenPos = logicalToScreen(logical.x, logical.y);
+					showTextInput.value = true;
+
 					textBox.value = {
-						x: x,
-						y: y - 20,
+						x: logical.x,
+						y: logical.y - 20,
 						width: 20,
 						height: 20
 					};
@@ -726,6 +741,23 @@
 			redrawCanvas();
 		}, 50);
 	};
+
+	// 将屏幕坐标转换为逻辑坐标
+	function screenToLogical(x, y) {
+		return {
+			x: (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2,
+			y: (y - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2
+		};
+	}
+
+	// 将逻辑坐标转换为屏幕坐标
+	function logicalToScreen(x, y) {
+		return {
+			x: (x - screenWidth.value / 2) * scale.value + offsetX.value + screenWidth.value / 2,
+			y: (y - screenHeight.value / 2) * scale.value + offsetY.value + screenHeight.value / 2
+		};
+	}
+
 
 	//点击时输入框是展开状态
 	const clickWithInputShowing = () => {
@@ -882,7 +914,7 @@
 			if (selectedObject.value === null && candidates.length !== 0) {
 				//第一次选中 没有上次选中的历史记录
 				selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
-				updatedHistory[chosen.index].color = '#ff93c4';
+				updatedHistory[chosen.index].color = '#0F4687';
 				selectedObject.value = updatedHistory[chosen.index];
 			} else if (selectedObject.value !== null && selectedObject.value.id === chosen.action.id) {
 				//如果上次选中的对象和当前选中的对象是同一个对象 什么都不用做
@@ -894,7 +926,7 @@
 					updatedHistory[index].color = selectedObjectOriginColor.value;
 				}
 				selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
-				updatedHistory[chosen.index].color = '#ff93c4';
+				updatedHistory[chosen.index].color = '#0F4687';
 				selectedObject.value = updatedHistory[chosen.index];
 			}
 		}
@@ -995,7 +1027,9 @@
 	};
 
 	const changeObjectPosition = (object, dx, dy) => {
-		if (!object) return;
+		// if (!object) return;
+		// 禁用拖动单个对象
+		return
 
 		switch (object.mode) {
 			case 'line':
@@ -1141,26 +1175,36 @@
 					id: Math.random().toString(36).substr(2, 8)
 				};
 			} else if (mode.value === 'curve') {
-				curvePoints.value.forEach(point => {
-					point.x = point.x - offsetX.value;
-					point.y = point.y - offsetY.value;
-				})
 				action = {
 					mode: 'curve',
-					curvePoints: curvePoints.value,
+					curvePoints: curvePoints.value.map(point => ({
+						x: point.x,
+						y: point.y
+					})),
 					color: drawColor.value,
 					id: Math.random().toString(36).substr(2, 8)
 				};
 			}
 		}
 		if (mode.value === 'text') {
+			// action = {
+			// 	mode: 'text',
+			// 	textValue: textValue.value,
+			// 	// textInputX: textInputX.value - offsetX.value,
+			// 	// textInputY: textInputY.value - 10 - offsetY.value,
+			// 	textInputX: textInputX.value,
+			// 	textInputY: textInputY.value,
+			// 	id: Math.random().toString(36).substr(2, 8)
+			// }
 			action = {
 				mode: 'text',
 				textValue: textValue.value,
-				textInputX: textInputX.value - offsetX.value,
-				textInputY: textInputY.value - 10 - offsetY.value,
-				id: Math.random().toString(36).substr(2, 8)
-			}
+				textInputX: textInputX.value, // 逻辑坐标
+				textInputY: textInputY.value,
+				color: drawColor.value,
+				id: Math.random().toString(36).substr(2, 8),
+				scale: scale.value
+			};
 		}
 		action.scale = scale.value;
 		if (action) {
@@ -1201,75 +1245,144 @@
 			});
 		}
 	}
-
 	const redrawCanvas = () => {
 		const now = Date.now();
 		if (now - lastRedrawTime < 16) return;
 		lastRedrawTime = now;
 
-		ctx.value.save(); // 保存当前上下文
+		ctx.value.save();
 		ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
 
-		// 应用画布的平移和缩放
-		ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
-		// ctx.value.scale(scale.value, scale.value);
+		// 画布全局平移 + 缩放（以中心为原点）
+		ctx.value.translate(offsetX.value, offsetY.value);
+		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
+		ctx.value.scale(scale.value, scale.value);
+		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
 
-		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
-		ctx.value.scale(scale.value, scale.value); // 执行缩放
-		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
-		// // 画背景图片
-		// if (templateImage.value) {
-		// 	ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
-		// }
+		// 绘制模板图（如果有）
 		drawTemplate();
-		ctx.value.restore(); // 恢复原始状态
-
-		// 重新绘制所有历史记录
+		
+		// 绘制历史操作
 		history.value.forEach(action => {
-			ctx.value.save(); // 保存当前状态
-
-			ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
-			ctx.value.scale(scale.value / action.scale, scale.value / action.scale); // 执行缩放
-			ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+			ctx.value.save();
 
 			ctx.value.setStrokeStyle(action.color);
-			ctx.value.setLineWidth(1 / (scale.value / action.scale)); // 缩放时线宽保持视觉一致
+			ctx.value.setLineWidth(1 / scale.value); // 保持视觉一致
 			ctx.value.beginPath();
+
 			if (action.mode === 'line') {
 				ctx.value.moveTo(action.startX, action.startY);
 				ctx.value.lineTo(action.endX, action.endY);
 			} else if (action.mode === 'rect') {
 				ctx.value.rect(action.x, action.y, action.width, action.height);
 			} else if (action.mode === 'circle') {
-				// ctx.value.arc(action.cx, action.cy, action.radius, 0, 2 * Math.PI);
 				drawSmoothEllipse(ctx.value, action.startX, action.startY, action.currentX, action.currentY);
 			} else if (action.mode === 'curve') {
 				ctx.value.moveTo(action.curvePoints[0].x, action.curvePoints[0].y);
-				action.curvePoints.forEach((point, index) => {
-					if (index > 0) {
-						ctx.value.lineTo(point.x, point.y);
-					}
-				});
+				for (let i = 1; i < action.curvePoints.length; i++) {
+					ctx.value.lineTo(action.curvePoints[i].x, action.curvePoints[i].y);
+				}
 			} else if (action.mode === 'text') {
+				// ctx.value.setFontSize(20);
+				// ctx.value.setFillStyle(action.color || '#000');
+				// ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
+				ctx.value.save(); // 保存上下文
+				// 将坐标系移到文字位置
+				ctx.value.translate(action.textInputX + 10, action.textInputY + 5);
+				// 逆时针旋转 90 度（让文字横过来）
+				ctx.value.rotate(Math.PI / 2);
+				// 设置文字样式并绘制文字
 				ctx.value.setFontSize(20);
-				ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
+				ctx.value.setFillStyle(action.color || '#000');
+				ctx.value.fillText(action.textValue, 0, 0);
+				ctx.value.restore(); // 恢复上下文
 			}
-			ctx.value.stroke();
 
-			ctx.value.restore(); // 恢复原始状态
+			ctx.value.stroke();
+			ctx.value.restore();
 		});
 
-		//有没有文字处于选中状态需要绘制边框
+		// 绘制文字选中边框
 		if (textSelecting.value) {
 			ctx.value.setStrokeStyle('#000000');
 			ctx.value.setLineWidth(0.5);
-			ctx.value.strokeRect(textBox.value.x - 2, textBox.value.y - 2, textBox.value.width + 8, textBox.value
-				.height + 8);
+			ctx.value.strokeRect(
+				textBox.value.x + 5,
+				textBox.value.y + 20,
+				textBox.value.height + 8,
+				textBox.value.width + 10,
+			);
 		}
 
-		ctx.value.restore(); // 恢复原始状态
+		ctx.value.restore();
 		ctx.value.draw(true);
 	};
+
+	// const redrawCanvas = () => {
+	// 	const now = Date.now();
+	// 	if (now - lastRedrawTime < 16) return;
+	// 	lastRedrawTime = now;
+
+	// 	ctx.value.save(); // 保存当前上下文
+	// 	ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
+
+	// 	// 应用画布的平移和缩放
+	// 	ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
+	// 	// ctx.value.scale(scale.value, scale.value);
+
+	// 	ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
+	// 	ctx.value.scale(scale.value, scale.value); // 执行缩放
+	// 	ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+	// 	drawTemplate();
+
+	// 	ctx.value.restore(); // 恢复原始状态
+
+	// 	// 重新绘制所有历史记录
+	// 	history.value.forEach(action => {
+	// 		ctx.value.save(); // 保存当前状态
+
+	// 		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
+	// 		ctx.value.scale(scale.value / action.scale, scale.value / action.scale); // 执行缩放
+	// 		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
+
+	// 		ctx.value.setStrokeStyle(action.color);
+	// 		ctx.value.setLineWidth(1 / (scale.value / action.scale)); // 缩放时线宽保持视觉一致
+	// 		ctx.value.beginPath();
+	// 		if (action.mode === 'line') {
+	// 			ctx.value.moveTo(action.startX, action.startY);
+	// 			ctx.value.lineTo(action.endX, action.endY);
+	// 		} else if (action.mode === 'rect') {
+	// 			ctx.value.rect(action.x, action.y, action.width, action.height);
+	// 		} else if (action.mode === 'circle') {
+	// 			// ctx.value.arc(action.cx, action.cy, action.radius, 0, 2 * Math.PI);
+	// 			drawSmoothEllipse(ctx.value, action.startX, action.startY, action.currentX, action.currentY);
+	// 		} else if (action.mode === 'curve') {
+	// 			ctx.value.moveTo(action.curvePoints[0].x, action.curvePoints[0].y);
+	// 			action.curvePoints.forEach((point, index) => {
+	// 				if (index > 0) {
+	// 					ctx.value.lineTo(point.x, point.y);
+	// 				}
+	// 			});
+	// 		} else if (action.mode === 'text') {
+	// 			ctx.value.setFontSize(20);
+	// 			ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
+	// 		}
+	// 		ctx.value.stroke();
+
+	// 		ctx.value.restore(); // 恢复原始状态
+	// 	});
+
+	// 	//有没有文字处于选中状态需要绘制边框
+	// 	if (textSelecting.value) {
+	// 		ctx.value.setStrokeStyle('#000000');
+	// 		ctx.value.setLineWidth(0.5);
+	// 		ctx.value.strokeRect(textBox.value.x - 2, textBox.value.y - 2, textBox.value.width + 8, textBox.value
+	// 			.height + 8);
+	// 	}
+
+	// 	ctx.value.restore(); // 恢复原始状态
+	// 	ctx.value.draw(true);
+	// };
 
 	const pointToSegmentDistance = (x1, y1, x2, y2, x, y) => {
 		const dx = x2 - x1;
@@ -1364,29 +1477,36 @@
 
 	.functionButton {
 		background-color: transparent;
-		border: 1rpx solid #00aaff;
+		border: 1rpx solid #0F4687;
 		height: 50rpx;
 		width: 50rpx;
 		font-size: 16rpx;
+		color: #000000;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		padding: 4rpx;
-		white-space: nowrap;
+		line-height: 20rpx;
 		transform: rotate(90deg);
 	}
 
 	.iconButton {
 		background-color: transparent;
 		border-radius: 50%;
-		border: 1rpx solid #00aaff;
-		height: 40rpx;
-		width: 40rpx;
+		border: 1rpx solid #0F4687;
+		height: 50rpx;
+		width: 50rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		padding: 6rpx;
 		white-space: nowrap;
+	}
+
+	.separateLine {
+		border-top: 1rpx solid #0F4687;
+		width: 50rpx;
+		height: 0;
 	}
 
 	.icon {
@@ -1405,14 +1525,22 @@
 		font-size: 25rpx;
 	}
 
+	.colorImg {
+		height: 50rpx;
+		width: 50rpx;
+		transform: rotate(90deg);
+	}
+
 	.text-input {
 		width: 140rpx;
 		position: absolute;
 		background: white;
-		border: 1px solid #23c5ff;
+		border: 1px solid #0F4687;
 		border-radius: 10rpx;
 		padding: 8px;
 		z-index: 1000;
+		transform-origin: top left;
+		transform: rotate(90deg);
 	}
 
 	.input {
@@ -1434,11 +1562,12 @@
 		align-items: center;
 		padding: 8rpx;
 		font-size: 16rpx;
-		background-color: #52d7ff;
+		background-color: #0F4687;
+		color: #ffffff;
 	}
 
 	.active {
-		background-color: #52d7ff;
+		background-color: #0F4687cc;
 		/* background-color: #ff93c4; */
 	}
 
