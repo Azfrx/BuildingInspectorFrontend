@@ -11,7 +11,7 @@
         <view class="info-box">
           <text class="label">检测人员</text>
           <!-- <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text> -->
-           <text class="value">张三三</text>
+           <text class="value">张三</text>
 		    </view>
         <view class="info-box">
           <text class="label">检测年度</text>

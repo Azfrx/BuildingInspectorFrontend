@@ -3265,7 +3265,7 @@
 		flex-direction: column;
 		border-bottom: 1px solid #EEEEEE;
 		padding: 12rpx 16rpx;
-		height: 180rpx;
+		height: 200rpx;
 	}
 
 	.upload-view {
@@ -3482,7 +3482,7 @@
 	}
 
 	.location-description {
-		font-size: 18rpx;
+		font-size: 20rpx;
 		padding: 12rpx 16rpx;
 		display: flex;
 		flex-direction: row;
@@ -3493,6 +3493,7 @@
 
 	.location-description-left {
 		color: #666666;
+    font-size: 20rpx;
 	}
 
 	.location-description-right {

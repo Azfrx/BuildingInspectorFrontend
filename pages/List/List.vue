@@ -104,7 +104,7 @@ const getProjectData = async () => {
 		}
 
 		// 获取桥梁列表数据
-		const bridgeData = await getTask(3, 1);90
+		const bridgeData = await getTask(3, 1);
 		console.log('获取到的桥梁数据:', bridgeData);
 		
 		if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
@@ -143,12 +143,12 @@ onMounted(() => {
 // 根据桥梁类型获取对应图标
 const getBridgeIcon = (type) => {
 	const icons = {
-		'small': '/static/image/bridge-small.png',
-		'cross': '/static/image/bridge-cross.png',
-		'arch': '/static/image/bridge-arch.png',
-		'suspension': '/static/images/bridge-suspension.png',
-		'main': '/static/image/bridge-arch.png',    // 暂时使用拱桥图标代替主线桥图标
-		'ramp': '/static/image/bridge-cross.png'    // 暂时使用立交桥图标代替匝道桥图标
+		'small': '/static/image/bridge1.png',
+		'cross': '/static/image/bridge2.png',
+		'arch': '/static/image/bridge3.png',
+		'suspension': '/static/images/bridge4.png',
+		'main': '/static/image/bridge1.png',    // 暂时使用拱桥图标代替主线桥图标
+		'ramp': '/static/image/bridge2.png'    // 暂时使用立交桥图标代替匝道桥图标
 	}
 	return icons[type] || icons['small']
 }

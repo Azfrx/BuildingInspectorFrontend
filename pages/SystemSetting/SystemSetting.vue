@@ -9,11 +9,11 @@
 				</view>
 				<view class="button">
 					<button size="default" type="default"
-						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:38px;line-height:38px"
+						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx"
 						hover-class="is-hover"
 						@click="handleLogin">修改密码</button>
 					<button size="default" type="default"
-						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:38px;line-height:38px"
+						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx"
 						hover-class="is-hover"
 						@click="handleLogin">退出登录</button>
 				</view>
@@ -38,7 +38,7 @@
 		<view class="inData">
 			<view class="inDataTitle">本地数据导入</view>
 			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:38px;line-height:38px"
+				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
 				hover-class="is-hover"
 				@click="handleLogin">数据导入</button>
 		</view>
@@ -46,7 +46,7 @@
 		<view class="outData">
 			<view class="outDataTitle">本地数据导出</view>
 			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:38px;line-height:38px;margin-right:0"
+				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
 				hover-class="is-hover"
 				@click="handleLogin">数据导出</button>
 		</view>
@@ -55,7 +55,7 @@
 			<view class="appTitle">当前应用版本</view>
 			<view>v25-050-20</view>
 			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:38px;line-height:38px;margin-right:0"
+				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
 				hover-class="is-hover"
 				@click="handleLogin">版本更新</button>
 		</view>
@@ -142,12 +142,12 @@
 }
 
 .modelTitle {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #666666;
 }
 
 .title {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #333333;
 }
 
@@ -167,12 +167,12 @@
 }
 
 .versionTitle {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #666666;
 }
 
 .versionNumber {
-	font-size: 14px;
+	font-size: 20px;
 	color: #333333;
 	margin-left: auto;
 	margin-right: 0;
@@ -186,13 +186,13 @@
 }
 
 .appTitle {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #666666;
 	margin-left: 10px;
 }
 
 .versionApp view:nth-child(2) {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #333333;
 	margin-left: auto;
 	margin-right: 20px;
@@ -211,7 +211,7 @@
 }
 
 .inDataTitle {
-	font-size: 14px;
+	font-size: 20rpx;
 	color: #666666;
 }
 
@@ -229,7 +229,7 @@
 }
 
 .outDataTitle {
-	font-size: 14px;
+	font-size: 20px;
 	color: #666666;
 }
 

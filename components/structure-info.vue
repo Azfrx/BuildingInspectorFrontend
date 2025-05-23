@@ -37,9 +37,9 @@
 						{{item.name}}
 					</view>
 					<view
-						:class="['structure-state-button', item.status === '0' ? 'button-on': 'button-off', confirmed ? 'disabled' : '']"
+						:class="['structure-state-button', item.status === '1' ? 'button-on': 'button-off', confirmed ? 'disabled' : '']"
 						@click.stop="selectedStructure === item && !confirmed && changeStructureState(item)">
-						{{item.status === '0' ? '启用部件' : '停用部件'}}
+						{{item.status === '1' ? '启用部件' : '停用部件'}}
 					</view>
 					<view :class="['structure-number-button', confirmed ? 'disabled' : '']"
 						@click.stop="selectedStructure === item && !confirmed && showPopup(item)">
@@ -430,8 +430,8 @@
 
 	.confirm-row {
 		width: 100%;
-		height: 129px;
 		background-color: #BDCBE0;
+    font-size: 20rpx;
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
@@ -457,8 +457,9 @@
 	.confirm-button {
 		background-color: #0F4687;
 		color: #fff;
-		font-size: 20px;
+		font-size: 15px;
 		border-radius: 5rpx;
+
 	}
 
 	/* 侧边栏样式 */
@@ -541,8 +542,8 @@
 	.structure-state-button,
 	.structure-number-button {
 		color: #ffffff;
-		font-size: 20rpx;
 		padding: 10rpx 20rpx;
+    font-size: 15rpx;
 		border-radius: 5rpx;
 		background-color: #0F4687;
 	}
