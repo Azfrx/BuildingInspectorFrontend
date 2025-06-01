@@ -347,4 +347,11 @@ onMounted(() => {
   color: #666;
   font-size: 16px;
 }
+
+.appTitle {
+  font-size: 20rpx;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
+}
 </style>

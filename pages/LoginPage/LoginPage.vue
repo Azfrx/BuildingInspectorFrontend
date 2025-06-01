@@ -48,36 +48,78 @@
 
 <script setup>
 import { ref } from 'vue';
+import { login } from '@/api/user';
+import { useUserStore } from '@/store/user';
 
+const userStore = useUserStore();
 const username = ref('');
 const password = ref('');
 const rememberPassword = ref(false);
 const offlineLogin = ref(false);
 const showPassword = ref(false);
+const loading = ref(false);
 
 const toggleRememberPassword = () => {
-    rememberPassword.value = !rememberPassword.value;
+	rememberPassword.value = !rememberPassword.value;
 };
 
 const toggleOfflineLogin = () => {
-    offlineLogin.value = !offlineLogin.value;
+	offlineLogin.value = !offlineLogin.value;
 };
 
 const togglePasswordVisibility = () => {
-    showPassword.value = !showPassword.value;
+	showPassword.value = !showPassword.value;
 };
 
-const handleLogin = () => {
-    if (username.value === 'admin' && password.value === '123456') {
-        uni.navigateTo({
-            url: '/pages/home/home'
-        });
-    } else {
-        uni.showToast({
-            title: '用户名或密码错误',
-            icon: 'none'
-        });
-    }
+const handleLogin = async () => {
+	if (!username.value || !password.value) {
+		uni.showToast({
+			title: '请输入用户名和密码',
+			icon: 'none'
+		});
+		return;
+	}
+
+	try {
+		loading.value = true;
+		
+		const loginData = {
+			username: username.value.trim(),
+			password: password.value.trim()
+		};
+		
+		const res = await login(loginData);
+		
+		console.log('登录响应数据:', JSON.stringify(res, null, 2));
+		
+		uni.setStorageSync('token', res.token);
+		
+		await userStore.login(username.value, res.token);
+		
+		if (rememberPassword.value) {
+			uni.setStorageSync('remember_password', true);
+			uni.setStorageSync('username', username.value);
+			uni.setStorageSync('password', password.value);
+		} else {
+			uni.removeStorageSync('remember_password');
+			uni.removeStorageSync('username');
+			uni.removeStorageSync('password');
+		}
+		
+		uni.navigateTo({
+			url: '/pages/home/home'
+		});
+	} catch (error) {
+		console.error('登录失败:', error);
+		console.log('错误详情:', JSON.stringify(error, null, 2));
+		uni.showToast({
+			title: error.msg || '登录失败',
+			icon: 'none',
+			duration: 2000
+		});
+	} finally {
+		loading.value = false;
+	}
 };
 </script>
 

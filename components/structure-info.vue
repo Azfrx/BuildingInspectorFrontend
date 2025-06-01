@@ -18,935 +18,618 @@
 			</view>
 		</uni-popup>
 
+		<!-- 添加侧边栏 -->
 		<view class="content-layout">
-			<!--左侧边栏-->
+			<!-- 第一个侧边栏 -->
 			<view class="sidebar">
-				<view v-for="(item, index) in tabItems" :key="index"
-					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
+				<view v-for="(item, index) in structureData?.children || []" 
+					:key="index"
+					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" 
+					@click="changeTab(index)">
 					<view class="sidebar-item-content">
-						{{item}}
+						{{item.name}}
 					</view>
 				</view>
 			</view>
 
-			<!-- 右侧内容区 -->
-			<view class="content">
-				<view v-for="(item, index) in structures.children[selectedIndex].children" class="structure-item"
-					@click="selectStructure(item, index)" :class="{'selected': selectedStructure === item}">
-					<view :key="index" class="structure-name">
+			<!-- 第二个侧边栏 -->
+			<view class="sidebar second-sidebar">
+				<view v-for="(item, index) in secondLevelItems" 
+					:key="index"
+					:class="['sidebar-item', selectedSecondIndex === index ? 'active' : '']" 
+					@click="changeSecondTab(index)">
+					<view class="sidebar-item-content">
 						{{item.name}}
 					</view>
-					<view
-						:class="['structure-state-button', item.status === '1' ? 'button-on': 'button-off', confirmed ? 'disabled' : '']"
-						@click.stop="selectedStructure === item && !confirmed && changeStructureState(item)">
-						{{item.status === '1' ? '启用部件' : '停用部件'}}
+				</view>
+			</view>
+
+			<!-- 第三个侧边栏 -->
+			<view class="sidebar third-sidebar">
+				<view v-for="(item, index) in thirdLevelItems" 
+					:key="index"
+					:class="['sidebar-item', selectedThirdIndex === index ? 'active' : '']" 
+					@click="changeThirdTab(index)">
+					<view class="sidebar-item-content">
+						<text class="item-name" :class="{ 'disabled-text': !item.status }">{{item.name}}</text>
+						<view class="item-info-right">
+							<text v-if="item.status" class="item-quantity">数量 {{ item.quantity || 0 }}</text>
+							<view v-else class="disabled-button">已停用</view>
+							<image src="/static/image/RightOutline.svg" class="rightarrow"/>
+						</view>
 					</view>
-					<view :class="['structure-number-button', confirmed ? 'disabled' : '']"
-						@click.stop="selectedStructure === item && !confirmed && showPopup(item)">
-						{{item.comments ? '查看编号' : '创建编号'}}
+					<view class="action-buttons" v-if="item.showActions">
+						<button @click.stop="handleCancel(index)">取消</button>
+						<button @click.stop="handleEdit(index)">编辑</button>
+						<button @click.stop="handleDisable(index)" :data-status="item.status ? 'disabled' : 'enabled'">{{ item.status ? '停用' : '启用' }}</button>
 					</view>
 				</view>
 			</view>
 		</view>
 
-		<!-- 底部弹出层 -->
-		<uni-popup ref="popup" type="bottom">
-			<!-- read 模式 -->
-			<view v-if="popupContent === 'read'" class="popup-content">
-				<view class="popup-header">
-					构建编号 - {{currentStructure.name}}
+		<!-- 添加编辑弹窗 -->
+		<uni-popup ref="editPopup" type="center">
+			<view class="edit-popup-content">
+				<view class="popup-title">构件信息编辑</view>
+				<view class="edit-row">
+					<text class="edit-label">构件名称</text>
+					<text class="edit-value">{{currentEditItem?.name}}</text>
 				</view>
-				<!-- 表头 -->
-				<view class="read-table-header">
-					<view class="read-cell name">
-						<checkbox :checked="isAllSelected" @click="toggleSelectAll" shape="circle" />
-						<text>名称</text>
-					</view>
-					<text class="read-cell code">编号</text>
-					<view class="read-batchDelete">
-						<button class="btn delete" :disabled="!hasSelection" :class="{ 'disabled-btn': !hasSelection }"
-							@click="batchDelete">批量删除</button>
-					</view>
-				</view>
-
-				<!-- 列表 -->
-				<scroll-view scroll-y class="read-table-body">
-					<view v-for="(item, index) in currentStructure.comments" :key="item.id" class="read-table-row">
-						<view class="read-cell name">
-							<checkbox :checked="item.selected" @click="selectItem(index)" shape="circle" />
-							<text class="text-hide">{{ item.code }}</text>
-						</view>
-						<text class="read-cell code text-hide">{{ item.code.split("#")[0] }}</text>
-						<view class="read-cell actions">
-							<button class="btn delete" @click="singleDelete(item)">删除</button>
-							<button class="btn edit" @click="edit(item)">编辑</button>
-						</view>
-					</view>
-				</scroll-view>
-			</view>
-
-			<!-- create 模式 -->
-			<view v-else-if="popupContent === 'create'" class="popup-box">
-				<view class="popup-header">
-					创建编号 - {{currentStructure.name}}
-				</view>
-				<!-- 名称后缀 -->
-				<view class="create-suffix">
-					<text class="create-suffix-text">名称后缀</text>
-					<input v-model="suffix" class="create-suffix-input" placeholder="如 #锚具" />
-				</view>
-
-				<!-- 编号片段表格 -->
-				<view class="create-table-header">
-					<text class="numberFragment">编号片段</text>
-					<template class="create-table-cols">
-						<text class="col">序号</text>
-						<text class="col">类型</text>
-						<text class="col">值</text>
-						<text class="col">操作</text>
-					</template>
-				</view>
-
-				<view class="create-table-body">
-					<view class="create-row" v-for="(item, index) in segments" :key="index">
-						<view class="create-placeholder"></view>
-						<template class="create-row-right">
-							<text class="create-number">{{ index + 1 }}</text>
-							<picker mode="selector" :range="['固定值', '序号']" :value="item.typeIndex"
-								@change="(e) => typeChange({ id: item.id, event: e })" class="create-class">
-								<view class="create-class-value">
-									{{ ['固定值', '序号'][item.typeIndex] }}
-									<text class="arrow-down">▼</text>
-								</view>
-							</picker>
-							<view class="create-value">
-								<input v-if="item.typeIndex === 0" v-model="item.value" class="create-value-input" />
-								<view v-else class="range-input">
-									<input v-model="item.start" class="create-value-input" /> <text
-										class="create-value-text">至</text> <input v-model="item.end"
-										class="create-value-input" />
-								</view>
-							</view>
-							<view class="create-delete">
-								<button class="btn-delete" @click="removeSegment(index)">删除</button>
-							</view>
-						</template>
-					</view>
-
-					<!-- 操作按钮 -->
-					<view class="btn-row">
-						<button @click="addSegment" class="btn-add">添加片段</button>
-						<view class="right-btns">
-							<button @click="cancel" class="btn-cancel">取消</button>
-							<button @click="confirm" class="btn-confirm">确定</button>
-						</view>
+				<view class="edit-row">
+					<text class="edit-label">构件状态</text>
+					<view class="status-toggle">
+						<text class="status-text">停用</text>
+						<CustomSwitch 
+							v-model="currentEditItem.status" 
+							@change="setStatus"
+							:active-color="'#409EFF'"
+							:inactive-color="'#ff3141'"
+						/>
+						<text class="status-text">启用</text>
 					</view>
 				</view>
-
-			</view>
-
-			<!-- edit 模式 -->
-			<view v-else-if="popupContent === 'edit'" class="popup-content">
-				<view class="popup-header">
-					编辑编号 - {{currentStructure.name}}
+				<view class="edit-row">
+					<text class="edit-label">构件数量</text>
+					<!-- Using uni-easyinput for the input field -->
+					<uni-easyinput 
+						v-model="currentEditItem.quantity" 
+						type="number" 
+						placeholder="请输入数量" 
+						clearSize="40"
+						class="quantity-input"
+						:inputStyle="{ fontSize: '18rpx' }"
+						:placeholderStyle="'font-size: 18rpx;'">
+					</uni-easyinput>
 				</view>
-				<!-- 名称后缀 -->
-				<view class="create-suffix bottomBorder">
-					<text class="create-suffix-text">名称后缀</text>
-					<input v-model="editSuffix" class="create-suffix-input" placeholder="如 #锚具" />
-				</view>
-
-				<!-- 编号 -->
-				<view class="create-suffix">
-					<text class="create-suffix-text">编号</text>
-					<input v-model="editNumber" class="create-suffix-input" placeholder="如 1-01-1" />
-				</view>
-
-				<!-- 操作按钮 -->
-				<view class="edit-btn-row">
-					<button @click="editCancel" class="btn-cancel">取消</button>
-					<button @click="editConfirm" class="btn-confirm">确定</button>
+				<view class="popup-buttons">
+					<button class="popup-btn cancel-btn" @click="closeEditPopup">取消</button>
+					<button class="popup-btn confirm-btn" @click="saveEdit">确定</button>
 				</view>
 			</view>
-
 		</uni-popup>
 	</view>
 </template>
 
-
 <script setup>
-	import {
-		ref,
-		computed,
-		onMounted
-	} from 'vue';
-	// import {getObject} from '../utils/readJsonNew';
-	import structureJSON from '../static/data/structure.json'
-	// 数据
-	const tabItems = ref([]); // 初始化为空数组
-	const structures = ref([])
-	const selectedIndex = ref(0)
-	const confirmed = ref(false)
+import { ref, computed, onMounted } from 'vue';
+import structureJSON from '../static/data/structure.json';
+import CustomSwitch from './CustomSwitch.vue';
 
-	const activeTab = ref(0);
-	const popupContent = ref('');
-	const currentStructure = ref();
-	const currentEdit = ref();
-	const editSuffix = ref('');
-	const editNumber = ref('');
-	const selectedStructure = ref(null);
+const confirmed = ref(false);
+const confirmPopup = ref(null);
+const structureData = ref(null);
+const selectedIndex = ref(0);
+const selectedSecondIndex = ref(0);
+const selectedThirdIndex = ref(0);
+const editPopup = ref(null);
+const currentEditItem = ref(null);
 
-	const popup = ref(null);
-	const confirmPopup = ref(null);
-
-	const confirmStructure = () => {
-		confirmPopup.value.open()
+// 计算第二个侧边栏的数据
+const secondLevelItems = computed(() => {
+	if (!structureData.value?.children?.[selectedIndex.value]?.children?.[0]?.children) {
+		return [];
 	}
-	const confirmConfirm = () => {
-		confirmed.value = true
-		confirmPopup.value.close()
+	return structureData.value.children[selectedIndex.value].children[0].children;
+});
+
+// 计算第三个侧边栏的数据
+const thirdLevelItems = computed(() => {
+	if (!secondLevelItems.value?.[selectedSecondIndex.value]?.children) {
+		return [];
 	}
-	const closeConfirmPopup = () => {
-		confirmPopup.value.close()
-	}
+	return secondLevelItems.value[selectedSecondIndex.value].children;
+});
 
-	const changeTab = (index) => {
-		selectedIndex.value = index
-	};
-	const suffix = ref('');
-	const segments = ref([{
-		id: generateId(),
-		typeIndex: 0,
-		value: '',
-		start: '',
-		end: ''
-	}]);
+const confirmStructure = () => {
+	confirmPopup.value.open();
+};
 
-	function generateId() {
-		return 'id_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
-	}
+const confirmConfirm = () => {
+	confirmed.value = true;
+	confirmPopup.value.close();
+};
 
-	const isAllSelected = computed(() => currentStructure.value.comments.every(item => item.selected));
-	const hasSelection = computed(() => currentStructure.value.comments.some(item => item.selected));
+const closeConfirmPopup = () => {
+	confirmPopup.value.close();
+};
 
-	const showPopup = (item) => {
-		currentStructure.value = item;
-		if (!item.comments) {
-			popupContent.value = 'create'
-			suffix.value = '#' + currentStructure.value.name
-		} else {
-			popupContent.value = 'read'
-			item.comments.forEach(item => {
-				item.selected = false
-			})
+const changeTab = (index) => {
+	selectedIndex.value = index;
+	selectedSecondIndex.value = 0; // 重置第二个侧边栏的选中状态
+	selectedThirdIndex.value = 0; // 重置第三个侧边栏的选中状态
+	console.log('选中的第一层结构:', structureData.value?.children[index]);
+};
+
+const changeSecondTab = (index) => {
+	selectedSecondIndex.value = index;
+	selectedThirdIndex.value = 0; // 重置第三个侧边栏的选中状态
+	console.log('选中的第二层结构:', secondLevelItems.value[index]);
+};
+
+const changeThirdTab = (index) => {
+	selectedThirdIndex.value = index;
+	// 切换显示操作按钮
+	thirdLevelItems.value.forEach((item, i) => {
+		item.showActions = i === index;
+	});
+	console.log('选中的第三层结构:', thirdLevelItems.value[index]);
+};
+
+const handleCancel = (index) => {
+	thirdLevelItems.value[index].showActions = false;
+};
+
+const handleEdit = (index) => {
+	// Make a copy of the item to avoid modifying the original data directly before saving
+	currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
+	// Ensure status and quantity properties exist for the copy
+	if (currentEditItem.value) {
+		if (currentEditItem.value.status === undefined) {
+			currentEditItem.value.status = true; // Default status to enabled (blue)
 		}
-		popup.value.open();
-	};
-
-	const changeStructureState = (structure) => {
-		console.log(structure);
-		structure.status = structure.status === '0' ? '1' : '0';
-	}
-
-	const toggleSelectAll = () => {
-		const all = isAllSelected.value;
-		currentStructure.value.comments.forEach(item => (item.selected = !all));
-	};
-
-	const selectItem = (index) => {
-		currentStructure.value.comments[index].selected = !currentStructure.value.comments[index]
-			.selected;
-	};
-
-	const singleDelete = (comment) => {
-		if (!comment) return;
-		currentStructure.value.comments = currentStructure.value.comments.filter(item => item !== comment);
-		uni.showToast({
-			title: '删除成功',
-			icon: 'none'
-		});
-	};
-	const batchDelete = () => {
-		if (!hasSelection.value) return;
-		currentStructure.value.comments = currentStructure.value.comments.filter(item => !item.selected);
-		uni.showToast({
-			title: '批量删除成功',
-			icon: 'none'
-		});
-	};
-
-	const edit = (structure) => {
-		currentEdit.value = structure;
-		editSuffix.value = '#' + structure.code.split('#')[1]
-		editNumber.value = structure.code.split('#')[0]
-		popupContent.value = 'edit';
-	}
-
-	const addSegment = () => {
-		segments.value.push({
-			id: generateId(),
-			typeIndex: 0,
-			value: '',
-			start: '',
-			end: ''
-		});
-	};
-
-	const typeChange = (e) => {
-		const id = e.id;
-		const newValue = e.event.detail.value;
-		// 找到 id 对应的索引
-		const index = segments.value.findIndex(segment => segment.id === id);
-		if (index !== -1) {
-			// 找到对应项并更新其 type 值
-			segments.value[index].typeIndex = newValue;
+		if (currentEditItem.value.quantity === undefined) {
+			currentEditItem.value.quantity = 0; // Default quantity to 0
 		}
 	}
+	editPopup.value.open();
+	// Keep action buttons open until popup is closed or action is taken
+	// thirdLevelItems.value[index].showActions = false;
+};
 
-	const removeSegment = (index) => {
-		segments.value.splice(index, 1);
-	};
+const handleDisable = (index) => {
+	console.log('停用项目:', thirdLevelItems.value[index]);
+	thirdLevelItems.value[index].showActions = false;
+};
 
-	function getCurrentFormattedTime() {
-		const now = new Date();
-
-		const year = now.getFullYear();
-		const month = String(now.getMonth() + 1).padStart(2, "0"); // 月份是从 0 开始的
-		const day = String(now.getDate()).padStart(2, "0");
-
-		const hours = String(now.getHours()).padStart(2, "0");
-		const minutes = String(now.getMinutes()).padStart(2, "0");
-		const seconds = String(now.getSeconds()).padStart(2, "0");
-
-		return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+const setStatus = (e) => {
+	if (currentEditItem.value) {
+		currentEditItem.value.status = e.detail.value;
+		console.log('Switch toggled, new status:', currentEditItem.value.status);
 	}
+};
 
-	// 递归生成组合（深度优先）
-	const generateCombinations = (segs, index = 0, path = [], result = []) => {
-		if (index === segs.length) {
-			const combined = path.join('-')
-			result.push({
-				// name: `${combined}${suffix.value}`,
-				// number: combined,
-				// suffix: suffix.value
-				biObjectId: currentStructure.value.id,
-				code: `${combined}${suffix.value}`,
-				createBy: "user",
-				createTime: getCurrentFormattedTime(),
-				delFlag: "0", // 未知属性
-				// id: ,//不知道id是啥
-				name: `${suffix.value.split('#')[1] + (result.length + 1)}`,
-				status: "0",
-				updateTime: getCurrentFormattedTime(),
-			})
-			return
-		}
-
-		const seg = segs[index]
-		if (seg.typeIndex === 0) {
-			// 固定值，直接添加
-			generateCombinations(segs, index + 1, [...path, seg.value], result)
-		} else if (seg.typeIndex === 1) {
-			// 序号段，遍历范围
-			const start = Number(seg.start)
-			const end = Number(seg.end)
-			for (let i = start; i <= end; i++) {
-				generateCombinations(segs, index + 1, [...path, i], result)
-			}
-		}
-		return result
+const saveEdit = () => {
+	const originalItem = thirdLevelItems.value.find(item => item.name === currentEditItem.value.name);
+	if (originalItem) {
+		originalItem.status = currentEditItem.value.status;
+		originalItem.quantity = Number(currentEditItem.value.quantity);
 	}
+	closeEditPopup();
+};
 
-	const generateNameObjects = () => {
-		return generateCombinations(segments.value)
+const closeEditPopup = () => {
+	editPopup.value.close();
+	thirdLevelItems.value.forEach(item => {
+		item.showActions = false;
+	});
+};
+
+onMounted(() => {
+	console.log('组件已挂载');
+	console.log('原始JSON数据:', structureJSON);
+	
+	try {
+		structureData.value = structureJSON;
+		console.log('结构数据:', structureData.value);
+	} catch (error) {
+		console.error('数据读取错误:', error);
 	}
-
-	const cancel = () => {
-		popup.value.close();
-	};
-
-	const confirm = () => {
-		currentStructure.value.comments = generateNameObjects()
-		currentStructure.value.count = currentStructure.value.comments.length
-		popup.value.close();
-	};
-
-	const editCancel = () => {
-		popupContent.value = 'read';
-	};
-
-	const editConfirm = () => {
-		// 提取 name 中末尾的数字部分
-		const match = currentEdit.value.name.match(/\d+$/);
-		const number = match ? match[0] : '';
-		// 拼接 b 和数字部分
-		currentEdit.value.name = editSuffix.value.split('#')[1] + number;
-		currentEdit.value.code = `${editNumber.value + editSuffix.value}`
-		popupContent.value = 'read';
-	};
-
-	const selectStructure = (item, index) => {
-		selectedStructure.value = item;
-	};
-
-	// onMounted(async () => {
-	// 	const data = await getObject(3, 39);
-	// 	console.log('获取到的数据:', data);
-
-	// 	从数据中提取第一个 children 数组的 name 值
-	// 	if (data && data.children && data.children.length > 0) {
-	// 		tabItems.value = data.children.map(item => item.name);
-	// 		// 更新 activeStructures
-	// 		activeStructures.value = structures.value.filter(item => item.from === tabItems.value[0]);
-	// 	}
-	// })
-	onMounted(() => {
-		structures.value = JSON.parse(JSON.stringify(structureJSON.data));
-		tabItems.value = structures.value.children.map(item => item.name);
-		console.log(structures.value);
-	})
+});
 </script>
 
 <style scoped>
-	.container {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
-	}
-
-	/* 内容布局 */
-	.content-layout {
-		height: 100%;
-		display: flex;
-		flex: 1;
-		overflow: hidden;
-	}
-
-	.confirm-row {
-		width: 100%;
-		background-color: #BDCBE0;
-    font-size: 20rpx;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		padding: 10rpx;
-		box-sizing: border-box;
-	}
-
-	.confirm-text {
-		text-align: center;
-		font-size: 20px;
-		color: #333;
-	}
-
-	.confirm-status {
-		text-align: center;
-		font-size: 20px;
-	}
-
-	.confirm-button-container {
-		margin-left: auto;
-	}
-
-	.confirm-button {
-		background-color: #0F4687;
-		color: #fff;
-		font-size: 15px;
-		border-radius: 5rpx;
-
-	}
-
-	/* 侧边栏样式 */
-
-	.sidebar {
-		width: 16.67%;
-		background-color: #f5f5f5;
-		border-right: 1rpx solid #eeeeee;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.sidebar-item {
-		padding: 24rpx 0;
-		text-align: left;
-		color: #666;
-		border-bottom: 1px solid #eeeeee;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		height: 40rpx;
-		/* 设置固定高度 */
-		justify-content: center;
-		/* 垂直居中内容 */
-	}
-
-	.sidebar-item-content {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		padding-left: 12rpx;
-		width: 60%;
-		/* 占满整个宽度 */
-		font-size: 18rpx;
-		/* 统一字体大小 */
-	}
-
-	.sidebar-item.active {
-		background-color: #ffffff;
-	}
-
-	.sidebar-item.active .sidebar-item-content {
-		background-color: #ffffff;
-		color: #0F4687;
-		font-weight: bold;
-		border-left: 4rpx solid #0F4687;
-	}
-
-
-
-	/* 内容区样式 */
-	.content {
-		flex: 1;
-		overflow-y: auto;
-		height: 100%;
-		background-color: #ffffff;
-	}
-
-	.structure-item {
-		display: flex;
-		flex-direction: row;
-		justify-content: flex-end;
-		align-items: center;
-		padding: 14rpx 12rpx;
-		border-bottom: 1rpx solid #eee;
-		cursor: pointer;
-	}
-
-	.structure-item.selected {
-		background-color: #f0f5ff;
-	}
-
-	.structure-name {
-		color: #666666;
-		font-size: 20rpx;
-		margin-right: auto;
-	}
-
-	.structure-state-button,
-	.structure-number-button {
-		color: #ffffff;
-		padding: 10rpx 20rpx;
-    font-size: 15rpx;
-		border-radius: 5rpx;
-		background-color: #0F4687;
-	}
-
-	.structure-number-button {
-		margin-left: 10rpx;
-	}
-
-	.button-on {
-		background-color: #00dd00;
-	}
-
-	.button-off {
-		background-color: #f56c6c;
-	}
-
-	.disabled {
-		background-color: #cccccc;
-		opacity: 0.6;
-		cursor: not-allowed;
-	}
-
-	.popup-content {
-		background-color: #fff;
-		height: 45vh;
-		/* padding: 10rpx; */
-		display: flex;
-		flex-direction: column;
-	}
-
-	.popup-header {
-		height: 4vh;
-		width: 100%;
-		display: flex;
-		align-items: center;
-		padding-left: 10rpx;
-		background-color: #bdcbe0;
-		font-size: 18px;
-		color: #333;
-	}
-
-	.read-table-header,
-	.read-table-row {
-		display: flex;
-		align-items: center;
-		padding: 14rpx 12rpx;
-		border-bottom: 1px solid #eee;
-	}
-
-	.read-table-header {
-		font-weight: bold;
-		background-color: #f5f7fa;
-		padding-right: 40rpx;
-	}
-
-	.read-table-body {
-		flex: 1;
-		overflow: auto;
-	}
-
-	.read-cell {
-		flex-shrink: 0;
-	}
-
-	.read-cell.name {
-		color: #666666;
-		font-size: 20rpx;
-		flex: 1.5;
-		display: flex;
-		align-items: center;
-		max-width: 300rpx;
-	}
-
-	.read-cell.code {
-		color: #666666;
-		font-size: 20rpx;
-		flex: 1;
-	}
-
-	.read-cell.actions {
-		flex: 1;
-		display: flex;
-		justify-content: flex-end;
-		gap: 10rpx;
-	}
-
-	.read-batchDelete {
-		flex: 1;
-		display: flex;
-		justify-content: flex-end;
-	}
-
-	.disabled-btn {
-		background-color: #ddd;
-		color: #999;
-	}
-
-	.btn {
-		font-size: 20rpx;
-		padding: 0 16rpx;
-		border-radius: 6rpx;
-		margin: 0 5rpx;
-	}
-
-	.delete {
-		background-color: #f56c6c;
-		color: #fff;
-	}
-
-	.edit {
-		background-color: #409eff;
-		color: #fff;
-	}
-
-	.text-hide {
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		display: inline-block;
-		max-width: 100%;
-	}
-
-	:deep(.uni-checkbox-input) {
-		border-radius: 50%;
-	}
-
-	.popup-box {
-		background: #fff;
-		/* padding: 10rpx; */
-		height: 45vh;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.create-suffix {
-		padding: 14rpx 0;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.create-suffix-text {
-		width: 15%;
-		color: #666666;
-		font-size: 20rpx;
-		margin-right: 10rpx;
-		text-align: center;
-	}
-
-	.create-suffix-input {
-		width: 85%;
-		border: 1px solid #ccc;
-		padding: 5rpx;
-		border-radius: 5rpx;
-		margin-right: 10rpx;
-	}
-
-	.create-table-header {
-		padding: 10rpx 0rpx;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		border-top: 1rpx solid #f5f5f5;
-		border-bottom: 1rpx solid #f5f5f5;
-	}
-
-	.numberFragment {
-		width: 15%;
-		color: #666666;
-		font-size: 20rpx;
-		margin-right: 10rpx;
-		text-align: center;
-	}
-
-	.create-table-cols {
-		width: 85%;
-		padding: 5rpx;
-		display: flex;
-		align-items: center;
-	}
-
-	.create-table-body {
-		flex: 1;
-		overflow: auto;
-		padding-bottom: 20rpx;
-	}
-
-	.create-row {
-		height: 50rpx;
-		padding: 5rpx 0;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.create-placeholder {
-		width: 15%;
-		height: 100%;
-	}
-
-	.create-row-right {
-		width: 85%;
-		height: 100%;
-		padding: 5rpx;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.col {
-		/* flex: 1; */
-		text-align: center;
-		font-size: 20rpx;
-	}
-
-	.col:nth-child(1) {
-		width: 15%;
-	}
-
-	.col:nth-child(2) {
-		width: 20%;
-	}
-
-	.col:nth-child(3) {
-		width: 45%;
-	}
-
-	.col:nth-child(4) {
-		width: 15%;
-	}
-
-	.create-number {
-		width: 15%;
-		text-align: center;
-		font-size: 20rpx;
-		color: #666;
-	}
-
-	.create-class {
-		width: 20%;
-		padding: 5rpx;
-		padding-left: 6rpx;
-		border: 1px solid #e3e3e3;
-		border-radius: 5rpx;
-	}
-
-	.create-class-value {
-		font-size: 20rpx;
-		color: #666;
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.arrow-down {
-		font-size: 12rpx;
-		color: #666;
-		margin-left: 4rpx;
-	}
-
-	.create-value {
-		width: 30%;
-		display: flex;
-		align-items: center;
-		justify-content: space-around;
-		padding: 5rpx;
-		color: #666;
-	}
-
-	.create-value-input {
-		font-size: 18rpx;
-		padding: 5rpx;
-		border: 1px solid #e3e3e3;
-		border-radius: 5rpx;
-		color: #666;
-	}
-
-	.create-value-text {
-		margin: 10rpx;
-		font-size: 18rpx;
-	}
-
-	.create-delete {
-		width: 20%;
-		height: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.input {
-		width: 70%;
-		border: 1px solid #ccc;
-		padding: 5rpx;
-		flex: 1;
-	}
-
-	.range-input {
-		display: flex;
-		justify-content: space-around;
-		align-items: center;
-	}
-
-	.btn-delete {
-		background-color: #f56c6c;
-		color: white;
-		font-size: 20rpx;
-		padding: 0rpx 15rpx;
-		height: 80%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.btn-row {
-		width: 80%;
-		height: 20%;
-		display: flex;
-		justify-content: space-between;
-		padding-left: 16%;
-		padding-right: 4%;
-	}
-
-	.btn-add {
-		margin: 0;
-		height: 80%;
-		background-color: #409eff;
-		color: white;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.right-btns {
-		display: flex;
-		gap: 20rpx;
-	}
-
-	.btn-cancel,
-	.btn-confirm {
-		padding: 10rpx 20rpx;
-		color: white;
-		height: 80%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.btn-cancel {
-		background: #ffffff;
-		border: 1px solid #409eff;
-		color: #409eff;
-	}
-
-	.btn-confirm {
-		background: #409eff;
-	}
-
-	.edit-btn-row {
-		height: 13%;
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 20rpx;
-	}
-
-	.edit-btn-row button {
-		margin: 10rpx;
-	}
-
-	.bottomBorder {
-		border-bottom: 1px solid #f5f5f5;
-	}
-
-
-	.confirmPopup-content {
-		padding: 20rpx 10rpx;
-		background-color: #fff;
-		border-radius: 15rpx;
-		width: 300rpx;
-		text-align: center;
-	}
-
-	.confirmPopup-text {
-		font-size: 20rpx;
-		color: #333;
-		margin-bottom: 20rpx;
-		display: block;
-	}
-
-	.confirmPopup-buttons {
-		display: flex;
-		justify-content: space-around;
-	}
-
-	.confirmPopup-buttons-cancel {
-		background: #ffffff;
-		border: 1px solid #0F4687;
-		color: #0F4687;
-	}
-
-	.confirmPopup-buttons-confirm {
-		background-color: #0F4687;
-		color: #fff;
-	}
+.container {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+}
+
+.content-layout {
+	height: 100%;
+	display: flex;
+	flex: 1;
+	overflow: hidden;
+}
+
+/* 侧边栏样式 */
+.sidebar {
+	width: 190rpx; /* 修改为190rpx */
+	background-color: #f5f5f5;
+	border-right: 1rpx solid #eeeeee;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.second-sidebar {
+	background-color: #fafafa;
+	width: 190rpx; /* 修改为190rpx */
+}
+
+.third-sidebar {
+	width: 100%;
+}
+
+.third-sidebar .sidebar-item {
+	height: auto;
+	padding: 15.5rpx 20rpx; /* 将上下内边距减小2.5rpx */
+	border-bottom: 1px solid #eee; /* 将下方实线变粗 */
+}
+
+.third-sidebar .sidebar-item-content {
+	width: 100%;
+	font-size: 20rpx;
+	color: #333;
+	padding-left: 0;
+	display: flex;
+	justify-content: space-between; /* 使内容两端对齐 */
+	align-items: center; /* 垂直居中 */
+}
+
+.item-name {
+	flex-shrink: 0; /* 防止名字被压缩 */
+	margin-right: 10rpx; /* 添加右侧间距 */
+	color: #333;
+}
+
+.item-info-right {
+	display: flex;
+	align-items: center;
+	color: #333;
+	font-size: 18rpx;
+	margin-left: auto; /* Push to the right */
+}
+
+.item-quantity {
+	font-size: 20rpx;
+	margin-right: 10rpx;
+}
+
+.rightarrow {
+	height: 20rpx;
+	width: 20rpx; /* Add width to maintain aspect ratio */
+}
+
+.third-sidebar .sidebar-item.active .sidebar-item-content {
+	border-left: none;
+}
+
+.sidebar-item {
+	padding: 24rpx 0;
+	text-align: left;
+	color: #666;
+	border-bottom: 1px solid #eeeeee;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	height: 40rpx;
+	justify-content: center;
+	position: relative;
+}
+
+.sidebar-item-content {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	padding-left: 12rpx;
+	width: 60%;
+	font-size: 18rpx;
+}
+
+.sidebar-item.active {
+	background-color: #ffffff;
+}
+
+/* 修改活动项样式，使用伪元素创建蓝色线 */
+.sidebar-item.active::before {
+	content: '';
+	position: absolute;
+	top: 50%;
+	left: 0;
+	width: 4rpx;
+	height: 48rpx;
+	background-color: #0F4687;
+	transform: translateY(-50%);
+}
+
+.sidebar-item.active .sidebar-item-content {
+	background-color: #ffffff;
+	color: #0F4687;
+	border-left: none;
+}
+
+/* 移除第三个侧边栏活动项的左侧竖线 */
+.third-sidebar .sidebar-item.active .sidebar-item-content {
+	border-left: none;
+}
+
+/* 确保第三个侧边栏活动项文字颜色为黑色 */
+.third-sidebar .sidebar-item.active .sidebar-item-content {
+	color: #000;
+	font-weight: normal;
+	border-left: none;
+}
+
+/* 隐藏第三个侧边栏活动项的蓝色竖线伪元素 */
+.third-sidebar .sidebar-item.active::before {
+	display: none;
+}
+
+.confirm-row {
+	width: 100%;
+	background-color: #BDCBE0;
+	font-size: 20rpx;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 10rpx;
+	box-sizing: border-box;
+}
+
+.confirm-text {
+	text-align: center;
+	font-size: 20px;
+	color: #333;
+}
+
+.confirm-status {
+	text-align: center;
+	font-size: 20px;
+}
+
+.confirm-button-container {
+	margin-left: auto;
+}
+
+.confirm-button {
+	background-color: #0F4687;
+	color: #fff;
+	font-size: 15px;
+	border-radius: 5rpx;
+}
+
+.confirmPopup-content {
+	padding: 20rpx 10rpx;
+	background-color: #fff;
+	border-radius: 15rpx;
+	width: 300rpx;
+	text-align: center;
+}
+
+.confirmPopup-text {
+	font-size: 20rpx;
+	color: #333;
+	margin-bottom: 20rpx;
+	display: block;
+}
+
+.confirmPopup-buttons {
+	display: flex;
+	justify-content: space-around;
+}
+
+.confirmPopup-buttons-cancel {
+	background: #ffffff;
+	border: 1px solid #0F4687;
+	color: #0F4687;
+}
+
+.confirmPopup-buttons-confirm {
+	background-color: #0F4687;
+	color: #fff;
+}
+
+.action-buttons {
+	position: absolute;
+	right: 0;
+	top: 0;
+	height: 100%;
+	display: flex;
+}
+
+.action-buttons button {
+	width: 80rpx;
+	height: 100%;
+	border: none;
+	padding: 0;
+	font-size: 20rpx;
+	border-radius: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+}
+
+.action-buttons button:nth-child(1) {
+	background-color: #cccccc;
+}
+
+.action-buttons button:nth-child(2) {
+	background-color: #1677ff;
+}
+
+.action-buttons button:nth-child(3) {
+	background-color: #ff3141;
+}
+
+.action-buttons button:nth-child(3)[data-status="enabled"] {
+	background-color: #00b578;
+}
+
+.edit-popup-content {
+	background-color: #fff;
+	padding: 0;
+	width: 500rpx; /* Updated width to 500rpx */
+	border-radius: 10rpx;
+	overflow: hidden;
+}
+
+.popup-title {
+	font-size: 20rpx;
+	text-align: center;
+	/* Removed margin-bottom as padding/margins on next element control spacing */
+	color: #333;
+	background-color: #BDCBE0;
+	height: 60rpx; /* Height as per your last change */
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.edit-row {
+	display: flex;
+	align-items: center;
+	margin: 20rpx 30rpx;
+	padding-bottom: 20rpx;
+	border-bottom: 1px solid #eee;
+}
+
+.edit-row:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.edit-label {
+	font-size: 20rpx;
+	color: #666;
+	width: 150rpx;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+}
+
+.edit-value {
+	font-size: 20rpx;
+	color: #333;
+	flex: 1;
+	margin-left: -45rpx;
+}
+
+.status-toggle {
+	display: flex;
+	align-items: center;
+	flex: 1;
+	margin-left: -55rpx;
+}
+
+.status-text {
+	font-size: 20rpx;
+	color: #333;
+	margin: 0 10rpx;
+}
+
+/* Attempt to style the switch when unchecked */
+/* .status-toggle uni-switch:not([checked]) ::v-deep .uni-switch-input {
+	background-color: blue !important;
+} */
+
+.quantity-input {
+	flex: 1;
+	font-size: 20rpx;
+	margin-left: -50rpx;
+	height: 24rpx;
+	align-self: center;
+	margin-bottom: 16rpx; /* Increased bottom margin */
+}
+
+/* Adjust input internal padding and font size */
+.quantity-input ::v-deep .uni-easyinput__content {
+	padding: 0 10rpx !important; /* Adjusted padding */
+	font-size: 20rpx !important; /* Ensure internal text is 20rpx */
+	display: flex;
+	align-items: center;
+	border-radius: 0 !important;
+	min-height: 24rpx; /* Set min-height to match input height */
+}
+
+/* Style for the placeholder text */
+.quantity-input ::v-deep .uni-easyinput__placeholder {
+	font-size: 20rpx !important;
+	color: #999;
+}
+
+.popup-buttons {
+	display: flex;
+	justify-content: center; /* Center the buttons */
+	gap: 20rpx; /* Add space between buttons */
+	margin-top: 30rpx;
+	padding: 0 30rpx 30rpx;
+}
+
+.popup-btn {
+	width: 70rpx;
+	height: 50rpx;
+	font-size: 20rpx;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 10rpx;
+}
+
+/* Style for the first button (取消) */
+.popup-buttons .popup-btn:first-child {
+	margin-left: 120rpx; /* Move Cancel button 20rpx to the right */
+}
+
+/* Style for the second button (确定) */
+.popup-buttons .popup-btn:nth-child(2) {
+	margin-left: -80rpx; /* Set left margin for Confirm button */
+}
+
+.cancel-btn {
+	background-color: #fff;
+	color: #0F4687;
+	border: 1px solid #0F4687; /* Add border */
+}
+
+.confirm-btn {
+	background-color: #0F4687;
+	color: #fff;
+	border: none;
+}
+
+.disabled-button {
+	background-color: #ff3141;
+	color: #fff;
+	font-size: 13rpx;
+	padding: 0 12rpx;
+	border-radius: 20rpx;
+	margin-right: 5rpx;
+	height: 30rpx;
+	line-height: 30rpx;
+	display: inline-block;
+	width: 43rpx;
+	text-align: center;
+}
+
+.disabled-text {
+	color: #999;
+}
 </style>
