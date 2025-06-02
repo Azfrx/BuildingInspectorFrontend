@@ -28,11 +28,11 @@
 			</view>
 			<view class="item_3">
 				<radio-group name="radio">
-					<label @click="toggleRememberPassword">
-						<radio :checked="rememberPassword" />记住密码
+					<label>
+						<radio :checked="rememberPassword" @click="toggleRememberPassword" />记住密码
 					</label>
-					<label @click="toggleOfflineLogin">
-						<radio :checked="offlineLogin" />离线登录
+					<label>
+						<radio :checked="offlineLogin" @click="toggleOfflineLogin" />离线登录
 					</label>
 				</radio-group>
 			</view>
@@ -47,11 +47,9 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { login } from '@/api/user';
-import { useUserStore } from '@/store/user';
-
-const userStore = useUserStore();
+import { ref, onMounted, nextTick } from 'vue';
+import { setUser} from '../../utils/writeNew';
+import { getUser } from '../../utils/readJsonNew';
 const username = ref('');
 const password = ref('');
 const rememberPassword = ref(false);
@@ -59,13 +57,37 @@ const offlineLogin = ref(false);
 const showPassword = ref(false);
 const loading = ref(false);
 
+// 添加双击事件处理函数
 const toggleRememberPassword = () => {
+	console.log('切换记住密码状态，当前状态:', rememberPassword.value);
 	rememberPassword.value = !rememberPassword.value;
+	console.log('切换后的状态:', rememberPassword.value);
 };
 
 const toggleOfflineLogin = () => {
+	console.log('切换离线登录状态，当前状态:', offlineLogin.value);
 	offlineLogin.value = !offlineLogin.value;
+	console.log('切换后的状态:', offlineLogin.value);
 };
+
+// 页面加载时检查是否有保存的用户信息
+onMounted(async () => {
+	try {
+		const savedUser = await getUser(3);
+		// 只有当savedUser存在且不为空时才执行填充操作
+		if (savedUser && Object.keys(savedUser).length > 0) {
+			console.log('找到保存的用户信息:', savedUser);
+			// 如果文件存在，勾选记住密码并填充内容
+			rememberPassword.value = true;
+			username.value = savedUser.username;
+			password.value = savedUser.password;
+		} else {
+			console.log('未找到保存的用户信息');
+		}
+	} catch (error) {
+		console.error('读取用户信息失败:', error);
+	}
+});
 
 const togglePasswordVisibility = () => {
 	showPassword.value = !showPassword.value;
@@ -80,42 +102,71 @@ const handleLogin = async () => {
 		return;
 	}
 
+	loading.value = true;
+
 	try {
-		loading.value = true;
-		
-		const loginData = {
-			username: username.value.trim(),
-			password: password.value.trim()
-		};
-		
-		const res = await login(loginData);
-		
-		console.log('登录响应数据:', JSON.stringify(res, null, 2));
-		
-		uni.setStorageSync('token', res.token);
-		
-		await userStore.login(username.value, res.token);
-		
-		if (rememberPassword.value) {
-			uni.setStorageSync('remember_password', true);
-			uni.setStorageSync('username', username.value);
-			uni.setStorageSync('password', password.value);
+		console.log('当前登录模式:', offlineLogin.value ? '离线登录' : '在线登录');
+		console.log('记住密码状态:', rememberPassword.value);
+		if (offlineLogin.value) {
+			console.log('进入离线登录逻辑');
+			// 离线登录逻辑
+			const savedUser = await getUser(3);
+			console.log('获取到的用户信息:', savedUser);
+			if (savedUser && 
+				savedUser.username === username.value && 
+				savedUser.password === password.value) {
+				console.log('离线登录成功，准备跳转');
+				// 登录成功，跳转到bridge页面
+				uni.navigateTo({
+					url: '/pages/bridge/bridge'
+				});
+			} else {
+				console.log('离线登录失败：用户名或密码不匹配');
+				uni.showToast({
+					title: '用户名或密码错误',
+					icon: 'none'
+				});
+			}
 		} else {
-			uni.removeStorageSync('remember_password');
-			uni.removeStorageSync('username');
-			uni.removeStorageSync('password');
+			// 在线登录逻辑
+			const response = await uni.request({
+				url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+				method: 'POST'
+			});
+			
+			console.log('登录响应:', response.data);
+			
+			if (response.data.code === 0) {
+				console.log('登录成功，准备跳转');
+				uni.navigateTo({
+					url: '/pages/bridge/bridge'
+				});
+				
+				console.log('记住密码状态:', rememberPassword.value);
+				if (rememberPassword.value) {
+					console.log('准备保存用户信息');
+					const userInfo = {
+						username: username.value,
+						password: password.value,
+					}
+					console.log('要保存的用户信息:', userInfo);
+					setUser(3,userInfo);
+					console.log('用户信息保存完成');
+				} else {
+					console.log('未勾选记住密码，不保存用户信息');
+				}
+			} else {
+				uni.showToast({
+					title: response.data.msg || '登录失败',
+					icon: 'none'
+				});
+			}
 		}
-		
-		uni.navigateTo({
-			url: '/pages/home/home'
-		});
 	} catch (error) {
 		console.error('登录失败:', error);
-		console.log('错误详情:', JSON.stringify(error, null, 2));
 		uni.showToast({
-			title: error.msg || '登录失败',
-			icon: 'none',
-			duration: 2000
+			title: '登录失败，请稍后重试',
+			icon: 'none'
 		});
 	} finally {
 		loading.value = false;

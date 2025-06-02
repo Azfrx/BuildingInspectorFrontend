@@ -78,7 +78,6 @@ const fileData = ref(null);
 const getData = async () => {
   try {
     const response = await getProject(3);
-    console.log('获取到的原始数据:', JSON.stringify(response));
     
     // 检查响应数据
     if (!response || response.code !== 0) {
@@ -93,7 +92,6 @@ const getData = async () => {
         projects: response.data.projects || []
       }
     };
-    console.log('处理后的数据:', JSON.stringify(fileData.value));
     
     // 根据 fileData.data.projects[0].year 设置初始年份
     if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {

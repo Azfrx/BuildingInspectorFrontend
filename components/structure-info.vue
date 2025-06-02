@@ -180,24 +180,24 @@ const handleCancel = (index) => {
 };
 
 const handleEdit = (index) => {
-	// Make a copy of the item to avoid modifying the original data directly before saving
 	currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
-	// Ensure status and quantity properties exist for the copy
 	if (currentEditItem.value) {
 		if (currentEditItem.value.status === undefined) {
-			currentEditItem.value.status = true; // Default status to enabled (blue)
+			currentEditItem.value.status = true; 
 		}
 		if (currentEditItem.value.quantity === undefined) {
-			currentEditItem.value.quantity = 0; // Default quantity to 0
+			currentEditItem.value.quantity = 0;
 		}
 	}
 	editPopup.value.open();
-	// Keep action buttons open until popup is closed or action is taken
-	// thirdLevelItems.value[index].showActions = false;
 };
 
 const handleDisable = (index) => {
-	console.log('停用项目:', thirdLevelItems.value[index]);
+	console.log('切换状态前:', thirdLevelItems.value[index].status);
+	// 切换状态
+	thirdLevelItems.value[index].status = !thirdLevelItems.value[index].status;
+	console.log('切换状态后:', thirdLevelItems.value[index].status);
+	// 关闭操作按钮
 	thirdLevelItems.value[index].showActions = false;
 };
 
@@ -303,7 +303,7 @@ onMounted(() => {
 	align-items: center;
 	color: #333;
 	font-size: 18rpx;
-	margin-left: auto; /* Push to the right */
+	margin-left: auto; 
 }
 
 .item-quantity {
@@ -313,7 +313,7 @@ onMounted(() => {
 
 .rightarrow {
 	height: 20rpx;
-	width: 20rpx; /* Add width to maintain aspect ratio */
+	width: 20rpx;
 }
 
 .third-sidebar .sidebar-item.active .sidebar-item-content {
@@ -485,7 +485,7 @@ onMounted(() => {
 .edit-popup-content {
 	background-color: #fff;
 	padding: 0;
-	width: 500rpx; /* Updated width to 500rpx */
+	width: 500rpx; 
 	border-radius: 10rpx;
 	overflow: hidden;
 }
@@ -493,10 +493,9 @@ onMounted(() => {
 .popup-title {
 	font-size: 20rpx;
 	text-align: center;
-	/* Removed margin-bottom as padding/margins on next element control spacing */
 	color: #333;
 	background-color: #BDCBE0;
-	height: 60rpx; /* Height as per your last change */
+	height: 60rpx; 
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -545,28 +544,23 @@ onMounted(() => {
 	margin: 0 10rpx;
 }
 
-/* Attempt to style the switch when unchecked */
-/* .status-toggle uni-switch:not([checked]) ::v-deep .uni-switch-input {
-	background-color: blue !important;
-} */
-
 .quantity-input {
 	flex: 1;
 	font-size: 20rpx;
 	margin-left: -50rpx;
 	height: 24rpx;
 	align-self: center;
-	margin-bottom: 16rpx; /* Increased bottom margin */
+	margin-bottom: 16rpx; 
 }
 
-/* Adjust input internal padding and font size */
+
 .quantity-input ::v-deep .uni-easyinput__content {
-	padding: 0 10rpx !important; /* Adjusted padding */
-	font-size: 20rpx !important; /* Ensure internal text is 20rpx */
+	padding: 0 10rpx !important;
+	font-size: 20rpx !important; 
 	display: flex;
 	align-items: center;
 	border-radius: 0 !important;
-	min-height: 24rpx; /* Set min-height to match input height */
+	min-height: 24rpx; 
 }
 
 /* Style for the placeholder text */
@@ -577,8 +571,8 @@ onMounted(() => {
 
 .popup-buttons {
 	display: flex;
-	justify-content: center; /* Center the buttons */
-	gap: 20rpx; /* Add space between buttons */
+	justify-content: center; 
+	gap: 20rpx; 
 	margin-top: 30rpx;
 	padding: 0 30rpx 30rpx;
 }
@@ -593,20 +587,20 @@ onMounted(() => {
 	border-radius: 10rpx;
 }
 
-/* Style for the first button (取消) */
+
 .popup-buttons .popup-btn:first-child {
-	margin-left: 120rpx; /* Move Cancel button 20rpx to the right */
+	margin-left: 120rpx;
 }
 
-/* Style for the second button (确定) */
+
 .popup-buttons .popup-btn:nth-child(2) {
-	margin-left: -80rpx; /* Set left margin for Confirm button */
+	margin-left: -80rpx;
 }
 
 .cancel-btn {
 	background-color: #fff;
 	color: #0F4687;
-	border: 1px solid #0F4687; /* Add border */
+	border: 1px solid #0F4687;
 }
 
 .confirm-btn {
