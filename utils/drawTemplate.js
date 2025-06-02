@@ -1,10 +1,16 @@
+const systemInfo = uni.getSystemInfoSync();
+const centerX = systemInfo.screenWidth / 2;
+const centerY = systemInfo.screenHeight / 2;
+const screenWidth = systemInfo.screenWidth;
+const screenHeight = systemInfo.screenHeight;
 //空心板 实心板
-function drawRulerRectTemplate(ctx, {
+function drawKxbTemplate1(ctx, {
 	logicalWidth = 8,
 	logicalHeight = 8,
 	unit = 'cm',
+	qt = 0
 }) {
-	const showDirectionArrow = true;
+	const showDirectionArrow = qt == 0 ? true : false;
 	const MAX_DRAW_WIDTH = 800; // 宽高对调
 	const MAX_DRAW_HEIGHT = 400;
 
@@ -20,15 +26,17 @@ function drawRulerRectTemplate(ctx, {
 	}
 
 	// 旋转前先平移坐标原点（注意是以画布中心为轴旋转）
-	const centerX = 750 / 2;
-	const centerY = 950 / 2;
-	ctx.translate(centerX, centerY);
-	ctx.rotate(90 * Math.PI / 180); // 顺时针旋转 90°
-	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
 
+	// ctx.translate(centerX, centerY);
+	// ctx.rotate(90 * Math.PI / 180); // 顺时针旋转 90°
+	// ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
+
+	// console.log('屏幕宽度:', systemInfo.screenWidth);
+	// console.log('屏幕高度:', systemInfo.screenHeight);
 	// 新的起点（旋转后坐标）
-	const x = (950 - drawWidth) / 2;
-	const y = (750 - drawHeight) / 2;
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	const y = (systemInfo.screenHeight - drawHeight) / 2;
 
 	const rulerGap = 10;
 	const minPixelPerUnit = 40;
@@ -45,6 +53,13 @@ function drawRulerRectTemplate(ctx, {
 
 	// 主矩形
 	ctx.strokeRect(x, y, drawWidth, drawHeight);
+
+	if (qt == 2) {
+		ctx.beginPath();
+		ctx.moveTo(x, y + scale / 2);
+		ctx.lineTo(x + drawWidth, y + scale / 2);
+		ctx.stroke();
+	}
 
 	// 上边（逻辑 X 轴）刻度
 	ctx.beginPath();
@@ -93,6 +108,76 @@ function drawRulerRectTemplate(ctx, {
 		ctx.stroke();
 		ctx.fillText(`${logicalHeight}${unit}`, px + 10, py + 5);
 	}
+	if (showDirectionArrow) {
+		const arrowStartX = x + drawWidth / 3;
+		const arrowY = y + drawHeight + 10;
+		const arrowEndX = x + drawWidth / 3 * 2;
+
+		ctx.beginPath();
+		ctx.moveTo(arrowStartX, arrowY);
+		ctx.lineTo(arrowEndX, arrowY);
+		ctx.lineTo(arrowEndX - 10, arrowY - 5);
+		ctx.moveTo(arrowEndX, arrowY);
+		ctx.lineTo(arrowEndX - 10, arrowY + 5);
+		ctx.stroke();
+
+		ctx.fillText('桩号增大方向', x + drawWidth / 2 - 40, arrowY + 20);
+	}
+}
+
+//空心板 实心板2
+function drawKxbTemplate2(ctx, {
+	logicalWidth = 8,
+	logicalHeight = 8,
+	unit = 'm',
+}) {
+	const showDirectionArrow = true;
+	const MAX_DRAW_WIDTH = 800; // 宽高对调
+	const MAX_DRAW_HEIGHT = 400;
+
+	// 计算缩放比例（按最大宽度优先）
+	let scale = MAX_DRAW_WIDTH / logicalWidth;
+	let drawWidth = MAX_DRAW_WIDTH;
+	let drawHeight = logicalHeight * scale;
+
+	if (drawHeight > MAX_DRAW_HEIGHT) {
+		scale = MAX_DRAW_HEIGHT / logicalHeight;
+		drawHeight = MAX_DRAW_HEIGHT;
+		drawWidth = logicalWidth * scale;
+	}
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	const y = (systemInfo.screenHeight - drawHeight) / 2;
+	// 倾斜量（控制斜的角度，单位 px）
+	const tiltOffsetX = 50;
+
+	const rulerGap = 10;
+	const minPixelPerUnit = 40;
+
+	// 刻度步长
+	let unitStepX = 1;
+	while ((unitStepX * scale) < minPixelPerUnit) unitStepX++;
+	let unitStepY = 1;
+	while ((unitStepY * scale) < minPixelPerUnit) unitStepY++;
+
+	ctx.setLineWidth(1);
+	ctx.setStrokeStyle('#333');
+	ctx.setFontSize(12);
+
+	// 绘制倾斜矩形（代替 strokeRect）
+	ctx.beginPath();
+	ctx.moveTo(x + tiltOffsetX, y); // 左上
+	ctx.lineTo(x + drawWidth, y); // 右上
+	ctx.lineTo(x + drawWidth - tiltOffsetX, y + drawHeight); // 右下
+	ctx.lineTo(x, y + drawHeight); // 左下
+	ctx.closePath();
+	ctx.stroke();
+
+	// 上边（逻辑 X 轴）刻度
+	drawRuler(ctx, x + tiltOffsetX, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 25, unit)
+
+	// 右边（逻辑 Y 轴）刻度
+	drawRuler(ctx, x + drawWidth + 10, y, x + drawWidth + 10 - tiltOffsetX, y + drawHeight, 'row', logicalHeight, 25,
+		unit)
 
 	// 方向箭头
 	if (showDirectionArrow) {
@@ -110,15 +195,11 @@ function drawRulerRectTemplate(ctx, {
 
 		ctx.fillText('桩号增大方向', x + drawWidth / 2 - 40, arrowY + 20);
 	}
-	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
-	ctx.rotate(-90 * Math.PI / 180); // 逆时针旋转 90°
-	ctx.translate(-centerX, -centerY); // 还原坐标
-
 }
 
 
 //变截面箱梁2
-function drawArchBridgeTemplate(ctx, {
+function drawBlmxlTemplate2(ctx, {
 	logicalLength = 53, // 总逻辑长度（单位）
 	beamCount = 3, // 梁数，最终桥墩数 = 2n + 1
 	unit = 'm', // 单位显示
@@ -130,12 +211,16 @@ function drawArchBridgeTemplate(ctx, {
 	ctx.setFillStyle('#333');
 	const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
 	const drawHeight = beamCount * 20 > 200 ? 200 : beamCount * 20;
-	const screenWidth = 750;
-	const screenHeight = 950;
+	const screenWidth = systemInfo.screenHeight;
+	const screenHeight = systemInfo.screenWidth;
 	const x = (screenWidth - drawHeight) / 2; //左上角
 	const y = (screenHeight - drawWidth) / 2; //左上角
 	const intLogicalLength = Math.floor(logicalLength); //取整
 	const unitLevel = 25;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
 
 	drawRuler(ctx, x + drawHeight + 10, y, x + drawHeight + 10, y + drawWidth, 'row', logicalLength, unitLevel,
 		unit)
@@ -200,16 +285,24 @@ function drawArchBridgeTemplate(ctx, {
 	ctx.stroke()
 
 	drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount)
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
 };
 
 //绘制刻度尺
-function drawRuler(ctx, x, y, endx, endy, direction, logicalLength, unitLevel, unit) {
+function drawRuler(ctx, x, y, endx, endy, direction, logicalLength, unitLevel, unit, isRotated = false) {
 	//direction是刻度的绘制方向
 	//logicalLength是用户定义的逻辑长度 即刻度线上的最大刻度
 	//unitLevel是单位级别 即长度是25的n倍，则一个刻度代表多少长度
 	const intLogicalLength = Math.floor(logicalLength) //取整
 	const unitCount = logicalLength % unitLevel === 0 ? logicalLength / unitLevel : Math.floor(logicalLength /
 		unitLevel) + 1;
+	const dis = isRotated ? 8 : -8
+	const rowdis = isRotated ? -8 : 8
+	const textXdis = isRotated ? -30 : 10
+	const textYdis = isRotated ? 5 : -30
 	ctx.beginPath();
 	ctx.moveTo(x, y);
 	ctx.lineTo(endx, endy);
@@ -226,30 +319,33 @@ function drawRuler(ctx, x, y, endx, endy, direction, logicalLength, unitLevel, u
 			const px = x + i * (longth / (intLogicalLength / unitCount));
 			ctx.beginPath();
 			ctx.moveTo(px, y + oversetY * i)
-			ctx.lineTo(px, y + 8 + oversetY * i)
+			ctx.lineTo(px, y + dis + oversetY * i)
 			ctx.stroke()
 			// 旋转文字，让它横向显示
 			text = `${i * unitCount}${unit}`;
 			textX = px - 10;
-			textY = y + 15 + oversetY * i;
+			textY = y - 15 + oversetY * i;
 		} else {
 			const longth = endy - y;
 			//倾斜时的偏移量
 			const oversetX = (endx - x) / (intLogicalLength / unitCount);
 			const py = y + i * (longth / (intLogicalLength / unitCount));
 			ctx.beginPath();
-			ctx.moveTo(x + oversetX, py)
-			ctx.lineTo(x + 8 + oversetX, py)
+			ctx.moveTo(x + oversetX * i, py)
+			ctx.lineTo(x + rowdis + oversetX * i, py)
 			ctx.stroke()
 			// 旋转文字，让它横向显示
 			text = `${i * unitCount}${unit}`;
-			textX = x + 15 + oversetX;
-			textY = py - 10;
+			textX = x + textXdis + oversetX * i;
+			textY = py + textYdis;
 		}
 
 		ctx.save(); // 保存当前状态
 		ctx.translate(textX, textY); // 移动到文字起点
-		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		if ((direction === 'row' && !isRotated) || (direction === 'colunm' && isRotated)) {
+			ctx.translate(5, 26); // 移动到文字起点
+			ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		}
 		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
 		ctx.restore(); // 恢复坐标系
 	}
@@ -260,25 +356,28 @@ function drawRuler(ctx, x, y, endx, endy, direction, logicalLength, unitLevel, u
 		if (direction === 'colunm') {
 			ctx.beginPath();
 			ctx.moveTo(endx, endy)
-			ctx.lineTo(endx, endy + 8)
+			ctx.lineTo(endx, endy + dis)
 			ctx.stroke()
 			// 旋转文字，让它横向显示
 			text = `${logicalLength}${unit}`;
 			textX = endx - 10;
-			textY = endy + 15;
+			textY = endy - 15;
 		} else {
 			ctx.beginPath();
 			ctx.moveTo(endx, endy)
-			ctx.lineTo(endx + 8, endy)
+			ctx.lineTo(endx + rowdis, endy)
 			ctx.stroke()
 			// 旋转文字，让它横向显示
 			text = `${logicalLength}${unit}`;
-			textX = endx + 15;
-			textY = endy - 10;
+			textX = endx + textXdis;
+			textY = endy + textYdis;
 		}
 		ctx.save(); // 保存当前状态
 		ctx.translate(textX, textY); // 移动到文字起点
-		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		if ((direction === 'row' && !isRotated) || (direction === 'colunm' && isRotated)) {
+			ctx.translate(5, 26); // 移动到文字起点
+			ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		}
 		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
 		ctx.restore(); // 恢复坐标系
 	}
@@ -377,8 +476,8 @@ function drawConvexCurve(ctx, points, bigBeamNumber, smallBeamNumber, bridgeFu, 
 	ctx.stroke();
 }
 
-//空心板 实心板 4
-function drawRulerRectTemplate4(ctx, {
+//空心板 实心板 3
+function drawKxbTemplate3(ctx, {
 	logicalWidth = 12,
 	bigBeamNumber = 1,
 	beamCount = 8,
@@ -388,11 +487,17 @@ function drawRulerRectTemplate4(ctx, {
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const miniRectHeight = 50;
-	const drawWidth = 600;
+	const drawWidth = 550;
 	const drawHeight = miniRectHeight * beamCount;
-	const overSetY = 50;
-	const x = 100;
-	const y = 950 - drawHeight > 0 ? (950 - drawHeight) / 2 : 50;
+	const overSetY = 0;
+	const x = (screenHeight - drawWidth) / 2 - 20;
+	// const y = 950 - drawHeight > 0 ? (950 - drawHeight) / 2 : 50;
+	const y = (screenWidth - drawHeight) / 2;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
 	//绘制外面的平行四边形
 	ctx.beginPath();
 	//上
@@ -449,12 +554,445 @@ function drawRulerRectTemplate4(ctx, {
 	// const rulerLongth = Math.hypot(drawWidth, overSetY);
 	//绘制刻度
 	drawRuler(ctx, x + drawWidth, y + drawHeight + overSetY + 10, x, y + drawHeight + 10, 'colunm', logicalWidth,
-		20, unit);
+		20, unit, true);
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+}
+
+//空心板 实心板 4
+function drawKxbTemplate4(ctx, {
+	logicalWidth = 12,
+	bigBeamNumber = 1,
+	beamCount = 8,
+	bridgeFu = 'L',
+	unit = 'm',
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const miniRectHeight = 50;
+	const drawWidth = 550;
+	const drawHeight = miniRectHeight * beamCount;
+	const overSetY = 50;
+	const x = (screenHeight - drawWidth) / 2 - 20;
+	// const y = 950 - drawHeight > 0 ? (950 - drawHeight) / 2 : 50;
+	const y = (screenWidth - drawHeight) / 2;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
+	//绘制外面的平行四边形
+	ctx.beginPath();
+	//上
+	ctx.moveTo(x, y);
+	ctx.lineTo(x + drawWidth, y + overSetY);
+	//左
+	ctx.moveTo(x, y);
+	ctx.lineTo(x, y + drawHeight);
+	//下
+	ctx.moveTo(x, y + drawHeight);
+	ctx.lineTo(x + drawWidth, y + drawHeight + overSetY);
+	//右
+	ctx.moveTo(x + drawWidth, y + overSetY);
+	ctx.lineTo(x + drawWidth, y + drawHeight + overSetY);
+	ctx.stroke();
+
+	//绘制内部线段 和两侧文字
+	for (let i = 1; i <= beamCount; i++) {
+		const py = y + i * miniRectHeight;
+		ctx.beginPath();
+		ctx.moveTo(x, py)
+		ctx.lineTo(x + drawWidth, py + overSetY)
+		ctx.stroke()
+		const text = `${bridgeFu}${bigBeamNumber}-${i}`;
+
+		ctx.save(); // 保存当前状态
+		ctx.translate(x + drawWidth + 10, py + overSetY - 34); // 移动到文字起点
+		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
+		ctx.restore(); // 恢复坐标系
+	}
+	for (let i = 1; i < beamCount; i++) {
+		const py = y + i * miniRectHeight;
+		const text = `${bridgeFu}${bigBeamNumber}-${i}`;
+		ctx.save(); // 保存当前状态
+		ctx.translate(x - 16, py - 16); // 移动到文字起点
+		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
+		ctx.restore(); // 恢复坐标系
+	}
+	//铰缝编号
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 40, y + drawHeight / 2 - 24); // 移动到文字起点
+	ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+	ctx.fillText('铰缝编号', 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+	//空心板编号
+	ctx.save(); // 保存当前状态
+	ctx.translate(x + drawWidth + 30, y + overSetY + drawHeight / 2 - 20); // 移动到文字起点
+	ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+	ctx.fillText('铰缝编号', 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+
+	// const rulerLongth = Math.hypot(drawWidth, overSetY);
+	//绘制刻度
+	drawRuler(ctx, x + drawWidth, y + drawHeight + overSetY + 10, x, y + drawHeight + 10, 'colunm', logicalWidth,
+		20, unit, true);
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+}
+
+//空心板 实心板 5
+function drawKxbTemplate5(ctx, {
+	logicalLength = 8,
+	bottomPlate = 1.2,
+	abdomenPlate = 1.2,
+	flangePlate = 1.2,
+	unit = 'm',
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const baseHeight = 60; // 基础高度
+	const drawWidth = 550; // 绘制宽度
+	const drawHeight = (bottomPlate + abdomenPlate + flangePlate) * baseHeight; // 绘制高度
+	const x = (systemInfo.screenWidth - drawWidth) / 2; // 左上角 x 坐标
+	let y = (systemInfo.screenHeight - drawHeight) / 2; // 左上角 y 坐标
+
+	//绘制刻度
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 20, unit);
+	// 翼缘板矩形
+	ctx.strokeRect(x, y, drawWidth, flangePlate * baseHeight);
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + flangePlate * baseHeight, flangePlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50, (y + y + flangePlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`翼缘板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+	// 腹板矩形
+	y += flangePlate * baseHeight; // 更新 y 坐标
+	ctx.strokeRect(x, y, drawWidth, abdomenPlate * baseHeight);
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + abdomenPlate * baseHeight, abdomenPlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50, (y + y + abdomenPlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`腹板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+	// 底板矩形
+	y += abdomenPlate * baseHeight; // 更新 y 坐标
+	ctx.strokeRect(x, y, drawWidth, bottomPlate * baseHeight);
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + bottomPlate * baseHeight, bottomPlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50, (y + y + bottomPlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`底板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+}
+
+//空心板 实心板 6
+function drawKxbTemplate6(ctx, {
+	logicalLength = 8,
+	bottomPlate = 1.2,
+	abdomenPlate = 1.2,
+	flangePlate = 1.2,
+	unit = 'm',
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const baseHeight = 60; // 基础高度
+	const drawWidth = 550; // 绘制宽度
+	const drawHeight = (bottomPlate + abdomenPlate + flangePlate) * baseHeight; // 绘制高度
+	const x = (systemInfo.screenWidth - drawWidth) / 2; // 左上角 x 坐标
+	let y = (systemInfo.screenHeight - drawHeight) / 2; // 左上角 y 坐标
+	const offsetX = 20;
+
+	//绘制刻度
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 20, unit);
+	// 翼缘板矩形
+	// 绘制倾斜矩形（代替 strokeRect）
+	ctx.beginPath();
+	ctx.moveTo(x, y); // 左上
+	ctx.lineTo(x + drawWidth, y); // 右上
+	ctx.lineTo(x + drawWidth - offsetX, y + flangePlate * baseHeight); // 右下
+	ctx.lineTo(x - offsetX, y + flangePlate * baseHeight); // 左下
+	ctx.closePath();
+	ctx.stroke();
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + flangePlate * baseHeight, flangePlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50, (y + y + flangePlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`翼缘板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+	// 腹板矩形
+	y += flangePlate * baseHeight; // 更新 y 坐标
+	// 绘制倾斜矩形（代替 strokeRect）
+	ctx.beginPath();
+	ctx.moveTo(x - offsetX, y); // 左上
+	ctx.lineTo(x + drawWidth - offsetX, y); // 右上
+	ctx.lineTo(x + drawWidth - offsetX * 2, y + abdomenPlate * baseHeight); // 右下
+	ctx.lineTo(x - offsetX * 2, y + abdomenPlate * baseHeight); // 左下
+	ctx.closePath();
+	ctx.stroke();
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + abdomenPlate * baseHeight, abdomenPlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50 - offsetX, (y + y + abdomenPlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`腹板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+	// 底板矩形
+	y += abdomenPlate * baseHeight; // 更新 y 坐标
+	// 绘制倾斜矩形（代替 strokeRect）
+	ctx.beginPath();
+	ctx.moveTo(x - offsetX * 2, y); // 左上
+	ctx.lineTo(x + drawWidth - offsetX * 2, y); // 右上
+	ctx.lineTo(x + drawWidth - offsetX * 3, y + bottomPlate * baseHeight); // 右下
+	ctx.lineTo(x - offsetX * 3, y + bottomPlate * baseHeight); // 左下
+	ctx.closePath();
+	ctx.stroke();
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + bottomPlate * baseHeight, bottomPlate, unit)
+	ctx.save(); // 保存当前状态
+	ctx.translate(x - 50 - offsetX * 2, (y + y + bottomPlate * baseHeight) / 2); // 移动到文字起点
+	ctx.fillText(`底板`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+}
+//T梁
+function drawTlTemplate1(ctx, {
+	logicalLength = 8,
+	bottomPlate = 1.2,
+	abdomenPlate = 1.2,
+	flangePlate = 1.2,
+	unit = 'm',
+	xl = false
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+
+	const baseHeight = 60;
+	const drawWidth = 550;
+	const totalHeight = (flangePlate * 2 + abdomenPlate * 2 + bottomPlate) * baseHeight;
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	let y = (systemInfo.screenHeight - totalHeight) / 2;
+
+	// 绘制顶部刻度尺
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalLength, 20, unit);
+
+	// ===== 上翼缘板 =====
+	ctx.strokeRect(x, y, drawWidth, flangePlate * baseHeight);
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + flangePlate * baseHeight, flangePlate, unit);
+	ctx.save();
+	ctx.translate(x - 50, y + flangePlate * baseHeight / 2);
+	ctx.fillText('翼缘板', 0, 0);
+	ctx.restore();
+	y += flangePlate * baseHeight;
+
+	// ===== 上腹板 =====
+	const abdomenHeight = abdomenPlate * baseHeight;
+	if (xl) {
+		ctx.strokeRect(x, y, drawWidth, abdomenPlate * baseHeight);
+	} else {
+		ctx.beginPath();
+		// 左边线
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, y + abdomenHeight);
+		// 右边线
+		ctx.moveTo(x + drawWidth, y);
+		ctx.lineTo(x + drawWidth, y + abdomenHeight);
+		ctx.stroke();
+	}
+
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + abdomenPlate * baseHeight, abdomenPlate, unit);
+	ctx.save();
+	ctx.translate(x - 50, y + abdomenPlate * baseHeight / 2);
+	ctx.fillText('腹板', 0, 0);
+	ctx.restore();
+	y += abdomenPlate * baseHeight;
+
+	// ===== 底板 =====
+	const bottomHeight = bottomPlate * baseHeight;
+	if (xl) {
+		ctx.strokeRect(x, y, drawWidth, bottomPlate * baseHeight);
+	} else {
+		const cpOffset = -30; // 控制点偏移决定弯曲程度
+		ctx.beginPath();
+		// 上边曲线（向内凹）
+		ctx.moveTo(x, y);
+		ctx.quadraticCurveTo(x + drawWidth / 2, y - cpOffset, x + drawWidth, y);
+		// 右边直线
+		ctx.lineTo(x + drawWidth, y + bottomHeight);
+		// 下边曲线（向内凹）
+		ctx.quadraticCurveTo(x + drawWidth / 2, y + bottomHeight + cpOffset, x, y + bottomHeight);
+		// 左边直线回起点
+		ctx.closePath();
+		ctx.stroke();
+	}
+	// 绘制右侧刻度
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + bottomHeight, bottomPlate, unit);
+
+	// 注释文字
+	ctx.save();
+	ctx.translate(x - 50, y + bottomHeight / 2);
+	ctx.fillText('底板', 0, 0);
+	ctx.restore();
+
+	y += bottomHeight; // 更新 y 值
+
+	// ===== 下腹板 =====
+	if (xl) {
+		ctx.strokeRect(x, y, drawWidth, abdomenPlate * baseHeight);
+	} else {
+		ctx.beginPath();
+		// 左边线
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, y + abdomenHeight);
+		// 右边线
+		ctx.moveTo(x + drawWidth, y);
+		ctx.lineTo(x + drawWidth, y + abdomenHeight);
+		ctx.stroke();
+	}
+
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + abdomenPlate * baseHeight, abdomenPlate, unit);
+	ctx.save();
+	ctx.translate(x - 50, y + abdomenPlate * baseHeight / 2);
+	ctx.fillText('腹板', 0, 0);
+	ctx.restore();
+	y += abdomenPlate * baseHeight;
+
+	// ===== 下翼缘板 =====
+	ctx.strokeRect(x, y, drawWidth, flangePlate * baseHeight);
+	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + flangePlate * baseHeight, flangePlate, unit);
+	ctx.save();
+	ctx.translate(x - 50, y + flangePlate * baseHeight / 2);
+	ctx.fillText('翼缘板', 0, 0);
+	ctx.restore();
+}
+
+//横隔板
+function drawHgbTemplate1(ctx, {
+	logicalWidth = 6,
+	logicalHeight = 4,
+	unit = 'm',
+	gl = false,
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+
+	const drawWidth = logicalWidth * 70;
+	const drawHeight = logicalHeight * 70;
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	const y = (systemInfo.screenHeight - drawHeight) / 2;
+	const cutSize = 50;
+
+	ctx.beginPath();
+
+	if (!gl) {
+		// 上切角
+		ctx.moveTo(x + cutSize, y); // 左上切角起点
+		ctx.lineTo(x + drawWidth - cutSize, y); // 上边横线
+		ctx.lineTo(x + drawWidth, y + cutSize); // 右上切角
+		ctx.lineTo(x + drawWidth, y + drawHeight); // 右侧
+		ctx.lineTo(x, y + drawHeight); // 底边
+		ctx.lineTo(x, y + cutSize); // 左侧
+	} else {
+		// 下切角
+		ctx.moveTo(x, y); // 左上
+		ctx.lineTo(x + drawWidth, y); // 上边横线
+		ctx.lineTo(x + drawWidth, y + drawHeight - cutSize); // 右下切角起点
+		ctx.lineTo(x + drawWidth - cutSize, y + drawHeight); // 右下切角
+		ctx.lineTo(x + cutSize, y + drawHeight); // 底边
+		ctx.lineTo(x, y + drawHeight - cutSize); // 左下切角
+	}
+
+	ctx.closePath();
+	ctx.stroke();
+
+	// 标尺绘制
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 20, unit);
+	drawRuler(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + drawHeight, 'row', logicalHeight, 20, unit);
+}
+
+//翼墙、耳墙
+function drawYqTemplate1(ctx, {
+	logicalWidth = 8,
+	logicalHeight = 4,
+	unit = 'm',
+}) {
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const cutHeight = 40; // 从顶部往下削的高度
+	const drawWidth = logicalWidth * 70; // 绘制宽度
+	const drawHeight = logicalHeight * 70; // 绘制高度
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	const y = (systemInfo.screenHeight - drawHeight) / 2;
+
+	// 原三角形顶点
+	const A = {
+		x: x,
+		y: y
+	}; // 左上
+	const B = {
+		x: x,
+		y: y + drawHeight
+	}; // 左下
+	const C = {
+		x: x + drawWidth,
+		y: y
+	}; // 右上
+	const D = {
+		x: x + drawWidth,
+		y: y + cutHeight
+	}; // 右下
+
+	ctx.beginPath();
+	ctx.moveTo(A.x, A.y);
+	ctx.lineTo(B.x, B.y);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(A.x, A.y);
+	ctx.lineTo(C.x, C.y);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(D.x, D.y);
+	ctx.lineTo(B.x, B.y);
+	ctx.stroke();
+	ctx.beginPath();
+	ctx.moveTo(D.x, D.y);
+	ctx.lineTo(C.x, C.y);
+	ctx.stroke();
+	drawRuler(ctx, A.x, A.y - 10, A.x + drawWidth, A.y - 10, 'colunm', logicalWidth, 20, unit);
+	drawRuler(ctx, A.x - 10, A.y, A.x - 10, A.y + drawHeight, 'row', logicalHeight, 20, unit, true);
 }
 
 
+const drawScaleSingle = (ctx, x, y, endX, endY, text, unit) => {
+	ctx.beginPath();
+	ctx.moveTo(x, y)
+	ctx.lineTo(x + 8, y)
+	ctx.stroke()
+
+	ctx.beginPath();
+	ctx.moveTo(x, y)
+	ctx.lineTo(x, endY)
+	ctx.stroke()
+
+	ctx.beginPath();
+	ctx.moveTo(x, endY)
+	ctx.lineTo(x + 8, endY)
+	ctx.stroke()
+	ctx.save(); // 保存当前状态
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	ctx.translate(x + 10, (y + endY) / 2); // 移动到文字起点
+	ctx.fillText(`${text}${unit}`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+}
+
 export {
-	drawRulerRectTemplate,
-	drawArchBridgeTemplate,
-	drawRulerRectTemplate4
+	drawKxbTemplate1,
+	drawKxbTemplate2,
+	drawKxbTemplate3,
+	drawKxbTemplate4,
+	drawKxbTemplate5,
+	drawKxbTemplate6,
+	drawTlTemplate1,
+	drawHgbTemplate1,
+	drawYqTemplate1,
+	drawBlmxlTemplate2,
 }

@@ -143,7 +143,8 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"navigationBarBackgroundColor": "#0F4687",
-				"navigationStyle": "custom" // ⬅️ 关闭原生导航栏
+				"navigationStyle": "custom" ,// ⬅️ 关闭原生导航栏
+				"screenOrientation": "landscape"
 				// "navigationBarLeftButtons": []
 			}
 		},

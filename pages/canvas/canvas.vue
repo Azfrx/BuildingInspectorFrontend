@@ -1,4 +1,5 @@
 <template>
+	<view class="header">绘制简图</view>
 	<view class="container">
 		<view class="toolbar">
 			<button @click="setMode('select')" :class="['iconButton', { active: mode === 'select' }]">
@@ -72,7 +73,7 @@
 			</view>
 		</view>
 
-		<view class="toolbar">
+		<view class="colorToolbar">
 			<image
 				:src="drawColor === '#333333' ? '/static/image/CheckedCircleFill.png' : '/static/image/CheckCircleFill.png'"
 				class="colorImg" @click="changeColor('#333333')" />
@@ -120,9 +121,16 @@
 	} from 'vue';
 
 	import {
-		drawRulerRectTemplate,
-		drawArchBridgeTemplate,
-		drawRulerRectTemplate4
+		drawKxbTemplate1,
+		drawKxbTemplate2,
+		drawKxbTemplate3,
+		drawKxbTemplate4,
+		drawKxbTemplate5,
+		drawKxbTemplate6,
+		drawTlTemplate1,
+		drawHgbTemplate1,
+		drawYqTemplate1,
+		drawBlmxlTemplate2,
 	} from '../../utils/drawTemplate';
 
 	import {
@@ -189,13 +197,71 @@
 
 	const showParamPopup = ref(false);
 	//空心板1
-	const rectTemplateParam = ref({
+	const kxbTemplateParam1 = ref({
 		logicalWidth: 8,
 		logicalHeight: 8,
 		unit: 'cm',
 	})
+	//空心板2
+	const kxbTemplateParam2 = ref({
+		logicalWidth: 8,
+		logicalHeight: 8,
+		unit: 'm',
+	})
+	//空心板3
+	const kxbTemplateParam3 = ref({
+		logicalWidth: 12,
+		bigBeamNumber: 1,
+		beamCount: 8,
+		bridgeFu: 'L',
+		unit: 'm',
+	})
+	//空心板4
+	const kxbTemplateParam4 = ref({
+		logicalWidth: 12,
+		bigBeamNumber: 1,
+		beamCount: 8,
+		bridgeFu: 'L',
+		unit: 'm',
+	})
+	//空心板5
+	const kxbTemplateParam5 = ref({
+		logicalLength: 8,
+		bottomPlate: 1.2,
+		abdomenPlate: 1.2,
+		flangePlate: 1.2,
+		unit: 'm',
+	})
+	//空心板6
+	const kxbTemplateParam6 = ref({
+		logicalLength: 8,
+		bottomPlate: 1.2,
+		abdomenPlate: 1.2,
+		flangePlate: 1.2,
+		unit: 'm',
+	})
+	//T梁
+	const tlTemplateParam1 = ref({
+		logicalLength: 8,
+		bottomPlate: 1.2,
+		abdomenPlate: 1.2,
+		flangePlate: 1.2,
+		unit: 'm',
+	})
+	// 横隔板
+	const hgbTemplateParam1 = ref({
+		logicalWidth: 6,
+		logicalHeight: 4,
+		unit: 'm',
+	})
+	// 翼墙
+	const yqTemplateParam1 = ref({
+		logicalWidth: 8,
+		logicalHeight: 4,
+		unit: 'm',
+	})
 	//桥梁2
-	const bridgeTemplateParam = ref({
+	const blmxlTemplateParam2 = ref({
 		logicalLength: 12.1,
 		beamCount: 3,
 		bigBeamNumber: 36,
@@ -203,28 +269,36 @@
 		bridgeFu: 'L',
 		unit: 'cm',
 	})
-	//空心板4
-	const rectTemplateParam4 = ref({
-		logicalWidth: 12,
-		bigBeamNumber: 1,
-		beamCount: 8,
-		bridgeFu: 'L',
-		unit: 'm',
-	})
 	const tempParams = ref({})
 	const fieldList = reactive([{
 			key: 'logicalWidth',
-			label: '逻辑宽度（单位数）',
+			label: '宽度（单位数）',
 			type: 'number'
 		},
 		{
 			key: 'logicalHeight',
-			label: '逻辑高度（单位数）',
+			label: '高度（单位数）',
 			type: 'number'
 		},
 		{
 			key: 'logicalLength',
-			label: '逻辑长度',
+			label: '长度',
+			type: 'number'
+		},
+		{
+			key: 'flangePlate',
+			label: '翼缘板',
+			type: 'number'
+		},
+
+		{
+			key: 'abdomenPlate',
+			label: '腹板',
+			type: 'number'
+		},
+		{
+			key: 'bottomPlate',
+			label: '底板',
 			type: 'number'
 		},
 		{
@@ -241,17 +315,16 @@
 			key: 'smallBeamNumber',
 			label: '小桩号墩',
 			type: 'number'
+		}, {
+			key: 'bridgeFu',
+			label: '桥幅(L / R)',
+			type: 'text'
 		},
 		{
 			key: 'unit',
 			label: '单位(cm / m)',
 			type: 'text'
 		},
-		{
-			key: 'bridge',
-			label: '桥幅(L / R)',
-			type: 'text'
-		}
 	]);
 
 	// 记录上一次点击的像素位置和选中图形的索引
@@ -279,14 +352,52 @@
 
 	onLoad((options) => {
 		switch (options.template) {
-			case '1':
-				template.value = 'rect';
+			case 'kxb1':
+				template.value = 'kxb1';
 				break;
-			case '2':
-				template.value = 'bridge';
+			case 'kxb2':
+				template.value = 'kxb2';
 				break;
-			case '3':
-				template.value = 'rect4';
+			case 'kxb3':
+				template.value = 'kxb3';
+				break;
+			case 'kxb4':
+				template.value = 'kxb4';
+				break;
+			case 'kxb5':
+				template.value = 'kxb5';
+				break;
+			case 'kxb6':
+				template.value = 'kxb6';
+				break;
+			case 'tl1':
+				template.value = 'tl1';
+				break;
+			case 'xl1':
+				template.value = 'xl1';
+				break;
+			case 'qt1':
+				template.value = 'qt1';
+				break;
+			case 'qt2':
+				template.value = 'qt2';
+				kxbTemplateParam1.value.logicalHeight = 10;
+				kxbTemplateParam1.value.logicalWidth = 10;
+				break;
+			case 'hgb1':
+				template.value = 'hgb1';
+				break;
+			case 'hgb2':
+				template.value = 'qt1';
+				break;
+			case 'yq1':
+				template.value = 'yq1';
+				break;
+			case 'gl1':
+				template.value = 'gl1';
+				break;
+			case 'blmxl2':
+				template.value = 'blmxl2';
 				break;
 			default:
 				template.value = '';
@@ -1111,23 +1222,51 @@
 
 	const changeTemplateParam = () => {
 		showParamPopup.value = true;
-		if (template.value === 'rect') {
-			tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam.value));
-		} else if (template.value === 'bridge') {
-			tempParams.value = JSON.parse(JSON.stringify(bridgeTemplateParam.value));
-		} else if (template.value === 'rect4') {
-			tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam4.value));
+		if (template.value === 'kxb1') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam1.value));
+		} else if (template.value === 'kxb2') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam2.value));
+		} else if (template.value === 'kxb3') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam3.value));
+		} else if (template.value === 'kxb4') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam4.value));
+		} else if (template.value === 'kxb5') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam5.value));
+		} else if (template.value === 'kxb6') {
+			tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam6.value));
+		} else if (template.value === 'tl1') {
+			tempParams.value = JSON.parse(JSON.stringify(tlTemplateParam1.value));
+		} else if (template.value === 'hgb1') {
+			tempParams.value = JSON.parse(JSON.stringify(hgbTemplateParam1.value));
+		} else if (template.value === 'yq1') {
+			tempParams.value = JSON.parse(JSON.stringify(yqTemplateParam1.value));
+		} else if (template.value === 'blmxl2') {
+			tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam2.value));
 		}
 	}
 
 	const applyTemplateChange = () => {
 		showParamPopup.value = false;
-		if (template.value === 'rect') {
-			rectTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
-		} else if (template.value === 'bridge') {
-			bridgeTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
-		} else if (template.value === 'rect4') {
-			rectTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+		if (template.value === 'kxb1') {
+			kxbTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'kxb2') {
+			kxbTemplateParam2.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'kxb3') {
+			kxbTemplateParam3.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'kxb4') {
+			kxbTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'kxb5') {
+			kxbTemplateParam5.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'kxb6') {
+			kxbTemplateParam6.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'tl1') {
+			tlTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'hgb1') {
+			hgbTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'yq1') {
+			yqTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'blmxl2') {
+			blmxlTemplateParam2.value = JSON.parse(JSON.stringify(tempParams.value));
 		}
 		redrawCanvas();
 	}
@@ -1219,29 +1358,110 @@
 
 	const drawTemplate = () => {
 		//绘制模板
-		if (template.value === 'rect') {
-			// ctx.value.drawImage(templateImage.value, 0, 0, screenWidth.value, screenHeight.value);
-			drawRulerRectTemplate(ctx.value, {
-				logicalWidth: Number(rectTemplateParam.value.logicalWidth),
-				logicalHeight: Number(rectTemplateParam.value.logicalHeight),
-				unit: rectTemplateParam.value.unit, // 单位参数
+		if (template.value === 'kxb1') {
+			drawKxbTemplate1(ctx.value, {
+				logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+				unit: kxbTemplateParam1.value.unit, // 单位参数
+				qt: 0,
 			});
-		} else if (template.value === 'bridge') {
-			drawArchBridgeTemplate(ctx.value, {
-				logicalLength: Number(bridgeTemplateParam.value.logicalLength),
-				beamCount: Number(bridgeTemplateParam.value.beamCount),
-				unit: bridgeTemplateParam.value.unit,
-				bigBeamNumber: Number(bridgeTemplateParam.value.bigBeamNumber),
-				smallBeamNumber: Number(bridgeTemplateParam.value.smallBeamNumber),
-				bridgeFu: bridgeTemplateParam.value.bridgeFu
+		} else if (template.value === 'kxb2') {
+			drawKxbTemplate2(ctx.value, {
+				logicalWidth: Number(kxbTemplateParam2.value.logicalWidth),
+				logicalHeight: Number(kxbTemplateParam2.value.logicalHeight),
+				unit: kxbTemplateParam2.value.unit, // 单位参数
 			});
-		} else if (template.value === 'rect4') {
-			drawRulerRectTemplate4(ctx.value, {
-				logicalWidth: rectTemplateParam4.value.logicalWidth,
-				bigBeamNumber: rectTemplateParam4.value.bigBeamNumber,
-				beamCount: rectTemplateParam4.value.beamCount,
-				bridgeFu: rectTemplateParam4.value.bridgeFu,
-				unit: rectTemplateParam4.value.unit,
+		} else if (template.value === 'kxb3') {
+			drawKxbTemplate3(ctx.value, {
+				logicalWidth: kxbTemplateParam3.value.logicalWidth,
+				bigBeamNumber: kxbTemplateParam3.value.bigBeamNumber,
+				beamCount: kxbTemplateParam3.value.beamCount,
+				bridgeFu: kxbTemplateParam3.value.bridgeFu,
+				unit: kxbTemplateParam3.value.unit,
+			});
+		} else if (template.value === 'kxb4') {
+			drawKxbTemplate4(ctx.value, {
+				logicalWidth: kxbTemplateParam4.value.logicalWidth,
+				bigBeamNumber: kxbTemplateParam4.value.bigBeamNumber,
+				beamCount: kxbTemplateParam4.value.beamCount,
+				bridgeFu: kxbTemplateParam4.value.bridgeFu,
+				unit: kxbTemplateParam4.value.unit,
+			});
+		} else if (template.value === 'kxb5') {
+			drawKxbTemplate5(ctx.value, {
+				logicalLength: kxbTemplateParam5.value.logicalLength,
+				bottomPlate: Number(kxbTemplateParam5.value.bottomPlate),
+				abdomenPlate: Number(kxbTemplateParam5.value.abdomenPlate),
+				flangePlate: Number(kxbTemplateParam5.value.flangePlate),
+				unit: kxbTemplateParam5.value.unit,
+			});
+		} else if (template.value === 'kxb6') {
+			drawKxbTemplate6(ctx.value, {
+				logicalLength: kxbTemplateParam6.value.logicalLength,
+				bottomPlate: Number(kxbTemplateParam6.value.bottomPlate),
+				abdomenPlate: Number(kxbTemplateParam6.value.abdomenPlate),
+				flangePlate: Number(kxbTemplateParam6.value.flangePlate),
+				unit: kxbTemplateParam6.value.unit,
+			});
+		} else if (template.value === 'tl1') {
+			drawTlTemplate1(ctx.value, {
+				logicalWidth: tlTemplateParam1.value.logicalLength,
+				bottomPlate: Number(tlTemplateParam1.value.bottomPlate),
+				abdomenPlate: Number(tlTemplateParam1.value.abdomenPlate),
+				flangePlate: Number(tlTemplateParam1.value.flangePlate),
+				unit: tlTemplateParam1.value.unit,
+			});
+		} else if (template.value === 'xl1') {
+			drawTlTemplate1(ctx.value, {
+				logicalWidth: tlTemplateParam1.value.logicalLength,
+				bottomPlate: Number(tlTemplateParam1.value.bottomPlate),
+				abdomenPlate: Number(tlTemplateParam1.value.abdomenPlate),
+				flangePlate: Number(tlTemplateParam1.value.flangePlate),
+				unit: tlTemplateParam1.value.unit,
+				xl: true,
+			});
+		} else if (template.value === 'qt1') {
+			drawKxbTemplate1(ctx.value, {
+				logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+				unit: kxbTemplateParam1.value.unit, // 单位参数
+				qt: 1
+			});
+		} else if (template.value === 'qt2') {
+			drawKxbTemplate1(ctx.value, {
+				logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+				unit: kxbTemplateParam1.value.unit, // 单位参数
+				qt: 2,
+			});
+		} else if (template.value === 'hgb1') {
+			drawHgbTemplate1(ctx.value, {
+				logicalWidth: Number(hgbTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(hgbTemplateParam1.value.logicalHeight),
+				unit: hgbTemplateParam1.value.unit, // 单位参数
+				gl: false
+			});
+		} else if (template.value === 'yq1') {
+			drawYqTemplate1(ctx.value, {
+				logicalWidth: Number(yqTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(yqTemplateParam1.value.logicalHeight),
+				unit: yqTemplateParam1.value.unit, // 单位参数
+			});
+		} else if (template.value === 'gl1') {
+			drawHgbTemplate1(ctx.value, {
+				logicalWidth: Number(hgbTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(hgbTemplateParam1.value.logicalHeight),
+				unit: hgbTemplateParam1.value.unit, // 单位参数
+				gl: true
+			});
+		} else if (template.value === 'blmxl2') {
+			drawBlmxlTemplate2(ctx.value, {
+				logicalLength: Number(blmxlTemplateParam2.value.logicalLength),
+				beamCount: Number(blmxlTemplateParam2.value.beamCount),
+				unit: blmxlTemplateParam2.value.unit,
+				bigBeamNumber: Number(blmxlTemplateParam2.value.bigBeamNumber),
+				smallBeamNumber: Number(blmxlTemplateParam2.value.smallBeamNumber),
+				bridgeFu: blmxlTemplateParam2.value.bridgeFu
 			});
 		}
 	}
@@ -1261,7 +1481,7 @@
 
 		// 绘制模板图（如果有）
 		drawTemplate();
-		
+
 		// 绘制历史操作
 		history.value.forEach(action => {
 			ctx.value.save();
@@ -1317,72 +1537,6 @@
 		ctx.value.restore();
 		ctx.value.draw(true);
 	};
-
-	// const redrawCanvas = () => {
-	// 	const now = Date.now();
-	// 	if (now - lastRedrawTime < 16) return;
-	// 	lastRedrawTime = now;
-
-	// 	ctx.value.save(); // 保存当前上下文
-	// 	ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
-
-	// 	// 应用画布的平移和缩放
-	// 	ctx.value.translate(offsetX.value, offsetY.value); //移动坐标系原点
-	// 	// ctx.value.scale(scale.value, scale.value);
-
-	// 	ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
-	// 	ctx.value.scale(scale.value, scale.value); // 执行缩放
-	// 	ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
-	// 	drawTemplate();
-
-	// 	ctx.value.restore(); // 恢复原始状态
-
-	// 	// 重新绘制所有历史记录
-	// 	history.value.forEach(action => {
-	// 		ctx.value.save(); // 保存当前状态
-
-	// 		ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2); // 把原点移到画布中心
-	// 		ctx.value.scale(scale.value / action.scale, scale.value / action.scale); // 执行缩放
-	// 		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2); // 把原点移回来
-
-	// 		ctx.value.setStrokeStyle(action.color);
-	// 		ctx.value.setLineWidth(1 / (scale.value / action.scale)); // 缩放时线宽保持视觉一致
-	// 		ctx.value.beginPath();
-	// 		if (action.mode === 'line') {
-	// 			ctx.value.moveTo(action.startX, action.startY);
-	// 			ctx.value.lineTo(action.endX, action.endY);
-	// 		} else if (action.mode === 'rect') {
-	// 			ctx.value.rect(action.x, action.y, action.width, action.height);
-	// 		} else if (action.mode === 'circle') {
-	// 			// ctx.value.arc(action.cx, action.cy, action.radius, 0, 2 * Math.PI);
-	// 			drawSmoothEllipse(ctx.value, action.startX, action.startY, action.currentX, action.currentY);
-	// 		} else if (action.mode === 'curve') {
-	// 			ctx.value.moveTo(action.curvePoints[0].x, action.curvePoints[0].y);
-	// 			action.curvePoints.forEach((point, index) => {
-	// 				if (index > 0) {
-	// 					ctx.value.lineTo(point.x, point.y);
-	// 				}
-	// 			});
-	// 		} else if (action.mode === 'text') {
-	// 			ctx.value.setFontSize(20);
-	// 			ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
-	// 		}
-	// 		ctx.value.stroke();
-
-	// 		ctx.value.restore(); // 恢复原始状态
-	// 	});
-
-	// 	//有没有文字处于选中状态需要绘制边框
-	// 	if (textSelecting.value) {
-	// 		ctx.value.setStrokeStyle('#000000');
-	// 		ctx.value.setLineWidth(0.5);
-	// 		ctx.value.strokeRect(textBox.value.x - 2, textBox.value.y - 2, textBox.value.width + 8, textBox.value
-	// 			.height + 8);
-	// 	}
-
-	// 	ctx.value.restore(); // 恢复原始状态
-	// 	ctx.value.draw(true);
-	// };
 
 	const pointToSegmentDistance = (x1, y1, x2, y2, x, y) => {
 		const dx = x2 - x1;
@@ -1440,28 +1594,49 @@
 <style scoped>
 	.container {
 		display: flex;
-		flex-direction: row-reverse;
+		/* flex-direction: row-reverse; */
+		flex-direction: column;
 		align-items: center;
 		justify-content: space-between;
 		padding: 0 10rpx 0 10rpx;
 		height: 95vh;
 	}
 
-	.toolbar,
-	.colorToolbar {
-		margin-top: 4rpx;
+	.header {
+		width: 100vw;
+		height: 5vh;
+		background-color: #0F4687;
+		color: #FFFFFF;
+		font-size: 24rpx;
 		display: flex;
-		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.toolbar {
+		margin-top: 10rpx;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		gap: 15rpx;
+		z-index: 9999;
+		/* width: 100vw; */
+	}
+
+	.colorToolbar {
+		margin-bottom: 20rpx;
+		display: flex;
+		flex-direction: row;
 		justify-content: center;
 		align-items: center;
 		gap: 10rpx;
-		margin-bottom: 10px;
 		z-index: 9999;
 	}
 
 	.toolbar button,
 	.colorToolbar button {
-		transform: rotate(90deg);
+		/* transform: rotate(90deg); */
 	}
 
 	.functionBar {
@@ -1478,24 +1653,24 @@
 	.functionButton {
 		background-color: transparent;
 		border: 1rpx solid #0F4687;
-		height: 50rpx;
-		width: 50rpx;
-		font-size: 16rpx;
+		height: 90rpx;
+		width: 90rpx;
+		font-size: 28rpx;
 		color: #000000;
 		display: flex;
 		justify-content: center;
 		align-items: center;
 		padding: 4rpx;
-		line-height: 20rpx;
-		transform: rotate(90deg);
+		line-height: 28rpx;
+		/* transform: rotate(90deg); */
 	}
 
 	.iconButton {
 		background-color: transparent;
 		border-radius: 50%;
 		border: 1rpx solid #0F4687;
-		height: 50rpx;
-		width: 50rpx;
+		height: 90rpx;
+		width: 90rpx;
 		display: flex;
 		justify-content: center;
 		align-items: center;
@@ -1504,14 +1679,14 @@
 	}
 
 	.separateLine {
-		border-top: 1rpx solid #0F4687;
-		width: 50rpx;
-		height: 0;
+		border-left: 1rpx solid #0F4687;
+		width: 0;
+		height: 70rpx;
 	}
 
 	.icon {
-		width: 30rpx;
-		height: 30rpx;
+		width: 60rpx;
+		height: 60rpx;
 	}
 
 	.colorButton {
@@ -1526,9 +1701,9 @@
 	}
 
 	.colorImg {
-		height: 50rpx;
-		width: 50rpx;
-		transform: rotate(90deg);
+		height: 90rpx;
+		width: 90rpx;
+		/* transform: rotate(90deg); */
 	}
 
 	.text-input {
@@ -1540,7 +1715,7 @@
 		padding: 8px;
 		z-index: 1000;
 		transform-origin: top left;
-		transform: rotate(90deg);
+		/* transform: rotate(90deg); */
 	}
 
 	.input {
@@ -1609,7 +1784,7 @@
 		padding: 20rpx;
 		width: 500rpx;
 		border-radius: 20rpx;
-		transform: rotate(90deg);
+		/* transform: rotate(90deg); */
 	}
 
 	.popup-content view input {

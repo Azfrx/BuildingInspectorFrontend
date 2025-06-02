@@ -64,7 +64,8 @@
 					</view>
 				</view>
 
-				<picker class="picker" @change="TypeofdefectPickerChange" :value="typeindex" :range="type" :disabled="componentCodeindex === -1" @click="checkComponentCodeSelected">
+				<picker class="picker" @change="TypeofdefectPickerChange" :value="typeindex" :range="type"
+					:disabled="componentCodeindex === -1" @click="checkComponentCodeSelected">
 					<view class="picker-titleAndContent">
 						<view class="picker-left">
 							<text class="picker-must">*</text>
@@ -106,7 +107,8 @@
 					</view>
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="quantity">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="quantity">
 							<view class="clear-input" @click="clearQuantity">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="quantityUnitChange"
@@ -227,14 +229,16 @@
 					</view>
 					<view class="location-description-right">
 						距
-						<view class="location-description-right-position" @click="openLocationPositionPopup('lateral', 'start')">
+						<view class="location-description-right-position"
+							@click="openLocationPositionPopup('lateral', 'start')">
 							<view class="location-description-right-position-input"
 								:style="!lateralStartPosition ? 'color: #CCCCCC;' : ''">
 								{{ lateralStartPosition ||"请选择" }}
 							</view>
 							<view class="right-icon">&gt;</view>
 						</view>
-						<view class="location-description-right-distance" @click="openLocationDistancePopup('lateral', 'start')">
+						<view class="location-description-right-distance"
+							@click="openLocationDistancePopup('lateral', 'start')">
 							<view class="location-description-right-distance-input"
 								:style="!lateralStartDistance ? 'color: #CCCCCC;' : ''">
 								{{ lateralStartDistance ||"请选择" }}
@@ -309,13 +313,15 @@
 					</view>
 					<view class="location-description-right">
 						距
-						<view class="location-description-right-position" @click="openLocationPositionPopup('lateral', 'end')">
+						<view class="location-description-right-position"
+							@click="openLocationPositionPopup('lateral', 'end')">
 							<view class="location-description-right-position-input"
 								:style="!lateralEndPosition ? 'color: #CCCCCC;' : ''">{{ lateralEndPosition ||"请选择" }}
 							</view>
 							<view class="right-icon">&gt;</view>
 						</view>
-						<view class="location-description-right-distance" @click="openLocationDistancePopup('lateral', 'end')">
+						<view class="location-description-right-distance"
+							@click="openLocationDistancePopup('lateral', 'end')">
 							<view class="location-description-right-distance-input"
 								:style="!lateralEndDistance ? 'color: #CCCCCC;' : ''">{{ lateralEndDistance ||"请选择" }}
 							</view>
@@ -360,7 +366,8 @@
 					</view>
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="length">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="length">
 							<view class="clear-input" @click="clearLength">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="lengthUnitChange" :value="lengthUnitIndex"
@@ -379,7 +386,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="width">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="width">
 							<view class="clear-input" @click="clearWidth">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="widthUnitChange" :value="widthUnitIndex"
@@ -398,7 +406,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="heightOrDepth">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="heightOrDepth">
 							<view class="clear-input" @click="clearHeight">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="heightUnitChange" :value="heightUnitIndex"
@@ -417,7 +426,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="slitWidth">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="slitWidth">
 							<view class="clear-input" @click="clearSeamsWidth">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="seamsWidthUnitChange"
@@ -437,7 +447,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="area">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="area">
 							<view class="clear-input" @click="clearArea">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="areaUnitChange" :value="areaUnitIndex"
@@ -455,7 +466,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="volume">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="volume">
 							<view class="clear-input" @click="clearVolume">×</view>
 						</view>
 						<picker class="quantitative-data-right-unit" @change="volumeUnitChange" :value="volumeUnitIndex"
@@ -474,7 +486,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="angle">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="angle">
 							<view class="clear-input" @click="clearAngle">×</view>
 						</view>
 						<view class="quantitative-data-right-unit-fixed">
@@ -491,7 +504,8 @@
 
 					<view class="quantitative-data-right">
 						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="percentage">
+							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+								v-model="percentage">
 							<view class="clear-input" @click="clearPercentage">×</view>
 						</view>
 						<view class="quantitative-data-right-unit-fixed">
@@ -718,7 +732,7 @@
 				<view class="part-title">上传简图</view>
 				<view class="ADImages">
 					<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
-						<image :src="img.src" class="ADImage"/>
+						<image :src="img.src" class="ADImage" />
 						<view class="close-btn" @click="removeImage(index)">×</view>
 					</view>
 					<view class="ADImage-container" @click="selectCanvasTemplate()">
@@ -733,15 +747,85 @@
 			<view class="popup-content">
 				<view class="template-row">
 					<view class="template-type">
-						模板
+						空心板、实心板
 					</view>
 					<view class="template-image">
 						<image src="/static/image/template1.png" class="template-image-card"
-							@click="onClickTemplate(1)"></image>
-						<image src="/static/image/template2.png" class="template-image-card"
-							@click="onClickTemplate(2)"></image>
+							@click="onClickTemplate('kxb1')"></image>
+						<image src="/static/image/template1.png" class="template-image-card"
+							@click="onClickTemplate('kxb2')"></image>
+						<image src="/static/image/template1.png" class="template-image-card"
+							@click="onClickTemplate('kxb3')"></image>
 						<image src="/static/image/template3.png" class="template-image-card"
-							@click="onClickTemplate(3)"></image>
+							@click="onClickTemplate('kxb4')"></image>
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate('kxb5')"></image>
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate('kxb6')"></image>
+					</view>
+					<view class="template-type">
+						T梁
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate('tl1')"></image>
+					</view>
+
+					<view class="template-type">
+						箱梁
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template3.png" class="template-image-card"
+							@click="onClickTemplate('xl1')"></image>
+					</view>
+
+					<view class="template-type">
+						变截面箱梁
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('blmxl2')"></image>
+					</view>
+
+					<view class="template-type">
+						桥台、桥墩
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('qt1')"></image>
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('qt2')"></image>
+					</view>
+
+					<view class="template-type">
+						横隔板
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('hgl1')"></image>
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('hgl2')"></image>
+					</view>
+
+					<view class="template-type">
+						翼墙、耳墙
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('yq1')"></image>
+					</view>
+					<view class="template-type">
+						盖梁
+					</view>
+					<view class="template-image">
+						<image src="/static/image/template2.png" class="template-image-card"
+							@click="onClickTemplate('gl1')"></image>
+					</view>
+					<view class="template-type">
+						圆桩墩
+					</view>
+					<view class="template-image">
+
 					</view>
 				</view>
 			</view>
@@ -1208,41 +1292,48 @@
 				// 异步初始化第二维数据
 				setTimeout(() => {
 					initMultiPickerColumn2();
-					
+
 					// 处理部件类型（biObject）
 					if (data.component?.biObject?.name) {
-						const biObjectIdx = biObjectName.value.findIndex(item => item === data.component.biObject.name);
+						const biObjectIdx = biObjectName.value.findIndex(item => item === data.component
+							.biObject.name);
 						console.log('尝试设置部件类型索引:', biObjectIdx, '对应值:', data.component.biObject.name);
-						
+
 						if (biObjectIdx !== -1) {
 							// 更新部件类型索引和多选器
 							biObjectindex.value = biObjectIdx;
 							typeMultiIndex.value[1] = biObjectIdx;
 							console.log('成功设置部件类型:', data.component.biObject.name);
-							
+
 							// 更新构件编号和病害类型选项
 							setTimeout(() => {
 								updateDiseaseTypeOptions();
 								updateComponentNumbers();
-								
+
 								// 设置构件编号
 								setTimeout(() => {
 									if (data.component?.code) {
-										const codeIndex = componentCode.value.findIndex(item => item === data.component.code);
+										const codeIndex = componentCode.value.findIndex(item =>
+											item === data.component.code);
 										if (codeIndex !== -1) {
 											componentCodeindex.value = codeIndex;
 											console.log('成功设置构件编号:', data.component.code);
-											
+
 											// 设置病害类型
 											setTimeout(() => {
 												if (data.type) {
-													const diseaseTypeIdx = type.value.findIndex(item => item === data.type);
+													const diseaseTypeIdx = type.value
+														.findIndex(item => item ===
+															data.type);
 													if (diseaseTypeIdx !== -1) {
-														typeindex.value = diseaseTypeIdx;
-														console.log('成功设置病害类型:', data.type);
+														typeindex.value =
+															diseaseTypeIdx;
+														console.log('成功设置病害类型:', data
+															.type);
 														dataLoaded = true;
 													} else {
-														console.warn('未找到匹配的病害类型:', data.type);
+														console.warn('未找到匹配的病害类型:',
+															data.type);
 													}
 												}
 											}, 10);
@@ -2840,7 +2931,7 @@
 			});
 			return;
 		}
-		
+
 		if (typeindex.value === -1) {
 			uni.showToast({
 				title: '请先选择病害类型',
@@ -2848,12 +2939,12 @@
 			});
 			return;
 		}
-		
+
 		openPositionPopup();
 	}
-  const openPositionPopup = () => {
+	const openPositionPopup = () => {
 		// 打开弹窗
-    diseasePositionPopup.value.open();
+		diseasePositionPopup.value.open();
 	}
 
 	// 在script setup部分，添加定量数据变量和清空函数
@@ -3305,7 +3396,8 @@
 	.ADImage {
 		height: 140rpx;
 		width: 140rpx;
-		object-fit: cover; /* 保持比例裁剪填充 */
+		object-fit: cover;
+		/* 保持比例裁剪填充 */
 		border-radius: 8rpx;
 	}
 
@@ -3358,14 +3450,17 @@
 	}
 
 	.template-type {
-		height: 10%;
+		height: 14%;
 		font-size: 18rpx;
-		padding: 10rpx;
 		box-sizing: border-box;
+		background-color: #ddd;
+		padding-left: 10rpx;
+		display: flex;
+		align-items: center;
 	}
 
 	.template-image {
-		height: 90%;
+		height: 85%;
 		width: 100%;
 		padding: 0 20rpx;
 		display: flex;
@@ -3493,7 +3588,7 @@
 
 	.location-description-left {
 		color: #666666;
-    font-size: 20rpx;
+		font-size: 20rpx;
 	}
 
 	.location-description-right {
@@ -3630,23 +3725,25 @@
 
 
 
-  /* 深度穿透组件样式 */
-  ::v-deep .uni-data-checklist .checklist-box {
-    min-height: 20rpx !important;
-    min-width: 60rpx !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
+	/* 深度穿透组件样式 */
+	::v-deep .uni-data-checklist .checklist-box {
+		min-height: 20rpx !important;
+		min-width: 60rpx !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+	}
 
-  /* 单独处理文本容器 */
-  ::v-deep .uni-data-checklist .checklist-box .checklist-content {
-    line-height: 1 !important; /* 重置行高 */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important; /* 确保文本容器占满父级 */
-  }
+	/* 单独处理文本容器 */
+	::v-deep .uni-data-checklist .checklist-box .checklist-content {
+		line-height: 1 !important;
+		/* 重置行高 */
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		width: 100% !important;
+		/* 确保文本容器占满父级 */
+	}
 
 
 	.form-container {
