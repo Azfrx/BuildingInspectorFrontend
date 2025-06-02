@@ -9,7 +9,9 @@ const FILE_NAMING = {
     property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
     disease: (userId, buildingId, yearId) =>
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
-    Object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`
+    Object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`,
+    // 新增用户信息路径规则
+    user: userId => `${userId}/user.json`
 };
 
 // 核心文件读取方法
@@ -61,6 +63,13 @@ export function getDisease(userId, buildingId, yearId) {
 
 export function getObject(userId, buildingId) {
     const path = DOC_BASE_PATH + FILE_NAMING.Object(userId, buildingId);
+    trackPath(path);
+    return getJsonData(path);
+}
+
+// 新增获取用户信息方法
+export function getUser(userId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.user(userId);
     trackPath(path);
     return getJsonData(path);
 }
