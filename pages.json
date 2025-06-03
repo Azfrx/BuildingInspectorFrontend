@@ -31,17 +31,6 @@
 				}
 			}
 		},
-		//		{
-		//			"path" : "pages/test/test",
-		//			"style" :
-		//			{
-		//				"navigationBarTitleText" : ""
-		//			}
-		//		},
-
-		//		{
-		//			"path": "pages/fileIO/fileIO"
-		//		},
 		{
 			"path": "pages/home/home",
 			"style": {
@@ -98,13 +87,6 @@
 				"navigationStyle": "custom" ,// ⬅️ 关闭原生导航栏
 				"screenOrientation": "landscape"
 				// "navigationBarLeftButtons": []
-			}
-		},
-		{
-			"path" : "pages/init_data_test/init_data_test",
-			"style" : 
-			{
-				"navigationBarTitleText" : ""
 			}
 		},
 		{
