@@ -7,9 +7,10 @@ const FILE_NAMING = {
     project: userId => `${userId}/project/projects.json`,
     task: (userId, projectId) => `${userId}/project/${projectId}/task.json`,
     property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
+    object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`, // 新增object路径规则
     disease: (userId, buildingId, yearId) =>
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
-    user: userId => `${userId}/user.json` // 新增用户文件路径规则
+    user: userId => `${userId}/user.json`
 };
 
 // 核心文件写入方法
@@ -51,15 +52,21 @@ export function setProperty(userId, buildingId, data) {
     return setJsonData(path, data);
 }
 
+// 新增object数据写入接口
+export function setObject(userId, buildingId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.object(userId, buildingId);
+    trackPath(path);
+    return setJsonData(path, data);
+}
+
 export function setDisease(userId, buildingId, yearId, data) {
     const path = DOC_BASE_PATH + FILE_NAMING.disease(userId, buildingId, yearId);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-// 新增用户数据写入接口
 export function setUser(userId, data) {
     const path = DOC_BASE_PATH + FILE_NAMING.user(userId);
     trackPath(path);
     return setJsonData(path, data);
-}  
+}

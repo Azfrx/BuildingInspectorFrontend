@@ -1,3 +1,7 @@
+<!-- 登录页面
+	author ：ykx
+	date : 2025 . 6.3
+ -->
 <template>
 	<view class = 'loginPage'>
 		<view class="logo">
@@ -22,7 +26,7 @@
 								class="password-icon"
 								@click="togglePasswordVisibility">
 							</image>
-						</view>
+					</view>
 					</view>
 				</view>
 			</view>
@@ -47,8 +51,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
-import { setUser} from '../../utils/writeNew';
+import { ref, onMounted } from 'vue';
+import {setUser} from '../../utils/writeNew';
 import { getUser } from '../../utils/readJsonNew';
 const username = ref('');
 const password = ref('');
@@ -73,10 +77,13 @@ const toggleOfflineLogin = () => {
 // 页面加载时检查是否有保存的用户信息
 onMounted(async () => {
 	try {
-		const savedUser = await getUser(3);
+		const savedUser = await getUser(1);
 		// 只有当savedUser存在且不为空时才执行填充操作
 		if (savedUser && Object.keys(savedUser).length > 0) {
 			console.log('找到保存的用户信息:', savedUser);
+			console.log('savedUser:', savedUser);
+			const token = savedUser.token;
+			console.log('token:', token);
 			// 如果文件存在，勾选记住密码并填充内容
 			rememberPassword.value = true;
 			username.value = savedUser.username;
@@ -110,7 +117,7 @@ const handleLogin = async () => {
 		if (offlineLogin.value) {
 			console.log('进入离线登录逻辑');
 			// 离线登录逻辑
-			const savedUser = await getUser(3);
+			const savedUser = await getUser(1);
 			console.log('获取到的用户信息:', savedUser);
 			if (savedUser && 
 				savedUser.username === username.value && 
@@ -118,7 +125,7 @@ const handleLogin = async () => {
 				console.log('离线登录成功，准备跳转');
 				// 登录成功，跳转到bridge页面
 				uni.navigateTo({
-					url: '/pages/bridge/bridge'
+					url: '/pages/home/home'
 				});
 			} else {
 				console.log('离线登录失败：用户名或密码不匹配');
@@ -137,21 +144,26 @@ const handleLogin = async () => {
 			console.log('登录响应:', response.data);
 			
 			if (response.data.code === 0) {
+				// 保存token到tokenInfo
+				const allUserInfo = {
+					token: response.data.token
+				}
+				// //将token写入文件
+				// setUser(1, tokenInfo.value);
+				
 				console.log('登录成功，准备跳转');
 				uni.navigateTo({
-					url: '/pages/bridge/bridge'
+					url: '/pages/home/home'
 				});
 				
 				console.log('记住密码状态:', rememberPassword.value);
 				if (rememberPassword.value) {
 					console.log('准备保存用户信息');
-					const userInfo = {
-						username: username.value,
-						password: password.value,
-					}
-					console.log('要保存的用户信息:', userInfo);
-					setUser(3,userInfo);
-					console.log('用户信息保存完成');
+					// 保存用户信息到savedUserInfo
+					allUserInfo.username = username.value;
+					allUserInfo.password = password.value;
+					//将合并写入
+					setUser(1, allUserInfo);
 				} else {
 					console.log('未勾选记住密码，不保存用户信息');
 				}
