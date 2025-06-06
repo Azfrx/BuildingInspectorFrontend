@@ -58,7 +58,7 @@
 						<view class="input-right">
 							<input class="component-code-input" v-model="componentCodeInput" placeholder="请输入构件编号"
 								placeholder-style="color: #CCCCCC;" />
-              <view class="clear-input" @click=" componentCodeInput = ''">×</view>
+							<view class="clear-input" @click=" componentCodeInput = ''">×</view>
 						</view>
 					</view>
 				</view>
@@ -801,82 +801,89 @@
 						空心板、实心板
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template1.png" class="template-image-card"
+						<image src="/static/image/template_kxb1.png" class="template-image-card"
 							@click="onClickTemplate('kxb1')"></image>
-						<image src="/static/image/template1.png" class="template-image-card"
+						<image src="/static/image/template_kxb2.png" class="template-image-card"
 							@click="onClickTemplate('kxb2')"></image>
-						<image src="/static/image/template1.png" class="template-image-card"
+						<image src="/static/image/template_kxb3.png" class="template-image-card"
 							@click="onClickTemplate('kxb3')"></image>
-						<image src="/static/image/template3.png" class="template-image-card"
+						<image src="/static/image/template_kxb4.png" class="template-image-card"
 							@click="onClickTemplate('kxb4')"></image>
-						<image src="/static/image/template3.png" class="template-image-card"
+						<image src="/static/image/template_kxb5.png" class="template-image-card"
 							@click="onClickTemplate('kxb5')"></image>
-						<image src="/static/image/template3.png" class="template-image-card"
+						<image src="/static/image/template_kxb6.png" class="template-image-card"
 							@click="onClickTemplate('kxb6')"></image>
 					</view>
 					<view class="template-type">
 						T梁
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template3.png" class="template-image-card"
+						<image src="/static/image/template_tl1.png" class="template-image-card"
 							@click="onClickTemplate('tl1')"></image>
 					</view>
-		
+
 					<view class="template-type">
 						箱梁
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template3.png" class="template-image-card"
+						<image src="/static/image/template_xl1.png" class="template-image-card"
 							@click="onClickTemplate('xl1')"></image>
 					</view>
-		
+
 					<view class="template-type">
 						变截面箱梁
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template2.png" class="template-image-card"
+						<image src="/static/image/template_blmxl1.png" class="template-image-card"
+							@click="onClickTemplate('blmxl1')"></image>
+						<image src="/static/image/template_blmxl2.png" class="template-image-card"
 							@click="onClickTemplate('blmxl2')"></image>
+						<image src="/static/image/template_blmxl3.png" class="template-image-card"
+							@click="onClickTemplate('blmxl3')"></image>
+						<image src="/static/image/template_blmxl4.png" class="template-image-card"
+							@click="onClickTemplate('blmxl4')"></image>
 					</view>
-		
+
 					<view class="template-type">
 						桥台、桥墩
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template2.png" class="template-image-card"
+						<image src="/static/image/template_qt1.png" class="template-image-card"
 							@click="onClickTemplate('qt1')"></image>
-						<image src="/static/image/template2.png" class="template-image-card"
+						<image src="/static/image/template_qt2.png" class="template-image-card"
 							@click="onClickTemplate('qt2')"></image>
 					</view>
-		
+
 					<view class="template-type">
 						横隔板
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template2.png" class="template-image-card"
-							@click="onClickTemplate('hgl1')"></image>
-						<image src="/static/image/template2.png" class="template-image-card"
-							@click="onClickTemplate('hgl2')"></image>
+						<image src="/static/image/template_hgb1.png" class="template-image-card"
+							@click="onClickTemplate('hgb1')"></image>
+						<image src="/static/image/template_hgb2.png" class="template-image-card"
+							@click="onClickTemplate('hgb2')"></image>
 					</view>
-		
+
 					<view class="template-type">
 						翼墙、耳墙
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template2.png" class="template-image-card"
+						<image src="/static/image/template_yq1.png" class="template-image-card"
 							@click="onClickTemplate('yq1')"></image>
 					</view>
 					<view class="template-type">
 						盖梁
 					</view>
 					<view class="template-image">
-						<image src="/static/image/template2.png" class="template-image-card"
+						<image src="/static/image/template_gl1.png" class="template-image-card"
 							@click="onClickTemplate('gl1')"></image>
 					</view>
 					<view class="template-type">
 						圆桩墩
 					</view>
 					<view class="template-image">
-		
+						<image src="/static/image/template_yzd1.png" class="template-image-card"
+							@click="onClickTemplate('yzd1')"></image>
 					</view>
 				</view>
 			</view>
@@ -3065,9 +3072,10 @@
 		padding: 12rpx 16rpx;
 		height: 200rpx;
 	}
-  .part-title{
-    font-size: 20rpx;
-  }
+
+	.part-title {
+		font-size: 20rpx;
+	}
 
 	.upload-view {
 		width: 100%;
@@ -3153,26 +3161,25 @@
 	}
 
 	.template-row {
-		height: 300rpx;
 		width: 100%;
 		border-bottom: 1px solid #eeeeee;
-		;
 	}
 
 	.template-type {
-		height: 10%;
 		font-size: 18rpx;
-		padding: 10rpx;
+		padding: 16rpx;
 		box-sizing: border-box;
 	}
 
 	.template-image {
-		height: 90%;
 		width: 100%;
-		padding: 0 20rpx;
+		padding: 20rpx;
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
+		flex-wrap: wrap;
+		row-gap: 10rpx;
+		border-bottom: 1px solid #eeeeee;
 		gap: 20rpx;
 	}
 
@@ -3384,7 +3391,7 @@
 	}
 
 	.quantitative-data-right-unit {
-    width: 35rpx;
+		width: 35rpx;
 		margin-left: 20rpx;
 		padding: 4rpx 4rpx;
 	}
@@ -3537,14 +3544,15 @@
 
 
 	/* 构件编号输入框样式 */
-  .input-right{
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    width: 180rpx;
-    border: 1rpx solid #eee;
-    padding: 4rpx 4rpx;
-  }
+	.input-right {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 180rpx;
+		border: 1rpx solid #eee;
+		padding: 4rpx 4rpx;
+	}
+
 	.component-code-input {
 		font-size: 20rpx;
 		text-align: right;

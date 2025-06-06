@@ -1,45 +1,45 @@
 <template>
 	<view class="header">绘制简图</view>
 	<view class="container">
-		<view class="toolbar">
-			<button @click="setMode('select')" :class="['iconButton', { active: mode === 'select' }]">
+		<view :class="['toolbar', {toolbarSP: !isLandscape}]">
+			<button @click="setMode('select')" :class="['iconButton', { active: mode === 'select' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/hand.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('line')" :class="['iconButton', { active: mode === 'line' }]">
+			<button @click="setMode('line')" :class="['iconButton', { active: mode === 'line' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/line.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('curve')" :class="['iconButton', { active: mode === 'curve' }]">
+			<button @click="setMode('curve')" :class="['iconButton', { active: mode === 'curve' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/curve.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('rect')" :class="['iconButton', { active: mode === 'rect' }]">
+			<button @click="setMode('rect')" :class="['iconButton', { active: mode === 'rect' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/rect.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('circle')" :class="['iconButton', { active: mode === 'circle' }]">
+			<button @click="setMode('circle')" :class="['iconButton', { active: mode === 'circle' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/circle.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('text')" :class="['iconButton', { active: mode === 'text' }]">
+			<button @click="setMode('text')" :class="['iconButton', { active: mode === 'text' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/text.svg' class="icon"></image>
 			</button>
-			<view class="separateLine"></view>
-			<button @click="undo" class="functionButton">
+			<view :class="['separateLine', {separateLineSP: !isLandscape}]"></view>
+			<button @click="undo" :class="['functionButton', {functionButtonSP: !isLandscape}]">
 				<!-- <image src='/static/image/back.svg' class="icon"></image> -->
 				撤销
 			</button>
-			<button @click="clearCanvas" class="functionButton">清空</button>
-			<button @click="zoomIn" class="functionButton">放大</button>
-			<button @click="zoomOut" class="functionButton">缩小</button>
-			<view class="separateLine"></view>
-			<button @click="back" class="functionButton">取消</button>
-			<button @click="saveCanvasToImage" class="functionButton">
+			<button @click="clearCanvas" :class="['functionButton', {functionButtonSP: !isLandscape}]">清空</button>
+			<button @click="zoomIn" :class="['functionButton', {functionButtonSP: !isLandscape}]">放大</button>
+			<button @click="zoomOut" :class="['functionButton', {functionButtonSP: !isLandscape}]">缩小</button>
+			<view :class="['separateLine', {separateLineSP: !isLandscape}]"></view>
+			<button @click="back" :class="['functionButton', {functionButtonSP: !isLandscape}]">取消</button>
+			<button @click="saveCanvasToImage" :class="['functionButton', {functionButtonSP: !isLandscape}]">
 				<!-- <image src='/static/image/save.svg' class="icon"></image> -->
 				保存
 			</button>
-			<view class="separateLine"></view>
-			<button @click="changeTemplateParam" class="functionButton">
+			<view :class="['separateLine', {separateLineSP: !isLandscape}]"></view>
+			<button @click="changeTemplateParam" :class="['functionButton', {functionButtonSP: !isLandscape}]">
 				<!-- <image src='/static/image/save.svg' class="icon"></image> -->
 				模板参数
 			</button>
-			<!-- <button @click="deleteSelected" class="functionButton">删除</button> -->
+			<!-- <button @click="deleteSelected" :class="['functionButton', {functionButtonSP: !isLandscape}]">删除</button> -->
 		</view>
 
 		<!-- 参数设置弹窗 -->
@@ -59,10 +59,10 @@
 		</view>
 
 		<!-- <view class="functionBar">
-			<button @click="deleteSelected" class="functionButton">删除</button>
-			<button @click="clearCanvas" class="functionButton">清空</button>
-			<button @click="zoomIn" class="functionButton">放大</button>
-			<button @click="zoomOut" class="functionButton">缩小</button>
+			<button @click="deleteSelected" :class="['functionButton', {functionButtonSP: !isLandscape}]">删除</button>
+			<button @click="clearCanvas" :class="['functionButton', {functionButtonSP: !isLandscape}]">清空</button>
+			<button @click="zoomIn" :class="['functionButton', {functionButtonSP: !isLandscape}]">放大</button>
+			<button @click="zoomOut" :class="['functionButton', {functionButtonSP: !isLandscape}]">缩小</button>
 		</view> -->
 		<view v-if="showTextInput" class="text-input"
 			:style="{ top: logicalToScreen(textInputX, textInputY).y + 'px', left: logicalToScreen(textInputX, textInputY).x + 'px' }">
@@ -76,19 +76,19 @@
 		<view class="colorToolbar">
 			<image
 				:src="drawColor === '#333333' ? '/static/image/CheckedCircleFill.png' : '/static/image/CheckCircleFill.png'"
-				class="colorImg" @click="changeColor('#333333')" />
+				:class="['colorImg', {colorImgSP: !isLandscape}]" @click="changeColor('#333333')" />
 			<image
 				:src="drawColor === '#FF3141' ? '/static/image/CheckedCircleFill-1.png' : '/static/image/CheckCircleFill-1.png'"
-				class="colorImg" @click="changeColor('#FF3141')" />
+				:class="['colorImg', {colorImgSP: !isLandscape}]" @click="changeColor('#FF3141')" />
 			<image
 				:src="drawColor === '#00B578' ? '/static/image/CheckedCircleFill-2.png' : '/static/image/CheckCircleFill-2.png'"
-				class="colorImg" @click="changeColor('#00B578')" />
+				:class="['colorImg', {colorImgSP: !isLandscape}]" @click="changeColor('#00B578')" />
 			<image
 				:src="drawColor === '#1677FF' ? '/static/image/CheckedCircleFill-3.png' : '/static/image/CheckCircleFill-3.png'"
-				class="colorImg" @click="changeColor('#1677FF')" />
+				:class="['colorImg', {colorImgSP: !isLandscape}]" @click="changeColor('#1677FF')" />
 			<image
 				:src="drawColor === '#FFD24A' ? '/static/image/CheckedCircleFill-4.png' : '/static/image/CheckCircleFill-4.png'"
-				class="colorImg" @click="changeColor('#FFD24A')" />
+				:class="['colorImg', {colorImgSP: !isLandscape}]" @click="changeColor('#FFD24A')" />
 
 			<!-- <button @click="changeColor('#FF3141')" class="colorButton"
 				style="background-color: #FF3141">{{drawColor=="#FF3141"? '√':''}}</button>
@@ -130,7 +130,11 @@
 		drawTlTemplate1,
 		drawHgbTemplate1,
 		drawYqTemplate1,
+		drawBlmxlTemplate1,
 		drawBlmxlTemplate2,
+		drawBlmxlTemplate3,
+		drawBlmxlTemplate4,
+		drawYzdTemplate1
 	} from '../../utils/drawTemplate';
 
 	import {
@@ -171,6 +175,7 @@
 	//记录状态 为了在只有点击没有滑动的情况下，让startX和currentX都不为0
 	const status = ref('start');
 	const drawColor = ref('#333333');
+	const isLandscape = ref(false); // 是否横屏
 
 	const textValue = ref('');
 	const showTextInput = ref(false);
@@ -260,6 +265,15 @@
 		logicalHeight: 4,
 		unit: 'm',
 	})
+	//桥梁1
+	const blmxlTemplateParam1 = ref({
+		logicalLength: 12.1,
+		beamCount: 3,
+		bigBeamNumber: 36,
+		smallBeamNumber: 35,
+		bridgeFu: 'L',
+		unit: 'cm',
+	})
 	//桥梁2
 	const blmxlTemplateParam2 = ref({
 		logicalLength: 12.1,
@@ -268,6 +282,29 @@
 		smallBeamNumber: 35,
 		bridgeFu: 'L',
 		unit: 'cm',
+	})
+	//桥梁3
+	const blmxlTemplateParam3 = ref({
+		logicalLength: 12.1,
+		leftBeamCount: 7,
+		bigBeamNumber: 36,
+		smallBeamNumber: 35,
+		bridgeFu: 'L',
+		unit: 'cm',
+	})
+	//桥梁4
+	const blmxlTemplateParam4 = ref({
+		logicalLength: 12.1,
+		rightBeamCount: 7,
+		bigBeamNumber: 36,
+		smallBeamNumber: 35,
+		bridgeFu: 'L',
+		unit: 'cm',
+	})
+	//圆桩墩
+	const yzdTemplateParam1 = ref({
+		logicalHeight: 8,
+		unit: 'm',
 	})
 	const tempParams = ref({})
 	const fieldList = reactive([{
@@ -305,6 +342,14 @@
 			key: 'beamCount',
 			label: '梁数',
 			type: 'number'
+		}, {
+			key: 'leftBeamCount',
+			label: '梁数',
+			type: 'number'
+		}, {
+			key: 'rightBeamCount',
+			label: '梁数',
+			type: 'number'
 		},
 		{
 			key: 'bigBeamNumber',
@@ -340,6 +385,15 @@
 		const systemInfo = uni.getSystemInfoSync();
 		screenWidth.value = systemInfo.windowWidth;
 		screenHeight.value = systemInfo.windowHeight;
+		isLandscape.value = screenWidth.value > screenHeight.value;
+		// console.log(isLandscape ? '横屏' : '竖屏');
+
+		uni.onWindowResize(res => {
+			isLandscape.value = res.size.windowWidth > res.size.windowHeight;
+			// console.log(isLandscape.value ? '横屏' : '竖屏');
+			redrawCanvas();
+		});
+
 		canvasStyle.value = {
 			width: `${screenWidth.value}px`,
 			height: `${screenHeight.value}px`
@@ -396,8 +450,20 @@
 			case 'gl1':
 				template.value = 'gl1';
 				break;
+			case 'blmxl1':
+				template.value = 'blmxl1';
+				break;
 			case 'blmxl2':
 				template.value = 'blmxl2';
+				break;
+			case 'blmxl3':
+				template.value = 'blmxl3';
+				break;
+			case 'blmxl4':
+				template.value = 'blmxl4';
+				break;
+			case 'yzd1':
+				template.value = 'yzd1';
 				break;
 			default:
 				template.value = '';
@@ -1240,8 +1306,16 @@
 			tempParams.value = JSON.parse(JSON.stringify(hgbTemplateParam1.value));
 		} else if (template.value === 'yq1') {
 			tempParams.value = JSON.parse(JSON.stringify(yqTemplateParam1.value));
+		} else if (template.value === 'blmxl1') {
+			tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam1.value));
 		} else if (template.value === 'blmxl2') {
 			tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam2.value));
+		} else if (template.value === 'blmxl3') {
+			tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam3.value));
+		} else if (template.value === 'blmxl4') {
+			tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam4.value));
+		} else if (template.value === 'yzd1') {
+			tempParams.value = JSON.parse(JSON.stringify(yzdTemplateParam1.value));
 		}
 	}
 
@@ -1265,8 +1339,16 @@
 			hgbTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
 		} else if (template.value === 'yq1') {
 			yqTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'blmxl1') {
+			blmxlTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
 		} else if (template.value === 'blmxl2') {
 			blmxlTemplateParam2.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'blmxl3') {
+			blmxlTemplateParam3.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'blmxl4') {
+			blmxlTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+		} else if (template.value === 'yzd1') {
+			yzdTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
 		}
 		redrawCanvas();
 	}
@@ -1358,6 +1440,7 @@
 
 	const drawTemplate = () => {
 		//绘制模板
+		console.log("渲染模板", template.value);
 		if (template.value === 'kxb1') {
 			drawKxbTemplate1(ctx.value, {
 				logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
@@ -1454,6 +1537,15 @@
 				unit: hgbTemplateParam1.value.unit, // 单位参数
 				gl: true
 			});
+		} else if (template.value === 'blmxl1') {
+			drawBlmxlTemplate1(ctx.value, {
+				logicalLength: Number(blmxlTemplateParam1.value.logicalLength),
+				beamCount: Number(blmxlTemplateParam1.value.beamCount),
+				unit: blmxlTemplateParam1.value.unit,
+				bigBeamNumber: Number(blmxlTemplateParam1.value.bigBeamNumber),
+				smallBeamNumber: Number(blmxlTemplateParam1.value.smallBeamNumber),
+				bridgeFu: blmxlTemplateParam1.value.bridgeFu
+			});
 		} else if (template.value === 'blmxl2') {
 			drawBlmxlTemplate2(ctx.value, {
 				logicalLength: Number(blmxlTemplateParam2.value.logicalLength),
@@ -1462,6 +1554,30 @@
 				bigBeamNumber: Number(blmxlTemplateParam2.value.bigBeamNumber),
 				smallBeamNumber: Number(blmxlTemplateParam2.value.smallBeamNumber),
 				bridgeFu: blmxlTemplateParam2.value.bridgeFu
+			});
+		} else if (template.value === 'blmxl3') {
+			drawBlmxlTemplate3(ctx.value, {
+				logicalLength: Number(blmxlTemplateParam3.value.logicalLength),
+				leftBeamCount: Number(blmxlTemplateParam3.value.leftBeamCount),
+				unit: blmxlTemplateParam3.value.unit,
+				bigBeamNumber: Number(blmxlTemplateParam3.value.bigBeamNumber),
+				smallBeamNumber: Number(blmxlTemplateParam3.value.smallBeamNumber),
+				bridgeFu: blmxlTemplateParam3.value.bridgeFu
+			});
+		} else if (template.value === 'blmxl4') {
+			drawBlmxlTemplate4(ctx.value, {
+				logicalLength: Number(blmxlTemplateParam4.value.logicalLength),
+				rightBeamCount: Number(blmxlTemplateParam4.value.rightBeamCount),
+				unit: blmxlTemplateParam4.value.unit,
+				bigBeamNumber: Number(blmxlTemplateParam4.value.bigBeamNumber),
+				smallBeamNumber: Number(blmxlTemplateParam4.value.smallBeamNumber),
+				bridgeFu: blmxlTemplateParam4.value.bridgeFu
+			});
+		} else if (template.value === 'yzd1') {
+			drawYzdTemplate1(ctx.value, {
+				// logicalWidth: Number(yzdTemplateParam1.value.logicalWidth),
+				logicalHeight: Number(yzdTemplateParam1.value.logicalHeight),
+				unit: yzdTemplateParam1.value.unit, // 单位参数
 			});
 		}
 	}
@@ -1624,6 +1740,10 @@
 		/* width: 100vw; */
 	}
 
+	.toolbarSP {
+		gap: 10rpx;
+	}
+
 	.colorToolbar {
 		margin-bottom: 20rpx;
 		display: flex;
@@ -1664,6 +1784,12 @@
 		line-height: 28rpx;
 		/* transform: rotate(90deg); */
 	}
+	.functionButtonSP{
+		height: 40rpx;
+		width: 40rpx;
+		font-size: 14rpx;
+		line-height: 16rpx;
+	}
 
 	.iconButton {
 		background-color: transparent;
@@ -1677,11 +1803,18 @@
 		padding: 6rpx;
 		white-space: nowrap;
 	}
+	.iconButtonSP{
+		height: 40rpx;
+		width: 40rpx;
+	}
 
 	.separateLine {
 		border-left: 1rpx solid #0F4687;
 		width: 0;
 		height: 70rpx;
+	}
+	.separateLineSP{
+		height: 30rpx;
 	}
 
 	.icon {
@@ -1704,6 +1837,10 @@
 		height: 90rpx;
 		width: 90rpx;
 		/* transform: rotate(90deg); */
+	}
+	.colorImgSP{
+		height: 50rpx;
+		width: 50rpx;
 	}
 
 	.text-input {
