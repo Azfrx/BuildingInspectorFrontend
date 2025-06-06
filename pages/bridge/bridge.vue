@@ -1,23 +1,32 @@
+<!-- 
+ 项目列表
+ author:ykx
+ date:2025.6.3
+ Bug：4
+ -->
 <template>
   <!-- 内容区 -->
-    <view class="container">
+  <view class="container">
     <!-- 信息卡片 -->
-    <view class="info-card" v-if="fileData && fileData.data && fileData.data.projects && fileData.data.projects.length > 0">
+    <view class="info-card">
       <view class="info-boxes">
         <view class="info-box">
           <text class="label">检测单位</text>
-          <text class="value">{{ fileData.data.projects[0].dept.deptName || '暂无数据' }}</text>
+          <text class="value">{{ initData.data.projects[0].dept.deptName|| '暂无数据' }}</text>
         </view>
         <view class="info-box">
           <text class="label">检测人员</text>
-          <!-- <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text> -->
-           <text class="value">张三</text>
+		  <!-- Todo   Bug1 
+		    这里检测人员的字段是否为leader?
+			Bug2 多任务列表中是否要用project[0]-->
+          <text class="value">{{ initData.data.projects[0].dept.leader || '暂无数据' }}</text>
 		    </view>
         <view class="info-box">
           <text class="label">检测年度</text>
           <picker class="year-picker" :value="selectedYearIndex" :range="years" @change="changeYear">
 				<view class="picker-content">
-              <text class="value">{{ years[selectedYearIndex] }}年度</text>
+					<!-- Bug3 年份切换回的逻辑还没处理 -->
+              <text class="value">{{initData.data.projects[0].year }}年度</text>
               <image
                 src="/static/image/RightOutline.svg"
                 mode="scaleToFill"
@@ -29,8 +38,8 @@
 	</view>
 	
     <!-- 项目列表 -->
-    <view class="bridge-list" v-if="fileData && fileData.data && fileData.data.projects && fileData.data.projects.length > 0">
-      <view class="bridge-item" v-for="(item, index) in fileData.data.projects" :key="index" @click="goToList(item)">
+    <view class="bridge-list">
+      <view class="bridge-item" v-for="(item, index) in initData.data.projects" :key="index" @click="goToList(item)">
         <view class="bridge-info">
           <view class="bridge-code">{{ item.code || '暂无编号' }}</view>
           <view class="bridge-name">{{ item.name || '暂无名称' }}</view>
@@ -48,69 +57,58 @@
         </view>
       </view>
     </view>
-    
-    <!-- 加载状态 -->
-    <view v-else-if="!fileData" class="loading">
-      <text>加载中...</text>
-    </view>
-    
-    <!-- 无数据状态 -->
-    <view v-else class="no-data">
-      <text>暂无数据</text>
-		</view>
-	</view>
+  </view>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { getProject } from '../../utils/readJsonNew';
+import { getProject,getUser } from '../../utils/readJsonNew';
+import { setProject } from '../../utils/writeNew';
 
-// 检测单位
-const detectUnit = ref('');
-// 检测人员
-const detectPerson = ref('');
 // 检测年度选项
-const years = ref([2024, 2023, 2022]);
+const years = ref([2024, 2023, 2022,2021,2020]);
+//控制年份的初始值
 const selectedYearIndex = ref(0);
 
-const fileData = ref(null);
-
-const getData = async () => {
-  try {
-    const response = await getProject(3);
-    
-    // 检查响应数据
-    if (!response || response.code !== 0) {
-      console.error('获取数据失败:', response?.msg || '未知错误');
-      fileData.value = null;
-      return;
-    }
-
-    // 设置数据
-    fileData.value = {
-      data: {
-        projects: response.data.projects || []
-      }
-    };
-    
-    // 根据 fileData.data.projects[0].year 设置初始年份
-    if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {
-      const projectYear = fileData.value.data.projects[0].year;
-      console.log('项目年份:', projectYear);
-      
-      // 在 years 数组中查找匹配的年份
-      const index = years.value.findIndex(year => year === projectYear);
-      if (index !== -1) {
-        selectedYearIndex.value = index;
-        console.log('设置年份索引:', index);
+const initData = ref(null);
+//初始化数据
+const init = async () => {
+  // 获取全局文件
+  let AllUserInfo = await getUser(1);
+  // 获取全局文件中的属性
+  console.log('AllUserInfo', AllUserInfo);
+  let token = AllUserInfo.token;
+  console.log('Cleaned token:', token); // 确认处理后的格式
+  const getData = async () => {
+    try {
+      const response = await uni.request({
+        url: 'http://60.205.13.156:8090/api/project',
+        method: 'GET',
+        header: {
+          'Authorization': `${token}` 
+        }
+      });
+      console.log('获取到的项目数据:', response.data);
+      if (response.data.code === 0) {
+        initData.value = response.data;
+		//调用接口将数据存在本地
+		setProject(1,initData.value);
       } else {
-        console.log('未找到匹配的年份，使用默认索引 0');
+        uni.showToast({
+          title: response.data.msg || '获取数据失败',
+          icon: 'none'
+        });
       }
+    } catch (error) {
+      console.error('获取项目数据失败:', error);
+      uni.showToast({
+        title: '获取数据失败，请稍后重试',
+        icon: 'none'
+      });
     }
-  } catch (error) {
-    console.error('获取数据失败:', error);
-    fileData.value = null;
-  }
+  };
+
+  await getData();
 };
 
 const changeYear = (e) => {
@@ -122,17 +120,13 @@ const back = () => {
   uni.navigateBack();
 };
 
+// Bug4  跳转后如何获取任务id
 const goToList = (item) => {
     uni.navigateTo({
-    url: `/pages/List/List?projectId=${item.code || ''}&projectName=${encodeURIComponent(item.projectName || '')}&company=${encodeURIComponent(item.company || '')}&status=${encodeURIComponent(item.status || '')}&progress=${encodeURIComponent(item.progress || '')}`
+    url: `/pages/List/List`,
   });
 };
 
-// 获取检测人员名字列表
-const getInspectorNames = (inspectors) => {
-  if (!inspectors || !Array.isArray(inspectors)) return '暂无数据';
-  return inspectors.map(inspector => inspector.userName).join(' / ');
-};
 
 // 获取状态文本
 const getStatusText = (status) => {
@@ -146,17 +140,12 @@ const getStatusText = (status) => {
   }
 };
 
-onMounted(() => {
-  getData();
+onMounted(async() => {
+  await init();
 });
 </script>
 
 <style lang="scss">
-@font-face {
-  font-family: 'uniicons';
-  src: url('/static/fonts/uniicons.ttf') format('truetype');
-}
-
 .container {
     min-height: 100vh;
   background-color: #fff;

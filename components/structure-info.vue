@@ -1,3 +1,9 @@
+<!-- 
+ 桥梁结构树
+ author:ykx
+ date:2025.6.3
+ Bug  1
+ -->
 <template>
 	<view class="container">
 		<view class="confirm-row">
@@ -22,7 +28,7 @@
 		<view class="content-layout">
 			<!-- 第一个侧边栏 -->
 			<view class="sidebar">
-				<view v-for="(item, index) in structureData?.children || []" 
+				<view v-for="(item, index) in structureData.data.children" 
 					:key="index"
 					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" 
 					@click="changeTab(index)">
@@ -112,9 +118,9 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import structureJSON from '../static/data/structure.json';
 import CustomSwitch from './CustomSwitch.vue';
-
+import { setObject } from '../utils/writeNew';
+import { getUser } from '../utils/readJsonNew';
 const confirmed = ref(false);
 const confirmPopup = ref(null);
 const structureData = ref(null);
@@ -123,7 +129,48 @@ const selectedSecondIndex = ref(0);
 const selectedThirdIndex = ref(0);
 const editPopup = ref(null);
 const currentEditItem = ref(null);
+//桥梁id
+const bridgeId = ref(2)
+//初始化数据
+const init = async () => {
+  // 获取全局文件
+  let AllUserInfo = await getUser(1);
+  // 获取全局文件中的属性
+  console.log('AllUserInfo', AllUserInfo);
+  let token = AllUserInfo.token;
+  console.log('Cleaned token:', token); // 确认处理后的格式
+  const getData = async () => {
+    try {
+      const response = await uni.request({
+		url: `http://60.205.13.156:8090/api/project/${bridgeId.value}/task`,
+        method: 'GET',
+        header: {
+          'Authorization': `${token}` 
+        }
+      });
+      console.log('获取到的桥梁构件数据:', response.data);
+      if (response.data.code === 0) {
+        structureData.value = response.data;
+		//调用接口将数据存在本地
+		//参数是写死的 如何动态生成
+		setObject(1,bridgeId.value,structureData.value)
+      } else {
+        uni.showToast({
+          title: response.data.msg || '获取数据失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('获取桥梁构件数据失败:', error);
+      uni.showToast({
+        title: '获取数据失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  };
 
+  await getData();
+};
 // 计算第二个侧边栏的数据
 const secondLevelItems = computed(() => {
 	if (!structureData.value?.children?.[selectedIndex.value]?.children?.[0]?.children) {
@@ -158,7 +205,7 @@ const changeTab = (index) => {
 	selectedSecondIndex.value = 0; // 重置第二个侧边栏的选中状态
 	selectedThirdIndex.value = 0; // 重置第三个侧边栏的选中状态
 	console.log('选中的第一层结构:', structureData.value?.children[index]);
-};
+	};
 
 const changeSecondTab = (index) => {
 	selectedSecondIndex.value = index;
@@ -173,11 +220,11 @@ const changeThirdTab = (index) => {
 		item.showActions = i === index;
 	});
 	console.log('选中的第三层结构:', thirdLevelItems.value[index]);
-};
+	};
 
 const handleCancel = (index) => {
 	thirdLevelItems.value[index].showActions = false;
-};
+	};
 
 const handleEdit = (index) => {
 	currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
@@ -187,10 +234,10 @@ const handleEdit = (index) => {
 		}
 		if (currentEditItem.value.quantity === undefined) {
 			currentEditItem.value.quantity = 0;
-		}
+	}
 	}
 	editPopup.value.open();
-};
+	};
 
 const handleDisable = (index) => {
 	console.log('切换状态前:', thirdLevelItems.value[index].status);
@@ -222,50 +269,41 @@ const closeEditPopup = () => {
 	thirdLevelItems.value.forEach(item => {
 		item.showActions = false;
 	});
-};
-
-onMounted(() => {
-	console.log('组件已挂载');
-	console.log('原始JSON数据:', structureJSON);
-	
-	try {
-		structureData.value = structureJSON;
-		console.log('结构数据:', structureData.value);
-	} catch (error) {
-		console.error('数据读取错误:', error);
-	}
+	};
+onMounted(async() => {
+  await init();
 });
 </script>
 
 <style scoped>
-.container {
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	position: absolute;
-	left: 0;
-	right: 0;
-	top: 0;
-	bottom: 0;
-}
+	.container {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		bottom: 0;
+	}
 
-.content-layout {
+	.content-layout {
 	height: 100%;
-	display: flex;
-	flex: 1;
-	overflow: hidden;
-}
+		display: flex;
+		flex: 1;
+		overflow: hidden;
+	}
 
-/* 侧边栏样式 */
-.sidebar {
+	/* 侧边栏样式 */
+	.sidebar {
 	width: 190rpx; /* 修改为190rpx */
-	background-color: #f5f5f5;
-	border-right: 1rpx solid #eeeeee;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-}
+		background-color: #f5f5f5;
+		border-right: 1rpx solid #eeeeee;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+	}
 
 .second-sidebar {
 	background-color: #fafafa;
@@ -320,31 +358,31 @@ onMounted(() => {
 	border-left: none;
 }
 
-.sidebar-item {
-	padding: 24rpx 0;
-	text-align: left;
-	color: #666;
-	border-bottom: 1px solid #eeeeee;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	height: 40rpx;
-	justify-content: center;
+	.sidebar-item {
+		padding: 24rpx 0;
+		text-align: left;
+		color: #666;
+		border-bottom: 1px solid #eeeeee;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		height: 40rpx;
+		justify-content: center;
 	position: relative;
-}
+	}
 
-.sidebar-item-content {
-	display: flex;
+	.sidebar-item-content {
+		display: flex;
 	flex-direction: row;
 	align-items: center;
-	padding-left: 12rpx;
-	width: 60%;
-	font-size: 18rpx;
-}
+		padding-left: 12rpx;
+		width: 60%;
+		font-size: 18rpx;
+	}
 
-.sidebar-item.active {
-	background-color: #ffffff;
-}
+	.sidebar-item.active {
+		background-color: #ffffff;
+	}
 
 /* 修改活动项样式，使用伪元素创建蓝色线 */
 .sidebar-item.active::before {
@@ -358,11 +396,11 @@ onMounted(() => {
 	transform: translateY(-50%);
 }
 
-.sidebar-item.active .sidebar-item-content {
-	background-color: #ffffff;
-	color: #0F4687;
+	.sidebar-item.active .sidebar-item-content {
+		background-color: #ffffff;
+		color: #0F4687;
 	border-left: none;
-}
+	}
 
 /* 移除第三个侧边栏活动项的左侧竖线 */
 .third-sidebar .sidebar-item.active .sidebar-item-content {
@@ -374,7 +412,7 @@ onMounted(() => {
 	color: #000;
 	font-weight: normal;
 	border-left: none;
-}
+	}
 
 /* 隐藏第三个侧边栏活动项的蓝色竖线伪元素 */
 .third-sidebar .sidebar-item.active::before {
@@ -384,9 +422,9 @@ onMounted(() => {
 .confirm-row {
 	width: 100%;
 	background-color: #BDCBE0;
-	font-size: 20rpx;
-	display: flex;
-	align-items: center;
+		font-size: 20rpx;
+		display: flex;
+		align-items: center;
 	justify-content: flex-start;
 	padding: 10rpx;
 	box-sizing: border-box;
@@ -395,8 +433,8 @@ onMounted(() => {
 .confirm-text {
 	text-align: center;
 	font-size: 20px;
-	color: #333;
-}
+		color: #333;
+	}
 
 .confirm-status {
 	text-align: center;
@@ -412,7 +450,7 @@ onMounted(() => {
 	color: #fff;
 	font-size: 15px;
 	border-radius: 5rpx;
-}
+	}
 
 .confirmPopup-content {
 	padding: 20rpx 10rpx;
@@ -420,30 +458,30 @@ onMounted(() => {
 	border-radius: 15rpx;
 	width: 300rpx;
 	text-align: center;
-}
+	}
 
 .confirmPopup-text {
-	font-size: 20rpx;
+		font-size: 20rpx;
 	color: #333;
 	margin-bottom: 20rpx;
 	display: block;
-}
+	}
 
 .confirmPopup-buttons {
-	display: flex;
+		display: flex;
 	justify-content: space-around;
-}
+	}
 
 .confirmPopup-buttons-cancel {
 	background: #ffffff;
 	border: 1px solid #0F4687;
 	color: #0F4687;
-}
+	}
 
 .confirmPopup-buttons-confirm {
 	background-color: #0F4687;
 	color: #fff;
-}
+	}
 
 .action-buttons {
 	position: absolute;
@@ -458,17 +496,17 @@ onMounted(() => {
 	height: 100%;
 	border: none;
 	padding: 0;
-	font-size: 20rpx;
+		font-size: 20rpx;
 	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #fff;
-}
+		color: #fff;
+	}
 
 .action-buttons button:nth-child(1) {
 	background-color: #cccccc;
-}
+	}
 
 .action-buttons button:nth-child(2) {
 	background-color: #1677ff;
@@ -476,11 +514,11 @@ onMounted(() => {
 
 .action-buttons button:nth-child(3) {
 	background-color: #ff3141;
-}
+	}
 
 .action-buttons button:nth-child(3)[data-status="enabled"] {
 	background-color: #00b578;
-}
+	}
 
 .edit-popup-content {
 	background-color: #fff;
@@ -488,26 +526,26 @@ onMounted(() => {
 	width: 500rpx; 
 	border-radius: 10rpx;
 	overflow: hidden;
-}
+	}
 
 .popup-title {
-	font-size: 20rpx;
-	text-align: center;
+		font-size: 20rpx;
+		text-align: center;
 	color: #333;
 	background-color: #BDCBE0;
 	height: 60rpx; 
 	display: flex;
 	align-items: center;
 	justify-content: center;
-}
+	}
 
 .edit-row {
-	display: flex;
-	align-items: center;
+		display: flex;
+		align-items: center;
 	margin: 20rpx 30rpx;
 	padding-bottom: 20rpx;
 	border-bottom: 1px solid #eee;
-}
+	}
 
 .edit-row:last-child {
 	border-bottom: none;
@@ -520,77 +558,77 @@ onMounted(() => {
 	color: #666;
 	width: 150rpx;
 	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-}
+		display: flex;
+		align-items: center;
+	}
 
 .edit-value {
 	font-size: 20rpx;
 	color: #333;
-	flex: 1;
+		flex: 1;
 	margin-left: -45rpx;
-}
+	}
 
 .status-toggle {
-	display: flex;
-	align-items: center;
+		display: flex;
+		align-items: center;
 	flex: 1;
 	margin-left: -55rpx;
-}
+	}
 
 .status-text {
-	font-size: 20rpx;
+		font-size: 20rpx;
 	color: #333;
 	margin: 0 10rpx;
-}
+	}
 
 .quantity-input {
 	flex: 1;
-	font-size: 20rpx;
+		font-size: 20rpx;
 	margin-left: -50rpx;
 	height: 24rpx;
 	align-self: center;
 	margin-bottom: 16rpx; 
-}
+	}
 
 
 .quantity-input ::v-deep .uni-easyinput__content {
 	padding: 0 10rpx !important;
 	font-size: 20rpx !important; 
-	display: flex;
-	align-items: center;
+		display: flex;
+		align-items: center;
 	border-radius: 0 !important;
 	min-height: 24rpx; 
-}
+	}
 
 /* Style for the placeholder text */
 .quantity-input ::v-deep .uni-easyinput__placeholder {
 	font-size: 20rpx !important;
 	color: #999;
-}
+	}
 
 .popup-buttons {
-	display: flex;
-	justify-content: center; 
+		display: flex;
+		justify-content: center;
 	gap: 20rpx; 
 	margin-top: 30rpx;
 	padding: 0 30rpx 30rpx;
-}
+	}
 
 .popup-btn {
 	width: 70rpx;
 	height: 50rpx;
-	font-size: 20rpx;
-	display: flex;
-	align-items: center;
-	justify-content: center;
+		font-size: 20rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	border-radius: 10rpx;
 }
 
 
 .popup-buttons .popup-btn:first-child {
 	margin-left: 120rpx;
-}
+	}
 
 
 .popup-buttons .popup-btn:nth-child(2) {
@@ -601,13 +639,13 @@ onMounted(() => {
 	background-color: #fff;
 	color: #0F4687;
 	border: 1px solid #0F4687;
-}
+	}
 
 .confirm-btn {
 	background-color: #0F4687;
 	color: #fff;
 	border: none;
-}
+	}
 
 .disabled-button {
 	background-color: #ff3141;
@@ -621,9 +659,9 @@ onMounted(() => {
 	display: inline-block;
 	width: 43rpx;
 	text-align: center;
-}
+	}
 
 .disabled-text {
 	color: #999;
-}
+	}
 </style>

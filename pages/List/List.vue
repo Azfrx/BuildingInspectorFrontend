@@ -1,26 +1,37 @@
+<!-- 
+ 任务列表
+ author:ykx
+ date：2025.6.3
+ Bug 6
+ -->
 <template>
 	<view class="container">
 		<!-- 顶部信息卡片 -->
 		<view class="info-card">
 			<view class="content-box">
-				<view class="title">{{projectInfo.projectName || '项目名称'}}</view>
+				<view class="title">{{projectInfo.data.projects[0].name || '项目名称'}}</view>
 				<view class="info-row">
-					<text>项目编号: {{projectInfo.code}}</text>
-					<text>检测状态: {{projectInfo.status}}</text>
+					<text>项目编号: {{projectInfo.data.projects[0].code}}</text>
+					<text>检测状态: {{projectInfo.data.projects[0].status}}</text>
 				</view>
 				<view class="info-row">
-					<text>项目单位: {{projectInfo.company}}</text>
-					<text>检测数量: {{projectInfo.progress}}</text>
+					<text>项目单位: {{projectInfo.data.projects[0].ownerDept.deptName}}</text>
+					<!-- Bug4  向后端要求增加字段number 接口为：根据用户id查询项目id-->
+					<!-- <text>检测数量: {{projectInfo.data.projects[0].number}}</text> -->
+					<!-- 这里逻辑还没处理 -->
+					<text>检测数量: {{26}}</text>
 				</view>
 				<view class="info-row">
-					<text>检测年度: {{projectInfo.year}}</text>
-					<text>起止时间: {{projectInfo.timeRange}}</text>
+					<text>检测年度: {{projectInfo.data.projects[0].year}}年度</text>
+					<text>起止时间: {{projectInfo.data.projects[0].createTime}}</text>
 				</view>
 				<view class="info-row">
-					<text>检测单位: {{projectInfo.detectionUnit}}</text>
+					<text>检测单位: {{projectInfo.data.projects[0].dept.deptName}}</text>
 				</view>
 				<view class="info-row">
-					<text>检测人员: {{projectInfo.inspector}}</text>
+					<!-- Bug5 这里检测人员怎么填 -->
+					<!-- <text>检测人员: {{projectInfo.inspector}}</text> -->
+					<text>检测人员: {{'zhang闪闪/李四四/王五五/赵六六'}}</text>
 				</view>
 			</view>
 		</view>
@@ -31,21 +42,27 @@
 			<input type="text" placeholder="搜索桥梁名称/编号/位置" v-model="searchText" @input="handleSearch"/>
 		</view>
 
-		<!-- 桥梁列表 -->
+		<!-- 桥梁任务列表 -->
 		<view class="bridge-list">
-			<view class="bridge-item" v-for="bridge in filteredBridges" :key="bridge.id" @click="goToDetail(bridge)">
+			<view class="bridge-item" v-for="bridge in initData.data.tasks" :key="bridge.id" @click="goToDetail(bridge)">
 				<view class="bridge-icon">
 					<image :src="getBridgeIcon(bridge.type)" mode="aspectFit"></image>
 				</view>
 				<view class="bridge-info">
-					<view class="bridge-code">{{bridge.code}}</view>
-					<view class="bridge-name">{{bridge.name}}</view>
-					<view class="bridge-location">{{bridge.location}}</view>
+					<view class="bridge-code">{{bridge.building.buildingCode}}</view>
+					<view class="bridge-name">{{bridge.building.name}}</view>
+					<view class="bridge-location">  {{ 
+						(bridge?.building?.routeCode || '') + '/' + 
+						(bridge?.building?.routeName || '') + '/' + 
+						(bridge?.building?.bridgePileNumber || '') 
+					}}</view>
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-						<text class="bridge-length">{{bridge.length}}</text>
-						<text class="bridge-class">{{bridge.class}}类</text>
+						<text class="bridge-length">{{bridge.building.bridgeLength}}</text>
+						<!-- Bug 6 这个类前面的数字是哪个字段-->
+						<!--<text class="bridge-class">{{bridge.class}}类</text> -->
+						<text class="bridge-class">{{2}}类</text>
 					</view>
 					<image src="/static/image/RightOutline.svg"/>
 				</view>
@@ -60,7 +77,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getProject, getTask } from '@/utils/readJsonNew.js'
+import { getProject, getTask,getUser } from '@/utils/readJsonNew.js'
+import { setTask } from '../../utils/writeNew'
 
 // 返回上一页
 const back = () => {
@@ -73,74 +91,62 @@ const projectInfo = ref({})
 const searchText = ref('')
 // 桥梁列表数据
 const bridges = ref([])
+//项目id Bug
+const projectId = ref(2)
 
-// 获取项目数据
-const getProjectData = async () => {
-	try {
-		// 获取项目数据
-		const response = await getProject(3);
-		console.log('获取到的原始数据:', JSON.stringify(response));
-		
-		// 检查响应数据
-		if (!response || response.code !== 0) {
-			console.error('获取数据失败:', response?.msg || '未知错误');
-			return;
-		}
+const initData = ref(null);
+//初始化数据
+const init = async () => {
+  // 获取全局文件
+  let AllUserInfo = await getUser(1);
+  // 获取全局文件中的属性
+  console.log('AllUserInfo', AllUserInfo);
+  let token = AllUserInfo.token;
+  console.log('Cleaned token:', token); // 确认处理后的格式
+  const getData = async () => {
+    try {
+      const response = await uni.request({
+		  //Bug1 这里的项目id是写死的
+        url: `http://60.205.13.156:8090/api/project/${projectId.value}/task`,
+        method: 'GET',
+        header: {
+          'Authorization': `${token}` 
+        }
+      });
+      console.log('获取到的任务数据:', response.data);
+      if (response.data.code === 0) {
+        initData.value = response.data;
+		//调用接口将数据存在本地(Task)
+		//Bug2  projectId的问题同上
+		setTask(1,projectId.value,initData)
+      } else {
+        uni.showToast({
+          title: response.data.msg || '获取数据失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('获取任务数据失败:', error);
+      uni.showToast({
+        title: '获取数据失败，请稍后重试',
+        icon: 'none'
+      });
+    }
+  };
 
-		// 设置项目信息
-		if (response.data && response.data.projects && response.data.projects.length > 0) {
-			const project = response.data.projects[0];
-			projectInfo.value = {
-				projectName: project.name,
-				code: project.code,
-				status: project.status === '1' ? '已完成' : '未完成',
-				company: project.ownerDept?.deptName || '',
-				progress: project.number || '0/0',
-				year: project.year,
-				timeRange: `${project.startDate || ''} - ${project.endDate || ''}`,
-				detectionUnit: project.dept?.deptName || '',
-				inspector: project.inspectors?.map(i => i.userName).join(' / ') || ''
-			};
-		}
-
-		// 获取桥梁列表数据
-		const bridgeData = await getTask(3, 1);
-		console.log('获取到的桥梁数据:', bridgeData);
-		
-		if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
-			bridges.value = bridgeData.data.tasks.map(task => ({
-				id: task.id,
-				code: task.building?.buildingCode || '',
-				name: task.building?.name || '',
-				location: `${task.building?.routeCode || ''} / ${task.building?.routeName || ''} / ${task.building?.bridgePileNumber || ''}`,
-				type: 'small', // 默认类型
-				length: task.building?.bridgeLength || '',
-				class: task.building?.rootPropertyId || ''
-			}));
-			console.log('处理后的桥梁列表:', bridges.value);
-		} else {
-			bridges.value = [];
-			console.error('桥梁数据格式不正确');
-			uni.showToast({
-				title: '桥梁数据格式不正确',
-				icon: 'none'
-			});
-		}
-	} catch (error) {
-		console.error('获取数据失败:', error);
-		uni.showToast({
-			title: '获取数据失败',
-			icon: 'none'
-		});
-	}
+  await getData();
+  //Bug3 userId写死的
+  projectInfo.value = await getProject(1);
+  console.log('项目数据111',projectInfo.value)
 };
 
 // 页面加载时获取数据
-onMounted(() => {
-	getProjectData()
+onMounted(async () => {
+  await init();
 })
 
 // 根据桥梁类型获取对应图标
+//Bug3 ---图标的对应规则未知
 const getBridgeIcon = (type) => {
 	const icons = {
 		'small': '/static/image/bridge1.png',
@@ -180,11 +186,6 @@ const handleSearch = () => {
 </script>
 
 <style lang="scss">
-@font-face {
-	font-family: 'uniicons';
-	src: url('/static/fonts/uniicons.ttf') format('truetype');
-}
-
 .container {
 	min-height: 100vh;
 	background-color: #f1f0ff;
