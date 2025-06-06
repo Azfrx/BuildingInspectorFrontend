@@ -1,3 +1,9 @@
+/*
+	开发者：郭明晓 
+	功能：绘制简图模板
+	最后修改日期：2025年6月7日
+*/
+
 //空心板 实心板
 function drawKxbTemplate1(ctx, {
 	logicalWidth = 8,

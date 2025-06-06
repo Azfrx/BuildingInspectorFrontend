@@ -1,23 +1,34 @@
+<!-- 
+	开发者：郭明晓 
+	功能：绘制简图
+	最后修改日期：2025年6月7日
+-->
 <template>
-	<view class="header">绘制简图</view>
+	<view :class="['header', {headerSP: !isLandscape}]">绘制简图</view>
 	<view class="container">
 		<view :class="['toolbar', {toolbarSP: !isLandscape}]">
-			<button @click="setMode('select')" :class="['iconButton', { active: mode === 'select' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('select')"
+				:class="['iconButton', { active: mode === 'select' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/hand.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('line')" :class="['iconButton', { active: mode === 'line' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('line')"
+				:class="['iconButton', { active: mode === 'line' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/line.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('curve')" :class="['iconButton', { active: mode === 'curve' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('curve')"
+				:class="['iconButton', { active: mode === 'curve' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/curve.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('rect')" :class="['iconButton', { active: mode === 'rect' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('rect')"
+				:class="['iconButton', { active: mode === 'rect' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/rect.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('circle')" :class="['iconButton', { active: mode === 'circle' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('circle')"
+				:class="['iconButton', { active: mode === 'circle' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/circle.svg' class="icon"></image>
 			</button>
-			<button @click="setMode('text')" :class="['iconButton', { active: mode === 'text' }, {iconButtonSP: !isLandscape}]">
+			<button @click="setMode('text')"
+				:class="['iconButton', { active: mode === 'text' }, {iconButtonSP: !isLandscape}]">
 				<image src='/static/image/text.svg' class="icon"></image>
 			</button>
 			<view :class="['separateLine', {separateLineSP: !isLandscape}]"></view>
@@ -386,18 +397,12 @@
 		screenWidth.value = systemInfo.windowWidth;
 		screenHeight.value = systemInfo.windowHeight;
 		isLandscape.value = screenWidth.value > screenHeight.value;
-		// console.log(isLandscape ? '横屏' : '竖屏');
 
 		uni.onWindowResize(res => {
 			isLandscape.value = res.size.windowWidth > res.size.windowHeight;
-			// console.log(isLandscape.value ? '横屏' : '竖屏');
 			redrawCanvas();
 		});
 
-		canvasStyle.value = {
-			width: `${screenWidth.value}px`,
-			height: `${screenHeight.value}px`
-		};
 		ctx.value = uni.createCanvasContext(canvasId);
 		transparentCtx.value = uni.createCanvasContext(transparentCanvasId);
 		ctx.value.setFontSize(textFontSize.value);
@@ -1729,6 +1734,10 @@
 		justify-content: center;
 	}
 
+	.headerSP {
+		font-size: 20rpx;
+	}
+
 	.toolbar {
 		margin-top: 10rpx;
 		display: flex;
@@ -1784,7 +1793,8 @@
 		line-height: 28rpx;
 		/* transform: rotate(90deg); */
 	}
-	.functionButtonSP{
+
+	.functionButtonSP {
 		height: 40rpx;
 		width: 40rpx;
 		font-size: 14rpx;
@@ -1803,7 +1813,8 @@
 		padding: 6rpx;
 		white-space: nowrap;
 	}
-	.iconButtonSP{
+
+	.iconButtonSP {
 		height: 40rpx;
 		width: 40rpx;
 	}
@@ -1813,7 +1824,8 @@
 		width: 0;
 		height: 70rpx;
 	}
-	.separateLineSP{
+
+	.separateLineSP {
 		height: 30rpx;
 	}
 
@@ -1838,7 +1850,8 @@
 		width: 90rpx;
 		/* transform: rotate(90deg); */
 	}
-	.colorImgSP{
+
+	.colorImgSP {
 		height: 50rpx;
 		width: 50rpx;
 	}
