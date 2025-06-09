@@ -1,8 +1,9 @@
-const systemInfo = uni.getSystemInfoSync();
-const centerX = systemInfo.screenWidth / 2;
-const centerY = systemInfo.screenHeight / 2;
-const screenWidth = systemInfo.screenWidth;
-const screenHeight = systemInfo.screenHeight;
+/*
+	开发者：郭明晓 
+	功能：绘制简图模板
+	最后修改日期：2025年6月7日
+*/
+
 //空心板 实心板
 function drawKxbTemplate1(ctx, {
 	logicalWidth = 8,
@@ -10,6 +11,11 @@ function drawKxbTemplate1(ctx, {
 	unit = 'cm',
 	qt = 0
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	const showDirectionArrow = qt == 0 ? true : false;
 	const MAX_DRAW_WIDTH = 800; // 宽高对调
 	const MAX_DRAW_HEIGHT = 400;
@@ -131,6 +137,11 @@ function drawKxbTemplate2(ctx, {
 	logicalHeight = 8,
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	const showDirectionArrow = true;
 	const MAX_DRAW_WIDTH = 800; // 宽高对调
 	const MAX_DRAW_HEIGHT = 400;
@@ -197,6 +208,102 @@ function drawKxbTemplate2(ctx, {
 	}
 }
 
+//变截面箱梁1
+function drawBlmxlTemplate1(ctx, {
+	logicalLength = 53, // 总逻辑长度（单位）
+	beamCount = 3, // 梁数，最终桥墩数 = 2n + 1
+	unit = 'm', // 单位显示
+	bigBeamNumber = 36, //大桩号墩
+	smallBeamNumber = 35, //小桩号墩
+	bridgeFu = 'L' //桥幅
+}) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
+	// const drawHeight = beamCount * 20 > 200 ? 200 : beamCount * 20;
+	const drawHeight = 120;
+	const screenWidth = systemInfo.screenHeight;
+	const screenHeight = systemInfo.screenWidth;
+	const x = (screenWidth - drawHeight) / 2; //左上角
+	const y = (screenHeight - drawWidth) / 2; //左上角
+	const intLogicalLength = Math.floor(logicalLength); //取整
+	const unitLevel = 25;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
+	drawRuler(ctx, x + drawHeight + 10, y, x + drawHeight + 10, y + drawWidth, 'row', logicalLength, unitLevel,
+		unit)
+
+	//绘制图形
+	const everyBeamHeight = (drawHeight * 2 / 3) / beamCount;
+	const lineList = [];
+	//绘制桥梁的顶部直线
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y);
+	ctx.lineTo(x + drawHeight, y + drawWidth);
+	ctx.stroke();
+	//绘制桥梁各个桥墩
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y)
+	ctx.lineTo(x, y)
+	ctx.stroke()
+	lineList.push({
+		x: x,
+		y: y
+	})
+	// 计算 beamCount 个递减间距的 x 坐标
+	const exponent = 0 // 控制递减程度，越大递减越快
+	const xPoints = [lineList[0].x]
+
+	for (let i = 1; i < beamCount; i++) {
+		const ratio = 1 - Math.pow(1 - i / (beamCount + 1), exponent)
+		const xi = x + drawHeight / 3 * 2 * ratio
+		xPoints.push(xi)
+	}
+	for (let i = 0; i < beamCount; i++) {
+		const py = y + (i + 1) * drawWidth / (beamCount * 2 + 1);
+		const px = xPoints[i] // 使用计算出的递减分布横坐标
+		ctx.beginPath();
+		ctx.moveTo(px, py)
+		lineList.push({
+			x: px,
+			y: py
+		})
+		ctx.lineTo(x + drawHeight, py)
+		ctx.stroke()
+	}
+	const curX = x + (beamCount - 1) * everyBeamHeight;
+	for (let i = 0; i < beamCount; i++) {
+		const py = y + (i + 1 + beamCount) * drawWidth / (beamCount * 2 + 1);
+		ctx.beginPath();
+		ctx.moveTo(lineList[beamCount - i].x, py)
+		lineList.push({
+			x: lineList[beamCount - i].x,
+			y: py
+		})
+		ctx.lineTo(x + drawHeight, py)
+		ctx.stroke()
+	}
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y + drawWidth)
+	lineList.push({
+		x: x,
+		y: y + drawWidth
+	})
+	ctx.lineTo(x, y + drawWidth)
+	ctx.stroke()
+
+	drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount)
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+};
 
 //变截面箱梁2
 function drawBlmxlTemplate2(ctx, {
@@ -207,6 +314,9 @@ function drawBlmxlTemplate2(ctx, {
 	smallBeamNumber = 35, //小桩号墩
 	bridgeFu = 'L' //桥幅
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
@@ -285,6 +395,262 @@ function drawBlmxlTemplate2(ctx, {
 	ctx.stroke()
 
 	drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount)
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+};
+
+//变截面箱梁3
+function drawBlmxlTemplate3(ctx, {
+	logicalLength = 53, // 总逻辑长度（单位）
+	leftBeamCount = 7, // 左梁数
+	unit = 'm', // 单位显示
+	bigBeamNumber = 36, //大桩号墩
+	smallBeamNumber = 35, //小桩号墩
+	bridgeFu = 'L' //桥幅
+}) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	// const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
+	const beamCount = (leftBeamCount - 1) / 2; // 梁数
+	const drawWidth = (beamCount * 2 + 1) * 100;
+	const drawHeight = beamCount * 20 > 200 ? 250 : beamCount * 25;
+	const screenWidth = systemInfo.screenHeight;
+	const screenHeight = systemInfo.screenWidth;
+	const x = (screenWidth - drawHeight) / 2; //左上角
+	const y = (screenHeight - drawWidth) / 2; //左上角
+	const intLogicalLength = Math.floor(logicalLength); //取整
+	const unitLevel = 25;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
+	drawRuler(ctx, x + drawHeight + 10, y, x + drawHeight + 10, y + drawWidth, 'row', logicalLength, unitLevel,
+		unit)
+
+	//绘制图形
+	const everyBeamHeight = (drawHeight * 2 / 3) / beamCount;
+	const lineList = [];
+	//绘制桥梁的顶部直线
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y);
+	ctx.lineTo(x + drawHeight, y + drawWidth);
+	ctx.stroke();
+	//绘制桥梁各个桥墩
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y)
+	ctx.lineTo(x, y)
+	ctx.stroke()
+	lineList.push({
+		x: x,
+		y: y
+	})
+	// 计算 beamCount 个递减间距的 x 坐标
+	const exponent = 2 // 控制递减程度，越大递减越快
+	const xPoints = [lineList[0].x]
+
+	const total = beamCount * 2 + 1;
+	for (let i = 1; i <= total; i++) {
+		const ratio = Math.log(i + 1) / Math.log(total + 1); // 归一化
+		const xi = x + (drawHeight / 3 * 2) * ratio;
+		xPoints.push(xi);
+	}
+	for (let i = 0; i < beamCount * 2 + 1; i++) {
+		const py = y + (i + 1) * drawWidth / (beamCount * 2 + 1);
+		const px = xPoints[i] // 使用计算出的递减分布横坐标
+		ctx.beginPath();
+		ctx.moveTo(px, py)
+		lineList.push({
+			x: px,
+			y: py
+		})
+		ctx.lineTo(x + drawHeight, py)
+		ctx.stroke()
+	}
+	//const curX = x + (beamCount - 1) * everyBeamHeight;
+	// for (let i = 0; i < beamCount; i++) {
+	// 	const py = y + (i + 1 + beamCount) * drawWidth / (beamCount * 2 + 1);
+	// 	ctx.beginPath();
+	// 	// ctx.moveTo(lineList[beamCount - i].x, py)
+	// 	// lineList.push({
+	// 	// 	x: lineList[beamCount - i].x,
+	// 	// 	y: py
+	// 	// })
+	// 	// ctx.lineTo(x + drawHeight, py)
+	// 	ctx.stroke()
+	// }
+	ctx.beginPath();
+	ctx.moveTo(x, lineList[0].y)
+	ctx.lineTo(x, lineList[1].y)
+	ctx.stroke()
+	ctx.beginPath();
+	ctx.moveTo(lineList[lineList.length - 1].x, lineList[lineList.length - 1].y)
+	ctx.lineTo(lineList[lineList.length - 2].x, lineList[lineList.length - 2].y)
+	ctx.stroke()
+
+	const newLineList = lineList.slice(1, lineList.length - 1); // 去掉首尾两个点
+	ctx.beginPath();
+	ctx.moveTo(newLineList[0].x, newLineList[0].y);
+	for (let i = 1; i < newLineList.length - 2; i++) {
+		const xc = (newLineList[i].x + newLineList[i + 1].x) / 2;
+		const yc = (newLineList[i].y + newLineList[i + 1].y) / 2;
+		ctx.quadraticCurveTo(newLineList[i].x, newLineList[i].y, xc, yc);
+	}
+	ctx.quadraticCurveTo(
+		newLineList[newLineList.length - 2].x,
+		newLineList[newLineList.length - 2].y,
+		newLineList[newLineList.length - 1].x,
+		newLineList[newLineList.length - 1].y
+	);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.moveTo(lineList[0].x, lineList[0].y);
+	for (let i = 1; i < lineList.length; i++) {
+		const text =
+			`${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${i-1}#`;
+		const textX = lineList[i - 1].x - 20;
+		const textY = lineList[i - 1].y - 20;
+
+		ctx.save(); // 保存当前状态
+		ctx.translate(textX, textY); // 移动到文字起点
+		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
+		ctx.restore(); // 恢复坐标系
+	}
+
+	// drawConvexCurve(ctx, newLineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount)
+
+	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
+	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
+	ctx.translate(-centerX, -centerY); // 还原坐标
+};
+
+//变截面箱梁4
+function drawBlmxlTemplate4(ctx, {
+	logicalLength = 53, // 总逻辑长度（单位）
+	rightBeamCount = 7, // 右梁数
+	unit = 'm', // 单位显示
+	bigBeamNumber = 36, //大桩号墩
+	smallBeamNumber = 35, //小桩号墩
+	bridgeFu = 'L' //桥幅
+}) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	// const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
+	const beamCount = (rightBeamCount - 1) / 2; // 梁数
+	const drawWidth = (beamCount * 2 + 1) * 100;
+	const drawHeight = beamCount * 20 > 200 ? 250 : beamCount * 25;
+	const screenWidth = systemInfo.screenHeight;
+	const screenHeight = systemInfo.screenWidth;
+	const x = (screenWidth - drawHeight) / 2; //左上角
+	const y = (screenHeight - drawWidth) / 2; //左上角
+	const intLogicalLength = Math.floor(logicalLength); //取整
+	const unitLevel = 25;
+
+	ctx.translate(centerX, centerY);
+	ctx.rotate(-90 * Math.PI / 180); // 顺时针旋转 90°
+	ctx.translate(-centerY, -centerX); // 注意这里 y/x 互换
+
+	drawRuler(ctx, x + drawHeight + 10, y, x + drawHeight + 10, y + drawWidth, 'row', logicalLength, unitLevel,
+		unit)
+
+	//绘制图形
+	const everyBeamHeight = (drawHeight * 2 / 3) / beamCount;
+	const lineList = [];
+	//绘制桥梁的顶部直线
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y);
+	ctx.lineTo(x + drawHeight, y + drawWidth);
+	ctx.stroke();
+	//绘制桥梁各个桥墩
+	ctx.beginPath();
+	ctx.moveTo(x + drawHeight, y + drawWidth)
+	ctx.lineTo(x, y + drawWidth)
+	ctx.stroke()
+	lineList.push({
+		x: x,
+		y: y
+	})
+	// 计算 beamCount 个递减间距的 x 坐标
+	const exponent = 2 // 控制递减程度，越大递减越快
+	const xPoints = [lineList[0].x]
+
+	const total = beamCount * 2 + 1;
+	for (let i = 1; i < total; i++) {
+		const ratio = Math.log(i + 1) / Math.log(total + 1); // 归一化
+		const xi = x + (drawHeight / 3 * 2) * ratio;
+		xPoints.push(xi);
+	}
+	xPoints.reverse(); // 反转数组，使得右侧梁的 x 坐标递减分布
+	for (let i = 0; i < beamCount * 2 + 1; i++) {
+		const py = y + (i + 1) * drawWidth / (beamCount * 2 + 1);
+		const px = xPoints[i] // 使用计算出的递减分布横坐标
+		ctx.beginPath();
+		ctx.moveTo(px, py - 100)
+		lineList.push({
+			x: px,
+			y: py - 100
+		})
+		ctx.lineTo(x + drawHeight, py - 100)
+		ctx.stroke()
+	}
+	console.log('list', lineList);
+
+	ctx.beginPath();
+	ctx.moveTo(x, lineList[lineList.length - 1].y)
+	ctx.lineTo(x, lineList[lineList.length - 1].y + 100)
+	ctx.stroke()
+	const text =
+		`${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${rightBeamCount-1}#`;
+	const textX = x - 20;
+	const textY = lineList[lineList.length - 1].y - 20;
+	ctx.save(); // 保存当前状态
+	ctx.translate(textX, textY); // 移动到文字起点
+	ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+	ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+
+	const newLineList = lineList.slice(1, lineList.length); // 去掉首点
+	ctx.beginPath();
+	ctx.moveTo(newLineList[0].x, newLineList[0].y);
+	for (let i = 1; i < newLineList.length - 2; i++) {
+		const xc = (newLineList[i].x + newLineList[i + 1].x) / 2;
+		const yc = (newLineList[i].y + newLineList[i + 1].y) / 2;
+		ctx.quadraticCurveTo(newLineList[i].x, newLineList[i].y, xc, yc);
+	}
+	ctx.quadraticCurveTo(
+		newLineList[newLineList.length - 2].x,
+		newLineList[newLineList.length - 2].y,
+		newLineList[newLineList.length - 1].x,
+		newLineList[newLineList.length - 1].y
+	);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.moveTo(lineList[0].x, lineList[0].y);
+	for (let i = 2; i < lineList.length; i++) {
+		const text =
+			`${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${i-2}#`;
+		const textX = lineList[i - 1].x - 20;
+		const textY = lineList[i - 1].y - 20;
+
+		ctx.save(); // 保存当前状态
+		ctx.translate(textX, textY); // 移动到文字起点
+		ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+		ctx.fillText(text, 0, 0); // 在旋转后的坐标系下写文字
+		ctx.restore(); // 恢复坐标系
+	}
+
+	// drawConvexCurve(ctx, newLineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount)
 
 	ctx.translate(centerY, centerX); // 注意坐标顺序反过来
 	ctx.rotate(90 * Math.PI / 180); // 逆时针旋转 90°
@@ -484,6 +850,11 @@ function drawKxbTemplate3(ctx, {
 	bridgeFu = 'L',
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const miniRectHeight = 50;
@@ -569,6 +940,11 @@ function drawKxbTemplate4(ctx, {
 	bridgeFu = 'L',
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const miniRectHeight = 50;
@@ -654,6 +1030,11 @@ function drawKxbTemplate5(ctx, {
 	flangePlate = 1.2,
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const baseHeight = 60; // 基础高度
@@ -663,7 +1044,7 @@ function drawKxbTemplate5(ctx, {
 	let y = (systemInfo.screenHeight - drawHeight) / 2; // 左上角 y 坐标
 
 	//绘制刻度
-	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 20, unit);
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalLength, 20, unit);
 	// 翼缘板矩形
 	ctx.strokeRect(x, y, drawWidth, flangePlate * baseHeight);
 	drawScaleSingle(ctx, x + drawWidth + 10, y, x + drawWidth + 10, y + flangePlate * baseHeight, flangePlate, unit)
@@ -697,6 +1078,11 @@ function drawKxbTemplate6(ctx, {
 	flangePlate = 1.2,
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const baseHeight = 60; // 基础高度
@@ -707,7 +1093,7 @@ function drawKxbTemplate6(ctx, {
 	const offsetX = 20;
 
 	//绘制刻度
-	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalWidth, 20, unit);
+	drawRuler(ctx, x, y - 10, x + drawWidth, y - 10, 'colunm', logicalLength, 20, unit);
 	// 翼缘板矩形
 	// 绘制倾斜矩形（代替 strokeRect）
 	ctx.beginPath();
@@ -762,6 +1148,11 @@ function drawTlTemplate1(ctx, {
 	unit = 'm',
 	xl = false
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 
@@ -871,6 +1262,11 @@ function drawHgbTemplate1(ctx, {
 	unit = 'm',
 	gl = false,
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 
@@ -914,6 +1310,11 @@ function drawYqTemplate1(ctx, {
 	logicalHeight = 4,
 	unit = 'm',
 }) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
 	ctx.setFontSize(12);
 	ctx.setFillStyle('#333');
 	const cutHeight = 40; // 从顶部往下削的高度
@@ -960,6 +1361,88 @@ function drawYqTemplate1(ctx, {
 	drawRuler(ctx, A.x - 10, A.y, A.x - 10, A.y + drawHeight, 'row', logicalHeight, 20, unit, true);
 }
 
+function drawYzdTemplate1(ctx, {
+	logicalHeight = 8,
+	unit = 'm',
+}) {
+	const systemInfo = uni.getSystemInfoSync();
+	const centerX = systemInfo.screenWidth / 2;
+	const centerY = systemInfo.screenHeight / 2;
+	const screenWidth = systemInfo.screenWidth;
+	const screenHeight = systemInfo.screenHeight;
+	ctx.setFontSize(12);
+	ctx.setFillStyle('#333');
+	const drawWidth = 400; // 绘制宽度
+	const drawHeight = logicalHeight * 50; // 绘制高度
+	const x = (systemInfo.screenWidth - drawWidth) / 2;
+	const y = (systemInfo.screenHeight - drawHeight) / 2;
+	const jiaodu = [0, 90, 180, 270, 0]
+	const rectX = x + drawWidth / 2;
+	const rectY = y;
+	const rectWidth = 200
+	ctx.strokeRect(rectX, rectY, rectWidth, drawHeight);
+	// 绘制顶部刻度线
+	ctx.beginPath();
+	ctx.moveTo(rectX, rectY - 10);
+	ctx.lineTo(rectX + rectWidth, rectY - 10);
+	ctx.stroke();
+	const dx = 50;
+	for (let i = 0; i <= 4; i++) {
+		const tx = rectX + i * dx;
+		ctx.beginPath();
+		ctx.moveTo(tx, y - 10);
+		ctx.lineTo(tx, y - 17);
+		ctx.stroke();
+
+		ctx.fillText(`${jiaodu[i]}${"'"}`, tx - 10, y - 25); // 在旋转后的坐标系下写文字
+	}
+	drawRuler(ctx, rectX + rectWidth + 10, rectY, rectX + rectWidth + 10, rectY + drawHeight, 'row', logicalHeight, 20,
+		unit);
+
+	// 圆心坐标和半径
+	const cx = x + 100;
+	const cy = y + drawHeight / 2;
+	const radius = 50;
+
+	// 绘制圆
+	ctx.beginPath();
+	ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+	ctx.stroke();
+
+	// 设置文字样式
+	ctx.font = '14px Arial';
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'middle';
+
+	// 绘制上下左右四个方向的文字
+	ctx.fillText('0\'', cx, cy - radius - 15); // 上
+	ctx.fillText('180\'', cx, cy + radius + 15); // 下
+	ctx.fillText('90\'', cx + radius + 15, cy); // 右
+	ctx.fillText('270\'', cx - radius - 20, cy); // 左
+
+	// 绘制左侧朝下箭头
+	const arrowX = cx - radius - 60;
+	const arrowY = cy - radius;
+
+	// 画箭头线
+	ctx.beginPath();
+	ctx.moveTo(arrowX, arrowY);
+	ctx.lineTo(arrowX, arrowY + 100);
+	ctx.stroke();
+
+	// 画箭头头部
+	ctx.beginPath();
+	ctx.moveTo(arrowX - 5, arrowY + 90);
+	ctx.lineTo(arrowX, arrowY + 100);
+	ctx.lineTo(arrowX + 5, arrowY + 90);
+	ctx.stroke();
+
+	ctx.save(); // 保存当前状态
+	ctx.translate(cx - radius - 80, cy); // 移动到文字起点
+	ctx.rotate(90 * Math.PI / 180); // 旋转 90 度，让文字横着写
+	ctx.fillText(`桩号增大方向`, 0, 0); // 在旋转后的坐标系下写文字
+	ctx.restore(); // 恢复坐标系
+}
 
 const drawScaleSingle = (ctx, x, y, endX, endY, text, unit) => {
 	ctx.beginPath();
@@ -994,5 +1477,9 @@ export {
 	drawTlTemplate1,
 	drawHgbTemplate1,
 	drawYqTemplate1,
+	drawBlmxlTemplate1,
 	drawBlmxlTemplate2,
+	drawBlmxlTemplate3,
+	drawBlmxlTemplate4,
+	drawYzdTemplate1
 }
