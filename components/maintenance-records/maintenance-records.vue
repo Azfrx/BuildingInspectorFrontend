@@ -27,22 +27,6 @@ import {
 	onMounted
 } from 'vue'
 
-/*const data = ref([
-    {
-      timePeriod: '',//时间（段）
-      treatmentType: '',//处治类别（维修、加固、改造）
-      treatmentReasonL: '',//处置原因
-      treatmentScope: '',//处置范围
-      projectCost: '',//工程费用（万元）
-      fundingSource: '',//经费来源
-      qualityAssessment: '',//处治质量评定
-      constructionUnit:'',//建设单位
-      designUnit: '',//设计单位
-      constructionCompany: '',//施工单位
-      supervisionUnit: '',//监理单位
-    }
-]);*/
-
 const props = defineProps({
 	data: {
 		type: Object,

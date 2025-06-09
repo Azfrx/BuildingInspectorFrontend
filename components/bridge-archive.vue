@@ -1,3 +1,4 @@
+<!--桥梁卡片页面-->
 <template>
 	<view class="container">
 		<view class="content-layout">
@@ -45,7 +46,10 @@ import {
   watch, 
   onMounted
 } from 'vue';
-import { getProperty } from '../utils/readJsonNew.js';
+import {getDisease, getHistoryYear, getProperty} from '../utils/readJsonNew.js';
+import { setProperty} from "@/utils/writeNew";
+import {userStore} from "@/store";
+const userInfo = userStore()
 
 // 本地状态，用于组件内部使用
 const bridgeArchive = ref({
@@ -59,24 +63,89 @@ const changeTab = (index) => {
 	activeTab.value = index;
 };
 
-// 组件挂载时直接获取数据
-onMounted(async () => {
+
+const readPropetryDataByJson  = async () => {
   try {
-    // 直接调用getProperty方法获取数据，传入userId=3和buildingId=39
-    const data = await getProperty('3', '39');
+    // 直接调用getProperty方法获取数据，传入userId和buildingId
+    const data = await getProperty('1', '5');
     console.log('获取到桥梁档案数据:', data);
-    
+
     // 将获取的数据赋值给本地状态
     if (data && Object.keys(data).length > 0) {
       bridgeArchive.value = data;
     }
   } catch (error) {
-    console.error('获取桥梁档案数据失败:', error);
-    uni.showToast({
-      title: '获取数据失败',
-      icon: 'none'
-    });
+    console.error('本地json获取桥梁档案数据失败:', error);
   }
+};
+
+const loadDiseaseData = async () => {
+  console.log('加载桥梁卡片数据...')
+
+  await readPropetryDataByJson();
+
+  //如果propetry.json为空或只包含初始化的空对象，则从接口获取数据并写入json中
+  if (!bridgeArchive.value.name || !bridgeArchive.value.id || bridgeArchive.value.children.every(child => Object.keys(child).length === 0)) {
+    const responseLogin = await uni.request({
+      url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+      method: 'POST'
+    });
+    console.log('用户信息:', responseLogin.data);
+    const token = responseLogin.data.token
+    const getData = async () => {
+      try {
+        const response = await uni.request({
+          //桥梁id改为全局
+          url: `http://60.205.13.156:8090/api/building/5/property`,
+          method: 'GET',
+          header: {
+            'Authorization': `${token}`
+          }
+        });
+        console.log('从后端接口获取到的桥梁卡片数据:', response.data.data);
+        if (response.data.code === 0) {
+          //调用接口将数据存在本地(disease)
+          await setProperty(1,5, response.data.data);
+        } else {
+          uni.showToast({
+            title: response.data.msg || '获取数据失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('获取桥梁卡片数据失败:', error);
+        uni.showToast({
+          title: '获取数据失败，请稍后重试',
+          icon: 'none'
+        });
+      }
+    };
+
+    await getData();
+
+	await readPropetryDataByJson();
+  }
+};
+
+// 组件挂载时直接获取数据
+onMounted(async () => {
+  await loadDiseaseData();
+  // try {
+  //   // 直接调用getProperty方法获取数据，传入userId和buildingId
+  //   const data = await getProperty('3', '39');
+  //   console.log('获取到桥梁档案数据:', data);
+  //
+  //   // 将获取的数据赋值给本地状态
+  //   if (data && Object.keys(data).length > 0) {
+  //     bridgeArchive.value = data;
+  //   }
+  // } catch (error) {
+  //   console.error('获取桥梁档案数据失败:', error);
+  //   uni.showToast({
+  //     title: '获取数据失败',
+  //     icon: 'none'
+  //   });
+  // }
 });
 </script>
 

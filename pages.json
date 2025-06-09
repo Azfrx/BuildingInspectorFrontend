@@ -19,18 +19,7 @@
 			}
 		}
 	},
-		{
-			"path": "pages/login/login",
-			"style": {
-				"navigationBarTitleText": "",
-				"navigationStyle": "custom", //自定义导航栏
-				"app-plus": {
-					"titleNView": {
-						"autoBackButton": false
-					}
-				}
-			}
-		},
+
 		{
 			"path": "pages/home/home",
 			"style": {

@@ -102,6 +102,7 @@ export function setDisease(userId, buildingId, yearId, data) {
 
 // 保存图片到与JSON文件同级目录
 export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
+    console.log('保存的图片tempImagePaths:',  tempImagePaths)
     return new Promise((resolve, reject) => {
         // 构建目标目录路径
         const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId, buildingId);

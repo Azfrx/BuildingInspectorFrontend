@@ -31,7 +31,7 @@
 							</view>
 							<view class="info-row">
 								<text class="label">评定标度/参考评定：</text>
-								<text>{{item.level}}/{{item.participateAssess === '1' ? '是' : '否'}}</text>
+								<text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>
 							</view>
 						</view>
 					</view>
@@ -64,7 +64,7 @@ const props = defineProps({
       },
       "diseaseTypeId": 17,
       "description": "焊缝部位涂层有大量裂纹，受拉翼缘边焊缝存在裂缝，其他部位焊缝无裂缝，主梁、纵横梁受拉翼缘边焊缝开裂长度≤5mm",
-      "trend": "稳定",
+      "developmentTrend": "稳定",
       "level": 2,
       "quantity": 1,
       "type": "焊缝开裂",

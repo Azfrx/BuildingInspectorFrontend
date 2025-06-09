@@ -1,3 +1,4 @@
+<!--历史病害页面-->
 <template>
 	<view class="disease-container">
 		<view class="search-add-container">
@@ -66,15 +67,19 @@
 
 <script setup>
 import { ref, reactive, computed, nextTick, watch, onMounted } from 'vue';
-import { getDisease } from '../utils/readJsonNew.js';
+import { getDisease , getHistoryYear} from '../utils/readJsonNew.js';
+import {setDisease} from "@/utils/writeNew";
+import {userStore} from "@/store";
 
 // 组件名称 
 defineOptions({
   name: "history-disease"
 });
 
+const userInfo = userStore()
+
 // 响应式状态
-const tabItems = ref(['2024', '2023', '2022']);
+const tabItems = ref([]);
 const activeTab = ref(0);
 const searchText = ref('');
 const isSelectMode = ref(false);
@@ -86,22 +91,28 @@ const diseaseItems = ref(null);
 // 病害列表数据
 const diseaseList = ref([]);
 
-// 加载数据
-const loadDiseaseData = async () => {
+
+//桥梁id
+const buildingId = ref(55)
+
+// 读取json文件中的数据
+const readHistoryDiseaseData = async () => {
   try {
-    const userId = '3';
-    const buildingId = '39';
-    const years = ['2024', '2023', '2022'];
-    
+    const userId = '1';
+    //  获取所有历史病害年份
+    const years = await getHistoryYear(1, 5);
+
+    tabItems.value = years;
+
     // 清空现有数据
     diseaseList.value = [];
-    
+
     // 依次读取各年份数据
     for (const year of years) {
       try {
-        const yearData = await getDisease(userId, buildingId, year);
+        const yearData = await getDisease(userId, 5, year);
         console.log(`获取到${year}年病害数据:`, yearData);
-        
+
         // 直接添加原始数据，不额外添加year字段
         if (yearData && yearData.diseases && yearData.diseases.length > 0) {
           diseaseList.value = [...diseaseList.value, ...yearData.diseases];
@@ -110,8 +121,7 @@ const loadDiseaseData = async () => {
         console.warn(`获取${year}年数据失败:`, yearError);
       }
     }
-    
-    console.log('所有年份病害数据加载完成:', diseaseList.value);
+
   } catch (error) {
     console.error('读取病害数据失败:', error);
     uni.showToast({
@@ -119,6 +129,56 @@ const loadDiseaseData = async () => {
       icon: 'none'
     });
   }
+};
+
+// 加载数据
+const loadDiseaseData = async () => {
+  await readHistoryDiseaseData();
+  //如果diseaseList为空，则从接口获取数据并写入json中
+  if (diseaseList.value.length === 0) {
+    const responseLogin = await uni.request({
+      url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+      method: 'POST'
+    });
+    console.log('用户信息:', responseLogin.data);
+    const token = responseLogin.data.token
+    const getData = async () => {
+      try {
+        const response = await uni.request({
+          //桥梁id改为全局
+          url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease`,
+          method: 'GET',
+          header: {
+            'Authorization': `${token}`
+          }
+        });
+        console.log('从后端接口获取到的历史病害数据:', response.data.data);
+        if (response.data.code === 0) {
+          for(const yearDisease of response.data.data){
+            const year = yearDisease.year;
+            //调用接口将数据存在本地(disease)
+            await setDisease(1, 5, year, yearDisease)
+          }
+        } else {
+          uni.showToast({
+            title: response.data.msg || '获取数据失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('获取历史病害数据失败:', error);
+        uni.showToast({
+          title: '获取数据失败，请稍后重试',
+          icon: 'none'
+        });
+      }
+    };
+    await getData();
+
+    await readHistoryDiseaseData();
+  }
+
+  console.log('历史病害数据',  diseaseList.value);
 };
 
 // 展开状态
@@ -145,7 +205,7 @@ const filteredDiseases = computed(() => {
     if (searchText.value) {
       return (item.description?.includes(searchText.value) || 
              item.type?.includes(searchText.value) ||
-             item.component?.parentObjectName?.includes(searchText.value));
+             item.component?.grandObjectName?.includes(searchText.value));
     }
     
     return true;
@@ -316,10 +376,10 @@ const getFilteredDiseasesByType = (type) => {
   const selectedYear = tabItems.value[activeTab.value];
   return diseaseList.value.filter(item => {
     const itemYear = item.createTime.substring(0, 4);
-    const parentObjectName = item.component?.parentObjectName;
+    const grandObjectName = item.component?.grandObjectName;
     
     // 按年份和类型过滤
-    if (itemYear !== selectedYear || parentObjectName !== type) {
+    if (itemYear !== selectedYear || grandObjectName !== type) {
       return false;
     }
     

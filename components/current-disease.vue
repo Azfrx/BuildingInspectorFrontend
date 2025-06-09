@@ -1,3 +1,4 @@
+<!--当前病害页面-->
 <template>
 	<view class="disease-container">
 		<view class="search-add-container">
@@ -47,6 +48,7 @@
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
 import { getDisease } from '../utils/readJsonNew.js';
 import { setDisease } from '../utils/reviseNew.js';
+import {userStore} from "@/store";
 
 // 数据
 const tabItems = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
@@ -54,33 +56,87 @@ const activeTab = ref(0);
 const searchText = ref('');
 const showAddPopup = ref(false);
 const diseaseList = ref([]);
+const isJson = ref(1);//1为有json数据，0为无json数据
+const buildingId = ref(55);
+const userInfo = userStore();
 
-// 加载当前年份病害数据
-const loadCurrentYearDiseaseData = async () => {
+//
+const readCurrentYearDiseaseDataByJson = async () => {
   try {
-    const userId = '3';
-    const buildingId = '39';
+    const userId = '1';
+    const buildingId = '5';
     const currentYear = new Date().getFullYear().toString();
-    
+
     // 调用getDisease获取当前年份数据
     const yearData = await getDisease(userId, buildingId, currentYear);
     console.log(`获取到${currentYear}年病害数据:`, yearData);
-    
+
     // 直接使用diseases数组
     if (yearData && yearData.diseases && yearData.diseases.length > 0) {
       diseaseList.value = yearData.diseases;
     } else {
       diseaseList.value = [];
     }
-    
+
     console.log('病害数据加载完成:', diseaseList.value);
   } catch (error) {
-    console.error('读取病害数据失败:', error);
-    uni.showToast({
-      title: '读取数据失败',
-      icon: 'none'
-    });
+    isJson.value = 0;
+    console.error('读取当前病害数据失败:', error);
   }
+};
+
+// 加载当前年份病害数据
+const loadCurrentYearDiseaseData = async () => {
+  await readCurrentYearDiseaseDataByJson();
+  if(isJson.value === 0){
+    console.log('开始从后端获取当前病害数据...........');
+    const responseLogin = await uni.request({
+      url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+      method: 'POST'
+    });
+    console.log('用户信息:', responseLogin.data);
+    const token = responseLogin.data.token
+    const currentYear = new Date().getFullYear().toString();
+    const getData = async () => {
+      console.log('开始从后端获取当前病害数据...........');
+      try {
+        const response = await uni.request({
+          //桥梁id改为全局
+          url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease?year=${currentYear}`,
+          method: 'GET',
+          header: {
+            'Authorization': `${token}`
+          }
+        });
+        if (response.data.code === 0) {
+          if(!response.data.data) {
+            response.data.data = {};
+          }
+          console.log('后端接口返回数据:', response.data.data);
+          //调用接口将数据存在本地(disease)
+          const saveData = {
+            year: parseInt(currentYear),
+            buildingId: parseInt(buildingId.value),
+            diseases: response.data.data.diseases || []
+          };
+          await setDisease(1, 5, currentYear, saveData);
+        } else {
+          uni.showToast({
+            title: response.data.msg || '获取数据失败',
+            icon: 'none'
+          });
+        }
+      } catch (error) {
+        console.error('获取当前病害数据失败:', error);
+        uni.showToast({
+          title: '获取数据失败，请稍后重试',
+          icon: 'none'
+        });
+      }
+    };
+    await getData();
+  }
+  await readCurrentYearDiseaseDataByJson();
 };
 
 // 添加新增病害数据的方法
@@ -91,8 +147,8 @@ const addNewDiseaseData = async (newDisease) => {
     diseaseList.value.push(newDisease);
     
     // 准备要保存的数据
-    const userId = '3';
-    const buildingId = '39';
+    const userId = '1';
+    const buildingId = '5';
     const currentYear = new Date().getFullYear().toString();
     
     // 构建要保存的数据对象
@@ -143,8 +199,8 @@ const handleDeleteDisease = async (deleteData) => {
     console.log(`病害ID:${deleteData.id}已标记为删除`);
     
     // 准备要保存的数据
-    const userId = '3';
-    const buildingId = '39';
+    const userId = '1';
+    const buildingId = '5';
     const currentYear = new Date().getFullYear().toString();
     
     // 构建要保存的数据对象
@@ -191,8 +247,8 @@ const handleUpdateDisease = async (updatedDisease) => {
     console.log(`病害ID:${updatedDisease.id}已更新`);
     
     // 准备要保存的数据
-    const userId = '3';
-    const buildingId = '39';
+    const userId = '1';
+    const buildingId = '5';
     const currentYear = new Date().getFullYear().toString();
     
     // 构建要保存的数据对象
@@ -228,8 +284,8 @@ const filteredDiseases = computed(() => {
 			return false;
 		}
 		
-		// 按类型过滤 - 使用component.parentObjectName
-		if (item.component?.parentObjectName !== selectedType) {
+		// 按类型过滤 - 使用component.grandObjectName
+		if (item.component?.grandObjectName !== selectedType) {
 			return false;
 		}
 		
@@ -257,7 +313,7 @@ const changeTab = (index) => {
 const getTpyeItemCount = (type) => {
 	// 根据type获取该类型的病害数量，排除已删除的项目
 	return diseaseList.value.filter(item => 
-    item.component?.parentObjectName === type && 
+    item.component?.grandObjectName === type &&
     item.isDelete !== true
   ).length;
 };
@@ -283,8 +339,8 @@ const deleteDisease = (itemId) => {
 					diseaseList.value[index].isDelete = true;
 					
 					// 准备要保存的数据
-					const userId = '3';
-					const buildingId = '39';
+					const userId = '1';
+					const buildingId = '5';
 					const currentYear = new Date().getFullYear().toString();
 					
 					// 构建要保存的数据对象
@@ -330,6 +386,24 @@ onMounted(() => {
   
   // 添加更新病害事件监听
   uni.$on('updateDisease', handleUpdateDisease);
+  
+  // 添加获取同类型病害列表的事件监听
+  uni.$on('getDiseasesOfType', (data) => {
+    if (!data || !data.type || !data.callback) {
+      console.error('获取同类型病害列表参数不完整');
+      return;
+    }
+    
+    // 过滤出同类型的病害列表
+    const filteredList = diseaseList.value.filter(item => 
+      item.component?.grandObjectName === data.type
+    );
+    
+    console.log(`获取${data.type}类型的病害列表，共${filteredList.length}条`);
+    
+    // 通过回调函数返回结果
+    data.callback(filteredList);
+  });
 });
 
 // 组件卸载时
@@ -338,6 +412,7 @@ onUnmounted(() => {
   uni.$off('addNewDisease');
   uni.$off('deleteDisease');
   uni.$off('updateDisease');
+  uni.$off('getDiseasesOfType');
 });
 </script>
 

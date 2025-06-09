@@ -11,6 +11,8 @@ const FILE_NAMING = {
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
     Object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`,
     // 新增用户信息路径规则
+    user: userId => `${userId}/user.json`,
+    historyYear: (userId, buildingId) => `${userId}/building/${buildingId}/disease`,
     AllUserInfo: userId => `${userId}/AllUserInfo.json`
 };
 
@@ -72,4 +74,63 @@ export function getAllUserInfo(userId) {
     const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userId);
     trackPath(path);
     return getJsonData(path);
+}
+
+// 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
+export async function getHistoryYear(userId, buildingId) {
+    try {
+        // 1. 构建目标目录路径
+        const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userId, buildingId);
+        console.log(`历史病害目标目录: ${dirPath}`)
+
+        // 2. 获取目录下的文件列表
+        const files = await listDirectoryFiles(dirPath);
+
+        // 3. 过滤出年份JSON文件 (格式: YYYY.json)
+        const yearFiles = files.filter(file =>
+            file.name && /^\d{4}\.json$/.test(file.name)
+        );
+
+        // 4. 提取年份字符串（保留原始格式）
+        const years = yearFiles.map(file =>
+            file.name.split('.')[0]  // 直接返回字符串
+        );
+
+        // 5. 获取当前年份字符串
+        const currentYear = String(new Date().getFullYear());
+
+        // 6. 过滤掉当前年份并倒序排序
+        const filteredYears = years
+            .filter(year => year !== currentYear)  // 字符串比较
+            .sort((a, b) => {
+                // 转换为数字进行比较，但保持返回字符串
+                return Number(b) - Number(a);  // 从大到小排序
+            });
+
+        console.log(`找到历史年份: ${filteredYears.join(',')}`);
+        return filteredYears;
+
+    } catch (error) {
+        console.error('获取历史年份失败:', error);
+        return [];
+    }
+}
+
+// 辅助方法：列出目录中的文件
+function listDirectoryFiles(path) {
+    return new Promise((resolve, reject) => {
+        // 1. 获取完整的沙盒目录路径
+        const fullPath = plus.io.convertLocalFileSystemURL(path);
+        plus.io.resolveLocalFileSystemURL(fullPath, entry => {
+            if (entry.isDirectory) {
+                const directoryReader = entry.createReader();
+                directoryReader.readEntries(
+                    entries => resolve(Array.from(entries)),
+                    reject
+                );
+            } else {
+                reject(new Error('路径不是目录'));
+            }
+        }, reject);
+    });
 }
