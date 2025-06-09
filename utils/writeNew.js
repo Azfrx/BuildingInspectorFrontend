@@ -10,7 +10,7 @@ const FILE_NAMING = {
     object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`, // 新增object路径规则
     disease: (userId, buildingId, yearId) =>
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
-    user: userId => `${userId}/user.json`
+    AllUserInfo: userId => `${userId}/AllUserInfo.json`
 };
 
 // 核心文件写入方法
@@ -65,8 +65,8 @@ export function setDisease(userId, buildingId, yearId, data) {
     return setJsonData(path, data);
 }
 
-export function setUser(userId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.user(userId);
+export function setAllUserInfo(userId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userId);
     trackPath(path);
     return setJsonData(path, data);
 }

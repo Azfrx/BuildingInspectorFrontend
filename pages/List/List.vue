@@ -5,80 +5,74 @@
  Bug 6
  -->
 <template>
-	<view class="container">
-		<!-- 顶部信息卡片 -->
-		<view class="info-card">
-			<view class="content-box">
-				<view class="title">{{projectInfo.data.projects[0].name || '项目名称'}}</view>
-				<view class="info-row">
-					<text>项目编号: {{projectInfo.data.projects[0].code}}</text>
-					<text>检测状态: {{projectInfo.data.projects[0].status}}</text>
-				</view>
-				<view class="info-row">
-					<text>项目单位: {{projectInfo.data.projects[0].ownerDept.deptName}}</text>
-					<!-- Bug4  向后端要求增加字段number 接口为：根据用户id查询项目id-->
-					<!-- <text>检测数量: {{projectInfo.data.projects[0].number}}</text> -->
-					<!-- 这里逻辑还没处理 -->
-					<text>检测数量: {{26}}</text>
-				</view>
-				<view class="info-row">
-					<text>检测年度: {{projectInfo.data.projects[0].year}}年度</text>
-					<text>起止时间: {{projectInfo.data.projects[0].createTime}}</text>
-				</view>
-				<view class="info-row">
-					<text>检测单位: {{projectInfo.data.projects[0].dept.deptName}}</text>
-				</view>
-				<view class="info-row">
-					<!-- Bug5 这里检测人员怎么填 -->
-					<!-- <text>检测人员: {{projectInfo.inspector}}</text> -->
-					<text>检测人员: {{'zhang闪闪/李四四/王五五/赵六六'}}</text>
-				</view>
-			</view>
+	 <view class="container">
+	   <!-- 顶部信息卡片 -->
+	    <view class="info-card">
+			 <view class="content-box">
+				  <view class="title">{{currentProject.name || '项目名称'}}</view>
+				  <view class="info-row">
+				    <text>项目编号: {{currentProject.code || ''}}</text>
+				    <text>检测状态: {{currentProject.status === '0' ? '未完成' : currentProject.status === '1' ? '已完成' : ''}}</text>
+				  </view>
+				  <view class="info-row">
+				    <text>项目单位: {{currentProject.ownerDept?.deptName || ''}}</text>
+				    <text>检测数量: {{initTaskData?.data?.tasks?.length || 0}}</text>
+				  </view>
+				  <view class="info-row">
+				    <text>检测年度: {{currentProject.year || ''}}年度</text>
+				    <text>起止时间: {{currentProject.createTime || ''}}</text>
+				  </view>
+				  <view class="info-row">
+				    <text>检测单位: {{currentProject.dept?.deptName || ''}}</text>
+				  </view>
+				  <view class="info-row">
+				    <text>检测人员: {{currentProject.inspectors ? currentProject.inspectors.map(inspector => inspector.userName).join('/') : ''}}</text>
+				  </view>
+			 </view>
 		</view>
-
+		
 		<!-- 搜索框 -->
-		<view class="search-box">
-			<text class="search-icon">&#xe654;</text>
-			<input type="text" placeholder="搜索桥梁名称/编号/位置" v-model="searchText" @input="handleSearch"/>
-		</view>
-
+			<view class="search-box">
+			    <text class="search-icon">&#xe654;</text>
+			    <input type="text" placeholder="搜索桥梁名称/编号/位置" v-model="searchText" @input="handleSearch"/>
+			</view>
 		<!-- 桥梁任务列表 -->
 		<view class="bridge-list">
-			<view class="bridge-item" v-for="bridge in initData.data.tasks" :key="bridge.id" @click="goToDetail(bridge)">
+			<view class="bridge-item" v-for="bridge in filteredBridges" :key="bridge.id" @click="goToDetail(bridge)">
 				<view class="bridge-icon">
-					<image :src="getBridgeIcon(bridge.type)" mode="aspectFit"></image>
+				    <image :src="getBridgeIcon(bridge.type)" mode="aspectFit"></image>
 				</view>
 				<view class="bridge-info">
-					<view class="bridge-code">{{bridge.building.buildingCode}}</view>
-					<view class="bridge-name">{{bridge.building.name}}</view>
-					<view class="bridge-location">  {{ 
-						(bridge?.building?.routeCode || '') + '/' + 
-						(bridge?.building?.routeName || '') + '/' + 
-						(bridge?.building?.bridgePileNumber || '') 
-					}}</view>
+				    <view class="bridge-code">{{bridge.building.buildingCode}}</view>
+				    <view class="bridge-name">{{bridge.building.name}}</view>
+				    <view class="bridge-location">  {{ 
+				        (bridge?.building?.routeCode || '') + '/' + 
+				        (bridge?.building?.routeName || '') + '/' + 
+				        (bridge?.building?.bridgePileNumber || '') 
+				            }}
+					</view>
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-						<text class="bridge-length">{{bridge.building.bridgeLength}}</text>
-						<!-- Bug 6 这个类前面的数字是哪个字段-->
-						<!--<text class="bridge-class">{{bridge.class}}类</text> -->
-						<text class="bridge-class">{{2}}类</text>
+						 <text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
+						 <text class="bridge-class">{{bridge.building?.bridgeRank||'999'}}类</text>
 					</view>
 					<image src="/static/image/RightOutline.svg"/>
 				</view>
 			</view>
-			<!-- 无搜索结果提示 -->
-			<view class="no-result" v-if="filteredBridges.length === 0">
-				<text>未找到匹配的桥梁</text>
-			</view>
 		</view>
-	</view>
+		 <!-- 无搜索结果提示 -->
+		    <view class="no-result" v-if="filteredBridges.length === 0">
+		        <text>未找到匹配的桥梁</text>
+		    </view>
+	 </view>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { getProject, getTask,getUser } from '@/utils/readJsonNew.js'
+import { getProject, getTask,} from '@/utils/readJsonNew.js'
 import { setTask } from '../../utils/writeNew'
+import projects from '@/static/data/projects.json'//假数据
 
 // 返回上一页
 const back = () => {
@@ -91,18 +85,41 @@ const projectInfo = ref({})
 const searchText = ref('')
 // 桥梁列表数据
 const bridges = ref([])
-//项目id Bug
 const projectId = ref(2)
-
 const initData = ref(null);
+const username = ref("admin")
+const password = ref(123456);
+const initTaskData= ref(null)
+const taskBridgeId = ref(0);
+
+// 初始化时获取projectId参数
+const getURLParams = () => {
+  const pages = getCurrentPages();
+  if (pages.length > 0) {
+    const currentPage = pages[pages.length - 1];
+    const options = currentPage.$page?.options;
+    
+    if (options && options.projectId) {
+      projectId.value = options.projectId;
+      console.log('接收到的项目ID:', projectId.value);
+    } else {
+      console.log('未接收到项目ID，使用默认值:', projectId.value);
+    }
+  }
+};
+
 //初始化数据
 const init = async () => {
-  // 获取全局文件
-  let AllUserInfo = await getUser(1);
-  // 获取全局文件中的属性
-  console.log('AllUserInfo', AllUserInfo);
-  let token = AllUserInfo.token;
-  console.log('Cleaned token:', token); // 确认处理后的格式
+  // 先确保已经获取了URL参数
+  getURLParams();
+  
+  const responseLogin = await uni.request({
+    	url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+    	method: 'POST'
+    });
+  console.log('用户信息:', responseLogin.data);
+  //模拟的假数据
+  const token = responseLogin.data.token
   const getData = async () => {
     try {
       const response = await uni.request({
@@ -115,10 +132,21 @@ const init = async () => {
       });
       console.log('获取到的任务数据:', response.data);
       if (response.data.code === 0) {
-        initData.value = response.data;
+        initTaskData.value = response.data;
 		//调用接口将数据存在本地(Task)
 		//Bug2  projectId的问题同上
-		setTask(1,projectId.value,initData)
+		// //创建假数据
+		// const mockData = ref({
+		// 	"msg": "登录成功,请妥善保管您的token信息",
+		// 	"code": 0,
+		// 	"token": responseLogin.data.token,
+		// 	"userId":"1",
+		// 	"userName":"张三",
+		// 			})
+		// //设置假数据
+		// projectInfo.value = projects;
+		setTask(responseLogin.data.userId,projectId.value,initTaskData.value)
+		 // setTask(responseLogin.data.userId,projectId.value,projectInfo.value)
       } else {
         uni.showToast({
           title: response.data.msg || '获取数据失败',
@@ -136,52 +164,69 @@ const init = async () => {
 
   await getData();
   //Bug3 userId写死的
-  projectInfo.value = await getProject(1);
+  projectInfo.value = await getProject(responseLogin.data.userId);
   console.log('项目数据111',projectInfo.value)
+  console.log('currentProject的值:', currentProject.value.name);
 };
 
 // 页面加载时获取数据
-onMounted(async () => {
-  await init();
+onMounted(() => {
+  getURLParams();
+  // 然后再调用init或其他初始化函数
+  init();
 })
-
+// 添加计算属性来获取当前项目
+const currentProject = computed(() => {
+  if (!projectInfo.value || !projectInfo.value.data || !projectInfo.value.data.projects) {
+    return {};
+  }
+  
+  // 查找与当前projectId匹配的项目
+  const project = projectInfo.value.data.projects.find(p => p.id == projectId.value);
+  return project || projectInfo.value.data.projects[0] || {}; // 如果找不到，返回第一个项目或空对象
+});
 // 根据桥梁类型获取对应图标
 //Bug3 ---图标的对应规则未知
 const getBridgeIcon = (type) => {
 	const icons = {
-		'small': '/static/image/bridge1.png',
-		'cross': '/static/image/bridge2.png',
-		'arch': '/static/image/bridge3.png',
-		'suspension': '/static/images/bridge4.png',
-		'main': '/static/image/bridge1.png',    // 暂时使用拱桥图标代替主线桥图标
-		'ramp': '/static/image/bridge2.png'    // 暂时使用立交桥图标代替匝道桥图标
+		'arch': '/static/image/bridge1.png', //拱桥
+		'viaduct': '/static/image/bridge2.png', //高架桥
+		'stayed-cable': '/static/image/bridge3.png',//斜拉桥
+		'suspension': '/static/images/bridge4.png', //悬。。桥
 	}
-	return icons[type] || icons['small']
+	return icons[type] || icons['arch']
 }
 
 // 跳转到详情页
 const goToDetail = (bridge) => {
 	uni.navigateTo({
-		url: `/pages/bridge-disease/bridge-disease`
+		url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
 	})
 }
 
 // 根据搜索文本过滤桥梁列表
 const filteredBridges = computed(() => {
-	if (!searchText.value) {
-		return bridges.value
+	if (!initTaskData.value || !initTaskData.value.data || !initTaskData.value.data.tasks) {
+		return [];
 	}
-	const searchLower = searchText.value.toLowerCase()
-	return bridges.value.filter(bridge => {
-		return bridge.name.toLowerCase().includes(searchLower) ||
-			   bridge.code.toLowerCase().includes(searchLower) ||
-			   bridge.location.toLowerCase().includes(searchLower)
-	})
+	
+	if (!searchText.value) {
+		return initTaskData.value.data.tasks;
+	}
+	
+	const searchLower = searchText.value.toLowerCase();
+	return initTaskData.value.data.tasks.filter(bridge => {
+		return (bridge.building?.name && bridge.building.name.toLowerCase().includes(searchLower)) ||
+			   (bridge.building?.buildingCode && bridge.building.buildingCode.toLowerCase().includes(searchLower)) ||
+			   (bridge.building?.routeName && bridge.building.routeName.toLowerCase().includes(searchLower)) ||
+			   (bridge.building?.bridgePileNumber && bridge.building.bridgePileNumber.toLowerCase().includes(searchLower));
+	});
 })
 
 // 处理搜索输入
 const handleSearch = () => {
-	console.log('搜索关键词:', searchText.value)
+	console.log('搜索关键词:', searchText.value);
+	// 由于使用了计算属性filteredBridges，无需在这里手动过滤
 }
 </script>
 
@@ -246,7 +291,14 @@ const handleSearch = () => {
 		}
 	}
 }
+@font-face {
+  font-family: 'uniicons';
+  src: url('/static/fonts/uniicons.ttf') format('truetype');
+}
 
+.uniicons {
+  font-family: 'uniicons';
+}
 .search-box {
 	margin: 0;
 	padding: 10px;

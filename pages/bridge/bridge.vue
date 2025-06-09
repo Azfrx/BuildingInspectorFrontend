@@ -12,21 +12,17 @@
       <view class="info-boxes">
         <view class="info-box">
           <text class="label">检测单位</text>
-          <text class="value">{{ initData.data.projects[0].dept.deptName|| '暂无数据' }}</text>
+          <text class="value">{{ infoData.userDept|| '暂无数据' }}</text>
         </view>
         <view class="info-box">
           <text class="label">检测人员</text>
-		  <!-- Todo   Bug1 
-		    这里检测人员的字段是否为leader?
-			Bug2 多任务列表中是否要用project[0]-->
-          <text class="value">{{ initData.data.projects[0].dept.leader || '暂无数据' }}</text>
+          <text class="value">{{ infoData.userName || '暂无数据' }}</text>
 		    </view>
         <view class="info-box">
           <text class="label">检测年度</text>
           <picker class="year-picker" :value="selectedYearIndex" :range="years" @change="changeYear">
 				<view class="picker-content">
-					<!-- Bug3 年份切换回的逻辑还没处理 -->
-              <text class="value">{{initData.data.projects[0].year }}年度</text>
+              <text class="value">{{ currentYear }}年度</text>
               <image
                 src="/static/image/RightOutline.svg"
                 mode="scaleToFill"
@@ -39,7 +35,7 @@
 	
     <!-- 项目列表 -->
     <view class="bridge-list">
-      <view class="bridge-item" v-for="(item, index) in initData.data.projects" :key="index" @click="goToList(item)">
+      <view class="bridge-item" v-for="(item, index) in filteredProjects" :key="index" @click="goToList(item)">
         <view class="bridge-info">
           <view class="bridge-code">{{ item.code || '暂无编号' }}</view>
           <view class="bridge-name">{{ item.name || '暂无名称' }}</view>
@@ -61,59 +57,97 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { getProject,getUser } from '../../utils/readJsonNew';
+import { ref, onMounted, computed } from 'vue';
+import { getAllUserInfo, getProject } from '../../utils/readJsonNew';
 import { setProject } from '../../utils/writeNew';
+import {userStore} from '@/store/index.js'
 
 // 检测年度选项
-const years = ref([2024, 2023, 2022,2021,2020]);
-//控制年份的初始值
-const selectedYearIndex = ref(0);
+const years = ref([2025,2024, 2023, 2022,2021,2020]);
+
+// 获取当前年份
+const currentYear = ref(new Date().getFullYear());
 
 const initData = ref(null);
+const infoData = ref({});
+// const username = ref("admin")
+// const password = ref(123456);
+const userInfo = userStore()
+
+const selectedYearIndex = ref(0);
 //初始化数据
 const init = async () => {
-  // 获取全局文件
-  let AllUserInfo = await getUser(1);
-  // 获取全局文件中的属性
-  console.log('AllUserInfo', AllUserInfo);
-  let token = AllUserInfo.token;
-  console.log('Cleaned token:', token); // 确认处理后的格式
-  const getData = async () => {
-    try {
-      const response = await uni.request({
-        url: 'http://60.205.13.156:8090/api/project',
-        method: 'GET',
-        header: {
-          'Authorization': `${token}` 
+  try {
+	  // 在线登录逻辑
+	  //待处理 Bug Bug 1
+	  const responseLogin = await uni.request({
+	  	url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+	  	method: 'POST'
+	  });
+    console.log('用户信息:', responseLogin.data);
+	//模拟的假数据
+	const token = responseLogin.data.token
+	infoData.value = responseLogin.data ;
+    if (token) {
+      const getData = async () => {
+        try {
+          const projectResponse = await uni.request({
+            url: 'http://60.205.13.156:8090/api/project',
+            method: 'GET',
+            header: {
+              'Authorization': `${token}` 
+            }
+          });
+          console.log('获取到的项目数据:', projectResponse.data);
+          if (projectResponse.data.code === 0) {
+            initData.value = projectResponse.data;
+            //调用接口将数据存在本地
+            if (responseLogin.data.userId) {
+              setProject(responseLogin.data.userId, initData.value);
+            }
+          } else {
+            uni.showToast({
+              title: projectResponse.data.msg || '获取数据失败',
+              icon: 'none'
+            });
+          }
+        } catch (error) {
+          console.error('获取项目数据失败:', error);
+          uni.showToast({
+            title: '获取数据失败，请稍后重试',
+            icon: 'none'
+          });
         }
-      });
-      console.log('获取到的项目数据:', response.data);
-      if (response.data.code === 0) {
-        initData.value = response.data;
-		//调用接口将数据存在本地
-		setProject(1,initData.value);
-      } else {
-        uni.showToast({
-          title: response.data.msg || '获取数据失败',
-          icon: 'none'
-        });
-      }
-    } catch (error) {
-      console.error('获取项目数据失败:', error);
+      };
+
+      await getData();
+    } else {
+      console.error('未获取到有效token');
       uni.showToast({
-        title: '获取数据失败，请稍后重试',
+        title: '登录信息无效，请重新登录',
         icon: 'none'
       });
     }
-  };
-
-  await getData();
+  } catch (error) {
+    console.error('初始化数据失败:', error)
+  }
 };
 
+// 添加计算属性
+const filteredProjects = computed(() => {
+  if (!initData.value || !initData.value.data || !initData.value.data.projects) {
+    return [];
+  }
+  return initData.value.data.projects.filter(project => {
+    return project.year == currentYear.value;
+  });
+});
+
+// 修改changeYear函数
 const changeYear = (e) => {
   selectedYearIndex.value = e.detail.value;
-  // 这里可以添加年份切换后的数据刷新逻辑
+  currentYear.value = years.value[selectedYearIndex.value];
+  console.log(`已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
 };
 
 const back = () => {
@@ -123,7 +157,7 @@ const back = () => {
 // Bug4  跳转后如何获取任务id
 const goToList = (item) => {
     uni.navigateTo({
-    url: `/pages/List/List`,
+    url: `/pages/List/List?projectId=${item.id}`,
   });
 };
 
@@ -140,9 +174,33 @@ const getStatusText = (status) => {
   }
 };
 
+// 添加一个计算属性来获取当前项目
+const currentProject = computed(() => {
+  if (!initData.value || !initData.value.data || !initData.value.data.projects) {
+    return null;
+  }
+  
+  // 查找匹配当前projectId的项目
+  const project = initData.value.data.projects.find(p => p.id == projectId.value);
+  
+  // 如果找不到匹配的项目，则返回第一个项目（作为后备）
+  return project || initData.value.data.projects[0];
+});
+
 onMounted(async() => {
   await init();
 });
+
+const handleRadioChange = (e) => {
+  const value = e.detail.value;
+  if (value === 'remember') {
+    rememberPassword.value = true;
+    offlineLogin.value = false;
+  } else if (value === 'offline') {
+    offlineLogin.value = true;
+    rememberPassword.value = false;
+  }
+};
 </script>
 
 <style lang="scss">
@@ -265,9 +323,9 @@ onMounted(async() => {
     align-items: center;
     padding: 15px;
     background-color: #fff;
-    margin-bottom: 1px;
-    border: 1px solid #0f4687;
-    border-radius: 4px;
+    margin-bottom: 0px;
+    border: 1px solid #d0d0d0;
+    border-radius: 0px;
 
     .bridge-info {
       flex: 1;

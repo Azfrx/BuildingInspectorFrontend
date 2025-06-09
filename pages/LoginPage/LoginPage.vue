@@ -32,11 +32,13 @@
 			</view>
 			<view class="item_3">
 				<radio-group name="radio">
-					<label>
-						<radio :checked="rememberPassword" @click="toggleRememberPassword" />记住密码
+					<label >
+						<radio :checked="rememberPassword" @click="toggleRememberPassword"/>
+						<span>记住密码</span>
 					</label>
-					<label>
-						<radio :checked="offlineLogin" @click="toggleOfflineLogin" />离线登录
+					<label >
+						<radio :checked="offlineLogin" @click="toggleOfflineLogin"/>
+						<span>离线登录</span>
 					</label>
 				</radio-group>
 			</view>
@@ -52,10 +54,12 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import {setUser} from '../../utils/writeNew';
-import { getUser } from '../../utils/readJsonNew';
+import {setAllUserInfo,} from '../../utils/writeNew';
+import {userStore} from '@/store/index.js'
+
 const username = ref('');
 const password = ref('');
+const userInfo = userStore()
 const rememberPassword = ref(false);
 const offlineLogin = ref(false);
 const showPassword = ref(false);
@@ -76,25 +80,33 @@ const toggleOfflineLogin = () => {
 
 // 页面加载时检查是否有保存的用户信息
 onMounted(async () => {
-	try {
-		const savedUser = await getUser(1);
-		// 只有当savedUser存在且不为空时才执行填充操作
-		if (savedUser && Object.keys(savedUser).length > 0) {
-			console.log('找到保存的用户信息:', savedUser);
-			console.log('savedUser:', savedUser);
-			const token = savedUser.token;
-			console.log('token:', token);
-			// 如果文件存在，勾选记住密码并填充内容
-			rememberPassword.value = true;
-			username.value = savedUser.username;
-			password.value = savedUser.password;
-		} else {
-			console.log('未找到保存的用户信息');
-		}
-	} catch (error) {
-		console.error('读取用户信息失败:', error);
-	}
+	//记住密码功能
+	// try {
+	// 	const savedUser = await getUser(1);
+	// 	// 只有当savedUser存在且不为空时才执行填充操作
+	// 	if (savedUser && Object.keys(savedUser).length > 0) {
+	// 		console.log('找到保存的用户信息:', savedUser);
+	// 		console.log('savedUser:', savedUser);
+	// 		const token = savedUser.token;
+	// 		console.log('token:', token);
+	// 		// 如果文件存在，勾选记住密码并填充内容
+	// 		rememberPassword.value = true;
+	// 		username.value = savedUser.username;
+	// 		password.value = savedUser.password;
+	// 	} else {
+	// 		console.log('未找到保存的用户信息');
+	// 	}
+	// } catch (error) {
+	// 	console.error('读取用户信息失败:', error);
+	// }
 });
+
+onMounted(() => {
+	if(uni.getStorageSync('username') && uni.getStorageSync('password')){
+		username.value = uni.getStorageSync('username')
+		password.value = uni.getStorageSync('password')
+	}
+})
 
 const togglePasswordVisibility = () => {
 	showPassword.value = !showPassword.value;
@@ -115,13 +127,14 @@ const handleLogin = async () => {
 		console.log('当前登录模式:', offlineLogin.value ? '离线登录' : '在线登录');
 		console.log('记住密码状态:', rememberPassword.value);
 		if (offlineLogin.value) {
+			const localUsername = uni.getStorageSync('username')
+			const localPassword = uni.getStorageSync('password')
 			console.log('进入离线登录逻辑');
 			// 离线登录逻辑
-			const savedUser = await getUser(1);
-			console.log('获取到的用户信息:', savedUser);
-			if (savedUser && 
-				savedUser.username === username.value && 
-				savedUser.password === password.value) {
+			// const savedUser = await getUser(1);
+			if (localUsername && localPassword &&
+				localUsername === username.value && 
+				localPassword === password.value) {
 				console.log('离线登录成功，准备跳转');
 				// 登录成功，跳转到bridge页面
 				uni.navigateTo({
@@ -144,13 +157,22 @@ const handleLogin = async () => {
 			console.log('登录响应:', response.data);
 			
 			if (response.data.code === 0) {
-				// 保存token到tokenInfo
-				const allUserInfo = {
-					token: response.data.token
-				}
-				// //将token写入文件
-				// setUser(1, tokenInfo.value);
-				
+				userInfo.setUserInfo({
+					username: username.value,
+					password: password.value
+				})
+				// // 将allUserInfo写入本地
+				// const mockUserId = 1
+				// const mockData = ref({
+				// 	"msg": "登录成功,请妥善保管您的token信息",
+				// 	"code": 0,
+				// 	"token": response.data.token,
+				// 	"userId":"1",
+				// 	"userName":"张三",
+				// 	"userDept":"武汉交投公司"
+				// 			})
+				//  setAllUserInfo(mockData.value.userId,mockData.value)
+				// setAllUserInfo(response.data.userId,response.data)
 				console.log('登录成功，准备跳转');
 				uni.navigateTo({
 					url: '/pages/home/home'
@@ -160,12 +182,16 @@ const handleLogin = async () => {
 				if (rememberPassword.value) {
 					console.log('准备保存用户信息');
 					// 保存用户信息到savedUserInfo
-					allUserInfo.username = username.value;
-					allUserInfo.password = password.value;
+					// allUserInfo.username = username.value;
+					// allUserInfo.password = password.value;
+					uni.setStorageSync('username', username.value)
+					uni.setStorageSync('password', password.value)
 					//将合并写入
-					setUser(1, allUserInfo);
+					// setUser(1, allUserInfo);
 				} else {
 					console.log('未勾选记住密码，不保存用户信息');
+					uni.removeStorageSync('username')
+					uni.removeStorageSync('password')
 				}
 			} else {
 				uni.showToast({

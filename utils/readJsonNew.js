@@ -11,7 +11,7 @@ const FILE_NAMING = {
         `${userId}/building/${buildingId}/disease/${yearId}.json`,
     Object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`,
     // 新增用户信息路径规则
-    user: userId => `${userId}/user.json`
+    AllUserInfo: userId => `${userId}/AllUserInfo.json`
 };
 
 // 核心文件读取方法
@@ -68,8 +68,8 @@ export function getObject(userId, buildingId) {
 }
 
 // 新增获取用户信息方法
-export function getUser(userId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.user(userId);
+export function getAllUserInfo(userId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userId);
     trackPath(path);
     return getJsonData(path);
 }
