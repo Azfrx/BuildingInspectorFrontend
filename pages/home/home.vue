@@ -1,3 +1,8 @@
+<!-- 桥梁定检/系统设置页面
+ author:ykx
+ date:2025 . 6 .3
+ -->
+
 <template>
 	<view id="homePage">
 		<view class="logo">
@@ -8,7 +13,7 @@
 				<view class="section" :class="{ 'active': activeSection === 'bridge' }" @click="handleClick('bridge')">
 					<view class="icon-item">
 						<view class="icon-box">
-							<image src="@/static/image/bridgenew.png" mode="widthFix" class="home-icon"></image>
+							<image src="@/static/image/bridgeTrue.png" mode="widthFix" class="home-icon"></image>
 						</view>
 						<text class="leftText">桥梁定检</text>
 					</view>
@@ -16,7 +21,7 @@
 				<view class="section" :class="{ 'active': activeSection === 'setting' }" @click="handleClick('setting')">
 					<view class="icon-item">
 						<view class="icon-box">
-							<image src="@/static/image/setting.png" mode="widthFix" class="home-icon"></image>
+							<image src="@/static/image/settingTrue.png" mode="widthFix" class="home-icon"></image>
 						</view>
 						<text class="leftText">系统设置</text>
 					</view>
@@ -88,8 +93,8 @@ const handleClick = (section) => {
 }
 
 .home-icon {
-	width: 30rpx !important;
-	height: 30rpx;
+	width: 40rpx !important;
+	height: 40rpx;
 }
 
 .leftText {

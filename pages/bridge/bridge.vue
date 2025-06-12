@@ -61,6 +61,35 @@ import { ref, onMounted, computed } from 'vue';
 import { getAllUserInfo, getProject } from '../../utils/readJsonNew';
 import { setProject } from '../../utils/writeNew';
 import {userStore} from '@/store/index.js'
+import { idStore } from '../../store/idStorage';
+import { getAllFirstLevelDirs } from '../../utils/readJsonNew';
+import { interval } from 'rxjs';
+// 获取当前日期字符串 (格式: YY-MM-DD)
+function getCurrentDateStr() {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 生成用户目录名（格式: UD25-06-11-userName）
+function getUserDir(userName) {
+    return `UD${getCurrentDateStr()}-${userName}`;
+}
+
+// 从目录名中提取用户名
+function extractUserNameFromDir(dirName) {
+    // 检查目录名格式是否符合 UD日期-用户名
+    if (dirName && dirName.startsWith('UD') && dirName.includes('-')) {
+        // 获取最后一个'-'后面的内容作为用户名
+        const lastDashIndex = dirName.lastIndexOf('-');
+        if (lastDashIndex !== -1 && lastDashIndex < dirName.length - 1) {
+            return dirName.substring(lastDashIndex + 1);
+        }
+    }
+    return ''; // 如果格式不符，返回空字符串
+}
 
 // 检测年度选项
 const years = ref([2025,2024, 2023, 2022,2021,2020]);
@@ -73,7 +102,9 @@ const infoData = ref({});
 // const username = ref("admin")
 // const password = ref(123456);
 const userInfo = userStore()
-
+const idInfo = idStore()
+// 用户目录变量
+const dir = ref('');
 const selectedYearIndex = ref(0);
 //初始化数据
 const init = async () => {
@@ -88,6 +119,14 @@ const init = async () => {
 	//模拟的假数据
 	const token = responseLogin.data.token
 	infoData.value = responseLogin.data ;
+    
+    // 获取并存储用户目录
+    if (userInfo.username) {
+      dir.value = getUserDir(userInfo.username);
+      console.log('当前用户目录:', dir.value);
+		idInfo.setDir(dir.value)
+    }
+    
     if (token) {
       const getData = async () => {
         try {
@@ -101,22 +140,53 @@ const init = async () => {
           console.log('获取到的项目数据:', projectResponse.data);
           if (projectResponse.data.code === 0) {
             initData.value = projectResponse.data;
-            //调用接口将数据存在本地
-            if (responseLogin.data.userId) {
-              setProject(responseLogin.data.userId, initData.value);
-            }
+			// 获取一级目录数组
+			const fileArray = await getAllFirstLevelDirs();
+			let userDirExists = false;
+			
+			// 遍历数组检查是否已存在用户目录
+			for (let i = 0; i < fileArray.length; i++) {
+			    const dir = fileArray[i];
+			    const name = extractUserNameFromDir(dir);  // 从目录名中提取用户名
+			    
+			    if (name === userInfo.username) {
+			        userDirExists = true;
+			        break;  // 找到匹配项，跳出循环
+			    }
+			}
+			
+			if (!userDirExists) {
+			    await setProject(userInfo.username, initData.value);
+			} else {
+			    // 如果已存在用户目录，可以选择执行其他操作或什么都不做
+			    console.log('用户目录已存在，跳过创建');
+			}
           } else {
+            // 只有在真正的API错误时才显示提示
+            console.error('API返回错误:', projectResponse.data.msg);
             uni.showToast({
               title: projectResponse.data.msg || '获取数据失败',
               icon: 'none'
             });
           }
         } catch (error) {
-          console.error('获取项目数据失败:', error);
-          uni.showToast({
-            title: '获取数据失败，请稍后重试',
-            icon: 'none'
-          });
+          // 检查是否是网络错误或其他严重错误
+          if (error.errMsg && (error.errMsg.includes('request:fail') || error.errMsg.includes('timeout'))) {
+            console.error('网络请求失败:', error);
+            uni.showToast({
+              title: '网络连接失败，请检查网络',
+              icon: 'none'
+            });
+          } else {
+            console.error('获取项目数据失败:', error);
+            // 避免重复显示错误提示
+            if (!initData.value || !initData.value.data) {
+              uni.showToast({
+                title: '获取数据失败，请稍后重试',
+                icon: 'none'
+              });
+            }
+          }
         }
       };
 
@@ -156,9 +226,12 @@ const back = () => {
 
 // Bug4  跳转后如何获取任务id
 const goToList = (item) => {
+    // 先设置项目ID到store
+	idInfo.setProjectId({value: item.id})
+    // 然后导航到List页面
     uni.navigateTo({
-    url: `/pages/List/List?projectId=${item.id}`,
-  });
+      url: `/pages/List/List?projectId=${item.id}`
+    });
 };
 
 

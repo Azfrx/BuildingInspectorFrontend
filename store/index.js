@@ -13,7 +13,10 @@ export const userStore = defineStore('user', () => {
 		username.value = userinfo.username
 		password.value = userinfo.password
 	}
-	return {username, password, setUserInfo}
+	return {
+		username, 
+		password, 
+		setUserInfo,
+	}
 })
-
 //store旨在存储全局数据，让不同组件可以随时访问，而不必层层传递 props 或 emit

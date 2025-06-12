@@ -56,7 +56,7 @@
 import { ref, onMounted } from 'vue';
 import {setAllUserInfo,} from '../../utils/writeNew';
 import {userStore} from '@/store/index.js'
-
+import { idStore } from '../../store/idStorage';
 const username = ref('');
 const password = ref('');
 const userInfo = userStore()
@@ -64,7 +64,7 @@ const rememberPassword = ref(false);
 const offlineLogin = ref(false);
 const showPassword = ref(false);
 const loading = ref(false);
-
+const idInfo = idStore();
 // 添加双击事件处理函数
 const toggleRememberPassword = () => {
 	console.log('切换记住密码状态，当前状态:', rememberPassword.value);
@@ -159,8 +159,9 @@ const handleLogin = async () => {
 			if (response.data.code === 0) {
 				userInfo.setUserInfo({
 					username: username.value,
-					password: password.value
+					password: password.value,
 				})
+				idInfo.setUserId(response.data.userId)
 				// // 将allUserInfo写入本地
 				// const mockUserId = 1
 				// const mockData = ref({

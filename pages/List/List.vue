@@ -40,7 +40,7 @@
 		<view class="bridge-list">
 			<view class="bridge-item" v-for="bridge in filteredBridges" :key="bridge.id" @click="goToDetail(bridge)">
 				<view class="bridge-icon">
-				    <image :src="getBridgeIcon(bridge.type)" mode="aspectFit"></image>
+				    <image :src="getBridgeIcon(bridge.building.bridgeType)" mode="aspectFit"></image>
 				</view>
 				<view class="bridge-info">
 				    <view class="bridge-code">{{bridge.building.buildingCode}}</view>
@@ -55,7 +55,7 @@
 				<view class="bridge-meta">
 					<view class="text-group">
 						 <text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
-						 <text class="bridge-class">{{bridge.building?.bridgeRank||'999'}}类</text>
+						 <text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
 					<image src="/static/image/RightOutline.svg"/>
 				</view>
@@ -72,8 +72,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { getProject, getTask,} from '@/utils/readJsonNew.js'
 import { setTask } from '../../utils/writeNew'
-import projects from '@/static/data/projects.json'//假数据
-
+import {userStore} from '@/store/index.js'
+import { idStore } from '../../store/idStorage'
 // 返回上一页
 const back = () => {
 	uni.navigateBack()
@@ -87,11 +87,10 @@ const searchText = ref('')
 const bridges = ref([])
 const projectId = ref(2)
 const initData = ref(null);
-const username = ref("admin")
-const password = ref(123456);
 const initTaskData= ref(null)
 const taskBridgeId = ref(0);
-
+const userInfo = userStore()
+const idInfo = idStore()
 // 初始化时获取projectId参数
 const getURLParams = () => {
   const pages = getCurrentPages();
@@ -114,7 +113,7 @@ const init = async () => {
   getURLParams();
   
   const responseLogin = await uni.request({
-    	url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+    	url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
     	method: 'POST'
     });
   console.log('用户信息:', responseLogin.data);
@@ -145,7 +144,7 @@ const init = async () => {
 		// 			})
 		// //设置假数据
 		// projectInfo.value = projects;
-		setTask(responseLogin.data.userId,projectId.value,initTaskData.value)
+		setTask(userInfo.username,projectId.value,initTaskData.value)
 		 // setTask(responseLogin.data.userId,projectId.value,projectInfo.value)
       } else {
         uni.showToast({
@@ -164,7 +163,7 @@ const init = async () => {
 
   await getData();
   //Bug3 userId写死的
-  projectInfo.value = await getProject(responseLogin.data.userId);
+  projectInfo.value = await getProject(userInfo.username);
   console.log('项目数据111',projectInfo.value)
   console.log('currentProject的值:', currentProject.value.name);
 };
@@ -189,19 +188,23 @@ const currentProject = computed(() => {
 //Bug3 ---图标的对应规则未知
 const getBridgeIcon = (type) => {
 	const icons = {
-		'arch': '/static/image/bridge1.png', //拱桥
-		'viaduct': '/static/image/bridge2.png', //高架桥
-		'stayed-cable': '/static/image/bridge3.png',//斜拉桥
-		'suspension': '/static/images/bridge4.png', //悬。。桥
+		'2': '/static/image/bridge1.png', //拱桥
+		'1': '/static/image/bridge2.png', //梁式桥
+		'4': '/static/image/bridge3.png',//斜拉桥
+		'3': '/static/images/bridge4.png', //悬索桥
 	}
 	return icons[type] || icons['arch']
 }
 
 // 跳转到详情页
 const goToDetail = (bridge) => {
+	// 将buildingId存储到store中
+	idInfo.setBuildingId({value: bridge.buildingId});
+	
+	// 导航到桥梁疾病页面
 	uni.navigateTo({
 		url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
-	})
+	});
 }
 
 // 根据搜索文本过滤桥梁列表

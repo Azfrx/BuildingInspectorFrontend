@@ -2,14 +2,27 @@
 const DOC_BASE_PATH = '_doc/';
 import { trackPath } from './reviseJson';
 
-// 路径生成规则
+// 获取当前日期字符串 (格式: YY-MM-DD)
+function getCurrentDateStr() {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 生成用户目录名（格式: UD25-06-11-userName）
+function getUserDir(userName) {
+    return `UD${getCurrentDateStr()}-${userName}`;
+}
+
+// 路径生成规则（基于userName）
 const FILE_NAMING = {
-    project: userId => `${userId}/project/projects.json`,
-    task: (userId, projectId) => `${userId}/project/${projectId}/task.json`,
-    property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
-    disease: (userId, buildingId, yearId) =>
-        `${userId}/building/${buildingId}/disease/${yearId}.json`,
-    Object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`,
+    project: userName => `${getUserDir(userName)}/project/projects.json`,
+    task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
+    property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
+    disease: (userName, buildingId, yearId) => `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
+    Object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
     // 新增用户信息路径规则
     user: userId => `${userId}/user.json`,
     historyYear: (userId, buildingId) => `${userId}/building/${buildingId}/disease`,
@@ -38,40 +51,39 @@ async function getJsonData(path) {
     });
 }
 
-// 对外接口
-export function getProject(userId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.project(userId);
+// 对外接口（全部基于userName）
+export function getProject(userName) {
+    const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
     trackPath(path);
     return getJsonData(path);
 }
 
-export function getTask(userId, projectId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.task(userId, projectId);
+export function getTask(userName, projectId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.task(userName, projectId);
     trackPath(path);
     return getJsonData(path);
 }
 
-export function getProperty(userId, buildingId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.property(userId, buildingId);
+export function getProperty(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.property(userName, buildingId);
     trackPath(path);
     return getJsonData(path);
 }
 
-export function getDisease(userId, buildingId, yearId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.disease(userId, buildingId, yearId);
+export function getDisease(userName, buildingId, yearId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
     trackPath(path);
     return getJsonData(path);
 }
 
-export function getObject(userId, buildingId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.Object(userId, buildingId);
+export function getObject(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.Object(userName, buildingId);
     trackPath(path);
     return getJsonData(path);
 }
 
-// 新增获取用户信息方法
-export function getAllUserInfo(userId) {
-    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userId);
+export function getAllUserInfo(userName) {
+    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userName);
     trackPath(path);
     return getJsonData(path);
 }
@@ -162,4 +174,29 @@ export function readBridgeImage(userId, buildingId, relativePaths) {
         const imagePath = plus.io.convertLocalFileSystemURL(path);
         return imagePath;
     }
+}
+//读取所有一级子目录
+export function getAllFirstLevelDirs() {
+    return new Promise((resolve, reject) => {
+        const fullPath = DOC_BASE_PATH;
+
+        plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+            fs.root.getDirectory(fullPath, { create: false }, dirEntry => {
+                const directoryReader = dirEntry.createReader();
+                directoryReader.readEntries(entries => {
+                    const dirNames = entries
+                        .filter(entry => entry.isDirectory)
+                        .map(entry => entry.name);
+                    resolve(dirNames);
+                }, reject);
+            }, err => {
+                // 如果目录不存在，返回空数组而不是reject
+                if (err.code === err.NOT_FOUND_ERR) {
+                    resolve([]);
+                } else {
+                    reject(`无法访问目录: ${fullPath}`);
+                }
+            });
+        }, reject);
+    });
 }

@@ -14,7 +14,7 @@
 			<span class="confirm-status"
 				:style="{color: confirmed ? '#00dd00': '#f56c6c'}">{{ confirmed ? '已确认': '未确认'}}</span>
 			<view class="confirm-button-container">
-				<button @click="confirmStructure" class="confirm-button" :disabled="confirmed">确定构件信息</button>
+				<button @click="confirmStructure" class="confirm-button" :disabled="confirmed">保存构件信息</button>
 			</view>
 		</view>
 		<uni-popup ref="confirmPopup" type="center">
@@ -140,7 +140,7 @@ const confirmPopup = ref(null);
 const structureData = ref(null);
 const selectedIndex = ref(0);
 const selectedSecondIndex = ref(0);
-const selectedThirdIndex = ref(0);
+const selectedThirdIndex = ref(-1);
 const editPopup = ref(null);
 const currentEditItem = ref(null);
 //桥梁id
@@ -187,8 +187,7 @@ const init = async () => {
     try {
       const response = await uni.request({
 		//寫死 因爲只有55是最新數據
-		url: `http://60.205.13.156:8090/api/building/${55}/object`,
-		// url: `http://60.205.13.156:8090/api/building/${TaskBridgeId.value}/object`,
+		 url: `http://60.205.13.156:8090/api/building/${TaskBridgeId.value}/object`,
         method: 'GET',
         header: {
           'Authorization': `${token}` 
@@ -199,7 +198,7 @@ const init = async () => {
         structureData.value = response.data;
 		resultData.value = response.data.data
 		//将数据存在本地 提交前初始化数据
-		setObject(responseLogin.data.userId, TaskBridgeId.value, resultData.value);
+		setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
 		console.log('structureData:',structureData.value)
 		console.log('resultData:',resultData.value)
 		// 打印第一层结构数据，检查是否完整
@@ -258,16 +257,20 @@ const confirmConfirm = () => {
 	// 计算并更新各级count总和
 	calculateAndUpdateCounts();
 	
-	// 设置确认状态为true，使按钮不可点击
-	confirmed.value = true;
+	// 不再设置确认状态为true，允许多次提交
+	// confirmed.value = true;
 	
-	// 提交数据到后端
-	submitDataToBackend();
+	// 不再提交数据到后端
+	// submitDataToBackend();
+	
+	// 直接存储数据到本地
+	storeDataLocally();
+	
 	confirmPopup.value.close();
 	
 	// 显示确认成功提示
 	uni.showToast({
-		title: '构件信息已确认',
+		title: '构件信息已保存',
 		icon: 'success',
 		duration: 2000
 	});
@@ -336,7 +339,7 @@ const closeConfirmPopup = () => {
 const changeTab = (index) => {
 	selectedIndex.value = index;
 	selectedSecondIndex.value = 0; // 重置第二个侧边栏的选中状态
-	selectedThirdIndex.value = 0; // 重置第三个侧边栏的选中状态
+	selectedThirdIndex.value = -1; // 重置第三个侧边栏的选中状态
 	
 	// 添加防御性检查
 	const firstLevelItem = structureData.value?.data?.children?.[index];
@@ -349,7 +352,7 @@ const changeTab = (index) => {
 
 const changeSecondTab = (index) => {
 	selectedSecondIndex.value = index;
-	selectedThirdIndex.value = 0; // 重置第三个侧边栏的选中状态
+	selectedThirdIndex.value = -1; // 重置第三个侧边栏的选中状态
 	
 	// 添加防御性检查
 	const secondLevelItem = secondLevelItems.value?.[index];
@@ -365,8 +368,12 @@ const changeSecondTab = (index) => {
 };
 
 const changeThirdTab = (index) => {
-	selectedThirdIndex.value = index;
-	// 不再设置showActions字段
+	// 如果点击的是当前选中的项，则取消选中
+	if (selectedThirdIndex.value === index) {
+		selectedThirdIndex.value = -1;
+	} else {
+		selectedThirdIndex.value = index;
+	}
 	console.log('选中的第三层结构:', thirdLevelItems.value[index]);
 };
 
@@ -516,58 +523,30 @@ const updateResultData = (updatedItem) => {
 	console.log('更新后的resultData:', resultData.value);
 };
 
-// 添加提交数据到后端的函数
-const submitDataToBackend = async () => {
-	// 这里添加提交数据到后端的逻辑
-	console.log('提交到后端的完整数据:', resultData.value);
-	
+// 添加本地存储数据的函数
+const storeDataLocally = async () => {
 	try {
 		const responseLogin = await uni.request({
 			url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
 			method: 'POST'
 		});
 		
-		if (!responseLogin.data || !responseLogin.data.token) {
+		if (!responseLogin.data) {
 			uni.showToast({
-				title: '获取授权失败',
+				title: '获取用户信息失败',
 				icon: 'none'
 			});
 			return;
 		}
 		
-		const token = responseLogin.data.token;
-		
-		// 调用API提交数据
-		const response = await uni.request({
-			url: `http://60.205.13.156:8090/api/building/updateObjectTree`,
-			method: 'POST',
-			data: resultData.value,
-			header: {
-				'Authorization': token,
-				'Content-Type': 'application/json'
-			}
-		});
-		
-		console.log('后端响应:', response.data);
-		
-		if (response.data && response.data.code === 0) {
-			uni.showToast({
-				title: '构件信息提交成功',
-				icon: 'success'
-			});
-		} else {
-			uni.showToast({
-				title: response.data?.msg || '提交失败',
-				icon: 'none'
-			});
-		}
-		//提交后覆盖数据 上面有一个提交前初始化数据
-		setObject(responseLogin.data.userId, TaskBridgeId.value, resultData.value);
+		// 将数据存储到本地
+		setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
+		console.log('已将数据存储到本地:', resultData.value);
 		
 	} catch (error) {
-		console.error('提交数据错误:', error);
+		console.error('存储数据错误:', error);
 		uni.showToast({
-			title: '提交数据出错，请稍后重试',
+			title: '存储数据出错，请稍后重试',
 			icon: 'none'
 		});
 	}

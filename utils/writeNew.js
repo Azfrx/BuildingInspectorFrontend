@@ -2,22 +2,36 @@
 const DOC_BASE_PATH = '_doc/';
 import { trackPath } from './reviseJson';
 
-// 路径生成规则
+// 获取当前日期字符串 (格式: YY-MM-DD)
+function getCurrentDateStr() {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 生成用户目录名（格式: UD25-06-11-userName）
+function getUserDir(userName) {
+    return `UD${getCurrentDateStr()}-${userName}`;
+}
+
+// 路径生成规则（不再依赖userId）
 const FILE_NAMING = {
-    project: userId => `${userId}/project/projects.json`,
-    task: (userId, projectId) => `${userId}/project/${projectId}/task.json`,
-    property: (userId, buildingId) => `${userId}/building/${buildingId}/property.json`,
-    object: (userId, buildingId) => `${userId}/building/${buildingId}/object.json`, // 新增object路径规则
-    disease: (userId, buildingId, yearId) =>
-        `${userId}/building/${buildingId}/disease/${yearId}.json`,
-    AllUserInfo: userId => `${userId}/AllUserInfo.json`,
+    project: userName => `${getUserDir(userName)}/project/projects.json`,
+    task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
+    property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
+    object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
+    disease: (userName, buildingId, yearId) =>
+        `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
+    AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`,
     diseaseImages: (userId, buildingId) =>
         `${userId}/building/${buildingId}/disease/images`,
     bridgeImages:  (userId, buildingId) => `${userId}/building/${buildingId}/images`,
     targetBridgeZip:  (userId, buildingId) => `${userId}/building/${buildingId}`,
 };
 
-// 核心文件写入方法
+// 核心文件写入方法（保持不变）
 async function setJsonData(path, data) {
     return new Promise((resolve, reject) => {
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
@@ -37,40 +51,39 @@ async function setJsonData(path, data) {
     });
 }
 
-// 对外接口（set 方法）
-export function setProject(userId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.project(userId);
+// 对外接口（仅使用userName）
+export function setProject(userName, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setTask(userId, projectId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.task(userId, projectId);
+export function setTask(userName, projectId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.task(userName, projectId);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setProperty(userId, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.property(userId, buildingId);
+export function setProperty(userName, buildingId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.property(userName, buildingId);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-// 新增object数据写入接口
-export function setObject(userId, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.object(userId, buildingId);
+export function setObject(userName, buildingId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.object(userName, buildingId);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setDisease(userId, buildingId, yearId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.disease(userId, buildingId, yearId);
+export function setDisease(userName, buildingId, yearId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setAllUserInfo(userId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userId);
+export function setAllUserInfo(userName, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userName);
     trackPath(path);
     return setJsonData(path, data);
 }
@@ -110,7 +123,7 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
                                     rejectFile(new Error(`下载失败，状态码: ${status}`));
                                 }
                             });
-                            
+
                             downloadTask.start();
                         } else {
                             // 处理本地图片
@@ -186,7 +199,7 @@ export function saveBridgeImages(userId, buildingId, tempImagePaths) {
                         // 生成唯一的文件名
                         const fileName = `bridge_${Date.now()}_${index}.jpg`;
                         const targetPath = `${targetDirPath}/${fileName}`;
-                        
+
                         // 检查是否是HTTP/HTTPS URL
                         if (tempPath.startsWith('http://') || tempPath.startsWith('https://')) {
                             // 处理网络图片
@@ -203,7 +216,7 @@ export function saveBridgeImages(userId, buildingId, tempImagePaths) {
                                     rejectFile(new Error(`下载失败，状态码: ${status}`));
                                 }
                             });
-                            
+
                             downloadTask.start();
                         } else {
                             // 处理本地图片
