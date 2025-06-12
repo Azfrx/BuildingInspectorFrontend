@@ -78,7 +78,6 @@ export function getAllUserInfo(userId) {
 
 // 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
 export async function getHistoryYear(userId, buildingId) {
-    try {
         // 1. 构建目标目录路径
         const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userId, buildingId);
         console.log(`历史病害目标目录: ${dirPath}`)
@@ -109,11 +108,6 @@ export async function getHistoryYear(userId, buildingId) {
 
         console.log(`找到历史年份: ${filteredYears.join(',')}`);
         return filteredYears;
-
-    } catch (error) {
-        console.error('获取历史年份失败:', error);
-        return [];
-    }
 }
 
 // 辅助方法：列出目录中的文件
@@ -133,4 +127,39 @@ function listDirectoryFiles(path) {
             }
         }, reject);
     });
+}
+
+// 将图片相对路径转为绝对路径进行读取
+export function readDiseaseImages(userId, buildingId, relativePaths) {
+    // 处理数组情况
+    if (Array.isArray(relativePaths)) {
+        return relativePaths.map(path => {
+            const fullPath = DOC_BASE_PATH  + userId+ '/building/' + path;//`${userId}/building/${buildingId}/disease/images`,
+            //转为本地绝对路径
+            return plus.io.convertLocalFileSystemURL(fullPath);
+        });
+    } else {
+        // 保持原有单个路径的处理逻辑
+        const path = DOC_BASE_PATH  + userId+ '/building/' +relativePaths;
+        //转为本地绝对路径
+        const imagePath = plus.io.convertLocalFileSystemURL(path);
+        return imagePath;
+    }
+}
+
+export function readBridgeImage(userId, buildingId, relativePaths) {
+    // 处理数组情况
+    if (Array.isArray(relativePaths)) {
+        return relativePaths.map(path => {
+            const fullPath = DOC_BASE_PATH  + userId+ '/building/' + path;//`${buildingId}/images/${fileName}`;
+            //转为本地绝对路径
+            return plus.io.convertLocalFileSystemURL(fullPath);
+        });
+    } else {
+        // 保持原有单个路径的处理逻辑
+        const path = DOC_BASE_PATH  + userId+ '/building/' +relativePaths;
+        //转为本地绝对路径
+        const imagePath = plus.io.convertLocalFileSystemURL(path);
+        return imagePath;
+    }
 }

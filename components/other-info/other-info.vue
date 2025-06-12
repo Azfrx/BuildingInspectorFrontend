@@ -67,7 +67,7 @@
 	// 获取图片URL，如果值为"/"或不存在，则使用默认图片
 	const getImageUrl = (value) => {
 		if (!value || value === '/') {
-			return '/static/image/zjl.png';
+			return '/static/image/disease.png';
 		}
 		return value;
 	};

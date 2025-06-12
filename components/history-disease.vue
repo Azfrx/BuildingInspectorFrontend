@@ -68,7 +68,7 @@
 <script setup>
 import { ref, reactive, computed, nextTick, watch, onMounted } from 'vue';
 import { getDisease , getHistoryYear} from '../utils/readJsonNew.js';
-import {setDisease} from "@/utils/writeNew";
+import {saveDiseaseImages, setDisease} from "@/utils/writeNew";
 import {userStore} from "@/store";
 
 // 组件名称 
@@ -91,16 +91,41 @@ const diseaseItems = ref(null);
 // 病害列表数据
 const diseaseList = ref([]);
 
+//是否从json中获取数据 1为是，0为否
+const isJson = ref(1);
+
+//用户id
+const userId = ref(20);
 
 //桥梁id
-const buildingId = ref(55)
+const buildingId = ref(0);
+
+// 通过计算属性获取URL中的bridgeId参数
+const bridgeIdFromURL = computed(() => {
+  const pages = getCurrentPages();
+  if (pages.length > 0) {
+    const currentPage = pages[pages.length - 1];
+    const options = currentPage.$page?.options;
+
+    if (options && options.bridgeId) {
+      return options.bridgeId;
+    }
+  }
+  return 0; // 默认值
+});
+
+// 监听bridgeIdFromURL的变化
+watch(bridgeIdFromURL, (newVal) => {
+  if (newVal) {
+    buildingId.value = newVal;
+  }
+});
 
 // 读取json文件中的数据
 const readHistoryDiseaseData = async () => {
   try {
-    const userId = '1';
     //  获取所有历史病害年份
-    const years = await getHistoryYear(1, 5);
+    const years = await getHistoryYear(userId.value, buildingId.value);
 
     tabItems.value = years;
 
@@ -110,7 +135,7 @@ const readHistoryDiseaseData = async () => {
     // 依次读取各年份数据
     for (const year of years) {
       try {
-        const yearData = await getDisease(userId, 5, year);
+        const yearData = await getDisease(userId.value, buildingId.value, year);
         console.log(`获取到${year}年病害数据:`, yearData);
 
         // 直接添加原始数据，不额外添加year字段
@@ -124,25 +149,25 @@ const readHistoryDiseaseData = async () => {
 
   } catch (error) {
     console.error('读取病害数据失败:', error);
-    uni.showToast({
-      title: '读取数据失败',
-      icon: 'none'
-    });
+    isJson.value = 0;
   }
 };
 
 // 加载数据
 const loadDiseaseData = async () => {
+  if (bridgeIdFromURL.value) {
+    buildingId.value = bridgeIdFromURL.value;
+  }
   await readHistoryDiseaseData();
   //如果diseaseList为空，则从接口获取数据并写入json中
-  if (diseaseList.value.length === 0) {
+  if (isJson.value === 0) {
     const responseLogin = await uni.request({
       url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
       method: 'POST'
     });
-    console.log('用户信息:', responseLogin.data);
     const token = responseLogin.data.token
     const getData = async () => {
+      console.log('开始从后端获取历史病害数据...........');
       try {
         const response = await uni.request({
           //桥梁id改为全局
@@ -156,8 +181,21 @@ const loadDiseaseData = async () => {
         if (response.data.code === 0) {
           for(const yearDisease of response.data.data){
             const year = yearDisease.year;
+
+            // 遍历diseases数组
+            for (const disease of yearDisease.diseases) {
+              // 处理images列表
+              if (disease.images && Array.isArray(disease.images)) {
+                disease.images = await saveDiseaseImages( userId.value, buildingId.value, disease.images);
+              }
+
+              // 处理ADImgs列表
+              if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
+                disease.ADImgs = await saveDiseaseImages( userId.value, buildingId.value, disease.ADImgs);
+              }
+            }
             //调用接口将数据存在本地(disease)
-            await setDisease(1, 5, year, yearDisease)
+            await setDisease(userId.value, buildingId.value, year, yearDisease)
           }
         } else {
           uni.showToast({
@@ -167,14 +205,9 @@ const loadDiseaseData = async () => {
         }
       } catch (error) {
         console.error('获取历史病害数据失败:', error);
-        uni.showToast({
-          title: '获取数据失败，请稍后重试',
-          icon: 'none'
-        });
       }
     };
     await getData();
-
     await readHistoryDiseaseData();
   }
 

@@ -43,12 +43,16 @@
 <script setup>
 import {
   ref,
-  watch, 
-  onMounted
+  watch,
+  onMounted, computed
 } from 'vue';
 import {getDisease, getHistoryYear, getProperty} from '../utils/readJsonNew.js';
-import { setProperty} from "@/utils/writeNew";
+import {saveBridgeImages, setProperty,saveBridgeImage} from "@/utils/writeNew";
 import {userStore} from "@/store";
+
+// 定义emit，用于向父组件发送事件
+const emit = defineEmits(['dataLoaded']);
+
 const userInfo = userStore()
 
 // 本地状态，用于组件内部使用
@@ -57,6 +61,33 @@ const bridgeArchive = ref({
 });
 const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
 const activeTab = ref(0);
+const userId = ref(20);
+const buildingId = ref(0);
+// 是否从json中读取数据
+const isJson = ref(1);
+// 数据是否已加载完成
+const dataLoaded = ref(false);
+
+// 通过计算属性获取URL中的bridgeId参数
+const bridgeIdFromURL = computed(() => {
+  const pages = getCurrentPages();
+  if (pages.length > 0) {
+    const currentPage = pages[pages.length - 1];
+    const options = currentPage.$page?.options;
+
+    if (options && options.bridgeId) {
+      return options.bridgeId;
+    }
+  }
+  return 0; // 默认值
+});
+
+// 监听bridgeIdFromURL的变化
+watch(bridgeIdFromURL, (newVal) => {
+  if (newVal) {
+    buildingId.value = newVal;
+  }
+});
 
 // 左侧导航栏选择
 const changeTab = (index) => {
@@ -65,47 +96,61 @@ const changeTab = (index) => {
 
 
 const readPropetryDataByJson  = async () => {
+  if (bridgeIdFromURL.value) {
+    buildingId.value = bridgeIdFromURL.value;
+  }
   try {
     // 直接调用getProperty方法获取数据，传入userId和buildingId
-    const data = await getProperty('1', '5');
+    const data = await getProperty(userId.value, buildingId.value);
     console.log('获取到桥梁档案数据:', data);
 
     // 将获取的数据赋值给本地状态
     if (data && Object.keys(data).length > 0) {
-      bridgeArchive.value = data;
+      bridgeArchive.value = data.property;
     }
   } catch (error) {
     console.error('本地json获取桥梁档案数据失败:', error);
+    isJson.value = 0;
   }
 };
 
 const loadDiseaseData = async () => {
-  console.log('加载桥梁卡片数据...')
 
   await readPropetryDataByJson();
 
   //如果propetry.json为空或只包含初始化的空对象，则从接口获取数据并写入json中
-  if (!bridgeArchive.value.name || !bridgeArchive.value.id || bridgeArchive.value.children.every(child => Object.keys(child).length === 0)) {
+  if (isJson.value === 0) {
+    console.log('开始从后端接口获取桥梁卡片数据...')
     const responseLogin = await uni.request({
       url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
       method: 'POST'
     });
-    console.log('用户信息:', responseLogin.data);
     const token = responseLogin.data.token
     const getData = async () => {
       try {
         const response = await uni.request({
-          //桥梁id改为全局
-          url: `http://60.205.13.156:8090/api/building/5/property`,
+          url: `http://60.205.13.156:8090/api/building/${buildingId.value}/property`,
           method: 'GET',
           header: {
             'Authorization': `${token}`
           }
         });
         console.log('从后端接口获取到的桥梁卡片数据:', response.data.data);
+
         if (response.data.code === 0) {
+          const bridgedata = response.data.data;
+          bridgedata.images.side = await saveBridgeImages(userId.value, buildingId.value, bridgedata.images.side);
+          bridgedata.images.front =  await saveBridgeImages(userId.value, buildingId.value, bridgedata.images.front);
+
+          if(bridgedata.property.children[7].children[0].value !== '/'){
+            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userId.value, buildingId.value, bridgedata.property.children[7].children[0].value);
+          }
+          if(bridgedata.property.children[7].children[1].value !== '/'){
+            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userId.value, buildingId.value, property.children[7].children[1].value);
+          }
+
           //调用接口将数据存在本地(disease)
-          await setProperty(1,5, response.data.data);
+          await setProperty(userId.value,buildingId.value, bridgedata);
         } else {
           uni.showToast({
             title: response.data.msg || '获取数据失败',
@@ -125,27 +170,22 @@ const loadDiseaseData = async () => {
 
 	await readPropetryDataByJson();
   }
+  
+  // 设置数据加载完成状态
+  dataLoaded.value = true;
+  console.log('桥梁卡片数据加载完成，发送dataLoaded事件');
+  // 向父组件发送数据加载完成事件
+  emit('dataLoaded', true);
 };
 
 // 组件挂载时直接获取数据
 onMounted(async () => {
   await loadDiseaseData();
-  // try {
-  //   // 直接调用getProperty方法获取数据，传入userId和buildingId
-  //   const data = await getProperty('3', '39');
-  //   console.log('获取到桥梁档案数据:', data);
-  //
-  //   // 将获取的数据赋值给本地状态
-  //   if (data && Object.keys(data).length > 0) {
-  //     bridgeArchive.value = data;
-  //   }
-  // } catch (error) {
-  //   console.error('获取桥梁档案数据失败:', error);
-  //   uni.showToast({
-  //     title: '获取数据失败',
-  //     icon: 'none'
-  //   });
-  // }
+});
+
+// 导出数据加载状态，供其他组件使用
+defineExpose({
+  dataLoaded
 });
 </script>
 

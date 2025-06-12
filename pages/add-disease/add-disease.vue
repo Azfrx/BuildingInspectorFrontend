@@ -756,25 +756,50 @@
 </template>
 
 <script setup>
-	import {
-		ref,
-		reactive,
-		onMounted,
-		onUnmounted,
-		watch
-	} from 'vue';
-	import {
-		getObject
-	} from '../../utils/readJsonNew.js';
+import {
+  ref,
+  reactive,
+  onMounted,
+  onUnmounted,
+  watch, computed
+} from 'vue';
+  import {
+    getObject, readDiseaseImages
+  } from '../../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages
-	} from '../../utils/reviseNew.js';
+	} from '../../utils/writeNew.js';
+
+
+  //用户id
+  const userId = ref(20);
+
+  //桥梁id
+  const buildingId = ref(0);
+
+  // 通过计算属性获取URL中的bridgeId参数
+  const bridgeIdFromURL = computed(() => {
+    const pages = getCurrentPages();
+    if (pages.length > 0) {
+      const currentPage = pages[pages.length - 2];
+      const options = currentPage.$page?.options;
+
+      if (options && options.bridgeId) {
+        return options.bridgeId;
+      }
+    }
+    return 0; // 默认值
+  });
+
+  // 监听bridgeIdFromURL的变化
+  watch(bridgeIdFromURL, (newVal) => {
+    if (newVal) {
+      buildingId.value = newVal;
+    }
+  });
 
 	const popup = ref(null);
 	const ADImgs = ref([]);
-	//userId, buildingId
-	const userId = ref(1);
-	const buildingId = ref(5);
 	// 判断是编辑模式还是新增模式
 	const isEdit = ref(false);
 
@@ -840,10 +865,8 @@
 
 	// 更新缺损数据列表
 	const updateDiseaseDataList = (count) => {
-		console.log('更新数据列表，当前数据:', diseaseDataList.value);
 		// 保存现有数据
 		const existingData = [...diseaseDataList.value];
-		console.log('更新数据列表，当前数据:', existingData);
 
 		// 创建新的数据列表
 		const newList = [];
@@ -1250,6 +1273,9 @@
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
+    if (bridgeIdFromURL.value) {
+      buildingId.value = bridgeIdFromURL.value;
+    }
 		// 获取结构数据（先执行，并等待完成）
 		await fetchStructureData();
 
@@ -1438,6 +1464,14 @@
 			participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
 		}
 
+    if(data.nature){
+        // 根据nature的值更新natureindex
+        const natureItem = nature.value.find(item => item.text === data.nature);
+        if (natureItem) {
+            natureindex.value = natureItem.value;
+        }
+    }
+
 		// 设置评定标度（uni-data-checkbox格式）
 		if (data.level) {
 			const levelVal = parseInt(data.level);
@@ -1587,7 +1621,10 @@
 
 		// 处理图片数据
 		if (data.images && Array.isArray(data.images)) {
-			fileList.value = data.images.map((url, index) => ({
+      console.log('开始处理图片数据......:', data.images);
+      const imagesPaths =  readDiseaseImages(userId.value, buildingId.value, data.images);
+      console.log('处理后的图片路径:', imagesPaths);
+			fileList.value = imagesPaths.map((url, index) => ({
 				name: `图片${index + 1}`,
 				url: url,
 				extname: 'jpg',
@@ -1597,7 +1634,8 @@
 
 		// AD图片
 		if (data.ADImgs && Array.isArray(data.ADImgs)) {
-			ADImgs.value = data.ADImgs.map((src, index) => ({
+      const ADImgsPaths =  readDiseaseImages(userId.value, buildingId.value, data.ADImgs);
+			ADImgs.value = ADImgsPaths.map((src, index) => ({
 				src: src
 			}));
 		}
@@ -1913,6 +1951,7 @@
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
 			type: type.value, // 直接使用type.value而不是通过索引获取
+      nature:  nature.value[natureindex.value].text,
 			participateAssess: participateAssessindex.value.toString(),
 			deductPoints: 35,
 			biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
@@ -2422,12 +2461,9 @@
 	// 获取结构数据
 	const fetchStructureData = async () => {
 		try {
-			// 用户ID和建筑ID
-			const userId = "1";
-			const buildingId = "5";
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
-			const data = await getObject(userId, buildingId);
+			const data = await getObject(userId.value, buildingId.value);
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 

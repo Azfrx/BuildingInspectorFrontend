@@ -22,13 +22,13 @@
 				<!-- 历史病害内容 -->
 				<history-disease></history-disease>
 			</view>
-			<view v-show="activeTab === 2">
-				<!-- 正面立照内容 -->
-				<front-photo></front-photo>
-			</view>
+      <view v-show="activeTab === 2">
+        <!-- 桥梁卡片内容 -->
+        <bridge-archive ref="bridgeArchiveRef" @dataLoaded="handleDataLoaded"></bridge-archive>
+      </view>
 			<view v-show="activeTab === 3">
-				<!-- 桥梁档案内容 -->
-				<bridge-archive></bridge-archive>
+				<!-- 正面立照内容 -->
+				<front-photo :isDataLoaded="bridgeDataLoaded"></front-photo>
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
@@ -59,10 +59,10 @@
 			name: '历史病害',
 		},
 		{
-			name: '正面立照',
+			name: '桥梁卡片',
 		},
 		{
-			name: '桥梁卡片',
+			name: '正立面照',
 		},
 		{
 			name: '结构信息',
@@ -71,10 +71,20 @@
 
 	// 当前活动标签
 	const activeTab = ref(0);
+	// 桥梁数据是否已加载完成
+	const bridgeDataLoaded = ref(false);
+	// 桥梁卡片组件引用
+	const bridgeArchiveRef = ref(null);
 
 	// 切换标签的方法
 	const switchTab = (index) => {
 		activeTab.value = index;
+	};
+
+	// 处理桥梁卡片数据加载完成事件
+	const handleDataLoaded = (loaded) => {
+		console.log('接收到桥梁卡片数据加载完成事件:', loaded);
+		bridgeDataLoaded.value = loaded;
 	};
 
 	// 计算滑动指示器的样式
@@ -85,6 +95,21 @@
 			left: `calc(${width * activeTab.value}% + ${width/2}% - 25px)`, // 将指示器居中
 			transform: 'none' // 移除transform
 		};
+	});
+
+	// 组件挂载时
+	onMounted(() => {
+		console.log('bridge-disease页面挂载');
+		
+		// 如果直接切换到正立面照标签，需要确保桥梁卡片组件已经加载
+		if (activeTab.value === 3) {
+			// 先切换到桥梁卡片标签，触发数据加载
+			activeTab.value = 2;
+			// 延迟后再切回正立面照标签
+			setTimeout(() => {
+				activeTab.value = 3;
+			}, 100);
+		}
 	});
 </script>
 

@@ -130,7 +130,9 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
                         plus.io.resolveLocalFileSystemURL(tempPath, fileEntry => {
                             fileEntry.copyTo(dirEntry, fileName, newFile => {
                                 console.log(`图片 ${index + 1} 保存成功:`, newFile.fullPath);
-                                resolveFile(newFile.fullPath);
+                                const  relativePath = `${userId}/disease/images/${fileName}`;
+                                //resolveFile(newFile.fullPath);
+                                resolveFile(relativePath);
                             }, error => {
                                 console.error(`图片 ${index + 1} 保存失败:`, error);
                                 rejectFile(error);
@@ -147,7 +149,7 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
                     .then(savedPaths => {
                         wait.close();
                         console.log('所有图片保存成功:', savedPaths);
-                        plus.nativeUI.toast("图片保存成功");
+                        // plus.nativeUI.toast("图片保存成功");
                         resolve(savedPaths);
                     })
                     .catch(error => {
@@ -171,6 +173,6 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
     });
 }
 
-export function saveADImages(userId, buildingId, yearId, ADImagesPaths) {
-
+export function readDiseaseImages(userId, buildingId, yearId, imagesPaths) {
+    const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId, buildingId);
 }

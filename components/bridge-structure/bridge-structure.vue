@@ -70,7 +70,7 @@
 
 	// 获取桥梁分孔数据
 	const getBridgeSpanData = () => {
-		return structureData.value.find(item => item.name === '桥梁分孔(m)') || {};
+		return structureData.value.find(item => item.name === '桥梁分孔(m)' || item.name === '桥梁分孔') || {};
 	};
 
 	// 获取结构体系数据
@@ -80,7 +80,7 @@
 
 	// 获取需要分类展示的结构类型
 	const getStructureTypes = () => {
-		const excludeNames = ['桥梁分孔(m)', '结构体系'];
+		const excludeNames = ['桥梁分孔','桥梁分孔(m)', '结构体系'];
 		return structureData.value.filter(item => !excludeNames.includes(item.name));
 	};
 
