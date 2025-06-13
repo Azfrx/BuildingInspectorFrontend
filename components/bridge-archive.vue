@@ -49,6 +49,7 @@ import {
 import {getDisease, getHistoryYear, getProperty} from '../utils/readJsonNew.js';
 import {saveBridgeImages, setProperty,saveBridgeImage} from "@/utils/writeNew";
 import {userStore} from "@/store";
+import {idStore} from "@/store/idStorage";
 
 // 定义emit，用于向父组件发送事件
 const emit = defineEmits(['dataLoaded']);
@@ -67,6 +68,9 @@ const buildingId = ref(0);
 const isJson = ref(1);
 // 数据是否已加载完成
 const dataLoaded = ref(false);
+
+const idStorageInfo = idStore();
+
 
 // 通过计算属性获取URL中的bridgeId参数
 const bridgeIdFromURL = computed(() => {
@@ -100,8 +104,8 @@ const readPropetryDataByJson  = async () => {
     buildingId.value = bridgeIdFromURL.value;
   }
   try {
-    // 直接调用getProperty方法获取数据，传入userId和buildingId
-    const data = await getProperty(userId.value, buildingId.value);
+    // 直接调用getProperty方法获取数据，传入username和buildingId
+    const data = await getProperty(userInfo.username, buildingId.value);
     console.log('获取到桥梁档案数据:', data);
 
     // 将获取的数据赋值给本地状态
@@ -139,18 +143,18 @@ const loadDiseaseData = async () => {
 
         if (response.data.code === 0) {
           const bridgedata = response.data.data;
-          bridgedata.images.side = await saveBridgeImages(userId.value, buildingId.value, bridgedata.images.side);
-          bridgedata.images.front =  await saveBridgeImages(userId.value, buildingId.value, bridgedata.images.front);
+          bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
+          bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
 
           if(bridgedata.property.children[7].children[0].value !== '/'){
-            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userId.value, buildingId.value, bridgedata.property.children[7].children[0].value);
+            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
           }
           if(bridgedata.property.children[7].children[1].value !== '/'){
-            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userId.value, buildingId.value, property.children[7].children[1].value);
+            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value, property.children[7].children[1].value);
           }
 
           //调用接口将数据存在本地(disease)
-          await setProperty(userId.value,buildingId.value, bridgedata);
+          await setProperty(userInfo.username,buildingId.value, bridgedata);
         } else {
           uni.showToast({
             title: response.data.msg || '获取数据失败',

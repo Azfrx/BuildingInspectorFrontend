@@ -25,10 +25,10 @@ const FILE_NAMING = {
     disease: (userName, buildingId, yearId) =>
         `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
     AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`,
-    diseaseImages: (userId, buildingId) =>
-        `${userId}/building/${buildingId}/disease/images`,
-    bridgeImages:  (userId, buildingId) => `${userId}/building/${buildingId}/images`,
-    targetBridgeZip:  (userId, buildingId) => `${userId}/building/${buildingId}`,
+    diseaseImages: (userName, buildingId) =>
+        `${getUserDir(userName)}/building/${buildingId}/disease/images`,
+    bridgeImages:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/images`,
+    targetBridgeZip:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}`,
 };
 
 // 核心文件写入方法（保持不变）
@@ -89,11 +89,11 @@ export function setAllUserInfo(userName, data) {
 }
 
 // 保存图片到与JSON文件同级目录
-export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
+export function saveDiseaseImages(userName, buildingId, tempImagePaths) {
     console.log('保存的图片tempImagePaths:',  tempImagePaths)
     return new Promise((resolve, reject) => {
         // 构建目标目录路径
-        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId, buildingId);
+        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userName, buildingId);
         // 确保目录存在
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
             // 创建目录
@@ -181,11 +181,11 @@ export function saveDiseaseImages(userId, buildingId, tempImagePaths) {
     });
 }
 
-export function saveBridgeImages(userId, buildingId, tempImagePaths) {
+export function saveBridgeImages(userName, buildingId, tempImagePaths) {
     console.log('保存的图片tempImagePaths:',  tempImagePaths)
     return new Promise((resolve, reject) => {
         // 构建目标目录路径
-        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.bridgeImages(userId, buildingId);
+        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.bridgeImages(userName, buildingId);
 
         // 确保目录存在
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
@@ -274,14 +274,14 @@ export function saveBridgeImages(userId, buildingId, tempImagePaths) {
     });
 }
 
-export function saveBridgeImage(userId, buildingId, tempImagePath) {
-    return saveBridgeImages(userId, buildingId, [tempImagePath])[0];
+export function saveBridgeImage(userName, buildingId, tempImagePath) {
+    return saveBridgeImages(userName, buildingId, [tempImagePath])[0];
 }
 
-export function saveBridgeZip(userId, buildingId){
+export function saveBridgeZip(userName, buildingId){
     //void plus.zip.compress(src, zipfile, successCB, errorCB);
-    const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userId, buildingId));
-    const zipfile = plus.io.convertLocalFileSystemURL( DOC_BASE_PATH + userId + '/building/' + buildingId);
+    const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));
+    const zipfile = plus.io.convertLocalFileSystemURL( DOC_BASE_PATH + userName + '/building/' + buildingId);
     plus.zip.compress(src,zipfile,
         function() {
             console.log("Compress success!");

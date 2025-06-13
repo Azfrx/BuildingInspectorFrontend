@@ -769,10 +769,16 @@ import {
 	import {
 		saveDiseaseImages
 	} from '../../utils/writeNew.js';
+import {userStore} from "@/store";
+import {idStore} from "@/store/idStorage";
 
 
   //用户id
   const userId = ref(20);
+
+  const userInfo = userStore()
+
+  const idStorageInfo = idStore();
 
   //桥梁id
   const buildingId = ref(0);
@@ -1622,7 +1628,7 @@ import {
 		// 处理图片数据
 		if (data.images && Array.isArray(data.images)) {
       console.log('开始处理图片数据......:', data.images);
-      const imagesPaths =  readDiseaseImages(userId.value, buildingId.value, data.images);
+      const imagesPaths =  readDiseaseImages(userInfo.username, buildingId.value, data.images);
       console.log('处理后的图片路径:', imagesPaths);
 			fileList.value = imagesPaths.map((url, index) => ({
 				name: `图片${index + 1}`,
@@ -1634,7 +1640,7 @@ import {
 
 		// AD图片
 		if (data.ADImgs && Array.isArray(data.ADImgs)) {
-      const ADImgsPaths =  readDiseaseImages(userId.value, buildingId.value, data.ADImgs);
+      const ADImgsPaths =  readDiseaseImages(userInfo.username, buildingId.value, data.ADImgs);
 			ADImgs.value = ADImgsPaths.map((src, index) => ({
 				src: src
 			}));
@@ -1955,7 +1961,7 @@ import {
 			participateAssess: participateAssessindex.value.toString(),
 			deductPoints: 35,
 			biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
-			projectId: 2,
+			projectId: idStorageInfo.projectId,
 			biObjectName: componentName, //使用三级选择或输入框中的值
 			component: {
 				createBy: "",
@@ -2103,7 +2109,7 @@ import {
 			try {
 				// 处理常规图片
 				if (newImages.length > 0) {
-					const savedPaths = await saveDiseaseImages(userId.value, buildingId.value, newImages);
+					const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
 					// 合并保留的原有图片和新保存的图片
 					diseaseData.images = [...imagesToKeep, ...savedPaths];
 					console.log('已保存病害图片，合并保存的图片列表:', diseaseData.images);
@@ -2114,7 +2120,7 @@ import {
 
 				// 处理AD图片
 				if (newADImages.length > 0) {
-					const savedPaths = await saveDiseaseImages(userId.value, buildingId.value, newADImages);
+					const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
 					// 合并保留的原有图片和新保存的图片
 					diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
 					console.log('已保存AD图片，合并保存的图片列表:', diseaseData.ADImgs);
@@ -2463,7 +2469,7 @@ import {
 		try {
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
-			const data = await getObject(userId.value, buildingId.value);
+			const data = await getObject(userInfo.username, buildingId.value);
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 

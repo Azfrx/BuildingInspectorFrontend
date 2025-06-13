@@ -70,6 +70,7 @@ import { ref, reactive, computed, nextTick, watch, onMounted } from 'vue';
 import { getDisease , getHistoryYear} from '../utils/readJsonNew.js';
 import {saveDiseaseImages, setDisease} from "@/utils/writeNew";
 import {userStore} from "@/store";
+import {idStore} from "@/store/idStorage";
 
 // 组件名称 
 defineOptions({
@@ -89,13 +90,16 @@ const currentOpenSwipe = ref(null);
 const diseaseItems = ref(null);
 
 // 病害列表数据
-const diseaseList = ref([]);
+const diseaseMap = ref({}); // 用于按年份存储病害
 
 //是否从json中获取数据 1为是，0为否
 const isJson = ref(1);
 
 //用户id
 const userId = ref(20);
+
+
+const idStorageInfo = idStore();
 
 //桥梁id
 const buildingId = ref(0);
@@ -125,25 +129,28 @@ watch(bridgeIdFromURL, (newVal) => {
 const readHistoryDiseaseData = async () => {
   try {
     //  获取所有历史病害年份
-    const years = await getHistoryYear(userId.value, buildingId.value);
+    const years = await getHistoryYear(userInfo.username, buildingId.value);
 
     tabItems.value = years;
 
     // 清空现有数据
-    diseaseList.value = [];
+    diseaseMap.value = {};
 
     // 依次读取各年份数据
     for (const year of years) {
       try {
-        const yearData = await getDisease(userId.value, buildingId.value, year);
+        const yearData = await getDisease(userInfo.username, buildingId.value, year);
         console.log(`获取到${year}年病害数据:`, yearData);
 
-        // 直接添加原始数据，不额外添加year字段
+        // 直接按年份存储
         if (yearData && yearData.diseases && yearData.diseases.length > 0) {
-          diseaseList.value = [...diseaseList.value, ...yearData.diseases];
+          diseaseMap.value[yearData.year] = yearData.diseases;
+        } else {
+          diseaseMap.value[year] = [];
         }
       } catch (yearError) {
         console.warn(`获取${year}年数据失败:`, yearError);
+        diseaseMap.value[year] = [];
       }
     }
 
@@ -186,16 +193,16 @@ const loadDiseaseData = async () => {
             for (const disease of yearDisease.diseases) {
               // 处理images列表
               if (disease.images && Array.isArray(disease.images)) {
-                disease.images = await saveDiseaseImages( userId.value, buildingId.value, disease.images);
+                disease.images = await saveDiseaseImages( userInfo.username, buildingId.value, disease.images);
               }
 
               // 处理ADImgs列表
               if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
-                disease.ADImgs = await saveDiseaseImages( userId.value, buildingId.value, disease.ADImgs);
+                disease.ADImgs = await saveDiseaseImages( userInfo.username, buildingId.value, disease.ADImgs);
               }
             }
             //调用接口将数据存在本地(disease)
-            await setDisease(userId.value, buildingId.value, year, yearDisease)
+            await setDisease(userInfo.username, buildingId.value, year, yearDisease)
           }
         } else {
           uni.showToast({
@@ -211,7 +218,7 @@ const loadDiseaseData = async () => {
     await readHistoryDiseaseData();
   }
 
-  console.log('历史病害数据',  diseaseList.value);
+  console.log('历史病害数据',  diseaseMap.value);
 };
 
 // 展开状态
@@ -226,23 +233,15 @@ const expandedTypes = reactive({
 const filteredDiseases = computed(() => {
   // 根据侧边栏选择的年份和搜索文本过滤disease列表
   const selectedYear = tabItems.value[activeTab.value];
-  
-  return diseaseList.value.filter(item => {
-    // 先按年份过滤
-    const itemYear = item.createTime.substring(0, 4);
-    if (itemYear !== selectedYear) {
-      return false;
-    }
-    
-    // 如果有搜索关键词，再按关键词过滤
-    if (searchText.value) {
-      return (item.description?.includes(searchText.value) || 
-             item.type?.includes(searchText.value) ||
-             item.component?.grandObjectName?.includes(searchText.value));
-    }
-    
-    return true;
-  });
+  let list = diseaseMap.value[selectedYear] || [];
+  if (searchText.value) {
+    list = list.filter(item =>
+      (item.description?.includes(searchText.value) || 
+       item.type?.includes(searchText.value) ||
+       item.component?.grandObjectName?.includes(searchText.value))
+    );
+  }
+  return list;
 });
 
 // 删除病害
@@ -253,11 +252,13 @@ const deleteDisease = (itemId) => {
     content: '确定要删除这条病害记录吗？',
     success: (res) => {
       if (res.confirm) {
-        // 从列表中移除
-        const index = diseaseList.value.findIndex(item => item.id === itemId);
+        const selectedYear = tabItems.value[activeTab.value];
+        const list = diseaseMap.value[selectedYear] || [];
+        const index = list.findIndex(item => item.id === itemId);
         if (index !== -1) {
-          diseaseList.value.splice(index, 1);
-          
+          list.splice(index, 1);
+          // 触发响应式
+          diseaseMap.value[selectedYear] = [...list];
           // 删除成功提示
           uni.showToast({
             title: '删除成功',
@@ -303,6 +304,8 @@ const handleItemSelect = (event) => {
 
 // 复制病害
 const copyDisease = () => {
+  const selectedYear = tabItems.value[activeTab.value];
+  const list = diseaseMap.value[selectedYear] || [];
   if (selectedItems.value.length === 0) {
     uni.showToast({
       title: '请先选择要复制的病害',
@@ -310,10 +313,8 @@ const copyDisease = () => {
     });
     return;
   }
-  
   // 获取选中的病害完整数据
-  const selectedDiseases = diseaseList.value.filter(item => selectedItems.value.includes(item.id));
-  
+  const selectedDiseases = list.filter(item => selectedItems.value.includes(item.id));
   if (selectedDiseases.length === 0) {
     uni.showToast({
       title: '获取选中病害数据失败',
@@ -321,29 +322,22 @@ const copyDisease = () => {
     });
     return;
   }
-  
   // 处理选中的病害，更新时间戳等信息
   const currentTime = new Date();
   const currentYear = currentTime.getFullYear().toString();
-  
   const copiedDiseases = selectedDiseases.map(disease => {
     // 创建病害的深拷贝，避免修改原始数据
     const newDisease = JSON.parse(JSON.stringify(disease));
-    
     // 生成新的ID
     newDisease.id = new Date().getTime() + Math.floor(Math.random() * 1000);
-    
     // 更新创建时间和更新时间为当前时间
     const formattedTime = formatDateTime(currentTime);
     newDisease.createTime = formattedTime;
     newDisease.updateTime = formattedTime;
-    
     // 确保病害没有删除标记
     delete newDisease.isDelete;
-    
     return newDisease;
   });
-  
   // 一次性添加所有选中的病害
   Promise.all(copiedDiseases.map(disease => {
     return new Promise((resolve) => {
@@ -359,7 +353,6 @@ const copyDisease = () => {
       title: `成功复制${copiedDiseases.length}条病害到当前病害`,
       icon: 'success'
     });
-    
     // 退出选择模式
     toggleSelectMode();
   })
@@ -401,29 +394,27 @@ const changeTab = (index) => {
 
 // 获取指定年份的项目数量
 const getYearItemCount = (year) => {
-  return diseaseList.value.filter(item => item.createTime.substring(0, 4) === year).length;
+  return diseaseMap.value[year]?.length || 0;
 };
 
 // 按类型获取过滤后的病害列表
 const getFilteredDiseasesByType = (type) => {
   const selectedYear = tabItems.value[activeTab.value];
-  return diseaseList.value.filter(item => {
-    const itemYear = item.createTime.substring(0, 4);
+  let list = diseaseMap.value[selectedYear] || [];
+  list = list.filter(item => {
     const grandObjectName = item.component?.grandObjectName;
-    
-    // 按年份和类型过滤
-    if (itemYear !== selectedYear || grandObjectName !== type) {
+    // 按类型过滤
+    if (grandObjectName !== type) {
       return false;
     }
-    
     // 如果有搜索关键词，还需按关键词过滤
     if (searchText.value) {
       return (item.description?.includes(searchText.value) || 
              item.type?.includes(searchText.value));
     }
-    
     return true;
   });
+  return list;
 };
 
 // 处理滑动打开

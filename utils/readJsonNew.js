@@ -24,9 +24,9 @@ const FILE_NAMING = {
     disease: (userName, buildingId, yearId) => `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
     Object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
     // 新增用户信息路径规则
-    user: userId => `${userId}/user.json`,
-    historyYear: (userId, buildingId) => `${userId}/building/${buildingId}/disease`,
-    AllUserInfo: userId => `${userId}/AllUserInfo.json`
+    user: userName => `${getUserDir(userName)}/user.json`,
+    historyYear: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/disease`,
+    AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`
 };
 
 // 核心文件读取方法
@@ -89,9 +89,9 @@ export function getAllUserInfo(userName) {
 }
 
 // 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
-export async function getHistoryYear(userId, buildingId) {
+export async function getHistoryYear(userName, buildingId) {
         // 1. 构建目标目录路径
-        const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userId, buildingId);
+        const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
         console.log(`历史病害目标目录: ${dirPath}`)
 
         // 2. 获取目录下的文件列表
@@ -142,34 +142,34 @@ function listDirectoryFiles(path) {
 }
 
 // 将图片相对路径转为绝对路径进行读取
-export function readDiseaseImages(userId, buildingId, relativePaths) {
+export function readDiseaseImages(userName, buildingId, relativePaths) {
     // 处理数组情况
     if (Array.isArray(relativePaths)) {
         return relativePaths.map(path => {
-            const fullPath = DOC_BASE_PATH  + userId+ '/building/' + path;//`${userId}/building/${buildingId}/disease/images`,
+            const fullPath = DOC_BASE_PATH  + getUserDir(userName)+ '/building/' + path;//`${userId}/building/${buildingId}/disease/images`,
             //转为本地绝对路径
             return plus.io.convertLocalFileSystemURL(fullPath);
         });
     } else {
         // 保持原有单个路径的处理逻辑
-        const path = DOC_BASE_PATH  + userId+ '/building/' +relativePaths;
+        const path = DOC_BASE_PATH  + getUserDir(userName)+ '/building/' +relativePaths;
         //转为本地绝对路径
         const imagePath = plus.io.convertLocalFileSystemURL(path);
         return imagePath;
     }
 }
 
-export function readBridgeImage(userId, buildingId, relativePaths) {
+export function readBridgeImage(userName, buildingId, relativePaths) {
     // 处理数组情况
     if (Array.isArray(relativePaths)) {
         return relativePaths.map(path => {
-            const fullPath = DOC_BASE_PATH  + userId+ '/building/' + path;//`${buildingId}/images/${fileName}`;
+            const fullPath = DOC_BASE_PATH  + getUserDir(userName)+ '/building/' + path;//`${buildingId}/images/${fileName}`;
             //转为本地绝对路径
             return plus.io.convertLocalFileSystemURL(fullPath);
         });
     } else {
         // 保持原有单个路径的处理逻辑
-        const path = DOC_BASE_PATH  + userId+ '/building/' +relativePaths;
+        const path = DOC_BASE_PATH  + getUserDir(userName) + '/building/' +relativePaths;
         //转为本地绝对路径
         const imagePath = plus.io.convertLocalFileSystemURL(path);
         return imagePath;

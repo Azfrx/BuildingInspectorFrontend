@@ -36,6 +36,8 @@
 <script setup>
 import {ref, onMounted, watch, computed} from 'vue';
 import {getProperty, readBridgeImage} from "@/utils/readJsonNew";
+import {idStore} from "@/store/idStorage";
+import {userStore} from "@/store";
 
 // 接收父组件传递的数据加载状态
 const props = defineProps({
@@ -44,7 +46,6 @@ const props = defineProps({
     default: false
   }
 });
-
 const side = ref([]);
 const front = ref([]);
 
@@ -52,6 +53,10 @@ const userId = ref(20);
 const buildingId = ref(0);
 // 是否从json中读取数据
 const isJson = ref(1);
+
+const idStorageInfo = idStore();
+const userInfo = userStore()
+
 
 // 通过计算属性获取URL中的bridgeId参数
 const bridgeIdFromURL = computed(() => {
@@ -93,16 +98,16 @@ const readBridgeImageByJson  = async () => {
     buildingId.value = bridgeIdFromURL.value;
   }
   try {
-    // 直接调用getProperty方法获取数据，传入userId和buildingId
-    const data = await getProperty(userId.value, buildingId.value);
+    // 直接调用getProperty方法获取数据，传入username和buildingId
+    const data = await getProperty(userInfo.username, buildingId.value);
     console.log('获取到桥梁正立面照数据:', data.images);
 
     // 将获取的数据赋值给本地状态
     if (data.images && data.images.side) {
-      side.value = await readBridgeImage(userId.value, buildingId.value, data.images.side);
+      side.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.side);
     }
     if (data.images && data.images.front) {
-      front.value = await readBridgeImage(userId.value, buildingId.value, data.images.front);
+      front.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.front);
     }
   } catch (error) {
     console.error('本地json获取桥梁档案数据失败:', error);
