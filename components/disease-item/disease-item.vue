@@ -1,5 +1,5 @@
 <template>
-	<uni-swipe-action :ref="el => swipeAction = el">
+	<uni-swipe-action :ref="el => swipeAction = el" v-if="editMode !== 'history'">
 		<uni-swipe-action-item :right-options="swipeOptions" @click="handleSwipeClick" @change="swipeChange">
 			<view class="disease-item" @click="handleItemClick">
 				<!-- 选择框区域 -->
@@ -40,6 +40,45 @@
 			</view>
 		</uni-swipe-action-item>
 	</uni-swipe-action>
+	
+	<!-- 历史病害模式下不可滑动的版本 -->
+	<view v-else class="disease-item" @click="handleItemClick">
+		<!-- 选择框区域 -->
+		<view v-if="selectMode" class="select-area">
+			<view :class="['select-circle', isSelected ? 'selected' : '']">
+				<view v-if="isSelected" class="select-inner"></view>
+			</view>
+		</view>
+		
+		<view class="disease-content" @click="selectMode ? null : editDisease()">
+			<view class="item-header">
+				<text class="title">{{item.component.name}}/{{item.type}}</text>
+			</view>
+			<view class="content-container">
+				<view class="left-column">
+					<view class="info-row">
+						<text class="label">病害描述：</text>
+						<text class="description-text">{{item.description}}</text>
+					</view>
+					<view class="info-row">
+						<text class="label">采集时间：</text>
+						<text>{{item.createTime}}</text>
+					</view>
+				</view>
+				<view class="right-column">
+					<view class="info-row">
+						<text class="label">缺损数量：</text>
+						<text>{{item.quantity}}</text>
+					</view>
+					<view class="info-row">
+						<text class="label">评定标度/参考评定：</text>
+						<text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>
+					</view>
+				</view>
+			</view>
+			<image class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
+		</view>
+	</view>
 </template>
 
 <script setup>
