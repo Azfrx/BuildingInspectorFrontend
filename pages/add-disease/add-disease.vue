@@ -2,20 +2,23 @@
 <template>
 	<view>
 		<!-- 新增病害时显示 -->
-		<view class="button-group-add" v-if="!isEdit">
+		<view class="button-group-add" v-if="openMode === 'create'">
 			<button class="button-savetonext" @click="savetonextdisease">保存并复制到下一条</button>
 			<button class="button-save" @click="savedisease">保存</button>
 			<button class="button-cancle" @click="canceldisease">取消</button>
 		</view>
 
 		<!-- 编辑病害时显示 -->
-		<view class="button-group-edit" v-else>
+		<view class="button-group-edit" v-else-if="openMode === 'edit'">
 			<button class="button-before" @click="beforedisease">上一条</button>
 			<button class="button-next" @click="nextdisease">下一条</button>
 			<button class="button-delete" @click="deleteDisease">删除</button>
 			<button class="button-save" @click="copyAndAddDisease">复制并新增</button>
 			<button class="button-edit" @click="editDisease">编辑</button>
 		</view>
+
+		<!-- 历史病害时不显示 -->
+		
 
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
 		<view class="form-container">
@@ -567,10 +570,10 @@
 					</view>
 				</view>
 
-				<view class="line-select" v-show="componentNamePicker !== '其他'">
+				<view class="line-select" v-show="typePicker !== '其他'">
 					<view class="line-select-left">
 						<text style="color: red;">*</text>
-						<view>参与评定（构件扣分25）</view>
+						<view>参与评定</view>
 					</view>
 					<view class="line-select-right">
 						<uni-data-checkbox mode="tag" v-model="participateAssessindex"
@@ -578,7 +581,7 @@
 					</view>
 				</view>
 
-				<view class="line-select" v-show="componentNamePicker !== '其他'">
+				<view class="line-select" v-show="typePicker !== '其他'">
 					<view class="line-select-left">
 						<text style="color: red;">*</text>
 						<view>评定标度</view>
@@ -803,6 +806,8 @@ import {idStore} from "@/store/idStorage";
       buildingId.value = newVal;
     }
   });
+
+  	const openMode = ref('history');
 
 	const popup = ref(null);
 	const ADImgs = ref([]);
@@ -1059,7 +1064,10 @@ import {idStore} from "@/store/idStorage";
 	}, {
 		text: '4',
 		value: 4
-	}]);
+	},{
+    text: '5',
+    value: 5
+  }]);
 	const levelindex = ref(1);
 
 
@@ -1261,11 +1269,17 @@ import {idStore} from "@/store/idStorage";
 			biObjectindex.value = -1;
 		}
 
+
 		// 更新缺损类型和构件编号
 		updateDiseaseTypeOptions();
 
 		// 更新病害位置选项 - 在确认选择后更新
 		updateDiseasePositionOptions();
+
+    typePicker.value = '';
+    positionPicker.value = '';
+    typeInput.value = '';
+    positionInput.value = '';
 	}
 
 	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
@@ -1293,6 +1307,7 @@ import {idStore} from "@/store/idStorage";
 		initMultiPickerColumns();
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
+			openMode.value = 'edit';
 			isEdit.value = true;
 
 			// 如果传递了数据，则解析并填充表单
@@ -1311,9 +1326,28 @@ import {idStore} from "@/store/idStorage";
 					});
 				}
 			}
-		} else {
+		} else if(options && options.mode === 'history'){
+			openMode.value = 'history';
+			// 如果传递了数据，则解析并填充表单
+			if (options.data) {
+				try {
+					const diseaseData = JSON.parse(decodeURIComponent(options.data));
+					console.log('接收到的编辑数据:', diseaseData);
+
+					// 填充表单数据
+					fillFormWithData(diseaseData);
+				} catch (error) {
+					console.error('解析编辑数据失败:', error);
+					uni.showToast({
+						title: '加载编辑数据失败',
+						icon: 'none'
+					});
+				}
+			}
 			// 非编辑模式，初始化三级选择器
 			// initMultiPickerColumns();
+		}else{
+			openMode.value = 'create';
 		}
 
 		// 初始化过滤后的构件编号列表
@@ -1959,7 +1993,6 @@ import {idStore} from "@/store/idStorage";
 			type: type.value, // 直接使用type.value而不是通过索引获取
       nature:  nature.value[natureindex.value].text,
 			participateAssess: participateAssessindex.value.toString(),
-			deductPoints: 35,
 			biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
 			projectId: idStorageInfo.projectId,
 			biObjectName: componentName, //使用三级选择或输入框中的值
@@ -3218,7 +3251,7 @@ import {idStore} from "@/store/idStorage";
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		width: 180rpx;
+
 		border: 1rpx solid #eee;
 		padding: 0 4rpx;
 	}
@@ -3529,6 +3562,7 @@ import {idStore} from "@/store/idStorage";
 
 	.component-code-input {
 		font-size: 20rpx;
+    width: 180rpx;
 		text-align: right;
 		padding-right: 10rpx;
 	}

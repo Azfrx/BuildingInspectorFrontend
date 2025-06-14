@@ -9,7 +9,7 @@
 					</view>
 				</view>
 				
-				<view class="disease-content" @click="editDisease">
+				<view class="disease-content" @click="selectMode ? null : editDisease()">
 					<view class="item-header">
 						<text class="title">{{item.component.name}}/{{item.type}}</text>
 					</view>
@@ -100,6 +100,10 @@ const props = defineProps({
 	selected: {
 		type: Boolean,
 		default: false
+	},
+	editMode: {
+		type: String,
+		default: 'history'
 	}
 });
 
@@ -144,7 +148,7 @@ const editDisease = () => {
   // 打开编辑病害页面，并通过URL参数传递病害数据
   const itemData = encodeURIComponent(JSON.stringify(props.item));
   uni.navigateTo({
-    url: `/pages/add-disease/add-disease?mode=edit&id=${props.item.id}&data=${itemData}`
+    url: `/pages/add-disease/add-disease?mode=${props.editMode}&id=${props.item.id}&data=${itemData}`
   });
 };
 
