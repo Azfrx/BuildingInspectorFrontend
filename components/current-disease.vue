@@ -403,9 +403,21 @@ const deleteDisease = (itemId) => {
 const submitZip = async () => {
   console.log('提交压缩文件,buildingId', buildingId.value);
   try {
+    // 显示压缩中的加载提示
+    uni.showLoading({
+      title: '正在提交',
+      mask: true
+    });
+    
     // 等待压缩完成
     const zipFilePath = await saveBridgeZip(userInfo.username, buildingId.value);
     console.log('压缩完成，文件路径:', zipFilePath);
+    
+    // 更新加载提示为登录中
+    uni.showLoading({
+      title: '正在提交',
+      mask: true
+    });
 
     const responseLogin = await uni.request({
       url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
@@ -413,6 +425,7 @@ const submitZip = async () => {
     });
 
     if (!responseLogin.data || !responseLogin.data.token) {
+      uni.hideLoading();
       uni.showToast({
         title: '获取授权失败',
         icon: 'none'
@@ -422,6 +435,12 @@ const submitZip = async () => {
 
     const token = responseLogin.data.token;
     console.log('授权成功，开始上传文件',  zipFilePath);
+    
+    // 更新加载提示为上传中
+    uni.showLoading({
+      title: '正在提交',
+      mask: true
+    });
 
     // 调用文件上传API
     const response = await uni.uploadFile({
@@ -433,21 +452,36 @@ const submitZip = async () => {
       },
     });
 
+    // 隐藏加载提示
+    uni.hideLoading();
+    
     console.log('后端响应:', response.data);
+    
+    // 解析响应数据
+    let responseData;
+    try {
+      responseData = JSON.parse(response.data);
+    } catch (e) {
+      responseData = response.data;
+    }
 
-    if (response.data && response.data.code === 0) {
+    if (responseData && responseData.code === 0) {
       uni.showToast({
-        title: '构件信息提交成功',
-        icon: 'success'
+        title: '提交成功',
+        icon: 'success',
+        duration: 2000
       });
     } else {
       uni.showToast({
-        title: response.data?.msg || '提交失败',
+        title: responseData?.msg || '提交失败',
         icon: 'none'
       });
     }
 
   } catch (error) {
+    // 发生错误时隐藏加载提示
+    uni.hideLoading();
+    
     console.error('提交数据错误:', error);
     uni.showToast({
       title: '提交数据出错，请稍后重试',
