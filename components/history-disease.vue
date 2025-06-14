@@ -46,6 +46,7 @@
 								v-for="(item, itemIndex) in getFilteredDiseasesByType(type)" 
 								:key="itemIndex" 
 								:item="item"
+                :editMode="'history'"
 								:selectMode="isSelectMode"
 								:selected="selectedItems.includes(item.id)"
 								@select="handleItemSelect"
@@ -304,8 +305,6 @@ const handleItemSelect = (event) => {
 
 // 复制病害
 const copyDisease = () => {
-  const selectedYear = tabItems.value[activeTab.value];
-  const list = diseaseMap.value[selectedYear] || [];
   if (selectedItems.value.length === 0) {
     uni.showToast({
       title: '请先选择要复制的病害',
@@ -313,8 +312,13 @@ const copyDisease = () => {
     });
     return;
   }
-  // 获取选中的病害完整数据
-  const selectedDiseases = list.filter(item => selectedItems.value.includes(item.id));
+  // 获取所有年份中选中的病害Add commentMore actions
+  const selectedDiseases = [];
+  Object.keys(diseaseMap.value).forEach(year => {
+    const yearDiseases = diseaseMap.value[year] || [];
+    const selected = yearDiseases.filter(item => selectedItems.value.includes(item.id));
+    selectedDiseases.push(...selected);
+  });
   if (selectedDiseases.length === 0) {
     uni.showToast({
       title: '获取选中病害数据失败',

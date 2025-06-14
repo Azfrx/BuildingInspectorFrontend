@@ -33,6 +33,7 @@
 					v-for="(item, index) in filteredDiseases" 
 					:key="index" 
 					:item="item"
+          :editMode="'edit'"
 					@delete="deleteDisease" 
 				/>
 				<view v-if="filteredDiseases.length === 0" class="placeholder">
