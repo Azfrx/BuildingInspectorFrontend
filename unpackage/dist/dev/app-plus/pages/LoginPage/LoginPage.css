@@ -53,19 +53,22 @@
   flex-direction: column;
   align-items: center;
 }
-.loginPage .form .item_1[data-v-314e8b73], .loginPage .form .item_2[data-v-314e8b73] {
+.loginPage .form .item_1[data-v-314e8b73],
+.loginPage .form .item_2[data-v-314e8b73] {
   width: 12.5rem;
   height: auto;
   margin-bottom: 0.625rem;
 }
-.loginPage .form .item_1 .name[data-v-314e8b73], .loginPage .form .item_2 .name[data-v-314e8b73] {
+.loginPage .form .item_1 .name[data-v-314e8b73],
+.loginPage .form .item_2 .name[data-v-314e8b73] {
   font-size: 20px;
   color: #666666;
   margin-bottom: 5px;
 }
-.loginPage .form .item_1 .uni-input[data-v-314e8b73], .loginPage .form .item_2 .uni-input[data-v-314e8b73] {
+.loginPage .form .item_1 .uni-input[data-v-314e8b73],
+.loginPage .form .item_2 .uni-input[data-v-314e8b73] {
   font-size: 22px;
-  color: #333333;
+  color: var(--font-color);
   width: 100%;
   border-bottom: 1px solid #333333;
   padding-bottom: 0.3125rem;

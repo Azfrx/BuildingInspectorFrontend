@@ -1484,20 +1484,6 @@
 		/* 垂直居中按钮 */
 		padding: 0.3125rem 0;
 }
-.button-next-add[data-v-79f8b97c] {
-		height: 1.125rem;
-		font-size: 16px;
-		margin: 0 0.3125rem;
-		background-color: #0F4687;
-		color: #ffffff;
-		display: flex;
-		opacity: 40%;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-}
 .button-before[data-v-79f8b97c],
 	.button-next[data-v-79f8b97c] {
 		height: 1.125rem;
@@ -1558,7 +1544,6 @@
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
-		width: 100%;
 }
 
 
@@ -1678,6 +1663,7 @@
 		padding: 0.125rem 0.3125rem;
 		font-size: 0.5625rem;
 }
+.component-name[data-v-79f8b97c] {}
 .picker[data-v-79f8b97c] {
 		font-size: 0.625rem;
 }
@@ -1714,6 +1700,14 @@
 }
 .picker-must[data-v-79f8b97c] {
 		color: #FF0000;
+}
+.component-name-input[data-v-79f8b97c] {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		width: 5.625rem;
+		border: 0.03125rem solid #eee;
+		padding: 0 0.125rem;
 }
 
 
@@ -1851,13 +1845,6 @@
 		font-size: 0.625rem;
 		color: #333333;
 }
-.quantitative-data-right-unit-fixed[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		margin-left: 0.625rem;
-		padding: 0.125rem 0.125rem;
-}
 .input-area[data-v-79f8b97c] {
 		padding: 0.375rem 0.5rem;
 		border-bottom: 0.03125rem solid #eee;
@@ -1985,7 +1972,7 @@ uni-view[data-v-79f8b97c] {
 		align-items: center;
 		width: 5.625rem;
 		border: 0.03125rem solid #eee;
-		padding: 0.125rem 0.125rem;
+		padding: 0 0.125rem;
 }
 .component-code-input[data-v-79f8b97c] {
 		font-size: 0.625rem;

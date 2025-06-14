@@ -85,6 +85,7 @@
 
 <script setup>
 	import {
+		onMounted,
 		ref
 	} from 'vue';
 	import {
@@ -389,7 +390,7 @@
 		dtask.start();
 	}
 
-	onReady(() => {
+	onMounted(() => {
 		// 获取版本号
 		if (typeof plus !== 'undefined') {
 			plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {

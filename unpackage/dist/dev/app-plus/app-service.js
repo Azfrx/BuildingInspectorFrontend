@@ -46,59 +46,10 @@ if (uni.restoreGlobal) {
     !vue.isInSSRComponentSetup && vue.injectHook(lifecycle, hook, target);
   };
   const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
-  let __currentFilePath$1 = null;
-  function getFullPath$1(path) {
-    const docPath = plus.io.convertLocalFileSystemURL(path);
-    return docPath;
-  }
-  function saveData$1(data) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath$1) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath$1(__currentFilePath$1);
-      formatAppLog("log", "at utils/reviseJson.js:18", "准备保存文件到路径:", fullPath);
-      plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, (fs2) => {
-        formatAppLog("log", "at utils/reviseJson.js:21", "获取文件系统成功");
-        fs2.root.getFile(fullPath, { create: true }, (fileEntry) => {
-          formatAppLog("log", "at utils/reviseJson.js:23", "获取文件入口成功");
-          fileEntry.createWriter((writer) => {
-            const wait = plus.nativeUI.showWaiting("正在保存信息");
-            writer.seek(0);
-            const jsonString = JSON.stringify(data, null, 2);
-            formatAppLog("log", "at utils/reviseJson.js:29", "准备写入数据:", data);
-            writer.onwrite = () => {
-              wait.close();
-              formatAppLog("log", "at utils/reviseJson.js:33", "写入成功");
-              plus.nativeUI.toast("保存成功");
-              resolve(true);
-            };
-            writer.onerror = (e2) => {
-              wait.close();
-              formatAppLog("error", "at utils/reviseJson.js:40", "写入失败:", e2.message);
-              plus.nativeUI.toast("保存失败");
-              reject(e2);
-            };
-            writer.write(jsonString);
-          }, (error) => {
-            formatAppLog("error", "at utils/reviseJson.js:47", "创建写入器失败:", error);
-            reject(error);
-          });
-        }, (error) => {
-          formatAppLog("error", "at utils/reviseJson.js:51", "获取文件入口失败:", error);
-          reject(error);
-        });
-      }, (error) => {
-        formatAppLog("error", "at utils/reviseJson.js:55", "获取文件系统失败:", error);
-        reject(error);
-      });
-    });
-  }
-  function trackPath$1(path) {
+  function trackPath(path) {
     formatAppLog("log", "at utils/reviseJson.js:64", "设置文件路径:", path);
-    __currentFilePath$1 = path;
   }
-  const DOC_BASE_PATH$2 = "_doc/";
+  const DOC_BASE_PATH$1 = "_doc/";
   function getCurrentDateStr$1() {
     const now2 = /* @__PURE__ */ new Date();
     const year = now2.getFullYear().toString().slice(-2);
@@ -109,15 +60,18 @@ if (uni.restoreGlobal) {
   function getUserDir$1(userName) {
     return `UD${getCurrentDateStr$1()}-${userName}`;
   }
-  const FILE_NAMING$2 = {
+  const FILE_NAMING$1 = {
     project: (userName) => `${getUserDir$1(userName)}/project/projects.json`,
     task: (userName, projectId2) => `${getUserDir$1(userName)}/project/${projectId2}/task.json`,
-    property: (userName, buildingId2) => `${getUserDir$1(userName)}/building/${buildingId2}/property.json`,
-    object: (userName, buildingId2) => `${getUserDir$1(userName)}/building/${buildingId2}/object.json`,
-    disease: (userName, buildingId2, yearId) => `${getUserDir$1(userName)}/building/${buildingId2}/disease/${yearId}.json`,
-    AllUserInfo: (userName) => `${getUserDir$1(userName)}/AllUserInfo.json`
+    property: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/property.json`,
+    object: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/object.json`,
+    disease: (userName, buildingId, yearId) => `${getUserDir$1(userName)}/building/${buildingId}/disease/${yearId}.json`,
+    AllUserInfo: (userName) => `${getUserDir$1(userName)}/AllUserInfo.json`,
+    diseaseImages: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/disease/images`,
+    bridgeImages: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/images`,
+    targetBridgeZip: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}`
   };
-  async function setJsonData$1(path, data) {
+  async function setJsonData(path, data) {
     return new Promise((resolve, reject) => {
       plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
         fs2.root.getFile(path, { create: true }, (fileEntry) => {
@@ -136,24 +90,204 @@ if (uni.restoreGlobal) {
     });
   }
   function setProject(userName, data) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.project(userName);
-    trackPath$1(path);
-    return setJsonData$1(path, data);
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.project(userName);
+    trackPath(path);
+    return setJsonData(path, data);
   }
   function setTask(userName, projectId2, data) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.task(userName, projectId2);
-    trackPath$1(path);
-    return setJsonData$1(path, data);
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.task(userName, projectId2);
+    trackPath(path);
+    return setJsonData(path, data);
   }
-  function setObject(userName, buildingId2, data) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.object(userName, buildingId2);
-    trackPath$1(path);
-    return setJsonData$1(path, data);
+  function setProperty(userName, buildingId, data) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.property(userName, buildingId);
+    trackPath(path);
+    return setJsonData(path, data);
+  }
+  function setObject(userName, buildingId, data) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.object(userName, buildingId);
+    trackPath(path);
+    return setJsonData(path, data);
+  }
+  function setDisease(userName, buildingId, yearId, data) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.disease(userName, buildingId, yearId);
+    trackPath(path);
+    return setJsonData(path, data);
   }
   function setAllUserInfo(userName, data) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.AllUserInfo(userName);
-    trackPath$1(path);
-    return setJsonData$1(path, data);
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.AllUserInfo(userName);
+    trackPath(path);
+    return setJsonData(path, data);
+  }
+  function saveDiseaseImages(userName, buildingId, tempImagePaths) {
+    formatAppLog("log", "at utils/writeNew.js:93", "保存的图片tempImagePaths:", tempImagePaths);
+    return new Promise((resolve, reject) => {
+      const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.diseaseImages(userName, buildingId);
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
+          const savePromises = tempImagePaths.map((tempPath, index) => {
+            formatAppLog("log", "at utils/writeNew.js:104", "准备保存图片:", tempPath);
+            return new Promise((resolveFile, rejectFile) => {
+              const fileName = `disease_${Date.now()}_${index}.jpg`;
+              const targetPath = `${targetDirPath}/${fileName}`;
+              if (tempPath.startsWith("http://") || tempPath.startsWith("https://")) {
+                formatAppLog("log", "at utils/writeNew.js:113", `开始下载网络图片: ${tempPath}`);
+                const downloadTask = plus.downloader.createDownload(tempPath, {
+                  filename: targetPath
+                }, (d2, status) => {
+                  if (status === 200) {
+                    formatAppLog("log", "at utils/writeNew.js:118", `网络图片 ${index + 1} 下载成功:`, d2.filename);
+                    const relativePath = `${buildingId}/disease/images/${fileName}`;
+                    resolveFile(relativePath);
+                  } else {
+                    formatAppLog("error", "at utils/writeNew.js:122", `网络图片 ${index + 1} 下载失败:`, status);
+                    rejectFile(new Error(`下载失败，状态码: ${status}`));
+                  }
+                });
+                downloadTask.start();
+              } else {
+                plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
+                  fileEntry.copyTo(dirEntry, fileName, (newFile) => {
+                    formatAppLog("log", "at utils/writeNew.js:132", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                    const relativePath = `${buildingId}/disease/images/${fileName}`;
+                    resolveFile(relativePath);
+                  }, (error) => {
+                    formatAppLog("error", "at utils/writeNew.js:136", `图片 ${index + 1} 保存失败:`, error);
+                    rejectFile(error);
+                  });
+                }, (error) => {
+                  formatAppLog("error", "at utils/writeNew.js:140", `无法访问临时文件 ${tempPath}:`, error);
+                  rejectFile(error);
+                });
+              }
+            });
+          });
+          formatAppLog("log", "at utils/writeNew.js:148", `开始等待 ${savePromises.length} 个图片保存完成`);
+          Promise.all(savePromises).then((savedPaths) => {
+            formatAppLog("log", "at utils/writeNew.js:151", "Promise.all 已完成，所有图片保存成功:", savedPaths);
+            if (typeof wait !== "undefined" && wait && wait.close) {
+              wait.close();
+            }
+            resolve(savedPaths);
+          }).catch((error) => {
+            formatAppLog("error", "at utils/writeNew.js:158", "Promise.all 出错，图片保存失败:", error);
+            if (typeof wait !== "undefined" && wait && wait.close) {
+              wait.close();
+            }
+            plus.nativeUI.toast("图片保存失败");
+            reject(error);
+          });
+        }, (error) => {
+          if (typeof wait !== "undefined" && wait && wait.close) {
+            wait.close();
+          }
+          formatAppLog("error", "at utils/writeNew.js:169", "创建目录失败:", error);
+          plus.nativeUI.toast("创建图片目录失败");
+          reject(error);
+        });
+      }, (error) => {
+        if (typeof wait !== "undefined" && wait && wait.close) {
+          wait.close();
+        }
+        formatAppLog("error", "at utils/writeNew.js:177", "文件系统访问失败:", error);
+        plus.nativeUI.toast("文件系统访问失败");
+        reject(error);
+      });
+    });
+  }
+  function saveBridgeImages(userName, buildingId, tempImagePaths) {
+    formatAppLog("log", "at utils/writeNew.js:185", "保存的图片tempImagePaths:", tempImagePaths);
+    return new Promise((resolve, reject) => {
+      const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.bridgeImages(userName, buildingId);
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
+          const savePromises = tempImagePaths.map((tempPath, index) => {
+            formatAppLog("log", "at utils/writeNew.js:197", "准备保存图片:", tempPath);
+            return new Promise((resolveFile, rejectFile) => {
+              const fileName = `bridge_${Date.now()}_${index}.jpg`;
+              const targetPath = `${targetDirPath}/${fileName}`;
+              if (tempPath.startsWith("http://") || tempPath.startsWith("https://")) {
+                formatAppLog("log", "at utils/writeNew.js:206", `开始下载网络图片: ${tempPath}`);
+                const downloadTask = plus.downloader.createDownload(tempPath, {
+                  filename: targetPath
+                }, (d2, status) => {
+                  if (status === 200) {
+                    formatAppLog("log", "at utils/writeNew.js:211", `网络图片 ${index + 1} 下载成功:`, d2.filename);
+                    const relativePath = `${buildingId}/images/${fileName}`;
+                    resolveFile(relativePath);
+                  } else {
+                    formatAppLog("error", "at utils/writeNew.js:215", `网络图片 ${index + 1} 下载失败:`, status);
+                    rejectFile(new Error(`下载失败，状态码: ${status}`));
+                  }
+                });
+                downloadTask.start();
+              } else {
+                plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
+                  fileEntry.copyTo(dirEntry, fileName, (newFile) => {
+                    formatAppLog("log", "at utils/writeNew.js:225", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                    const relativePath = `${buildingId}/images/${fileName}`;
+                    resolveFile(relativePath);
+                  }, (error) => {
+                    formatAppLog("error", "at utils/writeNew.js:229", `图片 ${index + 1} 保存失败:`, error);
+                    rejectFile(error);
+                  });
+                }, (error) => {
+                  formatAppLog("error", "at utils/writeNew.js:233", `无法访问临时文件 ${tempPath}:`, error);
+                  rejectFile(error);
+                });
+              }
+            });
+          });
+          formatAppLog("log", "at utils/writeNew.js:241", `开始等待 ${savePromises.length} 个图片保存完成`);
+          Promise.all(savePromises).then((savedPaths) => {
+            formatAppLog("log", "at utils/writeNew.js:244", "Promise.all 已完成，所有图片保存成功:", savedPaths);
+            if (typeof wait !== "undefined" && wait && wait.close) {
+              wait.close();
+            }
+            resolve(savedPaths);
+          }).catch((error) => {
+            formatAppLog("error", "at utils/writeNew.js:251", "Promise.all 出错，图片保存失败:", error);
+            if (typeof wait !== "undefined" && wait && wait.close) {
+              wait.close();
+            }
+            plus.nativeUI.toast("图片保存失败");
+            reject(error);
+          });
+        }, (error) => {
+          if (typeof wait !== "undefined" && wait && wait.close) {
+            wait.close();
+          }
+          formatAppLog("error", "at utils/writeNew.js:262", "创建目录失败:", error);
+          plus.nativeUI.toast("创建图片目录失败");
+          reject(error);
+        });
+      }, (error) => {
+        if (typeof wait !== "undefined" && wait && wait.close) {
+          wait.close();
+        }
+        formatAppLog("error", "at utils/writeNew.js:270", "文件系统访问失败:", error);
+        plus.nativeUI.toast("文件系统访问失败");
+        reject(error);
+      });
+    });
+  }
+  function saveBridgeImage(userName, buildingId, tempImagePath) {
+    return saveBridgeImages(userName, buildingId, [tempImagePath])[0];
+  }
+  function saveBridgeZip(userName, buildingId) {
+    const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + FILE_NAMING$1.targetBridgeZip(userName, buildingId));
+    const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + userName + "/building/" + buildingId);
+    plus.zip.compress(
+      src,
+      zipfile,
+      function() {
+        formatAppLog("log", "at utils/writeNew.js:287", "Compress success!");
+      },
+      function(error) {
+        formatAppLog("log", "at utils/writeNew.js:289", "Compress error!");
+      }
+    );
+    return zipfile + ".zip";
   }
   var isVue2 = false;
   function set(target, key, val) {
@@ -1137,9 +1271,9 @@ Only state can be modified.`);
     }
     return newState;
   }
-  const noop = () => {
+  const noop$1 = () => {
   };
-  function addSubscription(subscriptions, callback, detached, onCleanup = noop) {
+  function addSubscription(subscriptions, callback, detached, onCleanup = noop$1) {
     subscriptions.push(callback);
     const removeSubscription = () => {
       const idx = subscriptions.indexOf(callback);
@@ -1600,17 +1734,23 @@ This will fail in production.`);
   const userStore = defineStore("user", () => {
     const username = vue.ref("");
     const password = vue.ref("");
-    const userId2 = vue.ref("");
-    const projectId2 = vue.ref("");
-    const taskId = vue.ref("");
-    const buildingId2 = vue.ref("");
-    const currentDir = vue.ref("");
     const setUserInfo = (userinfo) => {
       username.value = userinfo.username;
       password.value = userinfo.password;
     };
+    return {
+      username,
+      password,
+      setUserInfo
+    };
+  });
+  const idStore = defineStore("Id", () => {
+    const userId = vue.ref("");
+    const projectId2 = vue.ref("");
+    const buildingId = vue.ref("");
+    const currentDir = vue.ref("");
     const setUserId = (Id) => {
-      userId2.value = Id.value;
+      userId.value = Id.value;
     };
     const setProjectId = (Id) => {
       projectId2.value = Id.value;
@@ -1619,19 +1759,16 @@ This will fail in production.`);
       taskId.value = Id.value;
     };
     const setBuildingId = (Id) => {
-      buildingId2.value = Id.value;
+      buildingId.value = Id.value;
     };
     const setDir = (dir) => {
       currentDir.value = dir.value;
     };
     return {
-      username,
-      password,
-      userId: userId2,
+      currentDir,
+      userId,
       projectId: projectId2,
-      taskId,
-      buildingId: buildingId2,
-      setUserInfo,
+      buildingId,
       setUserId,
       setProjectId,
       setTaskId,
@@ -1655,25 +1792,22 @@ This will fail in production.`);
       const password = vue.ref("");
       const userInfo = userStore();
       const rememberPassword2 = vue.ref(false);
-      const offlineLogin2 = vue.ref(false);
       const showPassword = vue.ref(false);
       const loading = vue.ref(false);
+      const idInfo = idStore();
       const toggleRememberPassword = () => {
-        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:70", "切换记住密码状态，当前状态:", rememberPassword2.value);
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:72", "切换记住密码状态，当前状态:", rememberPassword2.value);
         rememberPassword2.value = !rememberPassword2.value;
-        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:72", "切换后的状态:", rememberPassword2.value);
-      };
-      const toggleOfflineLogin = () => {
-        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:76", "切换离线登录状态，当前状态:", offlineLogin2.value);
-        offlineLogin2.value = !offlineLogin2.value;
-        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:78", "切换后的状态:", offlineLogin2.value);
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:74", "切换后的状态:", rememberPassword2.value);
       };
       vue.onMounted(async () => {
       });
       vue.onMounted(() => {
-        if (uni.getStorageSync("username") && uni.getStorageSync("password")) {
-          username.value = uni.getStorageSync("username");
-          password.value = uni.getStorageSync("password");
+        const lastUsername = uni.getStorageSync("lastUsername");
+        const lastPassword = uni.getStorageSync("lastPassword");
+        if (lastUsername && lastPassword) {
+          username.value = lastUsername;
+          password.value = lastPassword;
         }
       });
       const togglePasswordVisibility = () => {
@@ -1689,70 +1823,85 @@ This will fail in production.`);
         }
         loading.value = true;
         try {
-          formatAppLog("log", "at pages/LoginPage/LoginPage.vue:127", "当前登录模式:", offlineLogin2.value ? "离线登录" : "在线登录");
-          formatAppLog("log", "at pages/LoginPage/LoginPage.vue:128", "记住密码状态:", rememberPassword2.value);
-          if (offlineLogin2.value) {
-            const localUsername = uni.getStorageSync("username");
-            const localPassword = uni.getStorageSync("password");
-            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:132", "进入离线登录逻辑");
-            if (localUsername && localPassword && localUsername === username.value && localPassword === password.value) {
-              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:138", "离线登录成功，准备跳转");
-              uni.navigateTo({
-                url: "/pages/home/home"
-              });
+          const response = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+            method: "POST"
+          });
+          formatAppLog("log", "at pages/LoginPage/LoginPage.vue:132", "登录响应:", response.data);
+          if (response.data.code === 0) {
+            userInfo.setUserInfo({
+              username: username.value,
+              password: password.value
+            });
+            idInfo.setUserId(response.data.userId);
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:152", "登录成功，准备跳转");
+            uni.navigateTo({
+              url: "/pages/home/home"
+            });
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:157", "记住密码状态:", rememberPassword2.value);
+            if (rememberPassword2.value) {
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:159", "准备保存用户信息");
+              let accountArray = uni.getStorageSync("accountArray") || null;
+              if (!Array.isArray(accountArray)) {
+                accountArray = [{
+                  username: username.value,
+                  password: password.value
+                }];
+              } else {
+                accountArray.push({
+                  username: username.value,
+                  password: password.value
+                });
+              }
+              uni.removeStorageSync("accountArray");
+              uni.setStorageSync("accountArray", accountArray);
+              uni.removeStorageSync("lastUsername");
+              uni.removeStorageSync("lastPassword");
+              uni.setStorageSync("lastUsername", username.value);
+              uni.setStorageSync("lastPassword", password.value);
             } else {
-              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:144", "离线登录失败：用户名或密码不匹配");
-              uni.showToast({
-                title: "用户名或密码错误",
-                icon: "none"
-              });
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:180", "未勾选记住密码，下次不填充，但是本地缓存的账号密码不删除");
+              uni.removeStorageSync("lastUsername");
+              uni.removeStorageSync("lastPassword");
             }
           } else {
-            const response = await uni.request({
-              url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
-              method: "POST"
+            uni.showToast({
+              title: response.data.msg || "登录失败",
+              icon: "none"
             });
-            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:157", "登录响应:", response.data);
-            if (response.data.code === 0) {
-              userInfo.setUserInfo({
-                username: username.value,
-                password: password.value
-              });
-              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:176", "登录成功，准备跳转");
-              uni.navigateTo({
-                url: "/pages/home/home"
-              });
-              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:181", "记住密码状态:", rememberPassword2.value);
-              if (rememberPassword2.value) {
-                formatAppLog("log", "at pages/LoginPage/LoginPage.vue:183", "准备保存用户信息");
-                uni.setStorageSync("username", username.value);
-                uni.setStorageSync("password", password.value);
-              } else {
-                formatAppLog("log", "at pages/LoginPage/LoginPage.vue:192", "未勾选记住密码，不保存用户信息");
-                uni.removeStorageSync("username");
-                uni.removeStorageSync("password");
-              }
-            } else {
-              uni.showToast({
-                title: response.data.msg || "登录失败",
-                icon: "none"
-              });
-            }
           }
         } catch (error) {
-          formatAppLog("error", "at pages/LoginPage/LoginPage.vue:204", "登录失败:", error);
-          uni.showToast({
-            title: "登录失败，请稍后重试",
-            icon: "none"
-          });
+          formatAppLog("error", "at pages/LoginPage/LoginPage.vue:191", "离线登录");
+          const accountArray = uni.getStorageSync("accountArray");
+          let findAccount = false;
+          for (let i2 = 0; i2 < accountArray.length; i2++) {
+            if (accountArray[i2].username === username.value && accountArray[i2].password === password.value) {
+              findAccount = true;
+              break;
+            }
+          }
+          if (findAccount) {
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:202", "离线登录成功，准备跳转");
+            uni.navigateTo({
+              url: "/pages/home/home"
+            });
+          } else {
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:208", "离线登录失败：用户名或密码不匹配");
+            uni.showToast({
+              title: "用户名或密码错误",
+              icon: "none"
+            });
+          }
         } finally {
           loading.value = false;
         }
       };
-      const __returned__ = { username, password, userInfo, rememberPassword: rememberPassword2, offlineLogin: offlineLogin2, showPassword, loading, toggleRememberPassword, toggleOfflineLogin, togglePasswordVisibility, handleLogin, ref: vue.ref, onMounted: vue.onMounted, get setAllUserInfo() {
+      const __returned__ = { username, password, userInfo, rememberPassword: rememberPassword2, showPassword, loading, idInfo, toggleRememberPassword, togglePasswordVisibility, handleLogin, ref: vue.ref, onMounted: vue.onMounted, get setAllUserInfo() {
         return setAllUserInfo;
       }, get userStore() {
         return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -1777,7 +1926,8 @@ This will fail in production.`);
             {
               class: "uni-input",
               "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.username = $event),
-              placeholder: "请输入用户名"
+              placeholder: "请输入用户名",
+              "placeholder-style": "color: #cccccc"
             },
             null,
             512
@@ -1794,7 +1944,8 @@ This will fail in production.`);
                 class: "uni-input",
                 "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.password = $event),
                 type: $setup.showPassword ? "text" : "password",
-                placeholder: "请输入密码"
+                placeholder: "请输入密码",
+                "placeholder-style": "color: #cccccc"
               }, null, 8, ["type"]), [
                 [vue.vModelDynamic, $setup.password]
               ]),
@@ -1815,16 +1966,11 @@ This will fail in production.`);
             vue.createElementVNode("label", null, [
               vue.createElementVNode("radio", {
                 checked: $setup.rememberPassword,
-                onClick: $setup.toggleRememberPassword
+                onClick: vue.withModifiers($setup.toggleRememberPassword, ["stop"])
               }, null, 8, ["checked"]),
-              vue.createElementVNode("span", null, "记住密码")
-            ]),
-            vue.createElementVNode("label", null, [
-              vue.createElementVNode("radio", {
-                checked: $setup.offlineLogin,
-                onClick: $setup.toggleOfflineLogin
-              }, null, 8, ["checked"]),
-              vue.createElementVNode("span", null, "离线登录")
+              vue.createElementVNode("span", {
+                onClick: vue.withModifiers($setup.toggleRememberPassword, ["stop"])
+              }, "记住密码")
             ])
           ])
         ]),
@@ -1842,8 +1988,8 @@ This will fail in production.`);
   }
   const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
   const _imports_0$5 = "/static/image/loginLogo.png";
-  const _imports_1$2 = "/static/image/bridgenew.png";
-  const _imports_2$2 = "/static/image/setting.png";
+  const _imports_1$2 = "/static/image/bridgeTrue.png";
+  const _imports_2$2 = "/static/image/settingTrue.png";
   const _sfc_main$z = {
     __name: "home",
     setup(__props, { expose: __expose }) {
@@ -1924,7 +2070,7 @@ This will fail in production.`);
     ]);
   }
   const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
-  const DOC_BASE_PATH$1 = "_doc/";
+  const DOC_BASE_PATH = "_doc/";
   function getCurrentDateStr() {
     const now2 = /* @__PURE__ */ new Date();
     const year = now2.getFullYear().toString().slice(-2);
@@ -1935,12 +2081,15 @@ This will fail in production.`);
   function getUserDir(userName) {
     return `UD${getCurrentDateStr()}-${userName}`;
   }
-  const FILE_NAMING$1 = {
+  const FILE_NAMING = {
     project: (userName) => `${getUserDir(userName)}/project/projects.json`,
     task: (userName, projectId2) => `${getUserDir(userName)}/project/${projectId2}/task.json`,
-    property: (userName, buildingId2) => `${getUserDir(userName)}/building/${buildingId2}/property.json`,
-    disease: (userName, buildingId2, yearId) => `${getUserDir(userName)}/building/${buildingId2}/disease/${yearId}.json`,
-    Object: (userName, buildingId2) => `${getUserDir(userName)}/building/${buildingId2}/object.json`,
+    property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
+    disease: (userName, buildingId, yearId) => `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
+    Object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
+    // 新增用户信息路径规则
+    user: (userName) => `${getUserDir(userName)}/user.json`,
+    historyYear: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/disease`,
     AllUserInfo: (userName) => `${getUserDir(userName)}/AllUserInfo.json`
   };
   async function getJsonData(path) {
@@ -1964,34 +2113,866 @@ This will fail in production.`);
     });
   }
   function getProject(userName) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.project(userName);
-    trackPath$1(path);
+    const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
+    trackPath(path);
     return getJsonData(path);
   }
   function getTask(userName, projectId2) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.task(userName, projectId2);
-    trackPath$1(path);
+    const path = DOC_BASE_PATH + FILE_NAMING.task(userName, projectId2);
+    trackPath(path);
     return getJsonData(path);
   }
-  function getProperty(userName, buildingId2) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.property(userName, buildingId2);
-    trackPath$1(path);
+  function getProperty(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.property(userName, buildingId);
+    trackPath(path);
     return getJsonData(path);
   }
-  function getDisease(userName, buildingId2, yearId) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.disease(userName, buildingId2, yearId);
-    trackPath$1(path);
+  function getDisease(userName, buildingId, yearId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
+    trackPath(path);
     return getJsonData(path);
   }
-  function getObject(userName, buildingId2) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.Object(userName, buildingId2);
-    trackPath$1(path);
+  function getObject(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.Object(userName, buildingId);
+    trackPath(path);
     return getJsonData(path);
   }
   function getAllUserInfo(userName) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.AllUserInfo(userName);
-    trackPath$1(path);
+    const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userName);
+    trackPath(path);
     return getJsonData(path);
+  }
+  async function getHistoryYear(userName, buildingId) {
+    const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
+    formatAppLog("log", "at utils/readJsonNew.js:95", `历史病害目标目录: ${dirPath}`);
+    const files = await listDirectoryFiles(dirPath);
+    const yearFiles = files.filter(
+      (file) => file.name && /^\d{4}\.json$/.test(file.name)
+    );
+    const years = yearFiles.map(
+      (file) => file.name.split(".")[0]
+      // 直接返回字符串
+    );
+    const currentYear = String((/* @__PURE__ */ new Date()).getFullYear());
+    const filteredYears = years.filter((year) => year !== currentYear).sort((a2, b2) => {
+      return Number(b2) - Number(a2);
+    });
+    formatAppLog("log", "at utils/readJsonNew.js:121", `找到历史年份: ${filteredYears.join(",")}`);
+    return filteredYears;
+  }
+  function listDirectoryFiles(path) {
+    return new Promise((resolve, reject) => {
+      const fullPath = plus.io.convertLocalFileSystemURL(path);
+      plus.io.resolveLocalFileSystemURL(fullPath, (entry) => {
+        if (entry.isDirectory) {
+          const directoryReader = entry.createReader();
+          directoryReader.readEntries(
+            (entries) => resolve(Array.from(entries)),
+            reject
+          );
+        } else {
+          reject(new Error("路径不是目录"));
+        }
+      }, reject);
+    });
+  }
+  function readDiseaseImages(userName, buildingId, relativePaths) {
+    if (Array.isArray(relativePaths)) {
+      return relativePaths.map((path) => {
+        const fullPath = DOC_BASE_PATH + getUserDir(userName) + "/building/" + path;
+        return plus.io.convertLocalFileSystemURL(fullPath);
+      });
+    } else {
+      const path = DOC_BASE_PATH + getUserDir(userName) + "/building/" + relativePaths;
+      const imagePath = plus.io.convertLocalFileSystemURL(path);
+      return imagePath;
+    }
+  }
+  function readBridgeImage(userName, buildingId, relativePaths) {
+    if (Array.isArray(relativePaths)) {
+      return relativePaths.map((path) => {
+        const fullPath = DOC_BASE_PATH + getUserDir(userName) + "/building/" + path;
+        return plus.io.convertLocalFileSystemURL(fullPath);
+      });
+    } else {
+      const path = DOC_BASE_PATH + getUserDir(userName) + "/building/" + relativePaths;
+      const imagePath = plus.io.convertLocalFileSystemURL(path);
+      return imagePath;
+    }
+  }
+  function getAllFirstLevelDirs() {
+    return new Promise((resolve, reject) => {
+      const fullPath = DOC_BASE_PATH;
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getDirectory(fullPath, { create: false }, (dirEntry) => {
+          const directoryReader = dirEntry.createReader();
+          directoryReader.readEntries((entries) => {
+            const dirNames = entries.filter((entry) => entry.isDirectory).map((entry) => entry.name);
+            resolve(dirNames);
+          }, reject);
+        }, (err) => {
+          if (err.code === err.NOT_FOUND_ERR) {
+            resolve([]);
+          } else {
+            reject(`无法访问目录: ${fullPath}`);
+          }
+        });
+      }, reject);
+    });
+  }
+  var extendStatics = function(d2, b2) {
+    extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d3, b3) {
+      d3.__proto__ = b3;
+    } || function(d3, b3) {
+      for (var p2 in b3)
+        if (Object.prototype.hasOwnProperty.call(b3, p2))
+          d3[p2] = b3[p2];
+    };
+    return extendStatics(d2, b2);
+  };
+  function __extends(d2, b2) {
+    if (typeof b2 !== "function" && b2 !== null)
+      throw new TypeError("Class extends value " + String(b2) + " is not a constructor or null");
+    extendStatics(d2, b2);
+    function __() {
+      this.constructor = d2;
+    }
+    d2.prototype = b2 === null ? Object.create(b2) : (__.prototype = b2.prototype, new __());
+  }
+  function __values(o2) {
+    var s2 = typeof Symbol === "function" && Symbol.iterator, m2 = s2 && o2[s2], i2 = 0;
+    if (m2)
+      return m2.call(o2);
+    if (o2 && typeof o2.length === "number")
+      return {
+        next: function() {
+          if (o2 && i2 >= o2.length)
+            o2 = void 0;
+          return { value: o2 && o2[i2++], done: !o2 };
+        }
+      };
+    throw new TypeError(s2 ? "Object is not iterable." : "Symbol.iterator is not defined.");
+  }
+  function __read(o2, n2) {
+    var m2 = typeof Symbol === "function" && o2[Symbol.iterator];
+    if (!m2)
+      return o2;
+    var i2 = m2.call(o2), r2, ar = [], e2;
+    try {
+      while ((n2 === void 0 || n2-- > 0) && !(r2 = i2.next()).done)
+        ar.push(r2.value);
+    } catch (error) {
+      e2 = { error };
+    } finally {
+      try {
+        if (r2 && !r2.done && (m2 = i2["return"]))
+          m2.call(i2);
+      } finally {
+        if (e2)
+          throw e2.error;
+      }
+    }
+    return ar;
+  }
+  function __spreadArray(to, from, pack) {
+    if (pack || arguments.length === 2)
+      for (var i2 = 0, l2 = from.length, ar; i2 < l2; i2++) {
+        if (ar || !(i2 in from)) {
+          if (!ar)
+            ar = Array.prototype.slice.call(from, 0, i2);
+          ar[i2] = from[i2];
+        }
+      }
+    return to.concat(ar || Array.prototype.slice.call(from));
+  }
+  typeof SuppressedError === "function" ? SuppressedError : function(error, suppressed, message) {
+    var e2 = new Error(message);
+    return e2.name = "SuppressedError", e2.error = error, e2.suppressed = suppressed, e2;
+  };
+  function isFunction(value) {
+    return typeof value === "function";
+  }
+  function createErrorClass(createImpl) {
+    var _super = function(instance) {
+      Error.call(instance);
+      instance.stack = new Error().stack;
+    };
+    var ctorFunc = createImpl(_super);
+    ctorFunc.prototype = Object.create(Error.prototype);
+    ctorFunc.prototype.constructor = ctorFunc;
+    return ctorFunc;
+  }
+  var UnsubscriptionError = createErrorClass(function(_super) {
+    return function UnsubscriptionErrorImpl(errors) {
+      _super(this);
+      this.message = errors ? errors.length + " errors occurred during unsubscription:\n" + errors.map(function(err, i2) {
+        return i2 + 1 + ") " + err.toString();
+      }).join("\n  ") : "";
+      this.name = "UnsubscriptionError";
+      this.errors = errors;
+    };
+  });
+  function arrRemove(arr, item) {
+    if (arr) {
+      var index = arr.indexOf(item);
+      0 <= index && arr.splice(index, 1);
+    }
+  }
+  var Subscription = function() {
+    function Subscription2(initialTeardown) {
+      this.initialTeardown = initialTeardown;
+      this.closed = false;
+      this._parentage = null;
+      this._finalizers = null;
+    }
+    Subscription2.prototype.unsubscribe = function() {
+      var e_1, _a, e_2, _b;
+      var errors;
+      if (!this.closed) {
+        this.closed = true;
+        var _parentage = this._parentage;
+        if (_parentage) {
+          this._parentage = null;
+          if (Array.isArray(_parentage)) {
+            try {
+              for (var _parentage_1 = __values(_parentage), _parentage_1_1 = _parentage_1.next(); !_parentage_1_1.done; _parentage_1_1 = _parentage_1.next()) {
+                var parent_1 = _parentage_1_1.value;
+                parent_1.remove(this);
+              }
+            } catch (e_1_1) {
+              e_1 = { error: e_1_1 };
+            } finally {
+              try {
+                if (_parentage_1_1 && !_parentage_1_1.done && (_a = _parentage_1.return))
+                  _a.call(_parentage_1);
+              } finally {
+                if (e_1)
+                  throw e_1.error;
+              }
+            }
+          } else {
+            _parentage.remove(this);
+          }
+        }
+        var initialFinalizer = this.initialTeardown;
+        if (isFunction(initialFinalizer)) {
+          try {
+            initialFinalizer();
+          } catch (e2) {
+            errors = e2 instanceof UnsubscriptionError ? e2.errors : [e2];
+          }
+        }
+        var _finalizers = this._finalizers;
+        if (_finalizers) {
+          this._finalizers = null;
+          try {
+            for (var _finalizers_1 = __values(_finalizers), _finalizers_1_1 = _finalizers_1.next(); !_finalizers_1_1.done; _finalizers_1_1 = _finalizers_1.next()) {
+              var finalizer = _finalizers_1_1.value;
+              try {
+                execFinalizer(finalizer);
+              } catch (err) {
+                errors = errors !== null && errors !== void 0 ? errors : [];
+                if (err instanceof UnsubscriptionError) {
+                  errors = __spreadArray(__spreadArray([], __read(errors)), __read(err.errors));
+                } else {
+                  errors.push(err);
+                }
+              }
+            }
+          } catch (e_2_1) {
+            e_2 = { error: e_2_1 };
+          } finally {
+            try {
+              if (_finalizers_1_1 && !_finalizers_1_1.done && (_b = _finalizers_1.return))
+                _b.call(_finalizers_1);
+            } finally {
+              if (e_2)
+                throw e_2.error;
+            }
+          }
+        }
+        if (errors) {
+          throw new UnsubscriptionError(errors);
+        }
+      }
+    };
+    Subscription2.prototype.add = function(teardown) {
+      var _a;
+      if (teardown && teardown !== this) {
+        if (this.closed) {
+          execFinalizer(teardown);
+        } else {
+          if (teardown instanceof Subscription2) {
+            if (teardown.closed || teardown._hasParent(this)) {
+              return;
+            }
+            teardown._addParent(this);
+          }
+          (this._finalizers = (_a = this._finalizers) !== null && _a !== void 0 ? _a : []).push(teardown);
+        }
+      }
+    };
+    Subscription2.prototype._hasParent = function(parent) {
+      var _parentage = this._parentage;
+      return _parentage === parent || Array.isArray(_parentage) && _parentage.includes(parent);
+    };
+    Subscription2.prototype._addParent = function(parent) {
+      var _parentage = this._parentage;
+      this._parentage = Array.isArray(_parentage) ? (_parentage.push(parent), _parentage) : _parentage ? [_parentage, parent] : parent;
+    };
+    Subscription2.prototype._removeParent = function(parent) {
+      var _parentage = this._parentage;
+      if (_parentage === parent) {
+        this._parentage = null;
+      } else if (Array.isArray(_parentage)) {
+        arrRemove(_parentage, parent);
+      }
+    };
+    Subscription2.prototype.remove = function(teardown) {
+      var _finalizers = this._finalizers;
+      _finalizers && arrRemove(_finalizers, teardown);
+      if (teardown instanceof Subscription2) {
+        teardown._removeParent(this);
+      }
+    };
+    Subscription2.EMPTY = function() {
+      var empty = new Subscription2();
+      empty.closed = true;
+      return empty;
+    }();
+    return Subscription2;
+  }();
+  Subscription.EMPTY;
+  function isSubscription(value) {
+    return value instanceof Subscription || value && "closed" in value && isFunction(value.remove) && isFunction(value.add) && isFunction(value.unsubscribe);
+  }
+  function execFinalizer(finalizer) {
+    if (isFunction(finalizer)) {
+      finalizer();
+    } else {
+      finalizer.unsubscribe();
+    }
+  }
+  var config = {
+    onUnhandledError: null,
+    onStoppedNotification: null,
+    Promise: void 0,
+    useDeprecatedSynchronousErrorHandling: false,
+    useDeprecatedNextContext: false
+  };
+  var timeoutProvider = {
+    setTimeout: function(handler, timeout) {
+      var args = [];
+      for (var _i = 2; _i < arguments.length; _i++) {
+        args[_i - 2] = arguments[_i];
+      }
+      return setTimeout.apply(void 0, __spreadArray([handler, timeout], __read(args)));
+    },
+    clearTimeout: function(handle) {
+      var delegate = timeoutProvider.delegate;
+      return ((delegate === null || delegate === void 0 ? void 0 : delegate.clearTimeout) || clearTimeout)(handle);
+    },
+    delegate: void 0
+  };
+  function reportUnhandledError(err) {
+    timeoutProvider.setTimeout(function() {
+      {
+        throw err;
+      }
+    });
+  }
+  function noop() {
+  }
+  function errorContext(cb) {
+    {
+      cb();
+    }
+  }
+  var Subscriber = function(_super) {
+    __extends(Subscriber2, _super);
+    function Subscriber2(destination) {
+      var _this = _super.call(this) || this;
+      _this.isStopped = false;
+      if (destination) {
+        _this.destination = destination;
+        if (isSubscription(destination)) {
+          destination.add(_this);
+        }
+      } else {
+        _this.destination = EMPTY_OBSERVER;
+      }
+      return _this;
+    }
+    Subscriber2.create = function(next, error, complete) {
+      return new SafeSubscriber(next, error, complete);
+    };
+    Subscriber2.prototype.next = function(value) {
+      if (this.isStopped)
+        ;
+      else {
+        this._next(value);
+      }
+    };
+    Subscriber2.prototype.error = function(err) {
+      if (this.isStopped)
+        ;
+      else {
+        this.isStopped = true;
+        this._error(err);
+      }
+    };
+    Subscriber2.prototype.complete = function() {
+      if (this.isStopped)
+        ;
+      else {
+        this.isStopped = true;
+        this._complete();
+      }
+    };
+    Subscriber2.prototype.unsubscribe = function() {
+      if (!this.closed) {
+        this.isStopped = true;
+        _super.prototype.unsubscribe.call(this);
+        this.destination = null;
+      }
+    };
+    Subscriber2.prototype._next = function(value) {
+      this.destination.next(value);
+    };
+    Subscriber2.prototype._error = function(err) {
+      try {
+        this.destination.error(err);
+      } finally {
+        this.unsubscribe();
+      }
+    };
+    Subscriber2.prototype._complete = function() {
+      try {
+        this.destination.complete();
+      } finally {
+        this.unsubscribe();
+      }
+    };
+    return Subscriber2;
+  }(Subscription);
+  var _bind = Function.prototype.bind;
+  function bind(fn, thisArg) {
+    return _bind.call(fn, thisArg);
+  }
+  var ConsumerObserver = function() {
+    function ConsumerObserver2(partialObserver) {
+      this.partialObserver = partialObserver;
+    }
+    ConsumerObserver2.prototype.next = function(value) {
+      var partialObserver = this.partialObserver;
+      if (partialObserver.next) {
+        try {
+          partialObserver.next(value);
+        } catch (error) {
+          handleUnhandledError(error);
+        }
+      }
+    };
+    ConsumerObserver2.prototype.error = function(err) {
+      var partialObserver = this.partialObserver;
+      if (partialObserver.error) {
+        try {
+          partialObserver.error(err);
+        } catch (error) {
+          handleUnhandledError(error);
+        }
+      } else {
+        handleUnhandledError(err);
+      }
+    };
+    ConsumerObserver2.prototype.complete = function() {
+      var partialObserver = this.partialObserver;
+      if (partialObserver.complete) {
+        try {
+          partialObserver.complete();
+        } catch (error) {
+          handleUnhandledError(error);
+        }
+      }
+    };
+    return ConsumerObserver2;
+  }();
+  var SafeSubscriber = function(_super) {
+    __extends(SafeSubscriber2, _super);
+    function SafeSubscriber2(observerOrNext, error, complete) {
+      var _this = _super.call(this) || this;
+      var partialObserver;
+      if (isFunction(observerOrNext) || !observerOrNext) {
+        partialObserver = {
+          next: observerOrNext !== null && observerOrNext !== void 0 ? observerOrNext : void 0,
+          error: error !== null && error !== void 0 ? error : void 0,
+          complete: complete !== null && complete !== void 0 ? complete : void 0
+        };
+      } else {
+        var context_1;
+        if (_this && config.useDeprecatedNextContext) {
+          context_1 = Object.create(observerOrNext);
+          context_1.unsubscribe = function() {
+            return _this.unsubscribe();
+          };
+          partialObserver = {
+            next: observerOrNext.next && bind(observerOrNext.next, context_1),
+            error: observerOrNext.error && bind(observerOrNext.error, context_1),
+            complete: observerOrNext.complete && bind(observerOrNext.complete, context_1)
+          };
+        } else {
+          partialObserver = observerOrNext;
+        }
+      }
+      _this.destination = new ConsumerObserver(partialObserver);
+      return _this;
+    }
+    return SafeSubscriber2;
+  }(Subscriber);
+  function handleUnhandledError(error) {
+    {
+      reportUnhandledError(error);
+    }
+  }
+  function defaultErrorHandler(err) {
+    throw err;
+  }
+  var EMPTY_OBSERVER = {
+    closed: true,
+    next: noop,
+    error: defaultErrorHandler,
+    complete: noop
+  };
+  var observable = function() {
+    return typeof Symbol === "function" && Symbol.observable || "@@observable";
+  }();
+  function identity(x) {
+    return x;
+  }
+  function pipeFromArray(fns) {
+    if (fns.length === 0) {
+      return identity;
+    }
+    if (fns.length === 1) {
+      return fns[0];
+    }
+    return function piped(input) {
+      return fns.reduce(function(prev, fn) {
+        return fn(prev);
+      }, input);
+    };
+  }
+  var Observable = function() {
+    function Observable2(subscribe) {
+      if (subscribe) {
+        this._subscribe = subscribe;
+      }
+    }
+    Observable2.prototype.lift = function(operator) {
+      var observable2 = new Observable2();
+      observable2.source = this;
+      observable2.operator = operator;
+      return observable2;
+    };
+    Observable2.prototype.subscribe = function(observerOrNext, error, complete) {
+      var _this = this;
+      var subscriber = isSubscriber(observerOrNext) ? observerOrNext : new SafeSubscriber(observerOrNext, error, complete);
+      errorContext(function() {
+        var _a = _this, operator = _a.operator, source = _a.source;
+        subscriber.add(operator ? operator.call(subscriber, source) : source ? _this._subscribe(subscriber) : _this._trySubscribe(subscriber));
+      });
+      return subscriber;
+    };
+    Observable2.prototype._trySubscribe = function(sink) {
+      try {
+        return this._subscribe(sink);
+      } catch (err) {
+        sink.error(err);
+      }
+    };
+    Observable2.prototype.forEach = function(next, promiseCtor) {
+      var _this = this;
+      promiseCtor = getPromiseCtor(promiseCtor);
+      return new promiseCtor(function(resolve, reject) {
+        var subscriber = new SafeSubscriber({
+          next: function(value) {
+            try {
+              next(value);
+            } catch (err) {
+              reject(err);
+              subscriber.unsubscribe();
+            }
+          },
+          error: reject,
+          complete: resolve
+        });
+        _this.subscribe(subscriber);
+      });
+    };
+    Observable2.prototype._subscribe = function(subscriber) {
+      var _a;
+      return (_a = this.source) === null || _a === void 0 ? void 0 : _a.subscribe(subscriber);
+    };
+    Observable2.prototype[observable] = function() {
+      return this;
+    };
+    Observable2.prototype.pipe = function() {
+      var operations = [];
+      for (var _i = 0; _i < arguments.length; _i++) {
+        operations[_i] = arguments[_i];
+      }
+      return pipeFromArray(operations)(this);
+    };
+    Observable2.prototype.toPromise = function(promiseCtor) {
+      var _this = this;
+      promiseCtor = getPromiseCtor(promiseCtor);
+      return new promiseCtor(function(resolve, reject) {
+        var value;
+        _this.subscribe(function(x) {
+          return value = x;
+        }, function(err) {
+          return reject(err);
+        }, function() {
+          return resolve(value);
+        });
+      });
+    };
+    Observable2.create = function(subscribe) {
+      return new Observable2(subscribe);
+    };
+    return Observable2;
+  }();
+  function getPromiseCtor(promiseCtor) {
+    var _a;
+    return (_a = promiseCtor !== null && promiseCtor !== void 0 ? promiseCtor : config.Promise) !== null && _a !== void 0 ? _a : Promise;
+  }
+  function isObserver(value) {
+    return value && isFunction(value.next) && isFunction(value.error) && isFunction(value.complete);
+  }
+  function isSubscriber(value) {
+    return value && value instanceof Subscriber || isObserver(value) && isSubscription(value);
+  }
+  var dateTimestampProvider = {
+    now: function() {
+      return Date.now();
+    },
+    delegate: void 0
+  };
+  var Action = function(_super) {
+    __extends(Action2, _super);
+    function Action2(scheduler, work) {
+      return _super.call(this) || this;
+    }
+    Action2.prototype.schedule = function(state, delay) {
+      return this;
+    };
+    return Action2;
+  }(Subscription);
+  var intervalProvider = {
+    setInterval: function(handler, timeout) {
+      var args = [];
+      for (var _i = 2; _i < arguments.length; _i++) {
+        args[_i - 2] = arguments[_i];
+      }
+      return setInterval.apply(void 0, __spreadArray([handler, timeout], __read(args)));
+    },
+    clearInterval: function(handle) {
+      var delegate = intervalProvider.delegate;
+      return ((delegate === null || delegate === void 0 ? void 0 : delegate.clearInterval) || clearInterval)(handle);
+    },
+    delegate: void 0
+  };
+  var AsyncAction = function(_super) {
+    __extends(AsyncAction2, _super);
+    function AsyncAction2(scheduler, work) {
+      var _this = _super.call(this, scheduler, work) || this;
+      _this.scheduler = scheduler;
+      _this.work = work;
+      _this.pending = false;
+      return _this;
+    }
+    AsyncAction2.prototype.schedule = function(state, delay) {
+      var _a;
+      if (delay === void 0) {
+        delay = 0;
+      }
+      if (this.closed) {
+        return this;
+      }
+      this.state = state;
+      var id = this.id;
+      var scheduler = this.scheduler;
+      if (id != null) {
+        this.id = this.recycleAsyncId(scheduler, id, delay);
+      }
+      this.pending = true;
+      this.delay = delay;
+      this.id = (_a = this.id) !== null && _a !== void 0 ? _a : this.requestAsyncId(scheduler, this.id, delay);
+      return this;
+    };
+    AsyncAction2.prototype.requestAsyncId = function(scheduler, _id, delay) {
+      if (delay === void 0) {
+        delay = 0;
+      }
+      return intervalProvider.setInterval(scheduler.flush.bind(scheduler, this), delay);
+    };
+    AsyncAction2.prototype.recycleAsyncId = function(_scheduler, id, delay) {
+      if (delay === void 0) {
+        delay = 0;
+      }
+      if (delay != null && this.delay === delay && this.pending === false) {
+        return id;
+      }
+      if (id != null) {
+        intervalProvider.clearInterval(id);
+      }
+      return void 0;
+    };
+    AsyncAction2.prototype.execute = function(state, delay) {
+      if (this.closed) {
+        return new Error("executing a cancelled action");
+      }
+      this.pending = false;
+      var error = this._execute(state, delay);
+      if (error) {
+        return error;
+      } else if (this.pending === false && this.id != null) {
+        this.id = this.recycleAsyncId(this.scheduler, this.id, null);
+      }
+    };
+    AsyncAction2.prototype._execute = function(state, _delay) {
+      var errored = false;
+      var errorValue;
+      try {
+        this.work(state);
+      } catch (e2) {
+        errored = true;
+        errorValue = e2 ? e2 : new Error("Scheduled action threw falsy error");
+      }
+      if (errored) {
+        this.unsubscribe();
+        return errorValue;
+      }
+    };
+    AsyncAction2.prototype.unsubscribe = function() {
+      if (!this.closed) {
+        var _a = this, id = _a.id, scheduler = _a.scheduler;
+        var actions = scheduler.actions;
+        this.work = this.state = this.scheduler = null;
+        this.pending = false;
+        arrRemove(actions, this);
+        if (id != null) {
+          this.id = this.recycleAsyncId(scheduler, id, null);
+        }
+        this.delay = null;
+        _super.prototype.unsubscribe.call(this);
+      }
+    };
+    return AsyncAction2;
+  }(Action);
+  var Scheduler = function() {
+    function Scheduler2(schedulerActionCtor, now2) {
+      if (now2 === void 0) {
+        now2 = Scheduler2.now;
+      }
+      this.schedulerActionCtor = schedulerActionCtor;
+      this.now = now2;
+    }
+    Scheduler2.prototype.schedule = function(work, delay, state) {
+      if (delay === void 0) {
+        delay = 0;
+      }
+      return new this.schedulerActionCtor(this, work).schedule(state, delay);
+    };
+    Scheduler2.now = dateTimestampProvider.now;
+    return Scheduler2;
+  }();
+  var AsyncScheduler = function(_super) {
+    __extends(AsyncScheduler2, _super);
+    function AsyncScheduler2(SchedulerAction, now2) {
+      if (now2 === void 0) {
+        now2 = Scheduler.now;
+      }
+      var _this = _super.call(this, SchedulerAction, now2) || this;
+      _this.actions = [];
+      _this._active = false;
+      return _this;
+    }
+    AsyncScheduler2.prototype.flush = function(action) {
+      var actions = this.actions;
+      if (this._active) {
+        actions.push(action);
+        return;
+      }
+      var error;
+      this._active = true;
+      do {
+        if (error = action.execute(action.state, action.delay)) {
+          break;
+        }
+      } while (action = actions.shift());
+      this._active = false;
+      if (error) {
+        while (action = actions.shift()) {
+          action.unsubscribe();
+        }
+        throw error;
+      }
+    };
+    return AsyncScheduler2;
+  }(Scheduler);
+  var asyncScheduler = new AsyncScheduler(AsyncAction);
+  var async = asyncScheduler;
+  function isScheduler(value) {
+    return value && isFunction(value.schedule);
+  }
+  function isValidDate(value) {
+    return value instanceof Date && !isNaN(value);
+  }
+  function timer(dueTime, intervalOrScheduler, scheduler) {
+    if (dueTime === void 0) {
+      dueTime = 0;
+    }
+    if (scheduler === void 0) {
+      scheduler = async;
+    }
+    var intervalDuration = -1;
+    if (intervalOrScheduler != null) {
+      if (isScheduler(intervalOrScheduler)) {
+        scheduler = intervalOrScheduler;
+      } else {
+        intervalDuration = intervalOrScheduler;
+      }
+    }
+    return new Observable(function(subscriber) {
+      var due = isValidDate(dueTime) ? +dueTime - scheduler.now() : dueTime;
+      if (due < 0) {
+        due = 0;
+      }
+      var n2 = 0;
+      return scheduler.schedule(function() {
+        if (!subscriber.closed) {
+          subscriber.next(n2++);
+          if (0 <= intervalDuration) {
+            this.schedule(void 0, intervalDuration);
+          } else {
+            subscriber.complete();
+          }
+        }
+      }, due);
+    });
+  }
+  function interval(period, scheduler) {
+    if (period === void 0) {
+      period = 0;
+    }
+    if (scheduler === void 0) {
+      scheduler = asyncScheduler;
+    }
+    if (period < 0) {
+      period = 0;
+    }
+    return timer(period, period, scheduler);
   }
   const _imports_0$4 = "/static/image/RightOutline.svg";
   const _sfc_main$y = {
@@ -2008,11 +2989,21 @@ This will fail in production.`);
       function getUserDir2(userName) {
         return `UD${getCurrentDateStr2()}-${userName}`;
       }
+      function extractUserNameFromDir(dirName) {
+        if (dirName && dirName.startsWith("UD") && dirName.includes("-")) {
+          const lastDashIndex = dirName.lastIndexOf("-");
+          if (lastDashIndex !== -1 && lastDashIndex < dirName.length - 1) {
+            return dirName.substring(lastDashIndex + 1);
+          }
+        }
+        return "";
+      }
       const years = vue.ref([2025, 2024, 2023, 2022, 2021, 2020]);
       const currentYear = vue.ref((/* @__PURE__ */ new Date()).getFullYear());
       const initData = vue.ref(null);
       const infoData = vue.ref({});
       const userInfo = userStore();
+      const idInfo = idStore();
       const dir = vue.ref("");
       const selectedYearIndex = vue.ref(0);
       const init = async () => {
@@ -2021,13 +3012,13 @@ This will fail in production.`);
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at pages/bridge/bridge.vue:104", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at pages/bridge/bridge.vue:118", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           infoData.value = responseLogin.data;
-          if (responseLogin.data.userName) {
-            dir.value = getUserDir2(responseLogin.data.userName);
-            formatAppLog("log", "at pages/bridge/bridge.vue:112", "当前用户目录:", dir.value);
-            userInfo.setDir(dir.value);
+          if (userInfo.username) {
+            dir.value = getUserDir2(userInfo.username);
+            formatAppLog("log", "at pages/bridge/bridge.vue:126", "当前用户目录:", dir.value);
+            idInfo.setDir(dir.value);
           }
           if (token) {
             const getData = async () => {
@@ -2039,37 +3030,59 @@ This will fail in production.`);
                     "Authorization": `${token}`
                   }
                 });
-                formatAppLog("log", "at pages/bridge/bridge.vue:126", "获取到的项目数据:", projectResponse.data);
+                formatAppLog("log", "at pages/bridge/bridge.vue:140", "获取到的项目数据:", projectResponse.data);
                 if (projectResponse.data.code === 0) {
                   initData.value = projectResponse.data;
-                  if (responseLogin.data.userId) {
-                    setProject(responseLogin.data.userName, initData.value);
-                    dir.value = getUserDir2(responseLogin.data.userName);
+                  const fileArray = await getAllFirstLevelDirs();
+                  let userDirExists = false;
+                  for (let i2 = 0; i2 < fileArray.length; i2++) {
+                    const dir2 = fileArray[i2];
+                    const name = extractUserNameFromDir(dir2);
+                    if (name === userInfo.username) {
+                      userDirExists = true;
+                      break;
+                    }
+                  }
+                  if (!userDirExists) {
+                    await setProject(userInfo.username, initData.value);
+                  } else {
+                    formatAppLog("log", "at pages/bridge/bridge.vue:162", "用户目录已存在，跳过创建");
                   }
                 } else {
+                  formatAppLog("error", "at pages/bridge/bridge.vue:166", "API返回错误:", projectResponse.data.msg);
                   uni.showToast({
                     title: projectResponse.data.msg || "获取数据失败",
                     icon: "none"
                   });
                 }
               } catch (error) {
-                formatAppLog("error", "at pages/bridge/bridge.vue:142", "获取项目数据失败:", error);
-                uni.showToast({
-                  title: "获取数据失败，请稍后重试",
-                  icon: "none"
-                });
+                if (error.errMsg && (error.errMsg.includes("request:fail") || error.errMsg.includes("timeout"))) {
+                  formatAppLog("error", "at pages/bridge/bridge.vue:175", "网络请求失败:", error);
+                  uni.showToast({
+                    title: "网络连接失败，请检查网络",
+                    icon: "none"
+                  });
+                } else {
+                  formatAppLog("error", "at pages/bridge/bridge.vue:181", "获取项目数据失败:", error);
+                  if (!initData.value || !initData.value.data) {
+                    uni.showToast({
+                      title: "获取数据失败，请稍后重试",
+                      icon: "none"
+                    });
+                  }
+                }
               }
             };
             await getData();
           } else {
-            formatAppLog("error", "at pages/bridge/bridge.vue:152", "未获取到有效token");
+            formatAppLog("error", "at pages/bridge/bridge.vue:195", "未获取到有效token");
             uni.showToast({
               title: "登录信息无效，请重新登录",
               icon: "none"
             });
           }
         } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:159", "初始化数据失败:", error);
+          formatAppLog("error", "at pages/bridge/bridge.vue:202", "初始化数据失败:", error);
         }
       };
       const filteredProjects = vue.computed(() => {
@@ -2083,13 +3096,13 @@ This will fail in production.`);
       const changeYear = (e2) => {
         selectedYearIndex.value = e2.detail.value;
         currentYear.value = years.value[selectedYearIndex.value];
-        formatAppLog("log", "at pages/bridge/bridge.vue:177", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
+        formatAppLog("log", "at pages/bridge/bridge.vue:220", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
       };
       const back = () => {
         uni.navigateBack();
       };
       const goToList = (item) => {
-        userInfo.setProjectId({ value: item.id });
+        idInfo.setProjectId({ value: item.id });
         uni.navigateTo({
           url: `/pages/List/List?projectId=${item.id}`
         });
@@ -2124,7 +3137,7 @@ This will fail in production.`);
           rememberPassword.value = false;
         }
       };
-      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, years, currentYear, initData, infoData, userInfo, dir, selectedYearIndex, init, filteredProjects, changeYear, back, goToList, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
+      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, extractUserNameFromDir, years, currentYear, initData, infoData, userInfo, idInfo, dir, selectedYearIndex, init, filteredProjects, changeYear, back, goToList, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
         return getAllUserInfo;
       }, get getProject() {
         return getProject;
@@ -2132,6 +3145,12 @@ This will fail in production.`);
         return setProject;
       }, get userStore() {
         return userStore;
+      }, get idStore() {
+        return idStore;
+      }, get getAllFirstLevelDirs() {
+        return getAllFirstLevelDirs;
+      }, get interval() {
+        return interval;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -2278,6 +3297,7 @@ This will fail in production.`);
       const initTaskData = vue.ref(null);
       const taskBridgeId = vue.ref(0);
       const userInfo = userStore();
+      const idInfo = idStore();
       const getURLParams = () => {
         var _a;
         const pages2 = getCurrentPages();
@@ -2286,9 +3306,9 @@ This will fail in production.`);
           const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
           if (options && options.projectId) {
             projectId2.value = options.projectId;
-            formatAppLog("log", "at pages/List/List.vue:102", "接收到的项目ID:", projectId2.value);
+            formatAppLog("log", "at pages/List/List.vue:103", "接收到的项目ID:", projectId2.value);
           } else {
-            formatAppLog("log", "at pages/List/List.vue:104", "未接收到项目ID，使用默认值:", projectId2.value);
+            formatAppLog("log", "at pages/List/List.vue:105", "未接收到项目ID，使用默认值:", projectId2.value);
           }
         }
       };
@@ -2298,7 +3318,7 @@ This will fail in production.`);
           url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
           method: "POST"
         });
-        formatAppLog("log", "at pages/List/List.vue:118", "用户信息:", responseLogin.data);
+        formatAppLog("log", "at pages/List/List.vue:119", "用户信息:", responseLogin.data);
         const token = responseLogin.data.token;
         const getData = async () => {
           try {
@@ -2310,10 +3330,10 @@ This will fail in production.`);
                 "Authorization": `${token}`
               }
             });
-            formatAppLog("log", "at pages/List/List.vue:131", "获取到的任务数据:", response.data);
+            formatAppLog("log", "at pages/List/List.vue:132", "获取到的任务数据:", response.data);
             if (response.data.code === 0) {
               initTaskData.value = response.data;
-              setTask(responseLogin.data.userName, projectId2.value, initTaskData.value);
+              setTask(userInfo.username, projectId2.value, initTaskData.value);
             } else {
               uni.showToast({
                 title: response.data.msg || "获取数据失败",
@@ -2321,7 +3341,7 @@ This will fail in production.`);
               });
             }
           } catch (error) {
-            formatAppLog("error", "at pages/List/List.vue:155", "获取任务数据失败:", error);
+            formatAppLog("error", "at pages/List/List.vue:156", "获取任务数据失败:", error);
             uni.showToast({
               title: "获取数据失败，请稍后重试",
               icon: "none"
@@ -2329,9 +3349,9 @@ This will fail in production.`);
           }
         };
         await getData();
-        projectInfo.value = await getProject(responseLogin.data.userName);
-        formatAppLog("log", "at pages/List/List.vue:166", "项目数据111", projectInfo.value);
-        formatAppLog("log", "at pages/List/List.vue:167", "currentProject的值:", currentProject.value.name);
+        projectInfo.value = await getProject(userInfo.username);
+        formatAppLog("log", "at pages/List/List.vue:167", "项目数据111", projectInfo.value);
+        formatAppLog("log", "at pages/List/List.vue:168", "currentProject的值:", currentProject.value.name);
       };
       vue.onMounted(() => {
         getURLParams();
@@ -2358,7 +3378,7 @@ This will fail in production.`);
         return icons[type] || icons["arch"];
       };
       const goToDetail = (bridge) => {
-        userInfo.setBuildingId({ value: bridge.buildingId });
+        idInfo.setBuildingId({ value: bridge.buildingId });
         uni.navigateTo({
           url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
         });
@@ -2377,9 +3397,9 @@ This will fail in production.`);
         });
       });
       const handleSearch = () => {
-        formatAppLog("log", "at pages/List/List.vue:230", "搜索关键词:", searchText.value);
+        formatAppLog("log", "at pages/List/List.vue:231", "搜索关键词:", searchText.value);
       };
-      const __returned__ = { back, projectInfo, searchText, bridges, projectId: projectId2, initData, initTaskData, taskBridgeId, userInfo, getURLParams, init, currentProject, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
+      const __returned__ = { back, projectInfo, searchText, bridges, projectId: projectId2, initData, initTaskData, taskBridgeId, userInfo, idInfo, getURLParams, init, currentProject, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
         return getProject;
       }, get getTask() {
         return getTask;
@@ -2387,6 +3407,8 @@ This will fail in production.`);
         return setTask;
       }, get userStore() {
         return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -4107,7 +5129,7 @@ This will fail in production.`);
           },
           "diseaseTypeId": 17,
           "description": "焊缝部位涂层有大量裂纹，受拉翼缘边焊缝存在裂缝，其他部位焊缝无裂缝，主梁、纵横梁受拉翼缘边焊缝开裂长度≤5mm",
-          "trend": "稳定",
+          "developmentTrend": "稳定",
           "level": 2,
           "quantity": 1,
           "type": "焊缝开裂",
@@ -4332,7 +5354,7 @@ This will fail in production.`);
                         vue.createElementVNode(
                           "text",
                           null,
-                          vue.toDisplayString($props.item.level) + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否"),
+                          vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否") + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? $props.item.level : "-"),
                           1
                           /* TEXT */
                         )
@@ -4359,119 +5381,6 @@ This will fail in production.`);
     );
   }
   const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
-  const DOC_BASE_PATH = "_doc/";
-  const FILE_NAMING = {
-    project: (userId2) => `${userId2}/project/projects.json`,
-    task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
-    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
-    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
-    diseaseImages: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/disease/images`,
-    ADImages: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/ADImages`
-  };
-  let __currentFilePath = null;
-  function getFullPath(path) {
-    const docPath = plus.io.convertLocalFileSystemURL(path);
-    return docPath;
-  }
-  async function setJsonData(path, data) {
-    return new Promise((resolve, reject) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getFile(path, { create: true }, (fileEntry) => {
-          fileEntry.createWriter((writer) => {
-            writer.onwriteend = () => {
-              resolve();
-            };
-            writer.onerror = () => {
-              reject(`文件写入失败: ${path}`);
-            };
-            const jsonData = JSON.stringify(data, null, 2);
-            writer.write(jsonData);
-          }, reject);
-        }, reject);
-      }, reject);
-    });
-  }
-  function saveData(data) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath(__currentFilePath);
-      formatAppLog("log", "at utils/reviseNew.js:52", "准备保存文件到路径:", fullPath);
-      const wait = plus.nativeUI.showWaiting("正在保存信息");
-      setJsonData(fullPath, data).then(() => {
-        wait.close();
-        formatAppLog("log", "at utils/reviseNew.js:59", "写入成功");
-        plus.nativeUI.toast("保存成功");
-        resolve(true);
-      }).catch((error) => {
-        wait.close();
-        formatAppLog("error", "at utils/reviseNew.js:65", "写入失败:", error);
-        plus.nativeUI.toast("保存失败");
-        reject(error);
-      });
-    });
-  }
-  function trackPath(path) {
-    formatAppLog("log", "at utils/reviseNew.js:74", "设置文件路径:", path);
-    __currentFilePath = path;
-  }
-  function setDisease(userId2, buildingId2, yearId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.disease(userId2, buildingId2, yearId);
-    trackPath(path);
-    return saveData(data);
-  }
-  function saveDiseaseImages(userId2, buildingId2, tempImagePaths) {
-    return new Promise((resolve, reject) => {
-      const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId2, buildingId2);
-      const fullTargetPath = getFullPath(targetDirPath);
-      formatAppLog("log", "at utils/reviseNew.js:110", "准备保存图片到目录:", fullTargetPath);
-      const wait = plus.nativeUI.showWaiting("正在保存图片");
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
-          formatAppLog("log", "at utils/reviseNew.js:119", "目标目录已创建或已存在");
-          const savePromises = tempImagePaths.map((tempPath, index) => {
-            return new Promise((resolveFile, rejectFile) => {
-              const fileName = `disease_${Date.now()}_${index}.jpg`;
-              plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
-                fileEntry.copyTo(dirEntry, fileName, (newFile) => {
-                  formatAppLog("log", "at utils/reviseNew.js:131", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
-                  resolveFile(newFile.fullPath);
-                }, (error) => {
-                  formatAppLog("error", "at utils/reviseNew.js:134", `图片 ${index + 1} 保存失败:`, error);
-                  rejectFile(error);
-                });
-              }, (error) => {
-                formatAppLog("error", "at utils/reviseNew.js:138", `无法访问临时文件 ${tempPath}:`, error);
-                rejectFile(error);
-              });
-            });
-          });
-          Promise.all(savePromises).then((savedPaths) => {
-            wait.close();
-            formatAppLog("log", "at utils/reviseNew.js:148", "所有图片保存成功:", savedPaths);
-            plus.nativeUI.toast("图片保存成功");
-            resolve(savedPaths);
-          }).catch((error) => {
-            wait.close();
-            formatAppLog("error", "at utils/reviseNew.js:154", "图片保存失败:", error);
-            plus.nativeUI.toast("图片保存失败");
-            reject(error);
-          });
-        }, (error) => {
-          wait.close();
-          formatAppLog("error", "at utils/reviseNew.js:160", "创建目录失败:", error);
-          plus.nativeUI.toast("创建图片目录失败");
-          reject(error);
-        });
-      }, (error) => {
-        wait.close();
-        formatAppLog("error", "at utils/reviseNew.js:166", "文件系统访问失败:", error);
-        plus.nativeUI.toast("文件系统访问失败");
-        reject(error);
-      });
-    });
-  }
   const _sfc_main$r = {
     __name: "current-disease",
     setup(__props, { expose: __expose }) {
@@ -4481,48 +5390,118 @@ This will fail in production.`);
       const searchText = vue.ref("");
       const showAddPopup = vue.ref(false);
       const diseaseList = vue.ref([]);
-      const loadCurrentYearDiseaseData = async () => {
+      const isJson = vue.ref(1);
+      const userInfo = userStore();
+      const userId = vue.ref(20);
+      const idStorageInfo = idStore();
+      const buildingId = vue.ref(idStorageInfo.buildingId);
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
+        }
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          buildingId.value = newVal;
+        }
+      });
+      const readCurrentYearDiseaseDataByJson = async () => {
         try {
-          const userId2 = "3";
-          const buildingId2 = "39";
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-          const yearData = await getDisease(userId2, buildingId2, currentYear);
-          formatAppLog("log", "at components/current-disease.vue:67", `获取到${currentYear}年病害数据:`, yearData);
+          const yearData = await getDisease(userInfo.username, buildingId.value, currentYear);
+          formatAppLog("log", "at components/current-disease.vue:101", `获取到${currentYear}年病害数据:`, yearData);
           if (yearData && yearData.diseases && yearData.diseases.length > 0) {
             diseaseList.value = yearData.diseases;
           } else {
             diseaseList.value = [];
           }
-          formatAppLog("log", "at components/current-disease.vue:76", "病害数据加载完成:", diseaseList.value);
+          formatAppLog("log", "at components/current-disease.vue:110", "病害数据加载完成:", diseaseList.value);
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:78", "读取病害数据失败:", error);
-          uni.showToast({
-            title: "读取数据失败",
-            icon: "none"
-          });
+          isJson.value = 0;
+          formatAppLog("error", "at components/current-disease.vue:113", "读取当前病害数据失败:", error);
         }
+      };
+      const loadCurrentYearDiseaseData = async () => {
+        if (bridgeIdFromURL.value) {
+          buildingId.value = bridgeIdFromURL.value;
+        }
+        await readCurrentYearDiseaseDataByJson();
+        if (isJson.value === 0) {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          formatAppLog("log", "at components/current-disease.vue:128", "用户信息:", responseLogin.data);
+          const token = responseLogin.data.token;
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const getData = async () => {
+            formatAppLog("log", "at components/current-disease.vue:132", "开始从后端获取当前病害数据...........");
+            try {
+              const response = await uni.request({
+                //桥梁id改为全局
+                url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease?year=${currentYear}`,
+                method: "GET",
+                header: {
+                  "Authorization": `${token}`
+                }
+              });
+              if (response.data.code === 0) {
+                formatAppLog("log", "at components/current-disease.vue:143", "后端接口返回当前病害数据:", response.data.data);
+                const saveData = response.data.data[0];
+                formatAppLog("log", "at components/current-disease.vue:151", "准备保存的当前病害数据:", saveData);
+                for (const disease of saveData.diseases) {
+                  if (disease.images && Array.isArray(disease.images)) {
+                    disease.images = await saveDiseaseImages(userInfo.username, buildingId.value, disease.images);
+                  }
+                  if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
+                    disease.ADImgs = await saveDiseaseImages(userInfo.username, buildingId.value, disease.ADImgs);
+                  }
+                }
+                await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+              } else {
+                uni.showToast({
+                  title: response.data.msg || "获取数据失败",
+                  icon: "none"
+                });
+              }
+            } catch (error) {
+              formatAppLog("error", "at components/current-disease.vue:174", "获取当前病害数据失败:", error);
+              uni.showToast({
+                title: "获取数据失败，请稍后重试",
+                icon: "none"
+              });
+            }
+          };
+          await getData();
+        }
+        await readCurrentYearDiseaseDataByJson();
       };
       const addNewDiseaseData = async (newDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:89", "接收到新增病害数据:", newDisease);
+          formatAppLog("log", "at components/current-disease.vue:189", "接收到新增病害数据:", newDisease);
           diseaseList.value.push(newDisease);
-          const userId2 = "3";
-          const buildingId2 = "39";
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-          const saveData2 = {
+          const saveData = {
             year: parseInt(currentYear),
-            buildingId: parseInt(buildingId2),
+            buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:105", "准备保存的数据:", saveData2);
-          await setDisease(userId2, buildingId2, currentYear, saveData2);
-          formatAppLog("log", "at components/current-disease.vue:110", "新增病害数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:203", "准备保存的数据:", saveData);
+          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+          formatAppLog("log", "at components/current-disease.vue:208", "新增病害数据保存成功");
           uni.showToast({
             title: "保存成功",
             icon: "success"
           });
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:116", "保存新增病害数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:214", "保存新增病害数据失败:", error);
           uni.showToast({
             title: "保存失败",
             icon: "none"
@@ -4531,31 +5510,29 @@ This will fail in production.`);
       };
       const handleDeleteDisease = async (deleteData) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:127", "接收到删除病害事件:", deleteData);
+          formatAppLog("log", "at components/current-disease.vue:225", "接收到删除病害事件:", deleteData);
           if (!deleteData || !deleteData.id) {
-            formatAppLog("error", "at components/current-disease.vue:130", "删除数据无效");
+            formatAppLog("error", "at components/current-disease.vue:228", "删除数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == deleteData.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:137", "未找到要删除的病害数据:", deleteData.id);
+            formatAppLog("error", "at components/current-disease.vue:235", "未找到要删除的病害数据:", deleteData.id);
             return;
           }
-          diseaseList.value[index].isDelete = true;
-          formatAppLog("log", "at components/current-disease.vue:143", `病害ID:${deleteData.id}已标记为删除`);
-          const userId2 = "3";
-          const buildingId2 = "39";
+          diseaseList.value.splice(index, 1);
+          formatAppLog("log", "at components/current-disease.vue:241", `病害ID:${deleteData.id}已删除`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-          const saveData2 = {
+          const saveData = {
             year: parseInt(currentYear),
-            buildingId: parseInt(buildingId2),
+            buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:157", "准备保存删除后的数据:", saveData2);
-          await setDisease(userId2, buildingId2, currentYear, saveData2);
-          formatAppLog("log", "at components/current-disease.vue:162", "删除标记保存成功");
+          formatAppLog("log", "at components/current-disease.vue:253", "准备保存删除后的数据:", saveData);
+          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+          formatAppLog("log", "at components/current-disease.vue:258", "删除保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:164", "保存删除标记失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:260", "保存删除失败:", error);
           uni.showToast({
             title: "删除失败",
             icon: "none"
@@ -4564,31 +5541,29 @@ This will fail in production.`);
       };
       const handleUpdateDisease = async (updatedDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:175", "接收到更新病害事件:", updatedDisease);
+          formatAppLog("log", "at components/current-disease.vue:271", "接收到更新病害事件:", updatedDisease);
           if (!updatedDisease || !updatedDisease.id) {
-            formatAppLog("error", "at components/current-disease.vue:178", "更新数据无效");
+            formatAppLog("error", "at components/current-disease.vue:274", "更新数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == updatedDisease.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:185", "未找到要更新的病害数据:", updatedDisease.id);
+            formatAppLog("error", "at components/current-disease.vue:281", "未找到要更新的病害数据:", updatedDisease.id);
             return;
           }
           diseaseList.value[index] = updatedDisease;
-          formatAppLog("log", "at components/current-disease.vue:191", `病害ID:${updatedDisease.id}已更新`);
-          const userId2 = "3";
-          const buildingId2 = "39";
+          formatAppLog("log", "at components/current-disease.vue:287", `病害ID:${updatedDisease.id}已更新`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-          const saveData2 = {
+          const saveData = {
             year: parseInt(currentYear),
-            buildingId: parseInt(buildingId2),
+            buildingId: parseInt(buildingId),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:205", "准备保存更新后的数据:", saveData2);
-          await setDisease(userId2, buildingId2, currentYear, saveData2);
-          formatAppLog("log", "at components/current-disease.vue:210", "更新数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:299", "准备保存更新后的数据:", saveData);
+          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+          formatAppLog("log", "at components/current-disease.vue:304", "更新数据保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:212", "保存更新数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:306", "保存更新数据失败:", error);
           uni.showToast({
             title: "更新失败",
             icon: "none"
@@ -4599,10 +5574,7 @@ This will fail in production.`);
         const selectedType = tabItems.value[activeTab.value];
         return diseaseList.value.filter((item) => {
           var _a, _b, _c;
-          if (item.isDelete === true) {
-            return false;
-          }
-          if (((_a = item.component) == null ? void 0 : _a.parentObjectName) !== selectedType) {
+          if (((_a = item.component) == null ? void 0 : _a.grandObjectName) !== selectedType) {
             return false;
           }
           if (searchText.value) {
@@ -4613,7 +5585,7 @@ This will fail in production.`);
       });
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/current-disease.vue:250", "搜索内容:", e2);
+        formatAppLog("log", "at components/current-disease.vue:338", "搜索内容:", e2);
       };
       const changeTab = (index) => {
         activeTab.value = index;
@@ -4622,7 +5594,7 @@ This will fail in production.`);
         return diseaseList.value.filter(
           (item) => {
             var _a;
-            return ((_a = item.component) == null ? void 0 : _a.parentObjectName) === type && item.isDelete !== true;
+            return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === type;
           }
         ).length;
       };
@@ -4639,22 +5611,20 @@ This will fail in production.`);
             if (res.confirm) {
               const index = diseaseList.value.findIndex((item) => item.id === itemId);
               if (index !== -1) {
-                diseaseList.value[index].isDelete = true;
-                const userId2 = "3";
-                const buildingId2 = "39";
+                diseaseList.value.splice(index, 1);
                 const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-                const saveData2 = {
+                const saveData = {
                   year: parseInt(currentYear),
-                  buildingId: parseInt(buildingId2),
+                  buildingId: parseInt(buildingId.value),
                   diseases: diseaseList.value
                 };
-                setDisease(userId2, buildingId2, currentYear, saveData2).then(() => {
+                setDisease(userInfo.username, buildingId.value, currentYear, saveData).then(() => {
                   uni.showToast({
                     title: "删除成功",
                     icon: "success"
                   });
                 }).catch((error) => {
-                  formatAppLog("error", "at components/current-disease.vue:307", "保存删除标记失败:", error);
+                  formatAppLog("error", "at components/current-disease.vue:391", "保存删除失败:", error);
                   uni.showToast({
                     title: "删除失败",
                     icon: "none"
@@ -4665,22 +5635,94 @@ This will fail in production.`);
           }
         });
       };
+      const submitZip = async () => {
+        var _a;
+        formatAppLog("log", "at components/current-disease.vue:404", "提交压缩文件,buildingId", buildingId.value);
+        const zipFilePath = saveBridgeZip(userInfo.username, buildingId.value);
+        try {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          if (!responseLogin.data || !responseLogin.data.token) {
+            uni.showToast({
+              title: "获取授权失败",
+              icon: "none"
+            });
+            return;
+          }
+          const token = responseLogin.data.token;
+          formatAppLog("log", "at components/current-disease.vue:422", "授权成功，开始上传文件", zipFilePath);
+          const response = await uni.uploadFile({
+            url: `http://60.205.13.156:8090/api/upload/bridgeData`,
+            filePath: zipFilePath,
+            name: "file",
+            // 后端接收文件的参数名（根据后端API文档确定）
+            header: {
+              "Authorization": token
+            }
+          });
+          formatAppLog("log", "at components/current-disease.vue:434", "后端响应:", response.data);
+          if (response.data && response.data.code === 0) {
+            uni.showToast({
+              title: "构件信息提交成功",
+              icon: "success"
+            });
+          } else {
+            uni.showToast({
+              title: ((_a = response.data) == null ? void 0 : _a.msg) || "提交失败",
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:449", "提交数据错误:", error);
+          uni.showToast({
+            title: "提交数据出错，请稍后重试",
+            icon: "none"
+          });
+        }
+      };
       vue.onMounted(() => {
-        formatAppLog("log", "at components/current-disease.vue:321", "current-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/current-disease.vue:459", "current-disease组件挂载，准备加载数据");
         loadCurrentYearDiseaseData();
         uni.$on("addNewDisease", addNewDiseaseData);
         uni.$on("deleteDisease", handleDeleteDisease);
         uni.$on("updateDisease", handleUpdateDisease);
+        uni.$on("getDiseasesOfType", (data) => {
+          if (!data || !data.type || !data.callback) {
+            formatAppLog("error", "at components/current-disease.vue:475", "获取同类型病害列表参数不完整");
+            return;
+          }
+          const filteredList = diseaseList.value.filter(
+            (item) => {
+              var _a;
+              return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === data.type;
+            }
+          );
+          formatAppLog("log", "at components/current-disease.vue:484", `获取${data.type}类型的病害列表，共${filteredList.length}条`);
+          data.callback(filteredList);
+        });
       });
       vue.onUnmounted(() => {
         uni.$off("addNewDisease");
         uni.$off("deleteDisease");
         uni.$off("updateDisease");
+        uni.$off("getDiseasesOfType");
       });
-      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, loadCurrentYearDiseaseData, addNewDiseaseData, handleDeleteDisease, handleUpdateDisease, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, deleteDisease, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, onUnmounted: vue.onUnmounted, get getDisease() {
+      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, isJson, userInfo, userId, idStorageInfo, buildingId, bridgeIdFromURL, readCurrentYearDiseaseDataByJson, loadCurrentYearDiseaseData, addNewDiseaseData, handleDeleteDisease, handleUpdateDisease, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, deleteDisease, submitZip, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, onUnmounted: vue.onUnmounted, get getDisease() {
         return getDisease;
+      }, get saveBridgeZip() {
+        return saveBridgeZip;
+      }, get saveDiseaseImages() {
+        return saveDiseaseImages;
       }, get setDisease() {
         return setDisease;
+      }, get setObject() {
+        return setObject;
+      }, get userStore() {
+        return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -4700,6 +5742,10 @@ This will fail in production.`);
             onConfirm: $setup.search
           })
         ]),
+        vue.createElementVNode("button", {
+          class: "add-button",
+          onClick: $setup.submitZip
+        }, " 提交"),
         vue.createElementVNode("button", {
           class: "add-button",
           onClick: $setup.addNewDisease
@@ -4769,7 +5815,8 @@ This will fail in production.`);
     __name: "history-disease",
     setup(__props, { expose: __expose }) {
       __expose();
-      const tabItems = vue.ref(["2024", "2023", "2022"]);
+      const userInfo = userStore();
+      const tabItems = vue.ref([]);
       const activeTab = vue.ref(0);
       const searchText = vue.ref("");
       const isSelectMode = vue.ref(false);
@@ -4777,32 +5824,102 @@ This will fail in production.`);
       const selectedItems = vue.ref([]);
       const currentOpenSwipe = vue.ref(null);
       const diseaseItems = vue.ref(null);
-      const diseaseList = vue.ref([]);
-      const loadDiseaseData = async () => {
+      const diseaseMap = vue.ref({});
+      const isJson = vue.ref(1);
+      const userId = vue.ref(20);
+      const idStorageInfo = idStore();
+      const buildingId = vue.ref(0);
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
+        }
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          buildingId.value = newVal;
+        }
+      });
+      const readHistoryDiseaseData = async () => {
         try {
-          const userId2 = "3";
-          const buildingId2 = "39";
-          const years = ["2024", "2023", "2022"];
-          diseaseList.value = [];
+          const years = await getHistoryYear(userInfo.username, buildingId.value);
+          tabItems.value = years;
+          diseaseMap.value = {};
           for (const year of years) {
             try {
-              const yearData = await getDisease(userId2, buildingId2, year);
-              formatAppLog("log", "at components/history-disease.vue:103", `获取到${year}年病害数据:`, yearData);
+              const yearData = await getDisease(userInfo.username, buildingId.value, year);
+              formatAppLog("log", "at components/history-disease.vue:143", `获取到${year}年病害数据:`, yearData);
               if (yearData && yearData.diseases && yearData.diseases.length > 0) {
-                diseaseList.value = [...diseaseList.value, ...yearData.diseases];
+                diseaseMap.value[yearData.year] = yearData.diseases;
+              } else {
+                diseaseMap.value[year] = [];
               }
             } catch (yearError) {
-              formatAppLog("warn", "at components/history-disease.vue:110", `获取${year}年数据失败:`, yearError);
+              formatAppLog("warn", "at components/history-disease.vue:152", `获取${year}年数据失败:`, yearError);
+              diseaseMap.value[year] = [];
             }
           }
-          formatAppLog("log", "at components/history-disease.vue:114", "所有年份病害数据加载完成:", diseaseList.value);
         } catch (error) {
-          formatAppLog("error", "at components/history-disease.vue:116", "读取病害数据失败:", error);
-          uni.showToast({
-            title: "读取数据失败",
-            icon: "none"
-          });
+          formatAppLog("error", "at components/history-disease.vue:158", "读取病害数据失败:", error);
+          isJson.value = 0;
         }
+      };
+      const loadDiseaseData = async () => {
+        if (bridgeIdFromURL.value) {
+          buildingId.value = bridgeIdFromURL.value;
+        }
+        await readHistoryDiseaseData();
+        if (isJson.value === 0) {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          const token = responseLogin.data.token;
+          const getData = async () => {
+            formatAppLog("log", "at components/history-disease.vue:177", "开始从后端获取历史病害数据...........");
+            try {
+              const response = await uni.request({
+                //桥梁id改为全局
+                url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease`,
+                method: "GET",
+                header: {
+                  "Authorization": `${token}`
+                }
+              });
+              formatAppLog("log", "at components/history-disease.vue:187", "从后端接口获取到的历史病害数据:", response.data.data);
+              if (response.data.code === 0) {
+                for (const yearDisease of response.data.data) {
+                  const year = yearDisease.year;
+                  for (const disease of yearDisease.diseases) {
+                    if (disease.images && Array.isArray(disease.images)) {
+                      disease.images = await saveDiseaseImages(userInfo.username, buildingId.value, disease.images);
+                    }
+                    if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
+                      disease.ADImgs = await saveDiseaseImages(userInfo.username, buildingId.value, disease.ADImgs);
+                    }
+                  }
+                  await setDisease(userInfo.username, buildingId.value, year, yearDisease);
+                }
+              } else {
+                uni.showToast({
+                  title: response.data.msg || "获取数据失败",
+                  icon: "none"
+                });
+              }
+            } catch (error) {
+              formatAppLog("error", "at components/history-disease.vue:214", "获取历史病害数据失败:", error);
+            }
+          };
+          await getData();
+          await readHistoryDiseaseData();
+        }
+        formatAppLog("log", "at components/history-disease.vue:221", "历史病害数据", diseaseMap.value);
       };
       const expandedTypes = vue.reactive({
         "上部结构": true,
@@ -4812,17 +5929,16 @@ This will fail in production.`);
       });
       const filteredDiseases = vue.computed(() => {
         const selectedYear = tabItems.value[activeTab.value];
-        return diseaseList.value.filter((item) => {
-          var _a, _b, _c, _d;
-          const itemYear = item.createTime.substring(0, 4);
-          if (itemYear !== selectedYear) {
-            return false;
-          }
-          if (searchText.value) {
-            return ((_a = item.description) == null ? void 0 : _a.includes(searchText.value)) || ((_b = item.type) == null ? void 0 : _b.includes(searchText.value)) || ((_d = (_c = item.component) == null ? void 0 : _c.parentObjectName) == null ? void 0 : _d.includes(searchText.value));
-          }
-          return true;
-        });
+        let list = diseaseMap.value[selectedYear] || [];
+        if (searchText.value) {
+          list = list.filter(
+            (item) => {
+              var _a, _b, _c, _d;
+              return ((_a = item.description) == null ? void 0 : _a.includes(searchText.value)) || ((_b = item.type) == null ? void 0 : _b.includes(searchText.value)) || ((_d = (_c = item.component) == null ? void 0 : _c.grandObjectName) == null ? void 0 : _d.includes(searchText.value));
+            }
+          );
+        }
+        return list;
       });
       const deleteDisease = (itemId) => {
         uni.showModal({
@@ -4830,9 +5946,12 @@ This will fail in production.`);
           content: "确定要删除这条病害记录吗？",
           success: (res) => {
             if (res.confirm) {
-              const index = diseaseList.value.findIndex((item) => item.id === itemId);
+              const selectedYear = tabItems.value[activeTab.value];
+              const list = diseaseMap.value[selectedYear] || [];
+              const index = list.findIndex((item) => item.id === itemId);
               if (index !== -1) {
-                diseaseList.value.splice(index, 1);
+                list.splice(index, 1);
+                diseaseMap.value[selectedYear] = [...list];
                 uni.showToast({
                   title: "删除成功",
                   icon: "success"
@@ -4861,9 +5980,11 @@ This will fail in production.`);
             selectedItems.value.splice(index, 1);
           }
         }
-        formatAppLog("log", "at components/history-disease.vue:208", "当前选中项:", selectedItems.value);
+        formatAppLog("log", "at components/history-disease.vue:302", "当前选中项:", selectedItems.value);
       };
       const copyDisease = () => {
+        const selectedYear = tabItems.value[activeTab.value];
+        const list = diseaseMap.value[selectedYear] || [];
         if (selectedItems.value.length === 0) {
           uni.showToast({
             title: "请先选择要复制的病害",
@@ -4871,7 +5992,7 @@ This will fail in production.`);
           });
           return;
         }
-        const selectedDiseases = diseaseList.value.filter((item) => selectedItems.value.includes(item.id));
+        const selectedDiseases = list.filter((item) => selectedItems.value.includes(item.id));
         if (selectedDiseases.length === 0) {
           uni.showToast({
             title: "获取选中病害数据失败",
@@ -4892,7 +6013,7 @@ This will fail in production.`);
         });
         Promise.all(copiedDiseases.map((disease) => {
           return new Promise((resolve) => {
-            formatAppLog("log", "at components/history-disease.vue:258", "发送添加新病害事件给current-disease组件:", disease);
+            formatAppLog("log", "at components/history-disease.vue:345", "发送添加新病害事件给current-disease组件:", disease);
             uni.$emit("addNewDisease", disease);
             resolve();
           });
@@ -4903,7 +6024,7 @@ This will fail in production.`);
           });
           toggleSelectMode();
         }).catch((error) => {
-          formatAppLog("error", "at components/history-disease.vue:274", "复制病害失败:", error);
+          formatAppLog("error", "at components/history-disease.vue:360", "复制病害失败:", error);
           uni.showToast({
             title: "复制失败，请重试",
             icon: "none"
@@ -4921,7 +6042,7 @@ This will fail in production.`);
       };
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/history-disease.vue:297", "搜索内容:", e2);
+        formatAppLog("log", "at components/history-disease.vue:383", "搜索内容:", e2);
         closeAllSwipeActions();
         expandAllTypes();
       };
@@ -4931,15 +6052,16 @@ This will fail in production.`);
         expandAllTypes();
       };
       const getYearItemCount = (year) => {
-        return diseaseList.value.filter((item) => item.createTime.substring(0, 4) === year).length;
+        var _a;
+        return ((_a = diseaseMap.value[year]) == null ? void 0 : _a.length) || 0;
       };
       const getFilteredDiseasesByType = (type) => {
         const selectedYear = tabItems.value[activeTab.value];
-        return diseaseList.value.filter((item) => {
+        let list = diseaseMap.value[selectedYear] || [];
+        list = list.filter((item) => {
           var _a, _b, _c;
-          const itemYear = item.createTime.substring(0, 4);
-          const parentObjectName = (_a = item.component) == null ? void 0 : _a.parentObjectName;
-          if (itemYear !== selectedYear || parentObjectName !== type) {
+          const grandObjectName = (_a = item.component) == null ? void 0 : _a.grandObjectName;
+          if (grandObjectName !== type) {
             return false;
           }
           if (searchText.value) {
@@ -4947,6 +6069,7 @@ This will fail in production.`);
           }
           return true;
         });
+        return list;
       };
       const handleSwipeOpened = (itemId) => {
         closeSwipeExcept(itemId);
@@ -4977,12 +6100,22 @@ This will fail in production.`);
         });
       };
       vue.onMounted(() => {
-        formatAppLog("log", "at components/history-disease.vue:377", "history-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/history-disease.vue:461", "history-disease组件挂载，准备加载数据");
         loadDiseaseData();
         expandAllTypes();
       });
-      const __returned__ = { tabItems, activeTab, searchText, isSelectMode, showCopyButton, selectedItems, currentOpenSwipe, diseaseItems, diseaseList, loadDiseaseData, expandedTypes, filteredDiseases, deleteDisease, toggleSelectMode, handleItemSelect, copyDisease, formatDateTime, search, changeTab, getYearItemCount, getFilteredDiseasesByType, handleSwipeOpened, closeAllSwipeActions, closeSwipeExcept, toggleTypeExpand, expandAllTypes, ref: vue.ref, reactive: vue.reactive, computed: vue.computed, nextTick: vue.nextTick, watch: vue.watch, onMounted: vue.onMounted, get getDisease() {
+      const __returned__ = { userInfo, tabItems, activeTab, searchText, isSelectMode, showCopyButton, selectedItems, currentOpenSwipe, diseaseItems, diseaseMap, isJson, userId, idStorageInfo, buildingId, bridgeIdFromURL, readHistoryDiseaseData, loadDiseaseData, expandedTypes, filteredDiseases, deleteDisease, toggleSelectMode, handleItemSelect, copyDisease, formatDateTime, search, changeTab, getYearItemCount, getFilteredDiseasesByType, handleSwipeOpened, closeAllSwipeActions, closeSwipeExcept, toggleTypeExpand, expandAllTypes, ref: vue.ref, reactive: vue.reactive, computed: vue.computed, nextTick: vue.nextTick, watch: vue.watch, onMounted: vue.onMounted, get getDisease() {
         return getDisease;
+      }, get getHistoryYear() {
+        return getHistoryYear;
+      }, get saveDiseaseImages() {
+        return saveDiseaseImages;
+      }, get setDisease() {
+        return setDisease;
+      }, get userStore() {
+        return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -5282,13 +6415,13 @@ This will fail in production.`);
         return props.data || [];
       });
       const getBridgeSpanData = () => {
-        return structureData.value.find((item) => item.name === "桥梁分孔(m)") || {};
+        return structureData.value.find((item) => item.name === "桥梁分孔(m)" || item.name === "桥梁分孔") || {};
       };
       const getStructuralSystemData = () => {
         return structureData.value.find((item) => item.name === "结构体系") || {};
       };
       const getStructureTypes = () => {
-        const excludeNames = ["桥梁分孔(m)", "结构体系"];
+        const excludeNames = ["桥梁分孔", "桥梁分孔(m)", "结构体系"];
         return structureData.value.filter((item) => !excludeNames.includes(item.name));
       };
       const expandedTypes = vue.reactive({});
@@ -5780,7 +6913,7 @@ This will fail in production.`);
       });
       const getImageUrl = (value) => {
         if (!value || value === "/") {
-          return "/static/image/zjl.png";
+          return "/static/image/disease.png";
         }
         return value;
       };
@@ -5862,34 +6995,129 @@ This will fail in production.`);
   const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
   const _sfc_main$h = {
     __name: "bridge-archive",
-    setup(__props, { expose: __expose }) {
-      __expose();
+    emits: ["dataLoaded"],
+    setup(__props, { expose: __expose, emit: __emit }) {
+      const emit = __emit;
+      const userInfo = userStore();
       const bridgeArchive2 = vue.ref({
         children: [{}, {}, {}, {}, {}, {}, {}, {}]
         // 初始化8个空对象，对应8个标签页
       });
       const tabItems = vue.ref(["行政识别数据", "桥梁技术指标", "桥梁结构信息", "桥梁档案资料", "桥梁检测评定历史", "养护处置记录", "需要说明的事项", "其他"]);
       const activeTab = vue.ref(0);
+      const userId = vue.ref(20);
+      const buildingId = vue.ref(0);
+      const isJson = vue.ref(1);
+      const dataLoaded = vue.ref(false);
+      const idStorageInfo = idStore();
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
+        }
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          buildingId.value = newVal;
+        }
+      });
       const changeTab = (index) => {
         activeTab.value = index;
       };
-      vue.onMounted(async () => {
+      const readPropetryDataByJson = async () => {
+        if (bridgeIdFromURL.value) {
+          buildingId.value = bridgeIdFromURL.value;
+        }
         try {
-          const data = await getProperty("3", "39");
-          formatAppLog("log", "at components/bridge-archive.vue:67", "获取到桥梁档案数据:", data);
+          const data = await getProperty(userInfo.username, buildingId.value);
+          formatAppLog("log", "at components/bridge-archive.vue:109", "获取到桥梁档案数据:", data);
           if (data && Object.keys(data).length > 0) {
-            bridgeArchive2.value = data;
+            bridgeArchive2.value = data.property;
           }
         } catch (error) {
-          formatAppLog("error", "at components/bridge-archive.vue:74", "获取桥梁档案数据失败:", error);
-          uni.showToast({
-            title: "获取数据失败",
-            icon: "none"
-          });
+          formatAppLog("error", "at components/bridge-archive.vue:116", "本地json获取桥梁档案数据失败:", error);
+          isJson.value = 0;
         }
+      };
+      const loadDiseaseData = async () => {
+        await readPropetryDataByJson();
+        if (isJson.value === 0) {
+          formatAppLog("log", "at components/bridge-archive.vue:127", "开始从后端接口获取桥梁卡片数据...");
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          const token = responseLogin.data.token;
+          const getData = async () => {
+            try {
+              const response = await uni.request({
+                url: `http://60.205.13.156:8090/api/building/${buildingId.value}/property`,
+                method: "GET",
+                header: {
+                  "Authorization": `${token}`
+                }
+              });
+              formatAppLog("log", "at components/bridge-archive.vue:142", "从后端接口获取到的桥梁卡片数据:", response.data.data);
+              if (response.data.code === 0) {
+                const bridgedata = response.data.data;
+                bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
+                bridgedata.images.front = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
+                if (bridgedata.property.children[7].children[0].value !== "/") {
+                  bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
+                }
+                if (bridgedata.property.children[7].children[1].value !== "/") {
+                  bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value, property.children[7].children[1].value);
+                }
+                await setProperty(userInfo.username, buildingId.value, bridgedata);
+              } else {
+                uni.showToast({
+                  title: response.data.msg || "获取数据失败",
+                  icon: "none"
+                });
+              }
+            } catch (error) {
+              formatAppLog("error", "at components/bridge-archive.vue:165", "获取桥梁卡片数据失败:", error);
+              uni.showToast({
+                title: "获取数据失败，请稍后重试",
+                icon: "none"
+              });
+            }
+          };
+          await getData();
+          await readPropetryDataByJson();
+        }
+        dataLoaded.value = true;
+        formatAppLog("log", "at components/bridge-archive.vue:180", "桥梁卡片数据加载完成，发送dataLoaded事件");
+        emit("dataLoaded", true);
+      };
+      vue.onMounted(async () => {
+        await loadDiseaseData();
       });
-      const __returned__ = { bridgeArchive: bridgeArchive2, tabItems, activeTab, changeTab, ref: vue.ref, watch: vue.watch, onMounted: vue.onMounted, get getProperty() {
+      __expose({
+        dataLoaded
+      });
+      const __returned__ = { emit, userInfo, bridgeArchive: bridgeArchive2, tabItems, activeTab, userId, buildingId, isJson, dataLoaded, idStorageInfo, bridgeIdFromURL, changeTab, readPropetryDataByJson, loadDiseaseData, ref: vue.ref, watch: vue.watch, onMounted: vue.onMounted, computed: vue.computed, get getDisease() {
+        return getDisease;
+      }, get getHistoryYear() {
+        return getHistoryYear;
+      }, get getProperty() {
         return getProperty;
+      }, get saveBridgeImages() {
+        return saveBridgeImages;
+      }, get setProperty() {
+        return setProperty;
+      }, get saveBridgeImage() {
+        return saveBridgeImage;
+      }, get userStore() {
+        return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -6055,14 +7283,14 @@ This will fail in production.`);
       }
       this.currentStepAnimates[this.next] = styles;
     }
-    _animateRun(styles = {}, config = {}) {
+    _animateRun(styles = {}, config2 = {}) {
       let ref = this.$.$refs["ani"].ref;
       if (!ref)
         return;
       return new Promise((resolve, reject) => {
         nvueAnimation.transition(ref, {
           styles,
-          ...config
+          ...config2
         }, (res) => {
           resolve();
         });
@@ -6073,9 +7301,9 @@ This will fail in production.`);
       if (obj) {
         let {
           styles,
-          config
+          config: config2
         } = obj;
-        this._animateRun(styles, config).then(() => {
+        this._animateRun(styles, config2).then(() => {
           step += 1;
           this._nvueNextAnimate(animates, step, fn);
         });
@@ -6085,8 +7313,8 @@ This will fail in production.`);
         this.isEnd = true;
       }
     }
-    step(config = {}) {
-      this.animation.step(config);
+    step(config2 = {}) {
+      this.animation.step(config2);
       return this;
     }
     run(fn) {
@@ -6239,7 +7467,7 @@ This will fail in production.`);
        * ref 触发 动画分组
        * @param {Object} obj
        */
-      step(obj, config = {}) {
+      step(obj, config2 = {}) {
         if (!this.animation)
           return;
         for (let i2 in obj) {
@@ -6253,7 +7481,7 @@ This will fail in production.`);
             formatAppLog("error", "at uni_modules/uni-transition/components/uni-transition/uni-transition.vue:148", `方法 ${i2} 不存在`);
           }
         }
-        this.animation.step(config);
+        this.animation.step(config2);
         return this;
       },
       /**
@@ -7434,7 +8662,7 @@ This will fail in production.`);
             if (response.data.code === 0) {
               structureData.value = response.data;
               resultData.value = response.data.data;
-              setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
+              setObject(userInfo.username, TaskBridgeId.value, resultData.value);
               formatAppLog("log", "at components/structure-info.vue:202", "structureData:", structureData.value);
               formatAppLog("log", "at components/structure-info.vue:203", "resultData:", resultData.value);
               formatAppLog("log", "at components/structure-info.vue:205", "第一层结构数据:", structureData.value.children);
@@ -7985,23 +9213,68 @@ This will fail in production.`);
   const _sfc_main$b = {
     __name: "front-photo",
     props: {
-      data: {
-        type: Array,
-        default: () => []
+      isDataLoaded: {
+        type: Boolean,
+        default: false
       }
     },
     setup(__props, { expose: __expose }) {
       __expose();
       const props = __props;
-      const photoList = vue.ref([]);
-      vue.watch(() => props.data, (newData) => {
-        if (newData && newData.length > 0) {
-          formatAppLog("log", "at components/front-photo.vue:34", "接收到桥梁正面立照数据:", newData);
-          photoList.value = newData;
+      const side = vue.ref([]);
+      const front = vue.ref([]);
+      const userId = vue.ref(20);
+      const buildingId = vue.ref(0);
+      const isJson = vue.ref(1);
+      const idStorageInfo = idStore();
+      const userInfo = userStore();
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
         }
-      }, { immediate: true, deep: true });
-      const previewImage = (url, index) => {
-        const urls = props.data.map((item) => item.imageUrl);
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          buildingId.value = newVal;
+        }
+      });
+      vue.watch(() => props.isDataLoaded, (newVal) => {
+        formatAppLog("log", "at components/front-photo.vue:85", "front-photo组件检测到isDataLoaded变化:", newVal);
+        if (newVal === true) {
+          readBridgeImageByJson();
+        }
+      }, { immediate: true });
+      const readBridgeImageByJson = async () => {
+        if (!props.isDataLoaded) {
+          formatAppLog("log", "at components/front-photo.vue:93", "数据未加载完成，不读取图片数据");
+          return;
+        }
+        if (bridgeIdFromURL.value) {
+          buildingId.value = bridgeIdFromURL.value;
+        }
+        try {
+          const data = await getProperty(userInfo.username, buildingId.value);
+          formatAppLog("log", "at components/front-photo.vue:103", "获取到桥梁正立面照数据:", data.images);
+          if (data.images && data.images.side) {
+            side.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.side);
+          }
+          if (data.images && data.images.front) {
+            front.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.front);
+          }
+        } catch (error) {
+          formatAppLog("error", "at components/front-photo.vue:113", "本地json获取桥梁档案数据失败:", error);
+          isJson.value = 0;
+        }
+      };
+      const previewImage = (url, index, type) => {
+        const urls = type === "front" ? front.value : side.value;
         uni.previewImage({
           current: index,
           urls,
@@ -8009,46 +9282,98 @@ This will fail in production.`);
           loop: true
         });
       };
-      vue.onMounted(() => {
-        formatAppLog("log", "at components/front-photo.vue:52", "front-photo组件挂载，接收到的数据:", props.data);
+      vue.onMounted(async () => {
+        formatAppLog("log", "at components/front-photo.vue:131", "front-photo组件挂载.......isDataLoaded:", props.isDataLoaded);
+        if (props.isDataLoaded) {
+          await readBridgeImageByJson();
+        }
       });
-      const __returned__ = { props, photoList, previewImage, ref: vue.ref, onMounted: vue.onMounted, watch: vue.watch };
+      const __returned__ = { props, side, front, userId, buildingId, isJson, idStorageInfo, userInfo, bridgeIdFromURL, readBridgeImageByJson, previewImage, ref: vue.ref, onMounted: vue.onMounted, watch: vue.watch, computed: vue.computed, get getProperty() {
+        return getProperty;
+      }, get readBridgeImage() {
+        return readBridgeImage;
+      }, get idStore() {
+        return idStore;
+      }, get userStore() {
+        return userStore;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
   function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "photo-container" }, [
-      vue.createElementVNode("view", { class: "title" }, "桥梁正面立照"),
-      vue.createElementVNode("view", { class: "photos-list" }, [
-        $props.data && $props.data.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "photo-grid"
-        }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($props.data, (photo, index) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                key: index,
-                class: "photo-item"
-              }, [
-                vue.createElementVNode("image", {
-                  src: photo.imageUrl,
-                  mode: "aspectFill",
-                  onClick: ($event) => $setup.previewImage(photo.imageUrl, index)
-                }, null, 8, ["src", "onClick"])
-              ]);
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          ))
-        ])) : (vue.openBlock(), vue.createElementBlock("view", {
-          key: 1,
-          class: "empty-data"
-        }, " 暂无桥梁正面立照数据 "))
+    return $props.isDataLoaded ? (vue.openBlock(), vue.createElementBlock("view", {
+      key: 0,
+      class: "photo-container"
+    }, [
+      vue.createElementVNode("view", { class: "section" }, [
+        vue.createElementVNode("view", { class: "title" }, "桥梁正面立照"),
+        vue.createElementVNode("view", { class: "photos-list" }, [
+          $setup.front && $setup.front.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "photo-grid"
+          }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.front, (url, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  key: index,
+                  class: "photo-item"
+                }, [
+                  vue.createElementVNode("image", {
+                    src: url,
+                    mode: "aspectFill",
+                    onClick: ($event) => $setup.previewImage(url, index, "front")
+                  }, null, 8, ["src", "onClick"])
+                ]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])) : (vue.openBlock(), vue.createElementBlock("view", {
+            key: 1,
+            class: "empty-data"
+          }, " 暂无桥梁正面立照数据 "))
+        ])
+      ]),
+      vue.createElementVNode("view", { class: "section" }, [
+        vue.createElementVNode("view", { class: "title" }, "桥梁侧面立照"),
+        vue.createElementVNode("view", { class: "photos-list" }, [
+          $setup.side && $setup.side.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "photo-grid"
+          }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.side, (url, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  key: index,
+                  class: "photo-item"
+                }, [
+                  vue.createElementVNode("image", {
+                    src: url,
+                    mode: "aspectFill",
+                    onClick: ($event) => $setup.previewImage(url, index, "side")
+                  }, null, 8, ["src", "onClick"])
+                ]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])) : (vue.openBlock(), vue.createElementBlock("view", {
+            key: 1,
+            class: "empty-data"
+          }, " 暂无桥梁侧面立照数据 "))
+        ])
       ])
-    ]);
+    ])) : (vue.openBlock(), vue.createElementBlock("view", {
+      key: 1,
+      class: "loading-container"
+    }, [
+      vue.createElementVNode("text", { class: "loading-text" }, "正在加载桥梁数据...")
+    ]));
   }
   const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-95007593"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/front-photo.vue"]]);
   const _sfc_main$a = {
@@ -8063,18 +9388,24 @@ This will fail in production.`);
           name: "历史病害"
         },
         {
-          name: "正面立照"
+          name: "桥梁卡片"
         },
         {
-          name: "桥梁卡片"
+          name: "正立面照"
         },
         {
           name: "结构信息"
         }
       ]);
       const activeTab = vue.ref(0);
+      const bridgeDataLoaded = vue.ref(false);
+      const bridgeArchiveRef = vue.ref(null);
       const switchTab = (index) => {
         activeTab.value = index;
+      };
+      const handleDataLoaded = (loaded) => {
+        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:86", "接收到桥梁卡片数据加载完成事件:", loaded);
+        bridgeDataLoaded.value = loaded;
       };
       const indicatorStyle = vue.computed(() => {
         const width = 100 / tabs.value.length;
@@ -8087,11 +9418,16 @@ This will fail in production.`);
           // 移除transform
         };
       });
-      const __returned__ = { tabs, activeTab, switchTab, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, get saveData() {
-        return saveData$1;
-      }, get trackPath() {
-        return trackPath$1;
-      }, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted };
+      vue.onMounted(() => {
+        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:102", "bridge-disease页面挂载");
+        if (activeTab.value === 3) {
+          activeTab.value = 2;
+          setTimeout(() => {
+            activeTab.value = 3;
+          }, 100);
+        }
+      });
+      const __returned__ = { tabs, activeTab, bridgeDataLoaded, bridgeArchiveRef, switchTab, handleDataLoaded, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
@@ -8163,8 +9499,17 @@ This will fail in production.`);
           "view",
           null,
           [
-            vue.createCommentVNode(" 正面立照内容 "),
-            vue.createVNode($setup["frontPhoto"])
+            vue.createCommentVNode(" 桥梁卡片内容 "),
+            vue.createVNode(
+              $setup["bridgeArchive"],
+              {
+                ref: "bridgeArchiveRef",
+                onDataLoaded: $setup.handleDataLoaded
+              },
+              null,
+              512
+              /* NEED_PATCH */
+            )
           ],
           512
           /* NEED_PATCH */
@@ -8175,8 +9520,8 @@ This will fail in production.`);
           "view",
           null,
           [
-            vue.createCommentVNode(" 桥梁档案内容 "),
-            vue.createVNode($setup["bridgeArchive"])
+            vue.createCommentVNode(" 正面立照内容 "),
+            vue.createVNode($setup["frontPhoto"], { isDataLoaded: $setup.bridgeDataLoaded }, null, 8, ["isDataLoaded"])
           ],
           512
           /* NEED_PATCH */
@@ -13433,29 +14778,52 @@ ${i3}
   const _imports_17 = "/static/image/template_yq1.png";
   const _imports_18 = "/static/image/template_gl1.png";
   const _imports_19 = "/static/image/template_yzd1.png";
-  const userId = "3";
-  const buildingId = "39";
   const _sfc_main$3 = {
     __name: "add-disease",
     setup(__props, { expose: __expose }) {
       __expose();
+      const userId = vue.ref(20);
+      const userInfo = userStore();
+      const idStorageInfo = idStore();
+      const buildingId = vue.ref(0);
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 2];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
+        }
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          buildingId.value = newVal;
+        }
+      });
       const popup = vue.ref(null);
       const ADImgs = vue.ref([]);
       const isEdit = vue.ref(false);
       const structureData = vue.ref(null);
-      const parentObjectName = vue.ref("上部结构");
+      const parentObjectName = vue.ref("");
+      const grandObjectName = vue.ref("");
       const biObjectNameOptions = vue.ref([]);
       const diseaseTypeOptions = vue.ref([]);
-      const biObjectName = vue.ref([]);
+      const componentNamePicker = vue.ref("");
       const biObjectindex = vue.ref(-1);
-      const componentCode = vue.ref(["1", "2", "3"]);
+      const componentCode = vue.ref([]);
       const componentCodeindex = vue.ref(-1);
-      const componentCodePopup = vue.ref(null);
       const filteredComponentCodes = vue.ref([]);
-      const componentCodeFilter = vue.ref("");
-      const type = vue.ref([]);
+      let allDiseaseTypes = [];
+      const type = vue.ref("");
       const typeindex = vue.ref(-1);
+      const typePicker = vue.ref("");
+      const typeInput = vue.ref("");
       const position = vue.ref("");
+      const positionPicker = vue.ref("");
+      const positionInput = vue.ref("");
       const diseaseDataList = vue.ref([]);
       const quantity = vue.ref(1);
       vue.watch(quantity, (newValue) => {
@@ -13463,76 +14831,80 @@ ${i3}
         if (isNaN(numValue) || numValue <= 0) {
           updateDiseaseDataList(1);
         } else if (numValue >= 10) {
-          quantity.value = 10;
-          updateDiseaseDataList(10, true);
+          quantity.value = numValue;
+          updateDiseaseDataList(numValue);
         } else {
           updateDiseaseDataList(numValue);
         }
       });
-      const updateDiseaseDataList = (count, useRangeMode = false) => {
+      const updateDiseaseDataList = (count) => {
         const existingData = [...diseaseDataList.value];
         const newList = [];
+        const useRangeMode = count >= 10;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:882", `数量: ${count}, 使用范围模式: ${useRangeMode}`);
         if (useRangeMode) {
           const firstItem = existingData.length > 0 ? existingData[0] : null;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:888", "范围模式，使用第一条记录作为基础:", firstItem ? firstItem : "null");
           newList.push({
-            referenceSurface1: (firstItem == null ? void 0 : firstItem.referenceSurface1) || "",
-            referenceSurface1Start: (firstItem == null ? void 0 : firstItem.referenceSurface1Start) || "",
-            referenceSurface1End: (firstItem == null ? void 0 : firstItem.referenceSurface1End) || "",
-            referenceSurface2: (firstItem == null ? void 0 : firstItem.referenceSurface2) || "",
-            referenceSurface2Start: (firstItem == null ? void 0 : firstItem.referenceSurface2Start) || "",
-            referenceSurface2End: (firstItem == null ? void 0 : firstItem.referenceSurface2End) || "",
-            // 范围输入字段
-            lengthMin: (firstItem == null ? void 0 : firstItem.length) || "",
-            lengthMax: "",
-            widthMin: (firstItem == null ? void 0 : firstItem.width) || "",
-            widthMax: "",
-            heightOrDepthMin: (firstItem == null ? void 0 : firstItem.heightOrDepth) || "",
-            heightOrDepthMax: "",
-            slitWidthMin: (firstItem == null ? void 0 : firstItem.slitWidth) || "",
-            slitWidthMax: "",
-            areaMin: (firstItem == null ? void 0 : firstItem.area) || "",
-            areaMax: "",
-            volumeMin: (firstItem == null ? void 0 : firstItem.volume) || "",
-            volumeMax: "",
-            angleMin: (firstItem == null ? void 0 : firstItem.angle) || "",
-            angleMax: "",
-            percentageMin: (firstItem == null ? void 0 : firstItem.percentage) || "",
-            percentageMax: "",
+            reference1Location: (firstItem == null ? void 0 : firstItem.reference1Location) || "",
+            reference1LocationStart: (firstItem == null ? void 0 : firstItem.reference1LocationStart) || "",
+            reference1LocationEnd: (firstItem == null ? void 0 : firstItem.reference1LocationEnd) || "",
+            reference2Location: (firstItem == null ? void 0 : firstItem.reference2Location) || "",
+            reference2LocationStart: (firstItem == null ? void 0 : firstItem.reference2LocationStart) || "",
+            reference2LocationEnd: (firstItem == null ? void 0 : firstItem.reference2LocationEnd) || "",
+            // 范围输入字段 - 保留现有的范围数据
+            lengthRangeStart: (firstItem == null ? void 0 : firstItem.lengthRangeStart) || (firstItem == null ? void 0 : firstItem.length) || "",
+            lengthRangeEnd: (firstItem == null ? void 0 : firstItem.lengthRangeEnd) || "",
+            widthRangeStart: (firstItem == null ? void 0 : firstItem.widthRangeStart) || (firstItem == null ? void 0 : firstItem.width) || "",
+            widthRangeEnd: (firstItem == null ? void 0 : firstItem.widthRangeEnd) || "",
+            heightDepthRangeStart: (firstItem == null ? void 0 : firstItem.heightDepthRangeStart) || (firstItem == null ? void 0 : firstItem.heightDepth) || "",
+            heightDepthRangeEnd: (firstItem == null ? void 0 : firstItem.heightDepthRangeEnd) || "",
+            crackWidthRangeStart: (firstItem == null ? void 0 : firstItem.crackWidthRangeStart) || (firstItem == null ? void 0 : firstItem.crackWidth) || "",
+            crackWidthRangeEnd: (firstItem == null ? void 0 : firstItem.crackWidthRangeEnd) || "",
+            areaRangeStart: (firstItem == null ? void 0 : firstItem.areaRangeStart) || (firstItem == null ? void 0 : firstItem.area) || "",
+            areaRangeEnd: (firstItem == null ? void 0 : firstItem.areaRangeEnd) || "",
+            volumeRangeStart: (firstItem == null ? void 0 : firstItem.volumeRangeStart) || (firstItem == null ? void 0 : firstItem.volume) || "",
+            volumeRangeEnd: (firstItem == null ? void 0 : firstItem.volumeRangeEnd) || "",
+            angleRangeStart: (firstItem == null ? void 0 : firstItem.angleRangeStart) || (firstItem == null ? void 0 : firstItem.angle) || "",
+            angleRangeEnd: (firstItem == null ? void 0 : firstItem.angleRangeEnd) || "",
+            percentageRangeStart: (firstItem == null ? void 0 : firstItem.percentageRangeStart) || (firstItem == null ? void 0 : firstItem.percentage) || "",
+            percentageRangeEnd: (firstItem == null ? void 0 : firstItem.percentageRangeEnd) || "",
             // 保留原有字段为空
             length: "",
             width: "",
-            heightOrDepth: "",
-            slitWidth: "",
+            heightDepth: "",
+            crackWidth: "",
             area: "",
             volume: "",
             angle: "",
             percentage: "",
-            crackCharacteristicsIndex: (firstItem == null ? void 0 : firstItem.crackCharacteristicsIndex) || 0,
-            trendIndex: (firstItem == null ? void 0 : firstItem.trendIndex) || 0,
+            crackTypeIndex: (firstItem == null ? void 0 : firstItem.crackTypeIndex) || 0,
+            developmentTrendIndex: (firstItem == null ? void 0 : firstItem.developmentTrendIndex) || 0,
             useRangeMode: true
           });
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:928", "更新后的范围模式数据:", newList[0]);
         } else {
           for (let i2 = 0; i2 < count; i2++) {
             if (i2 < existingData.length) {
               if (existingData[i2].useRangeMode) {
                 newList.push({
-                  referenceSurface1: existingData[i2].referenceSurface1 || "",
-                  referenceSurface1Start: existingData[i2].referenceSurface1Start || "",
-                  referenceSurface1End: existingData[i2].referenceSurface1End || "",
-                  referenceSurface2: existingData[i2].referenceSurface2 || "",
-                  referenceSurface2Start: existingData[i2].referenceSurface2Start || "",
-                  referenceSurface2End: existingData[i2].referenceSurface2End || "",
+                  reference1Location: existingData[i2].reference1Location || "",
+                  reference1LocationStart: existingData[i2].reference1LocationStart || "",
+                  reference1LocationEnd: existingData[i2].reference1LocationEnd || "",
+                  reference2Location: existingData[i2].reference2Location || "",
+                  reference2LocationStart: existingData[i2].reference2LocationStart || "",
+                  reference2LocationEnd: existingData[i2].reference2LocationEnd || "",
                   // 使用Min值作为普通模式的值
-                  length: existingData[i2].lengthMin || "",
-                  width: existingData[i2].widthMin || "",
-                  heightOrDepth: existingData[i2].heightOrDepthMin || "",
-                  slitWidth: existingData[i2].slitWidthMin || "",
-                  area: existingData[i2].areaMin || "",
-                  volume: existingData[i2].volumeMin || "",
-                  angle: existingData[i2].angleMin || "",
-                  percentage: existingData[i2].percentageMin || "",
-                  crackCharacteristicsIndex: existingData[i2].crackCharacteristicsIndex || 0,
-                  trendIndex: existingData[i2].trendIndex || 0,
+                  length: existingData[i2].lengthRangeStart || "",
+                  width: existingData[i2].widthRangeStart || "",
+                  heightDepth: existingData[i2].heightDepthRangeStart || "",
+                  crackWidth: existingData[i2].crackWidthRangeStart || "",
+                  area: existingData[i2].areaRangeStart || "",
+                  volume: existingData[i2].volumeRangeStart || "",
+                  angle: existingData[i2].angleRangeStart || "",
+                  percentage: existingData[i2].percentageRangeStart || "",
+                  crackTypeIndex: existingData[i2].crackTypeIndex || 0,
+                  developmentTrendIndex: existingData[i2].developmentTrendIndex || 0,
                   useRangeMode: false
                 });
               } else {
@@ -13540,22 +14912,22 @@ ${i3}
               }
             } else {
               newList.push({
-                referenceSurface1: "",
-                referenceSurface1Start: "",
-                referenceSurface1End: "",
-                referenceSurface2: "",
-                referenceSurface2Start: "",
-                referenceSurface2End: "",
+                reference1Location: "",
+                reference1LocationStart: "",
+                reference1LocationEnd: "",
+                reference2Location: "",
+                reference2LocationStart: "",
+                reference2LocationEnd: "",
                 length: "",
                 width: "",
-                slitWidth: "",
-                heightOrDepth: "",
+                crackWidth: "",
+                heightDepth: "",
                 area: "",
                 volume: "",
                 angle: "",
                 percentage: "",
-                crackCharacteristicsIndex: 0,
-                trendIndex: 0,
+                crackTypeIndex: 0,
+                developmentTrendIndex: 0,
                 useRangeMode: false
               });
             }
@@ -13563,37 +14935,13 @@ ${i3}
         }
         diseaseDataList.value = newList;
       };
-      const WayofDefect = vue.ref(["数值", "记载方式2", "记载方式3"]);
-      const WayofDefectindex = vue.ref(0);
       const length = vue.ref("");
       const width = vue.ref("");
-      const slitWidth = vue.ref("");
-      const heightOrDepth = vue.ref("");
+      const crackWidth = vue.ref("");
+      const heightDepth = vue.ref("");
       const area = vue.ref("");
       const description = vue.ref("");
       const fileList = vue.ref([]);
-      const scalesItems = vue.reactive([{
-        name: "1级",
-        value: "1"
-      }, {
-        name: "2级",
-        value: "2"
-      }, {
-        name: "3级",
-        value: "3"
-      }, {
-        name: "4级",
-        value: "4"
-      }]);
-      const scalesCurrent = vue.ref(0);
-      const ratingItems = vue.reactive([{
-        name: "否",
-        value: "0"
-      }, {
-        name: "是",
-        value: "1"
-      }]);
-      const ratingCurrent = vue.ref(0);
       const diseasePosition = vue.ref([]);
       const diseasePositionPopup = vue.ref(null);
       const selectedPosition = vue.ref("");
@@ -13634,8 +14982,8 @@ ${i3}
         value: 4
       }]);
       const levelindex = vue.ref(1);
-      const crackCharacteristicsIndex = vue.ref(0);
-      const crackCharacteristics = vue.ref([
+      const crackTypeIndex = vue.ref(0);
+      const crackType = vue.ref([
         {
           text: "纵向",
           value: 0
@@ -13657,7 +15005,7 @@ ${i3}
           value: 4
         }
       ]);
-      const trend = vue.ref([
+      const developmentTrend = vue.ref([
         {
           text: "稳定",
           value: 0
@@ -13675,27 +15023,42 @@ ${i3}
           value: 3
         }
       ]);
-      const trendindex = vue.ref(0);
-      const referenceSurface1 = vue.ref("");
-      const referenceSurface2 = vue.ref("");
+      const developmentTrendindex = vue.ref(0);
+      const reference1Location = vue.ref("");
+      const reference2Location = vue.ref("");
       const referenceSurfacePopup = vue.ref(null);
       const currentReferenceSurface = vue.ref(1);
       const referenceSurfaceInput = vue.ref("");
       const referenceSurfaceOptions = vue.ref([]);
       const initMultiPickerColumns = () => {
         const structureType = structureTypes.value[typeMultiIndex.value[0]];
-        parentObjectName.value = structureType;
-        updateBiObjectOptions();
-        setTimeout(() => {
-          typeMultiArray.value[1] = biObjectName.value;
-          if (typeMultiIndex.value[1] >= biObjectName.value.length) {
-            typeMultiIndex.value[1] = 0;
+        grandObjectName.value = structureType;
+        if (structureData.value && structureData.value.children) {
+          const structurePart = structureData.value.children.find(
+            (item) => item.name === grandObjectName.value
+          );
+          if (structurePart && structurePart.children) {
+            biObjectNameOptions.value = structurePart.children;
+            typeMultiArray.value[1] = [...structurePart.children.map((item) => item.name)];
+            if (typeMultiIndex.value[1] >= typeMultiArray.value[1].length) {
+              typeMultiIndex.value[1] = 0;
+            }
+            updateThirdColumn();
+          } else {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1157", "未找到对应的结构部分或其子项");
+            typeMultiArray.value[1] = [];
+            typeMultiArray.value[2] = [];
           }
-          updateThirdColumn();
-        }, 50);
+        } else {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1162", "结构数据尚未加载完成");
+        }
       };
       const updateThirdColumn = () => {
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          typeMultiArray.value[2] = [];
+          return;
+        }
+        if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
           typeMultiArray.value[2] = [];
           return;
         }
@@ -13705,184 +15068,326 @@ ${i3}
           return;
         }
         const thirdLevelNames = selectedSecondLevel.children.map((item) => item.name);
-        typeMultiArray.value[2] = thirdLevelNames;
-        if (typeMultiIndex.value[2] >= thirdLevelNames.length) {
+        typeMultiArray.value[2] = [...thirdLevelNames];
+        if (typeMultiIndex.value[2] >= typeMultiArray.value[2].length) {
           typeMultiIndex.value[2] = 0;
         }
       };
       const typeColumnChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1327", "typeColumnChange:", e2);
-        const column = e2.detail.column;
-        const value = e2.detail.value;
+        const {
+          column,
+          value
+        } = e2.detail;
         typeMultiIndex.value[column] = value;
         if (column === 0) {
-          parentObjectName.value = structureTypes.value[value];
-          updateBiObjectOptions();
+          grandObjectName.value = structureTypes.value[value];
           typeMultiIndex.value[1] = 0;
           typeMultiIndex.value[2] = 0;
-          setTimeout(() => {
-            typeMultiArray.value[1] = biObjectName.value;
-            updateThirdColumn();
-          }, 100);
+          initMultiPickerColumns();
         } else if (column === 1) {
           updateThirdColumn();
         }
       };
+      const updateComponentNameValues = () => {
+        grandObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
+        if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < typeMultiArray.value[1].length) {
+          parentObjectName.value = typeMultiArray.value[1][typeMultiIndex.value[1]];
+        }
+      };
       const typeMultiPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1362", "typeMultiPickerChange:", e2);
         typeMultiIndex.value = e2.detail.value;
-        parentObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
-        biObjectindex.value = typeMultiIndex.value[1];
-        if (typeMultiArray.value[2].length > 0) {
-          const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-          const thirdLevelIndex = typeMultiIndex.value[2];
-          if (selectedSecondLevel && selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) && thirdLevelIndex < selectedSecondLevel.children.length) {
-            const selectedThirdLevel = selectedSecondLevel.children[thirdLevelIndex];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1383", "选择了第三级组件:", selectedThirdLevel.name);
-          }
+        updateComponentNameValues();
+        let selectedComponentName = "";
+        if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
+          selectedComponentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
+        } else if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
+          selectedComponentName = typeMultiArray.value[1][typeMultiIndex.value[1]];
+        }
+        componentNamePicker.value = selectedComponentName;
+        if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
+          biObjectindex.value = typeMultiIndex.value[1];
+        } else {
+          biObjectindex.value = -1;
         }
         updateDiseaseTypeOptions();
-        updateComponentNumbers();
         updateDiseasePositionOptions();
       };
-      vue.watch(parentObjectName, (newVal) => {
+      vue.watch(grandObjectName, (newVal) => {
         const index = structureTypes.value.findIndex((item) => item === newVal);
         if (index !== -1 && index !== typeMultiIndex.value[0]) {
           typeMultiIndex.value[0] = index;
           initMultiPickerColumns();
         }
       });
-      vue.onMounted(() => {
+      vue.onMounted(async () => {
         var _a;
-        fetchStructureData();
+        if (bridgeIdFromURL.value) {
+          buildingId.value = bridgeIdFromURL.value;
+        }
+        await fetchStructureData();
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+        initMultiPickerColumns();
         if (options && options.mode === "edit") {
           isEdit.value = true;
           if (options.data) {
             try {
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1423", "接收到的编辑数据:", diseaseData);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1302", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1428", "解析编辑数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1307", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
               });
             }
           }
-        } else {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1438", "新增模式");
-          if (options && options.type) {
-            try {
-              const typeVal = decodeURIComponent(options.type);
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1443", "接收到的病害类型位置:", typeVal);
-              parentObjectName.value = typeVal;
-            } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1446", "解析type参数失败:", error);
-              parentObjectName.value = "上部结构";
-            }
-          } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1451", "未接收到type参数，使用默认值: 上部结构");
-            parentObjectName.value = "上部结构";
-          }
         }
-        setTimeout(() => {
-          initMultiPickerColumns();
-        }, 200);
         filteredComponentCodes.value = [...componentCode.value];
-        setTimeout(() => {
-          updateDiseasePositionOptions();
-        }, 300);
         updateDiseaseDataList(quantity.value);
       });
       const fillFormWithData = (data) => {
-        var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1475", "开始填充表单数据:", data);
-        if ((_a = data.component) == null ? void 0 : _a.parentObjectName) {
-          parentObjectName.value = data.component.parentObjectName;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1483", "设置病害所属大类:", parentObjectName.value);
-          const parentIndex = structureTypes.value.findIndex((item) => item === parentObjectName.value);
+        var _a, _b, _c, _d, _e2, _f;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1328", "开始填充表单数据:", data);
+        if ((_a = data.component) == null ? void 0 : _a.grandObjectName) {
+          grandObjectName.value = data.component.grandObjectName;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1333", "设置病害所属大类:", grandObjectName.value);
+          const parentIndex = structureTypes.value.findIndex((item) => item === grandObjectName.value);
           if (parentIndex !== -1) {
             typeMultiIndex.value[0] = parentIndex;
-            setTimeout(() => {
-              var _a2, _b;
-              initMultiPickerColumns();
-              if ((_b = (_a2 = data.component) == null ? void 0 : _a2.biObject) == null ? void 0 : _b.name) {
-                const biObjectIdx = biObjectName.value.findIndex((item) => item === data.component.biObject.name);
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1497", "尝试设置部件类型索引:", biObjectIdx, "对应值:", data.component.biObject.name);
-                if (biObjectIdx !== -1) {
-                  biObjectindex.value = biObjectIdx;
-                  typeMultiIndex.value[1] = biObjectIdx;
-                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1503", "成功设置部件类型:", data.component.biObject.name);
-                  setTimeout(() => {
-                    var _a3;
-                    updateDiseaseTypeOptions();
-                    if ((_a3 = data.component) == null ? void 0 : _a3.code) {
-                      componentCodeInput.value = data.component.code;
-                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1512", "成功设置构件编号:", data.component.code);
-                    }
-                    setTimeout(() => {
-                      if (data.type) {
-                        const diseaseTypeIdx = type.value.findIndex((item) => item === data.type);
-                        if (diseaseTypeIdx !== -1) {
-                          typeindex.value = diseaseTypeIdx;
-                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1522", "成功设置病害类型:", data.type);
-                        } else {
-                          formatAppLog("warn", "at pages/add-disease/add-disease.vue:1525", "未找到匹配的病害类型:", data.type);
+            initMultiPickerColumns();
+            if (typeMultiArray.value[1] && typeMultiArray.value[1].length > 0) {
+              if ((_b = data.component) == null ? void 0 : _b.parentObjectName) {
+                parentObjectName.value = data.component.parentObjectName;
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1348", "设置部件父级名称:", parentObjectName.value);
+                const secondLevelIndex = typeMultiArray.value[1].findIndex((item) => item === parentObjectName.value);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1353", "第二级索引:", secondLevelIndex);
+                if (secondLevelIndex !== -1) {
+                  typeMultiIndex.value[1] = secondLevelIndex;
+                  updateThirdColumn();
+                  if (data.component.biObject.name) {
+                    const componentName = data.biObjectName;
+                    componentNamePicker.value = data.component.biObject.name;
+                    if (typeMultiArray.value[2] && typeMultiArray.value[2].length > 0) {
+                      const thirdLevelIndex = typeMultiArray.value[2].findIndex((item) => item === componentNamePicker.value);
+                      if (thirdLevelIndex !== -1 && componentNamePicker.value !== "其他") {
+                        typeMultiIndex.value[2] = thirdLevelIndex;
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1373", "成功设置构件名称(第三级):", componentNamePicker.value);
+                        if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
+                          biObjectindex.value = typeMultiIndex.value[1];
+                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1379", "成功设置biObjectindex:", biObjectindex.value);
                         }
+                      } else if (componentNamePicker.value === "其他") {
+                        componentNameInput.value = componentName;
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1384", "设置自定义构件名称:", componentName);
                       }
-                    }, 10);
-                  }, 10);
+                    } else {
+                      componentNameInput.value = componentName;
+                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1389", "第三级列表为空，设置自定义构件名称:", componentName);
+                    }
+                  }
                 } else {
-                  formatAppLog("warn", "at pages/add-disease/add-disease.vue:1531", "未找到匹配的部件类型:", data.component.biObject.name);
+                  if ((_c = data.component) == null ? void 0 : _c.name) {
+                    componentNamePicker.value = data.component.name;
+                    componentNameInput.value = data.component.name;
+                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1398", "设置自定义构件名称:", data.component.name);
+                  }
                 }
+              } else if ((_d = data.component) == null ? void 0 : _d.name) {
+                componentNamePicker.value = data.component.name;
+                componentNameInput.value = data.component.name;
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1405", "设置自定义构件名称:", data.component.name);
               }
-            }, 300);
+            } else {
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1408", "第二维数据初始化失败，无法设置构件名称");
+              if ((_e2 = data.component) == null ? void 0 : _e2.name) {
+                componentNamePicker.value = data.component.name;
+                componentNameInput.value = data.component.name;
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1413", "设置自定义构件名称:", data.component.name);
+              }
+            }
           }
         }
+        if ((_f = data.component) == null ? void 0 : _f.code) {
+          componentCodeInput.value = data.component.code;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1422", "成功设置构件编号:", data.component.code);
+        }
+        if (data.type) {
+          updateDiseaseTypeOptions();
+          type.value = data.type;
+          if (diseaseTypeOptions.value.includes(data.type)) {
+            typePicker.value = data.type;
+            typeInput.value = "";
+          } else {
+            typePicker.value = "其他";
+            typeInput.value = data.type;
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1440", "成功设置病害类型:", data.type);
+        }
         if (data.position) {
+          updateDiseasePositionOptions();
           position.value = data.position;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1448", "预设选项:", diseasePosition.value);
+          if (diseasePosition.value.includes(data.position)) {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1451", "在预设选项中:", data.position);
+            positionPicker.value = data.position;
+            positionInput.value = "";
+          } else {
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1455", "不在预设选项中:", data.position);
+            positionPicker.value = "其他";
+            positionInput.value = data.position;
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1460", "成功设置病害位置:", data.position);
         }
         if (data.quantity) {
           quantity.value = parseInt(data.quantity) || 1;
         }
         if (data.participateAssess !== void 0) {
-          participateAssessindex.value = data.participateAssess === "1" ? 1 : 0;
+          participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
+        }
+        if (data.nature) {
+          const natureItem = nature.value.find((item) => item.text === data.nature);
+          if (natureItem) {
+            natureindex.value = natureItem.value;
+          }
         }
         if (data.level) {
           const levelVal = parseInt(data.level);
-          levelindex.value = levelVal;
-        }
-        if (data.length) {
-          length.value = data.length;
-        }
-        if (data.width) {
-          width.value = data.width;
-        }
-        if (data.slitWidth) {
-          slitWidth.value = data.slitWidth;
-        }
-        if (data.heightOrDepth) {
-          heightOrDepth.value = data.heightOrDepth;
-        }
-        if (data.area) {
-          area.value = data.area;
+          if (data.diseaseType && data.diseaseType.maxScale && data.diseaseType.minScale) {
+            const minScale = parseInt(data.diseaseType.minScale) || 1;
+            const maxScale = parseInt(data.diseaseType.maxScale) || 4;
+            const newLevelOptions = [];
+            for (let i2 = minScale; i2 <= maxScale; i2++) {
+              newLevelOptions.push({
+                text: String(i2),
+                value: i2
+              });
+            }
+            level.value = newLevelOptions;
+            levelindex.value = Math.max(minScale, Math.min(maxScale, levelVal));
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1504", "根据病害类型设置评定标度范围:", minScale, "至", maxScale, "选中值:", levelindex.value);
+          } else {
+            levelindex.value = levelVal;
+          }
         }
         if (data.description) {
           description.value = data.description;
         }
+        if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
+          const quantity2 = parseInt(data.quantity) || 0;
+          const isRangeMode = quantity2 >= 10;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1522", "根据quantity判断范围模式:", quantity2, isRangeMode);
+          if (isRangeMode) {
+            const detail = data.diseaseDetails[0];
+            const rangeData = {
+              useRangeMode: true,
+              // 最小值
+              lengthRangeStart: detail.lengthRangeStart || "",
+              lengthRangeEnd: detail.lengthRangeEnd || "",
+              widthRangeStart: detail.widthRangeStart || "",
+              widthRangeEnd: detail.widthRangeEnd || "",
+              heightDepthRangeStart: detail.heightDepthRangeStart || "",
+              heightDepthRangeEnd: detail.heightDepthRangeEnd || "",
+              crackWidthRangeStart: detail.crackWidthRangeStart || "",
+              crackWidthRangeEnd: detail.crackWidthRangeEnd || "",
+              areaRangeStart: detail.areaRangeStart || "",
+              areaRangeEnd: detail.areaRangeEnd || "",
+              volumeRangeStart: detail.volumeRangeStart || "",
+              volumeRangeEnd: detail.volumeRangeEnd || "",
+              angleRangeStart: detail.angleRangeStart || "",
+              angleRangeEnd: detail.angleRangeEnd || "",
+              percentageRangeStart: detail.percentageRangeStart || "",
+              percentageRangeEnd: detail.percentageRangeEnd || "",
+              // 参考面信息
+              reference1Location: detail.reference1Location || "",
+              reference1LocationStart: detail.reference1LocationStart || "",
+              reference1LocationEnd: detail.reference1LocationEnd || "",
+              reference2Location: detail.reference2Location || "",
+              reference2LocationStart: detail.reference2LocationStart || "",
+              reference2LocationEnd: detail.reference2LocationEnd || "",
+              // 裂缝特征和趋势 - 查找索引值
+              crackTypeIndex: findIndexByText(crackType.value, detail.crackType) || 0,
+              developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0
+            };
+            diseaseDataList.value = [rangeData];
+          } else {
+            const newList = data.diseaseDetails.map((detail) => {
+              return {
+                useRangeMode: false,
+                length: detail.length || "",
+                width: detail.width || "",
+                heightDepth: detail.heightDepth || "",
+                crackWidth: detail.crackWidth || "",
+                area: detail.area || "",
+                volume: detail.volume || "",
+                angle: detail.angle || "",
+                percentage: detail.percentage || "",
+                // 参考面信息
+                reference1Location: detail.reference1Location || "",
+                reference1LocationStart: detail.reference1LocationStart || "",
+                reference1LocationEnd: detail.reference1LocationEnd || "",
+                reference2Location: detail.reference2Location || "",
+                reference2LocationStart: detail.reference2LocationStart || "",
+                reference2LocationEnd: detail.reference2LocationEnd || "",
+                // 裂缝特征和趋势 - 查找索引值
+                crackTypeIndex: findIndexByText(crackType.value, detail.crackType) || 0,
+                developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0
+              };
+            });
+            diseaseDataList.value = newList;
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1600", "成功设置diseaseDetails数据, 条目数量:", diseaseDataList.value.length);
+        } else {
+          const defaultData = {
+            useRangeMode: false,
+            length: data.length || "",
+            width: data.width || "",
+            heightDepth: data.heightDepth || "",
+            crackWidth: data.crackWidth || "",
+            area: data.area || "",
+            volume: "",
+            angle: "",
+            percentage: "",
+            reference1Location: "",
+            reference1LocationStart: "",
+            reference1LocationEnd: "",
+            reference2Location: "",
+            reference2LocationStart: "",
+            reference2LocationEnd: "",
+            crackTypeIndex: 0,
+            developmentTrendIndex: findIndexByText(developmentTrend.value, data.developmentTrend) || 0
+          };
+          diseaseDataList.value = [defaultData];
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1625", "使用老格式数据创建默认记录");
+        }
         if (data.images && Array.isArray(data.images)) {
-          fileList.value = data.images.map((url, index) => ({
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1630", "开始处理图片数据......:", data.images);
+          const imagesPaths = readDiseaseImages(userInfo.username, buildingId.value, data.images);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1632", "处理后的图片路径:", imagesPaths);
+          fileList.value = imagesPaths.map((url, index) => ({
             name: `图片${index + 1}`,
             url,
             extname: "jpg",
             size: 0
           }));
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1595", "表单数据填充完成");
+        if (data.ADImgs && Array.isArray(data.ADImgs)) {
+          const ADImgsPaths = readDiseaseImages(userInfo.username, buildingId.value, data.ADImgs);
+          ADImgs.value = ADImgsPaths.map((src, index) => ({
+            src
+          }));
+        }
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1649", "表单数据填充完成");
+      };
+      const findIndexByText = (optionsArray, targetText) => {
+        if (!optionsArray || !Array.isArray(optionsArray) || !targetText)
+          return 0;
+        const index = optionsArray.findIndex(
+          (item) => item.text && item.text === targetText || item === targetText
+        );
+        return index !== -1 ? index : 0;
       };
       const imageStyles = vue.reactive({
         width: "150rpx",
@@ -13890,12 +15395,12 @@ ${i3}
       });
       const beforedisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1605", "上一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1670", "上一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
         const currentId = options == null ? void 0 : options.id;
-        if (!currentId || !parentObjectName.value) {
+        if (!currentId || !grandObjectName.value) {
           uni.showToast({
             title: "无法获取当前病害信息",
             icon: "none"
@@ -13903,7 +15408,7 @@ ${i3}
           return;
         }
         uni.$emit("getDiseasesOfType", {
-          type: parentObjectName.value,
+          type: grandObjectName.value,
           currentId,
           callback: (diseaseList) => {
             if (!diseaseList || diseaseList.length === 0) {
@@ -13914,7 +15419,9 @@ ${i3}
               return;
             }
             const validDiseases = diseaseList.filter((item) => !item.isDelete);
-            const currentIndex = validDiseases.findIndex((item) => item.id === currentId);
+            const currentIndex = validDiseases.findIndex((item) => String(item.id) === String(
+              currentId
+            ));
             if (currentIndex === -1) {
               uni.showToast({
                 title: "无法找到当前病害",
@@ -13930,12 +15437,12 @@ ${i3}
       };
       const nextdisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1657", "下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1723", "下一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
         const currentId = options == null ? void 0 : options.id;
-        if (!currentId || !parentObjectName.value) {
+        if (!currentId || !grandObjectName.value) {
           uni.showToast({
             title: "无法获取当前病害信息",
             icon: "none"
@@ -13943,7 +15450,7 @@ ${i3}
           return;
         }
         uni.$emit("getDiseasesOfType", {
-          type: parentObjectName.value,
+          type: grandObjectName.value,
           currentId,
           callback: (diseaseList) => {
             if (!diseaseList || diseaseList.length === 0) {
@@ -13954,7 +15461,9 @@ ${i3}
               return;
             }
             const validDiseases = diseaseList.filter((item) => !item.isDelete);
-            const currentIndex = validDiseases.findIndex((item) => item.id === currentId);
+            const currentIndex = validDiseases.findIndex((item) => String(item.id) === String(
+              currentId
+            ));
             if (currentIndex === -1) {
               uni.showToast({
                 title: "无法找到当前病害",
@@ -13980,10 +15489,10 @@ ${i3}
         uni.redirectTo({
           url: `/pages/add-disease/add-disease?mode=edit&id=${disease.id}&data=${diseaseData}`,
           success: () => {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1725", "成功导航到病害:", disease.id);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1792", "成功导航到病害:", disease.id);
           },
           fail: (error) => {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:1728", "导航失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:1795", "导航失败:", error);
             uni.showToast({
               title: "切换失败，请重试",
               icon: "none"
@@ -13992,27 +15501,120 @@ ${i3}
         });
       };
       const savetonextdisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1738", "保存并复制到下一条");
+        var _a, _b;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1805", "保存并复制到下一条");
         const diseaseData = createDiseaseData();
         if (diseaseData) {
           saveWithoutNavigateBack(diseaseData);
         }
+        diseaseData.id = ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime();
       };
       const createDiseaseData = () => {
-        var _a, _b;
+        var _a, _b, _c, _d;
         let diseaseTypeObj = null;
-        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
-          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
+        if (typePicker.value && allDiseaseTypes.length > 0) {
+          diseaseTypeObj = allDiseaseTypes.find((item) => item.name === typePicker.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1821", "找到的病害类型对象:", diseaseTypeObj ? diseaseTypeObj.name : "未找到");
         }
         let biObjectObj = null;
         if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
           biObjectObj = biObjectNameOptions.value[biObjectindex.value];
         }
-        const diseaseData = {
-          createBy: "crh@znjc",
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1830", "选中的第二级构件对象:", biObjectObj);
+        let diseaseDetails = [];
+        const numValue = parseInt(quantity.value);
+        const isRangeMode = numValue >= 10;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1836", "保存时使用的模式:", isRangeMode ? "范围模式" : "普通模式", "缺损数量:", numValue);
+        if (isRangeMode) {
+          const rangeData = diseaseDataList.value[0];
+          diseaseDetails.push({
+            // 普通模式字段设为空
+            length: "",
+            width: "",
+            heightDepth: "",
+            crackWidth: "",
+            area: "",
+            volume: "",
+            angle: "",
+            percentage: "",
+            // 范围模式字段
+            lengthRangeStart: rangeData.lengthRangeStart || "",
+            lengthRangeEnd: rangeData.lengthRangeEnd || "",
+            widthRangeStart: rangeData.widthRangeStart || "",
+            widthRangeEnd: rangeData.widthRangeEnd || "",
+            heightDepthRangeStart: rangeData.heightDepthRangeStart || "",
+            heightDepthRangeEnd: rangeData.heightDepthRangeEnd || "",
+            crackWidthRangeStart: rangeData.crackWidthRangeStart || "",
+            crackWidthRangeEnd: rangeData.crackWidthRangeEnd || "",
+            areaRangeStart: rangeData.areaRangeStart || "",
+            areaRangeEnd: rangeData.areaRangeEnd || "",
+            volumeRangeStart: rangeData.volumeRangeStart || "",
+            volumeRangeEnd: rangeData.volumeRangeEnd || "",
+            angleRangeStart: rangeData.angleRangeStart || "",
+            angleRangeEnd: rangeData.angleRangeEnd || "",
+            percentageRangeStart: rangeData.percentageRangeStart || "",
+            percentageRangeEnd: rangeData.percentageRangeEnd || "",
+            // 公共字段
+            crackType: ((_a = crackType.value[rangeData.crackTypeIndex]) == null ? void 0 : _a.text) || "纵向",
+            developmentTrend: ((_b = developmentTrend.value[rangeData.developmentTrendIndex]) == null ? void 0 : _b.text) || "稳定",
+            reference1Location: rangeData.reference1Location || "",
+            reference1LocationStart: rangeData.reference1LocationStart || "",
+            reference1LocationEnd: rangeData.reference1LocationEnd || "",
+            reference2Location: rangeData.reference2Location || "",
+            reference2LocationStart: rangeData.reference2LocationStart || "",
+            reference2LocationEnd: rangeData.reference2LocationEnd || ""
+          });
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1884", "保存时生成的范围模式数据结构:", JSON.stringify(diseaseDetails[0]));
+        } else {
+          diseaseDataList.value.forEach((item) => {
+            var _a2, _b2;
+            diseaseDetails.push({
+              // 普通模式字段
+              length: item.length || "",
+              width: item.width || "",
+              heightDepth: item.heightDepth || "",
+              crackWidth: item.crackWidth || "",
+              area: item.area || "",
+              volume: item.volume || "",
+              angle: item.angle || "",
+              percentage: item.percentage || "",
+              // 范围模式字段设为空
+              lengthRangeStart: "",
+              lengthRangeEnd: "",
+              widthRangeStart: "",
+              widthRangeEnd: "",
+              heightDepthRangeStart: "",
+              heightDepthRangeEnd: "",
+              crackWidthRangeStart: "",
+              crackWidthRangeEnd: "",
+              areaRangeStart: "",
+              areaRangeEnd: "",
+              volumeRangeStart: "",
+              volumeRangeEnd: "",
+              angleRangeStart: "",
+              angleRangeEnd: "",
+              percentageRangeStart: "",
+              percentageRangeEnd: "",
+              // 公共字段
+              crackType: ((_a2 = crackType.value[item.crackTypeIndex]) == null ? void 0 : _a2.text) || "纵向",
+              developmentTrend: ((_b2 = developmentTrend.value[item.developmentTrendIndex]) == null ? void 0 : _b2.text) || "稳定",
+              reference1Location: item.reference1Location || "",
+              reference1LocationStart: item.reference1LocationStart || "",
+              reference1LocationEnd: item.reference1LocationEnd || "",
+              reference2Location: item.reference2Location || "",
+              reference2LocationStart: item.reference2LocationStart || "",
+              reference2LocationEnd: item.reference2LocationEnd || ""
+            });
+          });
+        }
+        const componentName = getComponentName();
+        const thirdLevelComponentId = getThirdLevelComponentId();
+        const thirdLevelComponentName = getThirdLevelComponentName();
+        return {
+          createBy: "",
           createTime: formatDateTime(),
           updateTime: formatDateTime(),
-          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
+          id: ((_d = (_c = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _c.options) == null ? void 0 : _d.id) || (/* @__PURE__ */ new Date()).getTime(),
           diseaseType: diseaseTypeObj ? {
             id: diseaseTypeObj.id,
             code: diseaseTypeObj.code || "",
@@ -14024,57 +15626,54 @@ ${i3}
           diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
           description: description.value,
           position: position.value,
-          trend: "稳定",
-          level: parseInt(scalesItems[scalesCurrent.value].value),
+          level: parseInt(levelindex.value) || 1,
           quantity: parseInt(quantity.value),
-          length: length.value,
-          width: width.value,
-          slitWidth: slitWidth.value,
-          heightOrDepth: heightOrDepth.value,
-          area: area.value,
-          type: type.value[typeindex.value],
-          participateAssess: ratingItems[ratingCurrent.value].value,
+          // 直接存储详细数据
+          diseaseDetails,
+          type: type.value,
+          // 直接使用type.value而不是通过索引获取
+          nature: nature.value[natureindex.value].text,
+          participateAssess: participateAssessindex.value.toString(),
           deductPoints: 35,
-          biObjectId: biObjectObj ? biObjectObj.id : null,
-          projectId: 2,
-          component: biObjectObj ? {
-            createBy: "admin",
+          biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
+          projectId: idStorageInfo.projectId,
+          biObjectName: componentName,
+          //使用三级选择或输入框中的值
+          component: {
+            createBy: "",
             createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
             updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            id: biObjectObj.id,
-            // 使用部件对象ID
+            id: null,
+            // 第一级id设为null
             code: componentCodeInput.value,
             // 使用输入的构件编号
-            name: biObjectObj.name,
-            // 使用部件对象名称
-            biObjectId: biObjectObj.id,
+            name: componentName + "#" + componentCodeInput.value,
+            // 使用第三级选择的值或输入框中的值#构件编号
+            biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
             status: "0",
             delFlag: "0",
             biObject: {
-              id: biObjectObj.id,
-              name: biObjectObj.name,
+              id: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
+              name: thirdLevelComponentName || (biObjectObj ? biObjectObj.name : ""),
+              // 使用第三级选择的值
               count: 0
             },
-            parentObjectName: parentObjectName.value
-          } : null,
-          componentId: biObjectObj ? biObjectObj.id : null,
-          buildingId: 37,
-          images: []
+            parentObjectName: parentObjectName.value,
+            // 使用第二级选择的值
+            grandObjectName: grandObjectName.value
+            // 使用第一级选择的值
+          },
+          componentId: null,
+          // 组件ID也设为null
+          buildingId: buildingId.value,
+          images: [],
           // 初始化为空数组，等待图片保存后更新
+          ADImgs: []
+          // 添加AD图片字段
         };
-        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType || !componentCodeInput.value) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1815", "数据不完整，请确保选择了部件类型、输入了构件编号和缺损类型");
-          uni.hideLoading();
-          uni.showToast({
-            title: "请填写必填项",
-            icon: "none"
-          });
-          return null;
-        }
-        return diseaseData;
       };
       const saveWithoutNavigateBack = (diseaseData) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1829", "保存但不返回");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1993", "保存但不返回");
         uni.showLoading({
           title: "保存中..."
         });
@@ -14086,7 +15685,7 @@ ${i3}
           });
           setTimeout(() => {
             fileList.value = [];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1849", "已清空图片列表，保留其他表单数据");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2013", "已清空图片列表，保留其他表单数据");
             uni.showToast({
               title: "已保存，可继续添加下一条",
               icon: "none",
@@ -14094,7 +15693,7 @@ ${i3}
             });
           }, 500);
         }).catch((error) => {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:1860", "保存失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2024", "保存失败:", error);
           uni.hideLoading();
           uni.showToast({
             title: "保存失败，请重试",
@@ -14102,136 +15701,110 @@ ${i3}
           });
         });
       };
-      const saveImagesAndUpdateDisease = (diseaseData, isEditMode) => {
-        return new Promise((resolve, reject) => {
-          var _a;
-          const pages2 = getCurrentPages();
-          const currentPage = pages2[pages2.length - 1];
-          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
-          let originalImages = [];
-          if (isEditMode && options && options.data) {
-            try {
-              const originalData = JSON.parse(decodeURIComponent(options.data));
-              originalImages = originalData.images || [];
-            } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1884", "解析原始数据失败:", error);
-            }
+      const saveImagesAndUpdateDisease = async (diseaseData, isEditMode) => {
+        var _a;
+        const pages2 = getCurrentPages();
+        const currentPage = pages2[pages2.length - 1];
+        const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+        let originalImages = [];
+        let originalADImages = [];
+        if (isEditMode && options && options.data) {
+          try {
+            const originalData = JSON.parse(decodeURIComponent(options.data));
+            originalImages = originalData.images || [];
+            originalADImages = originalData.ADImgs || [];
+          } catch (error) {
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:2049", "解析原始数据失败:", error);
           }
-          const currentImageUrls = fileList.value.map((img) => img.url);
-          const imagesToKeep = originalImages.filter(
-            (img) => currentImageUrls.includes(img)
-          );
-          const imagesToDelete = originalImages.filter(
-            (img) => !currentImageUrls.includes(img)
-          );
-          const newImages = currentImageUrls.filter(
-            (url) => !originalImages.includes(url)
-          );
-          if (imagesToDelete.length > 0) {
-            imagesToDelete.forEach((imgPath) => {
-              plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
-                fileEntry.remove(() => {
-                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1911", "删除原有图片成功:", imgPath);
-                }, (error) => {
-                  formatAppLog("error", "at pages/add-disease/add-disease.vue:1913", "删除原有图片失败:", error);
-                });
+        }
+        const currentImageUrls = fileList.value.map((img) => img.url);
+        const currentADImages = ADImgs.value.map((img) => img.src);
+        const ADImagesToKeep = originalADImages.filter(
+          (img) => currentADImages.includes(img)
+        );
+        const imagesToKeep = originalImages.filter(
+          (img) => currentImageUrls.includes(img)
+        );
+        const imagesToDelete = originalImages.filter(
+          (img) => !currentImageUrls.includes(img)
+        );
+        const ADImagesToDelete = originalADImages.filter(
+          (img) => !currentADImages.includes(img)
+        );
+        const newImages = currentImageUrls.filter(
+          (url) => !originalImages.includes(url)
+        );
+        const newADImages = currentADImages.filter(
+          (src) => !originalADImages.includes(src)
+        );
+        if (imagesToDelete.length > 0) {
+          imagesToDelete.forEach((imgPath) => {
+            plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
+              fileEntry.remove(() => {
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2086", "删除原有图片成功:", imgPath);
               }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:1916", "无法访问原有图片:", error);
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:2088", "删除原有图片失败:", error);
               });
+            }, (error) => {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2091", "无法访问原有图片:", error);
             });
-          }
+          });
+        }
+        if (ADImagesToDelete.length > 0) {
+          ADImagesToDelete.forEach((imgPath) => {
+            plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
+              fileEntry.remove(() => {
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2099", "删除原有AD图片成功:", imgPath);
+              }, (error) => {
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:2101", "删除原有AD图片失败:", error);
+              });
+            }, (error) => {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2104", "无法访问原有AD图片:", error);
+            });
+          });
+        }
+        try {
           if (newImages.length > 0) {
-            saveDiseaseImages(userId, buildingId, newImages).then((savedPaths) => {
-              diseaseData.images = [...imagesToKeep, ...savedPaths];
-              if (isEditMode) {
-                uni.$emit("updateDisease", diseaseData);
-              } else {
-                uni.$emit("addNewDisease", diseaseData);
-              }
-              resolve();
-            }).catch((error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1938", "保存新图片失败:", error);
-              reject(error);
-            });
+            const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
+            diseaseData.images = [...imagesToKeep, ...savedPaths];
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2115", "已保存病害图片，合并保存的图片列表:", diseaseData.images);
           } else {
             diseaseData.images = imagesToKeep;
-            if (isEditMode) {
-              uni.$emit("updateDisease", diseaseData);
-            } else {
-              uni.$emit("addNewDisease", diseaseData);
-            }
-            resolve();
           }
-        });
+          if (newADImages.length > 0) {
+            const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
+            diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2126", "已保存AD图片，合并保存的图片列表:", diseaseData.ADImgs);
+          } else {
+            diseaseData.ADImgs = ADImagesToKeep;
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2132", "已保存病害图片，更新病害数据...:", diseaseData);
+          if (isEditMode) {
+            uni.$emit("updateDisease", diseaseData);
+          } else {
+            uni.$emit("addNewDisease", diseaseData);
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2140", "保存图片过程中发生错误:", error);
+          plus.nativeUI.toast("保存图片失败");
+        }
+      };
+      const getComponentName = () => {
+        let componentName = "";
+        if (componentNamePicker.value === "其他") {
+          componentName = componentNameInput.value;
+        } else if (typeMultiIndex.value[2] >= 0 && typeMultiIndex.value[2] < typeMultiArray.value[2].length) {
+          componentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
+        } else {
+          componentName = parentObjectName.value;
+        }
+        return componentName;
       };
       const savedisease = () => {
-        var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1958", "保存按钮点击");
-        let diseaseTypeObj = null;
-        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
-          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
-        }
-        let biObjectObj = null;
-        if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
-          biObjectObj = biObjectNameOptions.value[biObjectindex.value];
-        }
-        let componentObj = null;
-        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
-          componentObj = biObjectObj.comments[componentCodeindex.value];
-        }
-        const diseaseData = {
-          createBy: "crh@znjc",
-          createTime: formatDateTime(),
-          updateTime: formatDateTime(),
-          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
-          diseaseType: diseaseTypeObj ? {
-            id: diseaseTypeObj.id,
-            code: diseaseTypeObj.code || "",
-            name: diseaseTypeObj.name,
-            maxScale: diseaseTypeObj.maxScale || 5,
-            minScale: diseaseTypeObj.minScale || 1,
-            status: "0"
-          } : null,
-          diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
-          description: description.value,
-          position: position.value,
-          trend: "稳定",
-          level: parseInt(scalesItems[scalesCurrent.value].value),
-          quantity: parseInt(quantity.value),
-          length: length.value,
-          width: width.value,
-          slitWidth: slitWidth.value,
-          heightOrDepth: heightOrDepth.value,
-          area: area.value,
-          type: type.value[typeindex.value],
-          participateAssess: ratingItems[ratingCurrent.value].value,
-          deductPoints: 35,
-          biObjectId: biObjectObj ? biObjectObj.id : null,
-          projectId: 2,
-          component: componentObj ? {
-            createBy: "admin",
-            createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            id: componentObj.id,
-            code: componentObj.code,
-            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
-            biObjectId: biObjectObj ? biObjectObj.id : null,
-            status: "0",
-            delFlag: "0",
-            biObject: {
-              id: biObjectObj ? biObjectObj.id : null,
-              name: biObjectObj ? biObjectObj.name : "",
-              count: 0
-            },
-            parentObjectName: parentObjectName.value
-          } : null,
-          componentId: componentObj ? componentObj.id : null,
-          buildingId: 37,
-          images: []
-          // 初始化为空数组，等待图片保存后更新
-        };
-        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2033", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2161", "保存按钮点击");
+        const diseaseData = createDiseaseData();
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2168", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -14265,46 +15838,6 @@ ${i3}
           // 返回上一页
         });
       };
-      const typePickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2078", "picker发送选择改变，携带值为", e2.detail.value);
-        const index = parseInt(e2.detail.value);
-        biObjectindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2081", "biObjectindex设置为:", index, "对应的值为:", biObjectName.value[index]);
-        updateDiseaseTypeOptions();
-        updateComponentNumbers();
-      };
-      const numberPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2090", "picker发送选择改变，携带值为", e2.detail.value);
-        const index = parseInt(e2.detail.value);
-        componentCodeindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2093", "componentCodeindex设置为:", index, "对应的值为:", componentCode.value[index]);
-      };
-      const TypeofdefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2097", "picker发送选择改变，携带值为", e2.detail.value);
-        const index = parseInt(e2.detail.value);
-        typeindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2100", "typeindex设置为:", index, "对应的值为:", type.value[index]);
-      };
-      const WayofDefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2104", "picker发送选择改变，携带值为", e2.detail.value);
-        const index = parseInt(e2.detail.value);
-        WayofDefectindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2107", "WayofDefectindex设置为:", index, "对应的值为:", WayofDefect.value[index]);
-      };
-      const ScalesRadioChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2112", "radio发送选择改变，携带值为", e2.detail.value);
-        const index = scalesItems.findIndex((item) => item.value === e2.detail.value);
-        if (index !== -1) {
-          scalesCurrent.value = index;
-        }
-      };
-      const RatingsRadioChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2122", "radio发送选择改变，携带值为", e2.detail.value);
-        const index = ratingItems.findIndex((item) => item.value === e2.detail.value);
-        if (index !== -1) {
-          ratingCurrent.value = index;
-        }
-      };
       const formatDateTime = (date = /* @__PURE__ */ new Date()) => {
         const y2 = date.getFullYear();
         const m2 = String(date.getMonth() + 1).padStart(2, "0");
@@ -14327,7 +15860,7 @@ ${i3}
                   id: currentId,
                   isDelete: true
                 };
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2160", "准备发送deleteDisease事件，标记删除ID:", currentId);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2240", "准备发送deleteDisease事件，标记删除ID:", currentId);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -14347,99 +15880,21 @@ ${i3}
         });
       };
       const copyAndAddDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2185", "复制并新增");
-        ({
-          partType: biObjectName.value[biObjectindex.value],
-          partNumber: componentCode.value[componentCodeindex.value],
-          disease: type.value[typeindex.value],
-          position: position.value,
-          quantity: quantity.value.toString(),
-          length: length.value,
-          width: width.value,
-          slitWidth: slitWidth.value,
-          heightOrDepth: heightOrDepth.value,
-          area: area.value,
-          description: description.value,
-          level: scalesItems[scalesCurrent.value].value,
-          participateAssess: ratingItems[ratingCurrent.value].value,
-          parentObjectName: parentObjectName.value
-        });
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2265", "复制并新增");
         fileList.value = [];
+        ADImgs.value = [];
         isEdit.value = false;
         uni.showToast({
-          title: "已切换到新增模式",
+          title: "复制成功",
           icon: "none",
           duration: 500
         });
       };
       const editDisease = () => {
-        var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2220", "编辑");
-        let diseaseTypeObj = null;
-        if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
-          diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
-        }
-        let biObjectObj = null;
-        if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
-          biObjectObj = biObjectNameOptions.value[biObjectindex.value];
-        }
-        let componentObj = null;
-        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
-          componentObj = biObjectObj.comments[componentCodeindex.value];
-        }
-        const diseaseData = {
-          createBy: "crh@znjc",
-          createTime: formatDateTime(),
-          updateTime: formatDateTime(),
-          id: ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime(),
-          diseaseType: diseaseTypeObj ? {
-            id: diseaseTypeObj.id,
-            code: diseaseTypeObj.code || "",
-            name: diseaseTypeObj.name,
-            maxScale: diseaseTypeObj.maxScale || 5,
-            minScale: diseaseTypeObj.minScale || 1,
-            status: "0"
-          } : null,
-          diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
-          description: description.value,
-          position: position.value,
-          trend: "稳定",
-          level: parseInt(scalesItems[scalesCurrent.value].value),
-          quantity: parseInt(quantity.value),
-          length: length.value,
-          width: width.value,
-          slitWidth: slitWidth.value,
-          heightOrDepth: heightOrDepth.value,
-          area: area.value,
-          type: type.value[typeindex.value],
-          participateAssess: ratingItems[ratingCurrent.value].value,
-          deductPoints: 35,
-          biObjectId: biObjectObj ? biObjectObj.id : null,
-          projectId: 2,
-          component: componentObj ? {
-            createBy: "admin",
-            createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            id: componentObj.id,
-            code: componentObj.code,
-            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
-            biObjectId: biObjectObj ? biObjectObj.id : null,
-            status: "0",
-            delFlag: "0",
-            biObject: {
-              id: biObjectObj ? biObjectObj.id : null,
-              name: biObjectObj ? biObjectObj.name : "",
-              count: 0
-            },
-            parentObjectName: parentObjectName.value
-          } : null,
-          componentId: componentObj ? componentObj.id : null,
-          buildingId: 37,
-          images: []
-          // 初始化为空数组，等待图片保存后更新
-        };
-        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2295", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2285", "编辑");
+        const diseaseData = createDiseaseData();
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2292", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -14468,9 +15923,9 @@ ${i3}
         });
       };
       const handleFileSelect = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2333", "文件选择事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2330", "文件选择事件", e2);
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2336", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2333", "选择的文件数量:", e2.tempFiles.length);
           const newFiles = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -14490,29 +15945,29 @@ ${i3}
             }
           });
           fileList.value = [...fileList.value];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2372", "更新后的fileList:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2369", "更新后的fileList:", fileList.value);
           const paths = getImagePaths(fileList.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2376", "当前有效路径数:", paths.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2373", "当前有效路径数:", paths.length);
         }
       };
       const handleFileDelete = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2381", "文件删除事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2378", "文件删除事件", e2);
         if (e2 && e2.tempFile && e2.tempFile.name) {
           const fileName = e2.tempFile.name;
           fileList.value = fileList.value.filter((file) => file.name !== fileName);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2390", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2387", "删除后的文件列表:", fileList.value);
         } else if (e2 && e2.index !== void 0 && e2.index >= 0) {
           fileList.value.splice(e2.index, 1);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2394", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2391", "删除后的文件列表:", fileList.value);
         }
       };
       const getImagePaths = (fileListData) => {
         const paths = [];
         if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2403", "文件列表为空");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2400", "文件列表为空");
           return paths;
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2407", "处理文件列表:", fileListData);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2404", "处理文件列表:", fileListData);
         fileListData.forEach((file, index) => {
           let path = "";
           if (file.url) {
@@ -14527,10 +15982,10 @@ ${i3}
             path = file.image.location;
           }
           if (path) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2427", `文件[${index}]有效路径:`, path);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2424", `文件[${index}]有效路径:`, path);
             paths.push(path);
           } else {
-            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2430", `文件[${index}]没有有效路径:`, file);
+            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2427", `文件[${index}]没有有效路径:`, file);
           }
         });
         return paths;
@@ -14563,157 +16018,74 @@ ${i3}
       };
       const fetchStructureData = async () => {
         try {
-          const userId2 = "3";
-          const buildingId2 = "39";
-          const data = await getObject(userId2, buildingId2);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2480", "结构数据获取成功:", data);
+          const data = await getObject(userInfo.username, buildingId.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2473", "结构数据获取成功:", data);
           structureData.value = data;
-          updateBiObjectOptions();
+          return Promise.resolve(data);
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2486", "获取结构数据失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2479", "获取结构数据失败:", error);
           uni.showToast({
             title: "获取结构数据失败",
             icon: "none"
           });
+          return Promise.reject(error);
         }
-      };
-      const updateBiObjectOptions = () => {
-        if (!structureData.value || !structureData.value.children) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2497", "结构数据不完整");
-          return;
-        }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2501", "更新部件类型选项，当前选择:", parentObjectName.value);
-        const structurePart = structureData.value.children.find(
-          (item) => item.name === parentObjectName.value
-        );
-        if (!structurePart || !structurePart.children) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2509", "未找到对应的结构部分或其子项");
-          biObjectName.value = [];
-          return;
-        }
-        biObjectNameOptions.value = structurePart.children;
-        biObjectName.value = structurePart.children.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2517", "部件类型选项更新为:", biObjectName.value);
-        biObjectindex.value = -1;
-        type.value = [];
-        typeindex.value = -1;
-        componentCode.value = [];
-        componentCodeindex.value = -1;
-        if (typeMultiArray.value) {
-          typeMultiArray.value[1] = biObjectName.value;
-        }
-      };
-      const updateComponentNumbers = () => {
-        if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2537", "无效的部件类型选择");
-          componentCode.value = [];
-          return;
-        }
-        const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
-        if (!selectedBiObject) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2544", "选中的部件类型不存在");
-          componentCode.value = [];
-          return;
-        }
-        if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2552", "当前部件类型没有构件编号信息");
-          componentCode.value = ["1", "2", "3"];
-          return;
-        }
-        componentCode.value = selectedBiObject.comments.map((item) => item.code);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2559", "构件编号选项更新为:", componentCode.value);
-        componentCodeindex.value = -1;
       };
       const updateDiseaseTypeOptions = () => {
-        if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2568", "无效的部件类型选择");
-          type.value = [];
+        if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2494", "无效的部件类型选择");
+          diseaseTypeOptions.value = [];
           return;
         }
-        const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
-        if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2575", "选中的部件类型没有缺损类型定义");
-          type.value = [];
+        if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2501", "部件类型选择超出范围");
+          diseaseTypeOptions.value = [];
           return;
         }
-        diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
-        type.value = selectedBiObject.diseaseTypes.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2583", "缺损类型选项更新为:", type.value);
-        typeindex.value = -1;
-      };
-      const openComponentCodePopup = () => {
-        filteredComponentCodes.value = [...componentCode.value];
-        componentCodePopup.value.open();
-      };
-      const checkAndOpenComponentCodePopup = () => {
-        if (biObjectindex.value === -1) {
-          uni.showToast({
-            title: "请先选择部件类型",
-            icon: "none"
-          });
+        const selectedBiObject = biObjectNameOptions.value[typeMultiIndex.value[1]];
+        if (!selectedBiObject) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2509", "选中的部件类型不存在");
+          diseaseTypeOptions.value = [];
           return;
         }
-        openComponentCodePopup();
-      };
-      const checkComponentCodeSelected = () => {
-        if (componentCodeindex.value === -1) {
-          uni.showToast({
-            title: "请先选择构件编号",
-            icon: "none"
-          });
-          return false;
+        allDiseaseTypes = [];
+        if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
+          allDiseaseTypes = [...selectedBiObject.diseaseTypes];
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2520", "第二级病害类型:", allDiseaseTypes);
         }
-        return true;
+        if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children && Array.isArray(selectedBiObject.children) && typeMultiIndex.value[2] < selectedBiObject.children.length) {
+          const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
+          if (selectedThirdLevel && selectedThirdLevel.diseaseTypes && Array.isArray(selectedThirdLevel.diseaseTypes)) {
+            selectedThirdLevel.diseaseTypes.forEach((item) => {
+              if (!allDiseaseTypes.some((existing) => existing.id === item.id)) {
+                allDiseaseTypes.push(item);
+              }
+            });
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2537", "添加第三级后的病害类型:", allDiseaseTypes);
+          }
+        }
+        diseaseTypeOptions.value = allDiseaseTypes.map((item) => item.name);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2544", "最终缺损类型选项更新为:", diseaseTypeOptions.value);
+        if (type.value) {
+          const index = diseaseTypeOptions.value.findIndex((item) => item === type.value);
+          if (index !== -1) {
+            typeindex.value = index;
+            typePicker.value = type.value;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2552", "成功设置病害类型索引:", index);
+          } else {
+            typePicker.value = "其他";
+            typeInput.value = type.value;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2557", "当前病害类型不在选项中，设为自定义输入:", type.value);
+          }
+        }
       };
-      const checkAndOpenDiseasePositionPopup = () => {
-        openPositionPopup();
-      };
-      const openPositionPopup = () => {
-        diseasePositionPopup.value.open();
-      };
-      const volume = vue.ref("");
-      const angle = vue.ref("");
-      const percentage = vue.ref("");
       const clearQuantity = () => {
         quantity.value = "";
       };
-      const clearLength = () => {
-        length.value = "";
-      };
-      const clearWidth = () => {
-        width.value = "";
-      };
-      const clearHeight = () => {
-        heightOrDepth.value = "";
-      };
-      const clearSeamsWidth = () => {
-        slitWidth.value = "";
-      };
-      const clearArea = () => {
-        area.value = "";
-      };
-      const clearVolume = () => {
-        volume.value = "";
-      };
-      const clearAngle = () => {
-        angle.value = "";
-      };
-      const clearPercentage = () => {
-        percentage.value = "";
-      };
-      const getSelectedComponentName = () => {
-        if (biObjectindex.value === -1)
-          return "";
-        if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
-          return typeMultiArray.value[2][typeMultiIndex.value[2]];
-        }
-        if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
-          return typeMultiArray.value[1][typeMultiIndex.value[1]];
-        }
-        return "";
-      };
+      const componentNameInput = vue.ref("");
       const componentCodeInput = vue.ref("");
       const updateDiseasePositionOptions = () => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2575", "开始更新病害位置选项");
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
           diseasePosition.value = [];
           return;
@@ -14728,37 +16100,14 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
               diseasePosition.value = selectedThirdLevel.children.map((item) => item.name);
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2731", "更新病害位置选项为第三级子组件:", diseasePosition.value);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2601", "更新病害位置选项为第三级子组件:", diseasePosition.value);
               return;
             }
           }
         }
-        diseasePosition.value = ["底板", "左翼板", "右翼板", "顶板", "左腹板", "右腹板"];
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2739", "使用默认病害位置选项");
+        diseasePosition.value = [];
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2609", "使用默认病害位置选项");
       };
-      const parseProps = (propsString) => {
-        if (!propsString)
-          return [];
-        const result = [];
-        const refParts = propsString.split("&&");
-        refParts.forEach((refPart) => {
-          const parts = refPart.split(":=");
-          if (parts.length === 2) {
-            const values = parts[1].split("、");
-            values.forEach((value) => {
-              if (value && !result.includes(value)) {
-                result.push(value);
-              }
-            });
-          }
-        });
-        return result;
-      };
-      vue.watch([typeMultiIndex], () => {
-        updateDiseasePositionOptions();
-      }, {
-        deep: true
-      });
       const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
         currentReferenceSurface.value = surfaceNumber;
         currentDiseaseIndex.value = diseaseIndex;
@@ -14781,18 +16130,18 @@ ${i3}
           const matchingChild = selectedComponent.children.find((child) => child.name === position.value);
           if (matchingChild && matchingChild.props) {
             positionProps = matchingChild.props;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2816", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2666", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
           }
         }
         if (!positionProps && selectedComponent && selectedComponent.props) {
           positionProps = selectedComponent.props;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2823", "使用当前选中组件的props:", positionProps);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2673", "使用当前选中组件的props:", positionProps);
         }
         if (positionProps) {
           const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
           if (options && options.length > 0) {
             referenceSurfaceOptions.value = options;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2831", `解析到参考面${surfaceNumber}选项:`, options);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2681", `解析到参考面${surfaceNumber}选项:`, options);
           } else {
             setDefaultReferenceSurfaceOptions(surfaceNumber);
           }
@@ -14803,11 +16152,11 @@ ${i3}
       };
       const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
         if (surfaceNumber === 1) {
-          referenceSurfaceOptions.value = ["小桩号面", "大桩号面"];
+          referenceSurfaceOptions.value = [];
         } else {
-          referenceSurfaceOptions.value = ["左腹板", "右腹板", "内腹板", "外腹板"];
+          referenceSurfaceOptions.value = [];
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2852", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2702", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
       };
       const parsePropsForRef = (propsString, refKey) => {
         if (!propsString)
@@ -14833,39 +16182,147 @@ ${i3}
           return;
         }
         if (currentReferenceSurface.value === 1) {
-          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface1 = referenceSurfaceInput.value.trim();
+          diseaseDataList.value[currentDiseaseIndex.value].reference1Location = referenceSurfaceInput.value.trim();
         } else {
-          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface2 = referenceSurfaceInput.value.trim();
+          diseaseDataList.value[currentDiseaseIndex.value].reference2Location = referenceSurfaceInput.value.trim();
         }
         referenceSurfacePopup.value.close();
       };
       const selectReferenceSurfaceItem = (item) => {
         if (currentReferenceSurface.value === 1) {
-          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface1 = item;
+          diseaseDataList.value[currentDiseaseIndex.value].reference1Location = item;
         } else {
-          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface2 = item;
+          diseaseDataList.value[currentDiseaseIndex.value].reference2Location = item;
         }
         referenceSurfacePopup.value.close();
       };
       const clearReferenceSurfaceStart = (diseaseIndex, surfaceNumber) => {
         if (surfaceNumber === 1) {
-          diseaseDataList.value[diseaseIndex].referenceSurface1Start = "";
+          diseaseDataList.value[diseaseIndex].reference1LocationStart = "";
         } else {
-          diseaseDataList.value[diseaseIndex].referenceSurface2Start = "";
+          diseaseDataList.value[diseaseIndex].reference2LocationStart = "";
         }
       };
       const clearReferenceSurfaceEnd = (diseaseIndex, surfaceNumber) => {
         if (surfaceNumber === 1) {
-          diseaseDataList.value[diseaseIndex].referenceSurface1End = "";
+          diseaseDataList.value[diseaseIndex].reference1LocationEnd = "";
         } else {
-          diseaseDataList.value[diseaseIndex].referenceSurface2End = "";
+          diseaseDataList.value[diseaseIndex].reference2LocationEnd = "";
         }
       };
       const currentDiseaseIndex = vue.ref(0);
-      const __returned__ = { popup, ADImgs, userId, buildingId, isEdit, structureData, parentObjectName, biObjectNameOptions, diseaseTypeOptions, biObjectName, biObjectindex, componentCode, componentCodeindex, componentCodePopup, filteredComponentCodes, componentCodeFilter, type, typeindex, position, diseaseDataList, quantity, updateDiseaseDataList, WayofDefect, WayofDefectindex, length, width, slitWidth, heightOrDepth, area, description, fileList, scalesItems, scalesCurrent, ratingItems, ratingCurrent, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, crackCharacteristicsIndex, crackCharacteristics, trend, trendindex, referenceSurface1, referenceSurface2, referenceSurfacePopup, currentReferenceSurface, referenceSurfaceInput, referenceSurfaceOptions, initMultiPickerColumns, updateThirdColumn, typeColumnChange, typeMultiPickerChange, fillFormWithData, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, savedisease, canceldisease, typePickerChange, numberPickerChange, TypeofdefectPickerChange, WayofDefectPickerChange, ScalesRadioChange, RatingsRadioChange, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateBiObjectOptions, updateComponentNumbers, updateDiseaseTypeOptions, openComponentCodePopup, checkAndOpenComponentCodePopup, checkComponentCodeSelected, checkAndOpenDiseasePositionPopup, openPositionPopup, volume, angle, percentage, clearQuantity, clearLength, clearWidth, clearHeight, clearSeamsWidth, clearArea, clearVolume, clearAngle, clearPercentage, getSelectedComponentName, componentCodeInput, updateDiseasePositionOptions, parseProps, openReferenceSurfacePopup, setDefaultReferenceSurfaceOptions, parsePropsForRef, confirmreferenceSurfaceInput, selectReferenceSurfaceItem, clearReferenceSurfaceStart, clearReferenceSurfaceEnd, currentDiseaseIndex, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, get getObject() {
+      const getThirdLevelComponentId = () => {
+        let thirdLevelComponentId = null;
+        if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
+          const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+          if (selectedSecondLevel && selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) && typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+            const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+            if (selectedThirdLevel && selectedThirdLevel.id) {
+              thirdLevelComponentId = selectedThirdLevel.id;
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2790", "找到第三级组件ID:", thirdLevelComponentId);
+            }
+          }
+        }
+        return thirdLevelComponentId;
+      };
+      const getThirdLevelComponentName = () => {
+        let thirdLevelComponentName = null;
+        if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
+          const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+          if (selectedSecondLevel && selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) && typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+            const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+            if (selectedThirdLevel && selectedThirdLevel.name) {
+              thirdLevelComponentName = selectedThirdLevel.name;
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2808", "找到第三级组件Name:", thirdLevelComponentName);
+            }
+          }
+        }
+        return thirdLevelComponentName;
+      };
+      const isThirdLevelOther = () => {
+        if (typeMultiIndex.value[1] < 0 || typeMultiIndex.value[2] < 0) {
+          return true;
+        }
+        const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+        if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
+          return true;
+        }
+        return typeMultiIndex.value[2] >= selectedSecondLevel.children.length;
+      };
+      vue.watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
+        if (newTypePicker === "其他" && newTypeInput) {
+          type.value = newTypeInput;
+        } else {
+          type.value = newTypePicker;
+        }
+      }, {
+        deep: true
+      });
+      const onDiseaseTypeChange = (e2) => {
+        const index = e2.detail.value;
+        if (index >= 0 && index < diseaseTypeOptions.value.length) {
+          typePicker.value = diseaseTypeOptions.value[index];
+          typeindex.value = index;
+          if (typePicker.value === "其他") {
+            typeInput.value = "";
+          } else {
+            type.value = typePicker.value;
+            const selectedDiseaseType = allDiseaseTypes.find((item) => item.name === typePicker.value);
+            if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
+              const minScale = parseInt(selectedDiseaseType.minScale) || 1;
+              const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
+              const newLevelOptions = [];
+              for (let i2 = minScale; i2 <= maxScale; i2++) {
+                newLevelOptions.push({
+                  text: String(i2),
+                  value: i2
+                });
+              }
+              level.value = newLevelOptions;
+              if (levelindex.value < minScale || levelindex.value > maxScale) {
+                levelindex.value = minScale;
+              }
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2878", "更新评定标度范围:", minScale, "至", maxScale);
+            }
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2882", "病害类型选择变更为:", typePicker.value);
+        }
+      };
+      const onDiseasePositionChange = (e2) => {
+        const index = e2.detail.value;
+        if (index >= 0 && index < diseasePosition.value.length) {
+          positionPicker.value = diseasePosition.value[index];
+          if (positionPicker.value === "其他") {
+            positionInput.value = "";
+          } else {
+            position.value = positionPicker.value;
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2900", "病害位置选择变更为:", positionPicker.value);
+        }
+      };
+      vue.watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
+        if (newPositionPicker === "其他" && newPositionInput) {
+          position.value = newPositionInput;
+        } else if (newPositionPicker !== "其他") {
+          position.value = newPositionPicker;
+        }
+      }, {
+        deep: true
+      });
+      const __returned__ = { userId, userInfo, idStorageInfo, buildingId, bridgeIdFromURL, popup, ADImgs, isEdit, structureData, parentObjectName, grandObjectName, biObjectNameOptions, diseaseTypeOptions, componentNamePicker, biObjectindex, componentCode, componentCodeindex, filteredComponentCodes, get allDiseaseTypes() {
+        return allDiseaseTypes;
+      }, set allDiseaseTypes(v2) {
+        allDiseaseTypes = v2;
+      }, type, typeindex, typePicker, typeInput, position, positionPicker, positionInput, diseaseDataList, quantity, updateDiseaseDataList, length, width, crackWidth, heightDepth, area, description, fileList, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, crackTypeIndex, crackType, developmentTrend, developmentTrendindex, reference1Location, reference2Location, referenceSurfacePopup, currentReferenceSurface, referenceSurfaceInput, referenceSurfaceOptions, initMultiPickerColumns, updateThirdColumn, typeColumnChange, updateComponentNameValues, typeMultiPickerChange, fillFormWithData, findIndexByText, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, getComponentName, savedisease, canceldisease, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateDiseaseTypeOptions, clearQuantity, componentNameInput, componentCodeInput, updateDiseasePositionOptions, openReferenceSurfacePopup, setDefaultReferenceSurfaceOptions, parsePropsForRef, confirmreferenceSurfaceInput, selectReferenceSurfaceItem, clearReferenceSurfaceStart, clearReferenceSurfaceEnd, currentDiseaseIndex, getThirdLevelComponentId, getThirdLevelComponentName, isThirdLevelOther, onDiseaseTypeChange, onDiseasePositionChange, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, computed: vue.computed, get getObject() {
         return getObject;
+      }, get readDiseaseImages() {
+        return readDiseaseImages;
       }, get saveDiseaseImages() {
         return saveDiseaseImages;
+      }, get userStore() {
+        return userStore;
+      }, get idStore() {
+        return idStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -14932,34 +16389,66 @@ ${i3}
             vue.createElementVNode("view", { class: "head-text" }, " 病害基础信息 ")
           ]),
           vue.createCommentVNode(" 将原来的部件类型picker改为multiSelector "),
-          vue.createElementVNode("picker", {
-            class: "picker",
-            mode: "multiSelector",
-            onChange: $setup.typeMultiPickerChange,
-            onColumnchange: $setup.typeColumnChange,
-            value: $setup.typeMultiIndex,
-            range: $setup.typeMultiArray
-          }, [
-            vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
-              vue.createElementVNode("view", { class: "picker-left" }, [
-                vue.createElementVNode("text", { class: "picker-must" }, "*"),
-                vue.createElementVNode("view", { class: "picker-title" }, " 构件名称 ")
-              ]),
-              vue.createElementVNode("view", { class: "picker-right" }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "picker-content",
-                    style: vue.normalizeStyle($setup.biObjectindex === -1 ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.getSelectedComponentName() || "请选择部件类型"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+          vue.createElementVNode("view", { class: "component-name" }, [
+            vue.createElementVNode("picker", {
+              class: "picker",
+              mode: "multiSelector",
+              onChange: $setup.typeMultiPickerChange,
+              onColumnchange: $setup.typeColumnChange,
+              value: $setup.typeMultiIndex,
+              range: $setup.typeMultiArray
+            }, [
+              vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
+                vue.createElementVNode("view", { class: "picker-left" }, [
+                  vue.createElementVNode("text", { class: "picker-must" }, "*"),
+                  vue.createElementVNode("view", { class: "picker-title" }, " 构件名称 ")
+                ]),
+                vue.createElementVNode("view", { class: "picker-right" }, [
+                  vue.createElementVNode(
+                    "view",
+                    {
+                      class: "picker-content",
+                      style: vue.normalizeStyle($setup.componentNamePicker === "" ? "color: #CCCCCC;" : "")
+                    },
+                    vue.toDisplayString($setup.componentNamePicker || "请选择构件名称"),
+                    5
+                    /* TEXT, STYLE */
+                  ),
+                  vue.createElementVNode("text", { class: "picker-icon" }, ">"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "view",
+                    { class: "component-name-input" },
+                    [
+                      vue.withDirectives(vue.createElementVNode(
+                        "input",
+                        {
+                          class: "component-code-input",
+                          "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.componentNameInput = $event),
+                          placeholder: "请输入构件名称",
+                          "placeholder-style": "color: #CCCCCC;",
+                          onClick: _cache[1] || (_cache[1] = vue.withModifiers(() => {
+                          }, ["stop"]))
+                        },
+                        null,
+                        512
+                        /* NEED_PATCH */
+                      ), [
+                        [vue.vModelText, $setup.componentNameInput]
+                      ]),
+                      vue.createElementVNode("view", {
+                        class: "clear-input",
+                        onClick: _cache[2] || (_cache[2] = vue.withModifiers(($event) => $setup.componentNameInput = "", ["stop"]))
+                      }, "×")
+                    ],
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vShow, $setup.componentNamePicker === "其他"]
+                  ])
+                ])
               ])
-            ])
-          ], 40, ["value", "range"]),
+            ], 40, ["value", "range"])
+          ]),
           vue.createCommentVNode(" 替换原来的构件编号picker为input输入框 "),
           vue.createElementVNode("view", { class: "picker" }, [
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
@@ -14972,7 +16461,7 @@ ${i3}
                   "input",
                   {
                     class: "component-code-input",
-                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.componentCodeInput = $event),
+                    "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.componentCodeInput = $event),
                     placeholder: "请输入构件编号",
                     "placeholder-style": "color: #CCCCCC;"
                   },
@@ -14984,125 +16473,128 @@ ${i3}
                 ]),
                 vue.createElementVNode("view", {
                   class: "clear-input",
-                  onClick: _cache[1] || (_cache[1] = ($event) => $setup.componentCodeInput = "")
+                  onClick: _cache[4] || (_cache[4] = ($event) => $setup.componentCodeInput = "")
                 }, "×")
               ])
             ])
           ]),
-          vue.createElementVNode("picker", {
-            class: "picker",
-            onChange: $setup.TypeofdefectPickerChange,
-            value: $setup.typeindex,
-            range: $setup.type
-          }, [
+          vue.createCommentVNode(" 修改病害类型选择器 "),
+          vue.createElementVNode("view", { class: "picker" }, [
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
               vue.createElementVNode("view", { class: "picker-left" }, [
                 vue.createElementVNode("text", { class: "picker-must" }, "*"),
                 vue.createElementVNode("view", { class: "picker-title" }, " 病害类型 ")
               ]),
               vue.createElementVNode("view", { class: "picker-right" }, [
-                vue.createElementVNode(
+                vue.createElementVNode("picker", {
+                  class: "picker",
+                  range: $setup.diseaseTypeOptions,
+                  onChange: $setup.onDiseaseTypeChange
+                }, [
+                  vue.createElementVNode(
+                    "view",
+                    {
+                      class: "picker-content",
+                      style: vue.normalizeStyle(!$setup.typePicker ? "color: #CCCCCC;" : "")
+                    },
+                    vue.toDisplayString($setup.typePicker || "请选择病害类型"),
+                    5
+                    /* TEXT, STYLE */
+                  )
+                ], 40, ["range"]),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">"),
+                vue.withDirectives(vue.createElementVNode(
                   "view",
-                  {
-                    class: "picker-content",
-                    style: vue.normalizeStyle($setup.typeindex === -1 ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.type[$setup.typeindex] || "请选择缺损类型"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+                  { class: "component-name-input" },
+                  [
+                    vue.withDirectives(vue.createElementVNode(
+                      "input",
+                      {
+                        class: "component-code-input",
+                        "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.typeInput = $event),
+                        placeholder: "请输入病害类型",
+                        "placeholder-style": "color: #CCCCCC;",
+                        onClick: _cache[6] || (_cache[6] = vue.withModifiers(() => {
+                        }, ["stop"]))
+                      },
+                      null,
+                      512
+                      /* NEED_PATCH */
+                    ), [
+                      [vue.vModelText, $setup.typeInput]
+                    ]),
+                    vue.createElementVNode("view", {
+                      class: "clear-input",
+                      onClick: _cache[7] || (_cache[7] = vue.withModifiers(($event) => $setup.typeInput = "", ["stop"]))
+                    }, "×")
+                  ],
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vShow, $setup.typePicker === "其他"]
+                ])
               ])
             ])
-          ], 40, ["value", "range"]),
-          vue.createCommentVNode(" 修改病害位置区域 - 添加点击事件 "),
-          vue.createElementVNode("view", {
-            class: "picker",
-            onClick: $setup.openPositionPopup
-          }, [
+          ]),
+          vue.createCommentVNode(" 修改病害位置区域 - 从弹窗改为picker和input组合 "),
+          vue.createElementVNode("view", { class: "picker" }, [
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
               vue.createElementVNode("view", { class: "picker-left" }, [
                 vue.createElementVNode("text", { class: "picker-must" }, "*"),
                 vue.createElementVNode("view", { class: "picker-title" }, " 病害位置 ")
               ]),
               vue.createElementVNode("view", { class: "picker-right" }, [
-                vue.createElementVNode(
+                vue.createElementVNode("picker", {
+                  class: "picker",
+                  range: $setup.diseasePosition,
+                  onChange: $setup.onDiseasePositionChange
+                }, [
+                  vue.createElementVNode(
+                    "view",
+                    {
+                      class: "picker-content",
+                      style: vue.normalizeStyle(!$setup.positionPicker ? "color: #CCCCCC;" : "")
+                    },
+                    vue.toDisplayString($setup.positionPicker || "请选择病害位置"),
+                    5
+                    /* TEXT, STYLE */
+                  )
+                ], 40, ["range"]),
+                vue.createElementVNode("text", { class: "picker-icon" }, ">"),
+                vue.withDirectives(vue.createElementVNode(
                   "view",
-                  {
-                    class: "picker-content",
-                    style: vue.normalizeStyle(!$setup.position ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.position || "请选择病害位置"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+                  { class: "component-name-input" },
+                  [
+                    vue.withDirectives(vue.createElementVNode(
+                      "input",
+                      {
+                        class: "component-code-input",
+                        "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $setup.positionInput = $event),
+                        placeholder: "请输入病害位置",
+                        "placeholder-style": "color: #CCCCCC;",
+                        onClick: _cache[9] || (_cache[9] = vue.withModifiers(() => {
+                        }, ["stop"]))
+                      },
+                      null,
+                      512
+                      /* NEED_PATCH */
+                    ), [
+                      [vue.vModelText, $setup.positionInput]
+                    ]),
+                    vue.createElementVNode("view", {
+                      class: "clear-input",
+                      onClick: _cache[10] || (_cache[10] = vue.withModifiers(($event) => $setup.positionInput = "", ["stop"]))
+                    }, "×")
+                  ],
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vShow, $setup.positionPicker === "其他"]
+                ])
               ])
             ])
           ])
         ]),
-        vue.createCommentVNode(`			<view class="part-typeandnumber">\r
-\r
-				<picker class="picker-type" @change="typePickerChange" :value="biObjectindex" :range="biObjectName">\r
-					<view class="picker-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title" style="position: relative;">\r
-								<text style="position: absolute; left: -10px; color: red;">*</text>部件类型\r
-							</view>\r
-							<view class="part-content" :style="biObjectindex === -1 ? 'color: #CCCCCC;' : ''">\r
-								{{ biObjectName[biObjectindex] || '请选择部件类型'}}\r
-							</view>\r
-						</view>\r
-						<view class="part-icon">&gt;</view>\r
-					</view>\r
-				</picker>\r
-\r
-\r
-				<picker class="picker-number" @change="numberPickerChange" :value="componentCodeindex"\r
-					:range="componentCode">\r
-					<view class="picker-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title" style="position: relative;">\r
-								<text style="position: absolute; left: -10px; color: red;">*</text>构件编号\r
-							</view>\r
-							<view class="part-content" :style="componentCodeindex === -1 ? 'color: #CCCCCC;' : ''">\r
-								{{ componentCode[componentCodeindex] || '请选择构件编号'}}\r
-							</view>\r
-						</view>\r
-						<view class="part-icon">&gt;</view>\r
-					</view>\r
-				</picker>\r
-\r
-			</view>\r
-\r
-			<view class="part-Typeofdefect">\r
-				<picker class="picker-Typeofdefect" @change="TypeofdefectPickerChange" :value="typeindex" :range="type">\r
-					<view class="picker-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title" style="position: relative;">\r
-								<text style="position: absolute; left: -10px; color: red;">*</text>缺损类型\r
-							</view>\r
-							<view class="part-content" :style="typeindex === -1 ? 'color: #CCCCCC;' : ''">\r
-								{{type[typeindex] || '请选择缺损类型'}}\r
-							</view>\r
-						</view>\r
-\r
-						<view class="part-icon">&gt;</view>\r
-					</view>\r
-				</picker>\r
-			</view>\r
-\r
-			<view class="part-Positionofdefect">\r
-				<view class="input-content">\r
-					<view class="part-titleandcontent">\r
-						<view class="part-title" style="position: relative;">\r
-							<text style="position: absolute; left: -10px; color: red;">*</text>缺损位置\r
-						</view>\r
-						<input type="text" placeholder="请填写缺损位置信息" class="input-text"\r
-							placeholder-class="input-text-placeholder" v-model="position">\r
-					</view>\r
-				</view>\r
-			</view>`),
         vue.createElementVNode("view", null, [
           vue.createElementVNode("view", { class: "head" }, [
             vue.createElementVNode("view", { class: "head-text" }, " 病害定量数据 ")
@@ -15120,7 +16612,7 @@ ${i3}
                     class: "quantitative-data-right-value-input",
                     placeholder: "请填写",
                     type: "number",
-                    "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.quantity = $event)
+                    "onUpdate:modelValue": _cache[11] || (_cache[11] = ($event) => $setup.quantity = $event)
                   },
                   null,
                   512
@@ -15166,9 +16658,9 @@ ${i3}
                   vue.createElementVNode("view", { class: "line-select-right" }, [
                     vue.createVNode(_component_uni_data_checkbox, {
                       mode: "tag",
-                      modelValue: diseaseData.crackCharacteristicsIndex,
-                      "onUpdate:modelValue": ($event) => diseaseData.crackCharacteristicsIndex = $event,
-                      localdata: $setup.crackCharacteristics
+                      modelValue: diseaseData.crackTypeIndex,
+                      "onUpdate:modelValue": ($event) => diseaseData.crackTypeIndex = $event,
+                      localdata: $setup.crackType
                     }, null, 8, ["modelValue", "onUpdate:modelValue", "localdata"])
                   ])
                 ]),
@@ -15184,9 +16676,9 @@ ${i3}
                         "view",
                         {
                           class: "location-description-right-position-input",
-                          style: vue.normalizeStyle(!diseaseData.referenceSurface1 ? "color: #CCCCCC;" : "")
+                          style: vue.normalizeStyle(!diseaseData.reference1Location ? "color: #CCCCCC;" : "")
                         },
-                        vue.toDisplayString(diseaseData.referenceSurface1 || "请选择"),
+                        vue.toDisplayString(diseaseData.reference1Location || "请选择"),
                         5
                         /* TEXT, STYLE */
                       ),
@@ -15196,9 +16688,9 @@ ${i3}
                       vue.withDirectives(vue.createElementVNode("input", {
                         type: "text",
                         placeholder: "起点位置",
-                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface1Start = $event
+                        "onUpdate:modelValue": ($event) => diseaseData.reference1LocationStart = $event
                       }, null, 8, ["onUpdate:modelValue"]), [
-                        [vue.vModelText, diseaseData.referenceSurface1Start]
+                        [vue.vModelText, diseaseData.reference1LocationStart]
                       ]),
                       vue.createElementVNode("view", {
                         class: "clear-input",
@@ -15209,9 +16701,9 @@ ${i3}
                       vue.withDirectives(vue.createElementVNode("input", {
                         type: "text",
                         placeholder: "终点位置",
-                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface1End = $event
+                        "onUpdate:modelValue": ($event) => diseaseData.reference1LocationEnd = $event
                       }, null, 8, ["onUpdate:modelValue"]), [
-                        [vue.vModelText, diseaseData.referenceSurface1End]
+                        [vue.vModelText, diseaseData.reference1LocationEnd]
                       ]),
                       vue.createElementVNode("view", {
                         class: "clear-input",
@@ -15235,9 +16727,9 @@ ${i3}
                         "view",
                         {
                           class: "location-description-right-position-input",
-                          style: vue.normalizeStyle(!diseaseData.referenceSurface2 ? "color: #CCCCCC;" : "")
+                          style: vue.normalizeStyle(!diseaseData.reference2Location ? "color: #CCCCCC;" : "")
                         },
-                        vue.toDisplayString(diseaseData.referenceSurface2 || "请选择"),
+                        vue.toDisplayString(diseaseData.reference2Location || "请选择"),
                         5
                         /* TEXT, STYLE */
                       ),
@@ -15247,9 +16739,9 @@ ${i3}
                       vue.withDirectives(vue.createElementVNode("input", {
                         type: "text",
                         placeholder: "起点位置",
-                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface2Start = $event
+                        "onUpdate:modelValue": ($event) => diseaseData.reference2LocationStart = $event
                       }, null, 8, ["onUpdate:modelValue"]), [
-                        [vue.vModelText, diseaseData.referenceSurface2Start]
+                        [vue.vModelText, diseaseData.reference2LocationStart]
                       ]),
                       vue.createElementVNode("view", {
                         class: "clear-input",
@@ -15260,9 +16752,9 @@ ${i3}
                       vue.withDirectives(vue.createElementVNode("input", {
                         type: "text",
                         placeholder: "终点位置",
-                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface2End = $event
+                        "onUpdate:modelValue": ($event) => diseaseData.reference2LocationEnd = $event
                       }, null, 8, ["onUpdate:modelValue"]), [
-                        [vue.vModelText, diseaseData.referenceSurface2End]
+                        [vue.vModelText, diseaseData.reference2LocationEnd]
                       ]),
                       vue.createElementVNode("view", {
                         class: "clear-input",
@@ -15288,13 +16780,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.lengthMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.lengthRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.lengthMin]
+                          [vue.vModelText, diseaseData.lengthRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.lengthMin = ""
+                          onClick: ($event) => diseaseData.lengthRangeStart = ""
                         }, "×", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
@@ -15303,13 +16795,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.lengthMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.lengthRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.lengthMax]
+                          [vue.vModelText, diseaseData.lengthRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.lengthMax = ""
+                          onClick: ($event) => diseaseData.lengthRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15354,13 +16846,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.widthMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.widthRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.widthMin]
+                          [vue.vModelText, diseaseData.widthRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.widthMin = ""
+                          onClick: ($event) => diseaseData.widthRangeStart = ""
                         }, "×", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
@@ -15369,13 +16861,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.widthMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.widthRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.widthMax]
+                          [vue.vModelText, diseaseData.widthRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.widthMax = ""
+                          onClick: ($event) => diseaseData.widthRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15420,14 +16912,14 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.heightOrDepthMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.heightDepthRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.heightOrDepthMin]
+                          [vue.vModelText, diseaseData.heightDepthRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.heightOrDepthMin = ""
-                        }, "×", 8, ["onClick"])
+                          onClick: ($event) => diseaseData.heightDepthRangeStart = ""
+                        }, "× ", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
                       vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
@@ -15435,13 +16927,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.heightOrDepthMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.heightDepthRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.heightOrDepthMax]
+                          [vue.vModelText, diseaseData.heightDepthRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.heightOrDepthMax = ""
+                          onClick: ($event) => diseaseData.heightDepthRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15454,13 +16946,13 @@ ${i3}
                             class: "quantitative-data-right-value-input",
                             placeholder: "请填写",
                             type: "number",
-                            "onUpdate:modelValue": ($event) => diseaseData.heightOrDepth = $event
+                            "onUpdate:modelValue": ($event) => diseaseData.heightDepth = $event
                           }, null, 8, ["onUpdate:modelValue"]), [
-                            [vue.vModelText, diseaseData.heightOrDepth]
+                            [vue.vModelText, diseaseData.heightDepth]
                           ]),
                           vue.createElementVNode("view", {
                             class: "clear-input",
-                            onClick: ($event) => diseaseData.heightOrDepth = ""
+                            onClick: ($event) => diseaseData.heightDepth = ""
                           }, "×", 8, ["onClick"])
                         ])
                       ],
@@ -15486,14 +16978,14 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.slitWidthMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.crackWidthRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.slitWidthMin]
+                          [vue.vModelText, diseaseData.crackWidthRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.slitWidthMin = ""
-                        }, "×", 8, ["onClick"])
+                          onClick: ($event) => diseaseData.crackWidthRangeStart = ""
+                        }, "× ", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
                       vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
@@ -15501,13 +16993,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.slitWidthMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.crackWidthRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.slitWidthMax]
+                          [vue.vModelText, diseaseData.crackWidthRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.slitWidthMax = ""
+                          onClick: ($event) => diseaseData.crackWidthRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15520,13 +17012,13 @@ ${i3}
                             class: "quantitative-data-right-value-input",
                             placeholder: "请填写",
                             type: "number",
-                            "onUpdate:modelValue": ($event) => diseaseData.slitWidth = $event
+                            "onUpdate:modelValue": ($event) => diseaseData.crackWidth = $event
                           }, null, 8, ["onUpdate:modelValue"]), [
-                            [vue.vModelText, diseaseData.slitWidth]
+                            [vue.vModelText, diseaseData.crackWidth]
                           ]),
                           vue.createElementVNode("view", {
                             class: "clear-input",
-                            onClick: ($event) => diseaseData.slitWidth = ""
+                            onClick: ($event) => diseaseData.crackWidth = ""
                           }, "×", 8, ["onClick"])
                         ])
                       ],
@@ -15552,13 +17044,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.areaMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.areaRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.areaMin]
+                          [vue.vModelText, diseaseData.areaRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.areaMin = ""
+                          onClick: ($event) => diseaseData.areaRangeStart = ""
                         }, "×", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
@@ -15567,13 +17059,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.areaMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.areaRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.areaMax]
+                          [vue.vModelText, diseaseData.areaRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.areaMax = ""
+                          onClick: ($event) => diseaseData.areaRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15618,13 +17110,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.volumeMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.volumeRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.volumeMin]
+                          [vue.vModelText, diseaseData.volumeRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.volumeMin = ""
+                          onClick: ($event) => diseaseData.volumeRangeStart = ""
                         }, "×", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
@@ -15633,13 +17125,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.volumeMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.volumeRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.volumeMax]
+                          [vue.vModelText, diseaseData.volumeRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.volumeMax = ""
+                          onClick: ($event) => diseaseData.volumeRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15684,13 +17176,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.angleMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.angleRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.angleMin]
+                          [vue.vModelText, diseaseData.angleRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.angleMin = ""
+                          onClick: ($event) => diseaseData.angleRangeStart = ""
                         }, "×", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
@@ -15699,13 +17191,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.angleMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.angleRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.angleMax]
+                          [vue.vModelText, diseaseData.angleRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.angleMax = ""
+                          onClick: ($event) => diseaseData.angleRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15750,14 +17242,14 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最小值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.percentageMin = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.percentageRangeStart = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.percentageMin]
+                          [vue.vModelText, diseaseData.percentageRangeStart]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.percentageMin = ""
-                        }, "×", 8, ["onClick"])
+                          onClick: ($event) => diseaseData.percentageRangeStart = ""
+                        }, "× ", 8, ["onClick"])
                       ]),
                       vue.createElementVNode("view", { class: "range-separator" }, "-"),
                       vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
@@ -15765,13 +17257,13 @@ ${i3}
                           class: "quantitative-data-right-value-input",
                           placeholder: "最大值",
                           type: "number",
-                          "onUpdate:modelValue": ($event) => diseaseData.percentageMax = $event
+                          "onUpdate:modelValue": ($event) => diseaseData.percentageRangeEnd = $event
                         }, null, 8, ["onUpdate:modelValue"]), [
-                          [vue.vModelText, diseaseData.percentageMax]
+                          [vue.vModelText, diseaseData.percentageRangeEnd]
                         ]),
                         vue.createElementVNode("view", {
                           class: "clear-input",
-                          onClick: ($event) => diseaseData.percentageMax = ""
+                          onClick: ($event) => diseaseData.percentageRangeEnd = ""
                         }, "×", 8, ["onClick"])
                       ])
                     ])) : (vue.openBlock(), vue.createElementBlock(
@@ -15810,9 +17302,9 @@ ${i3}
                   vue.createElementVNode("view", { class: "line-select-right" }, [
                     vue.createVNode(_component_uni_data_checkbox, {
                       mode: "tag",
-                      modelValue: diseaseData.trendIndex,
-                      "onUpdate:modelValue": ($event) => diseaseData.trendIndex = $event,
-                      localdata: $setup.trend
+                      modelValue: diseaseData.developmentTrendIndex,
+                      "onUpdate:modelValue": ($event) => diseaseData.developmentTrendIndex = $event,
+                      localdata: $setup.developmentTrend
                     }, null, 8, ["modelValue", "onUpdate:modelValue", "localdata"])
                   ])
                 ])
@@ -15835,7 +17327,7 @@ ${i3}
               "textarea",
               {
                 class: "input-area-content",
-                "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.description = $event),
+                "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $setup.description = $event),
                 placeholder: "请填写病害信息",
                 "auto-height": ""
               },
@@ -15855,176 +17347,110 @@ ${i3}
               vue.createVNode(_component_uni_data_checkbox, {
                 mode: "tag",
                 modelValue: $setup.natureindex,
-                "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.natureindex = $event),
+                "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $setup.natureindex = $event),
                 localdata: $setup.nature
               }, null, 8, ["modelValue", "localdata"])
             ])
           ]),
-          vue.createElementVNode("view", { class: "line-select" }, [
-            vue.createElementVNode("view", { class: "line-select-left" }, [
-              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createElementVNode("view", null, "参与评定（构件扣分25）")
-            ]),
-            vue.createElementVNode("view", { class: "line-select-right" }, [
-              vue.createVNode(_component_uni_data_checkbox, {
-                mode: "tag",
-                modelValue: $setup.participateAssessindex,
-                "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.participateAssessindex = $event),
-                localdata: $setup.participateAssess
-              }, null, 8, ["modelValue", "localdata"])
+          vue.withDirectives(vue.createElementVNode(
+            "view",
+            { class: "line-select" },
+            [
+              vue.createElementVNode("view", { class: "line-select-left" }, [
+                vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+                vue.createElementVNode("view", null, "参与评定（构件扣分25）")
+              ]),
+              vue.createElementVNode("view", { class: "line-select-right" }, [
+                vue.createVNode(_component_uni_data_checkbox, {
+                  mode: "tag",
+                  modelValue: $setup.participateAssessindex,
+                  "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => $setup.participateAssessindex = $event),
+                  localdata: $setup.participateAssess
+                }, null, 8, ["modelValue", "localdata"])
+              ])
+            ],
+            512
+            /* NEED_PATCH */
+          ), [
+            [vue.vShow, $setup.componentNamePicker !== "其他"]
+          ]),
+          vue.withDirectives(vue.createElementVNode(
+            "view",
+            { class: "line-select" },
+            [
+              vue.createElementVNode("view", { class: "line-select-left" }, [
+                vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+                vue.createElementVNode("view", null, "评定标度")
+              ]),
+              vue.createElementVNode("view", { class: "line-select-right" }, [
+                vue.createVNode(_component_uni_data_checkbox, {
+                  mode: "tag",
+                  modelValue: $setup.levelindex,
+                  "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $setup.levelindex = $event),
+                  localdata: $setup.level
+                }, null, 8, ["modelValue", "localdata"])
+              ])
+            ],
+            512
+            /* NEED_PATCH */
+          ), [
+            [vue.vShow, $setup.componentNamePicker !== "其他"]
+          ])
+        ]),
+        vue.createElementVNode("view", null, [
+          vue.createElementVNode("view", { class: "head" }, [
+            vue.createElementVNode("view", { class: "head-text" }, " 病害附件信息 ")
+          ]),
+          vue.createElementVNode("view", { class: "part-UploadImage" }, [
+            vue.createElementVNode("view", { class: "part-title" }, "上传图片或视频"),
+            vue.createElementVNode("view", { class: "upload-view" }, [
+              vue.createVNode(_component_uni_file_picker, {
+                class: "file-picker",
+                limit: "9",
+                "image-styles": $setup.imageStyles,
+                modelValue: $setup.fileList,
+                "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $setup.fileList = $event),
+                "file-mediatype": "image",
+                mode: "grid",
+                onSelect: $setup.handleFileSelect,
+                onDelete: $setup.handleFileDelete,
+                "auto-upload": false
+              }, null, 8, ["image-styles", "modelValue"])
             ])
           ]),
-          vue.createElementVNode("view", { class: "line-select" }, [
-            vue.createElementVNode("view", { class: "line-select-left" }, [
-              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createElementVNode("view", null, "评定标度")
-            ]),
-            vue.createElementVNode("view", { class: "line-select-right" }, [
-              vue.createVNode(_component_uni_data_checkbox, {
-                mode: "tag",
-                modelValue: $setup.levelindex,
-                "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.levelindex = $event),
-                localdata: $setup.level
-              }, null, 8, ["modelValue", "localdata"])
-            ])
-          ])
-        ]),
-        vue.createCommentVNode(`			<view class="part-NumAndWayofDefect">\r
-\r
-				<view class="part-NumofDefect">\r
-					<view class="picker-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title" style="position: relative;">\r
-								<text style="position: absolute; left: -10px; color: red;">*</text>缺损数量\r
-							</view>\r
-							<uni-number-box class="NumofDefect" v-model="quantity" />\r
-						</view>\r
-\r
-					</view>\r
-				</view>\r
-\r
-				<picker class="part-WayofDefect" @change="WayofDefectPickerChange" :value="WayofDefectindex"\r
-					:range="WayofDefect">\r
-					<view class="picker-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">数据记载方式</view>\r
-							<view class="part-content" :style="WayofDefectindex === -1 ? 'color: #CCCCCC;' : ''">\r
-								{{WayofDefect[WayofDefectindex] || '请选择数据记载方式'}}\r
-							</view>\r
-						</view>\r
-						<view class="part-icon">&gt;</view>\r
-					</view>\r
-				</picker>\r
-\r
-			</view>\r
-\r
-			<view class="part-LengthAndWidth">\r
-				<view class="part-Length">\r
-					<view class="input-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">长度(m)</view>\r
-							<input type="text" placeholder="长度数据" class="input-text"\r
-								placeholder-class="input-text-placeholder" v-model="length">\r
-						</view>\r
-					</view>\r
-				</view>\r
-\r
-				<view class="part-Width">\r
-					<view class="input-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">宽度(m)</view>\r
-							<input type="text" placeholder="宽度数据" class="input-text"\r
-								placeholder-class="input-text-placeholder" v-model="width">\r
-						</view>\r
-					</view>\r
-				</view>\r
-\r
-			</view>\r
-\r
-			<view class="part-SeamWidth-height-area">\r
-				<view class="part-SeamWidth">\r
-					<view class="input-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">缝宽(mm)</view>\r
-							<input type="text" placeholder="缝宽数据" class="input-text"\r
-								placeholder-class="input-text-placeholder" v-model="slitWidth">\r
-						</view>\r
-					</view>\r
-				</view>\r
-\r
-				<view class="part-height">\r
-					<view class="input-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">高度/深度(m)</view>\r
-							<input type="text" placeholder="高度/深度数据" class="input-text"\r
-								placeholder-class="input-text-placeholder" v-model="heightOrDepth">\r
-						</view>\r
-					</view>\r
-				</view>\r
-\r
-				<view class="part-area">\r
-					<view class="input-content">\r
-						<view class="part-titleandcontent">\r
-							<view class="part-title">面积(m²)</view>\r
-							<input type="text" placeholder="面积数据" class="input-text"\r
-								placeholder-class="input-text-placeholder" v-model="area">\r
-						</view>\r
-					</view>\r
-				</view>\r
-			</view>`),
-        vue.createCommentVNode('			<view class="part-descriptionofDefect">\r\n				<view class="input-content">\r\n					<view class="part-titleandcontent">\r\n						<view class="part-title" style="position: relative;">\r\n							<text style="position: absolute; left: -10px; color: red;">*</text>病害描述(性质、范围、程度等)\r\n						</view>\r\n						<input type="text" placeholder="请填写病害描述信息" class="input-text"\r\n							placeholder-class="input-text-placeholder" v-model="description">\r\n					</view>\r\n				</view>\r\n			</view>\r\n\r\n			<view class="part-ScalesandRatings">\r\n				<view class="part-Scales">\r\n					<view class="radio-title" style="position: relative;">\r\n						<text style="position: absolute; left: -10px; color: red;">*</text>评定标度\r\n					</view>\r\n					<radio-group @change="ScalesRadioChange" class="radio-group">\r\n						<label class="radio-group-label" v-for="(item, index) in scalesItems" :key="item.value">\r\n							<view class="radio-item">\r\n								<radio style="transform:scale(1.2)" :value="item.value"\r\n									:checked="index === scalesCurrent" />\r\n							</view>\r\n							<view class="radio-item-name">{{item.name}}</view>\r\n						</label>\r\n					</radio-group>\r\n					<view class="part-prompt">\r\n						最大标度：4\r\n					</view>\r\n\r\n				</view>\r\n\r\n				<view class="part-Ratings">\r\n					<view class="radio-title" style="position: relative;">\r\n						<text style="position: absolute; left: -10px; color: red;">*</text>参与评定\r\n					</view>\r\n					<radio-group @change="RatingsRadioChange" class="radio-group">\r\n						<label class="radio-group-label" v-for="(item, index) in ratingItems" :key="item.value">\r\n							<view class="radio-item">\r\n								<radio style="transform:scale(1.2)" :value="item.value"\r\n									:checked="index === ratingCurrent" />\r\n							</view>\r\n							<view class="radio-item-name">{{item.name}}</view>\r\n						</label>\r\n					</radio-group>\r\n					<view class="part-prompt">\r\n						构件扣分：25\r\n					</view>\r\n				</view>\r\n\r\n			</view>'),
-        vue.createElementVNode("view", { class: "head" }, [
-          vue.createElementVNode("view", { class: "head-text" }, " 病害附件信息 ")
-        ]),
-        vue.createElementVNode("view", { class: "part-UploadImage" }, [
-          vue.createElementVNode("view", { class: "part-title" }, "上传图片或视频"),
-          vue.createElementVNode("view", { class: "upload-view" }, [
-            vue.createVNode(_component_uni_file_picker, {
-              class: "file-picker",
-              limit: "9",
-              "image-styles": $setup.imageStyles,
-              modelValue: $setup.fileList,
-              "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.fileList = $event),
-              "file-mediatype": "image",
-              mode: "grid",
-              onSelect: $setup.handleFileSelect,
-              onDelete: $setup.handleFileDelete,
-              "auto-upload": false
-            }, null, 8, ["image-styles", "modelValue"])
-          ])
-        ]),
-        vue.createElementVNode("view", { class: "part-ADImages" }, [
-          vue.createElementVNode("view", { class: "part-title" }, "上传简图"),
-          vue.createElementVNode("view", { class: "ADImages" }, [
-            (vue.openBlock(true), vue.createElementBlock(
-              vue.Fragment,
-              null,
-              vue.renderList($setup.ADImgs, (img, index) => {
-                return vue.openBlock(), vue.createElementBlock("view", {
-                  class: "img-wrapper",
-                  key: img.src
-                }, [
-                  vue.createElementVNode("image", {
-                    src: img.src,
-                    class: "ADImage"
-                  }, null, 8, ["src"]),
-                  vue.createElementVNode("view", {
-                    class: "close-btn",
-                    onClick: ($event) => $setup.removeImage(index)
-                  }, "×", 8, ["onClick"])
-                ]);
-              }),
-              128
-              /* KEYED_FRAGMENT */
-            )),
-            vue.createElementVNode("view", {
-              class: "ADImage-container",
-              onClick: _cache[8] || (_cache[8] = ($event) => $setup.selectCanvasTemplate())
-            }, [
-              vue.createElementVNode("image", {
-                src: _imports_0$2,
-                class: "ADImageButton"
-              })
+          vue.createElementVNode("view", { class: "part-ADImages" }, [
+            vue.createElementVNode("view", { class: "part-title" }, "上传简图"),
+            vue.createElementVNode("view", { class: "ADImages" }, [
+              (vue.openBlock(true), vue.createElementBlock(
+                vue.Fragment,
+                null,
+                vue.renderList($setup.ADImgs, (img, index) => {
+                  return vue.openBlock(), vue.createElementBlock("view", {
+                    class: "img-wrapper",
+                    key: img.src
+                  }, [
+                    vue.createElementVNode("image", {
+                      src: img.src,
+                      class: "ADImage"
+                    }, null, 8, ["src"]),
+                    vue.createElementVNode("view", {
+                      class: "close-btn",
+                      onClick: ($event) => $setup.removeImage(index)
+                    }, "×", 8, ["onClick"])
+                  ]);
+                }),
+                128
+                /* KEYED_FRAGMENT */
+              )),
+              vue.createElementVNode("view", {
+                class: "ADImage-container",
+                onClick: _cache[17] || (_cache[17] = ($event) => $setup.selectCanvasTemplate())
+              }, [
+                vue.createElementVNode("image", {
+                  src: _imports_0$2,
+                  class: "ADImageButton"
+                })
+              ])
             ])
           ])
         ])
@@ -16045,32 +17471,32 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_1$1,
                     class: "template-image-card",
-                    onClick: _cache[9] || (_cache[9] = ($event) => $setup.onClickTemplate("kxb1"))
+                    onClick: _cache[18] || (_cache[18] = ($event) => $setup.onClickTemplate("kxb1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_2$1,
                     class: "template-image-card",
-                    onClick: _cache[10] || (_cache[10] = ($event) => $setup.onClickTemplate("kxb2"))
+                    onClick: _cache[19] || (_cache[19] = ($event) => $setup.onClickTemplate("kxb2"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_3$1,
                     class: "template-image-card",
-                    onClick: _cache[11] || (_cache[11] = ($event) => $setup.onClickTemplate("kxb3"))
+                    onClick: _cache[20] || (_cache[20] = ($event) => $setup.onClickTemplate("kxb3"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_4$1,
                     class: "template-image-card",
-                    onClick: _cache[12] || (_cache[12] = ($event) => $setup.onClickTemplate("kxb4"))
+                    onClick: _cache[21] || (_cache[21] = ($event) => $setup.onClickTemplate("kxb4"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_5$1,
                     class: "template-image-card",
-                    onClick: _cache[13] || (_cache[13] = ($event) => $setup.onClickTemplate("kxb5"))
+                    onClick: _cache[22] || (_cache[22] = ($event) => $setup.onClickTemplate("kxb5"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_6,
                     class: "template-image-card",
-                    onClick: _cache[14] || (_cache[14] = ($event) => $setup.onClickTemplate("kxb6"))
+                    onClick: _cache[23] || (_cache[23] = ($event) => $setup.onClickTemplate("kxb6"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " T梁 "),
@@ -16078,7 +17504,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_7,
                     class: "template-image-card",
-                    onClick: _cache[15] || (_cache[15] = ($event) => $setup.onClickTemplate("tl1"))
+                    onClick: _cache[24] || (_cache[24] = ($event) => $setup.onClickTemplate("tl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 箱梁 "),
@@ -16086,7 +17512,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_8,
                     class: "template-image-card",
-                    onClick: _cache[16] || (_cache[16] = ($event) => $setup.onClickTemplate("xl1"))
+                    onClick: _cache[25] || (_cache[25] = ($event) => $setup.onClickTemplate("xl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 变截面箱梁 "),
@@ -16094,22 +17520,22 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_9,
                     class: "template-image-card",
-                    onClick: _cache[17] || (_cache[17] = ($event) => $setup.onClickTemplate("blmxl1"))
+                    onClick: _cache[26] || (_cache[26] = ($event) => $setup.onClickTemplate("blmxl1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_10,
                     class: "template-image-card",
-                    onClick: _cache[18] || (_cache[18] = ($event) => $setup.onClickTemplate("blmxl2"))
+                    onClick: _cache[27] || (_cache[27] = ($event) => $setup.onClickTemplate("blmxl2"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_11,
                     class: "template-image-card",
-                    onClick: _cache[19] || (_cache[19] = ($event) => $setup.onClickTemplate("blmxl3"))
+                    onClick: _cache[28] || (_cache[28] = ($event) => $setup.onClickTemplate("blmxl3"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_12,
                     class: "template-image-card",
-                    onClick: _cache[20] || (_cache[20] = ($event) => $setup.onClickTemplate("blmxl4"))
+                    onClick: _cache[29] || (_cache[29] = ($event) => $setup.onClickTemplate("blmxl4"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 桥台、桥墩 "),
@@ -16117,12 +17543,12 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_13,
                     class: "template-image-card",
-                    onClick: _cache[21] || (_cache[21] = ($event) => $setup.onClickTemplate("qt1"))
+                    onClick: _cache[30] || (_cache[30] = ($event) => $setup.onClickTemplate("qt1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_14,
                     class: "template-image-card",
-                    onClick: _cache[22] || (_cache[22] = ($event) => $setup.onClickTemplate("qt2"))
+                    onClick: _cache[31] || (_cache[31] = ($event) => $setup.onClickTemplate("qt2"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 横隔板 "),
@@ -16130,12 +17556,12 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_15,
                     class: "template-image-card",
-                    onClick: _cache[23] || (_cache[23] = ($event) => $setup.onClickTemplate("hgb1"))
+                    onClick: _cache[32] || (_cache[32] = ($event) => $setup.onClickTemplate("hgb1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_16,
                     class: "template-image-card",
-                    onClick: _cache[24] || (_cache[24] = ($event) => $setup.onClickTemplate("hgb2"))
+                    onClick: _cache[33] || (_cache[33] = ($event) => $setup.onClickTemplate("hgb2"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 翼墙、耳墙 "),
@@ -16143,7 +17569,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_17,
                     class: "template-image-card",
-                    onClick: _cache[25] || (_cache[25] = ($event) => $setup.onClickTemplate("yq1"))
+                    onClick: _cache[34] || (_cache[34] = ($event) => $setup.onClickTemplate("yq1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 盖梁 "),
@@ -16151,7 +17577,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_18,
                     class: "template-image-card",
-                    onClick: _cache[26] || (_cache[26] = ($event) => $setup.onClickTemplate("gl1"))
+                    onClick: _cache[35] || (_cache[35] = ($event) => $setup.onClickTemplate("gl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 圆桩墩 "),
@@ -16159,7 +17585,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_19,
                     class: "template-image-card",
-                    onClick: _cache[27] || (_cache[27] = ($event) => $setup.onClickTemplate("yzd1"))
+                    onClick: _cache[36] || (_cache[36] = ($event) => $setup.onClickTemplate("yzd1"))
                   })
                 ])
               ])
@@ -16186,7 +17612,7 @@ ${i3}
                 class: "position-combox",
                 candidates: $setup.diseasePosition,
                 modelValue: $setup.selectedPosition,
-                "onUpdate:modelValue": _cache[28] || (_cache[28] = ($event) => $setup.selectedPosition = $event),
+                "onUpdate:modelValue": _cache[37] || (_cache[37] = ($event) => $setup.selectedPosition = $event),
                 placeholder: "请选择病害位置"
               }, null, 8, ["candidates", "modelValue"]),
               vue.createElementVNode("view", { class: "position-popup-buttons" }, [
@@ -16224,7 +17650,7 @@ ${i3}
                     type: "text",
                     placeholder: "请填写",
                     class: "location-description-popup-input",
-                    "onUpdate:modelValue": _cache[29] || (_cache[29] = ($event) => $setup.referenceSurfaceInput = $event)
+                    "onUpdate:modelValue": _cache[38] || (_cache[38] = ($event) => $setup.referenceSurfaceInput = $event)
                   },
                   null,
                   512
@@ -19152,6 +20578,7 @@ ${i3}
       const oldPassword = vue.ref("");
       const newPassword = vue.ref("");
       const confirmPassword = vue.ref("");
+      const versionNumber = vue.ref("v1");
       const openPasswordModal = () => {
         oldPassword.value = "";
         newPassword.value = "";
@@ -19188,7 +20615,7 @@ ${i3}
             }
           });
           uni.hideLoading();
-          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:155", "退出登录响应:", response.data);
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:159", "退出登录响应:", response.data);
           if (response.data && response.data.code === 0) {
             uni.showToast({
               title: "已退出登录",
@@ -19211,7 +20638,7 @@ ${i3}
           }
         } catch (error) {
           uni.hideLoading();
-          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:184", "退出登录出错:", error);
+          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:188", "退出登录出错:", error);
           uni.showToast({
             title: "退出登录中出现错误",
             icon: "none",
@@ -19257,7 +20684,7 @@ ${i3}
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${oldPassword.value}`,
             method: "POST"
           });
-          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:239", "登录响应:", responseLogin.data);
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:243", "登录响应:", responseLogin.data);
           if (!responseLogin.data || !responseLogin.data.token) {
             uni.hideLoading();
             uni.showToast({
@@ -19276,7 +20703,7 @@ ${i3}
             }
           });
           uni.hideLoading();
-          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:266", "修改密码响应:", response.data);
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:270", "修改密码响应:", response.data);
           if (response.data && response.data.code === 0) {
             passwordPopup.value.close();
             uni.showToast({
@@ -19299,14 +20726,94 @@ ${i3}
           }
         } catch (error) {
           uni.hideLoading();
-          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:298", "修改密码出错:", error);
+          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:302", "修改密码出错:", error);
           uni.showToast({
             title: "网络错误，请稍后重试",
             icon: "none"
           });
         }
       };
-      const __returned__ = { userInfo, passwordPopup, oldPassword, newPassword, confirmPassword, openPasswordModal, closePasswordModal, handleLogout, changePassword, ref: vue.ref, get userStore() {
+      const checkUpdate = () => {
+        plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
+          const currentVersion = wgtinfo.version;
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:314", "当前版本：" + currentVersion);
+          uni.request({
+            url: "",
+            // 接口
+            success: (res) => {
+              const data = res.data;
+              if (data.version && this.compareVersion(data.version, currentVersion) > 0) {
+                uni.showModal({
+                  title: "更新提示",
+                  content: data.desc || "有新版本可用，是否更新？",
+                  success: (modalRes) => {
+                    if (modalRes.confirm) {
+                      this.downloadAndInstall(data.url);
+                    }
+                  }
+                });
+              } else {
+                formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:333", "已经是最新版本");
+              }
+            },
+            fail: (err) => {
+              formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:337", "检查更新失败", err);
+            }
+          });
+        });
+      };
+      const compareVersion = (v1, v2) => {
+        v1 = v1.replace(/^v/, "");
+        v2 = v2.replace(/^v/, "");
+        const fullV1 = "20" + v1;
+        const fullV2 = "20" + v2;
+        if (fullV1 > fullV2)
+          return 1;
+        if (fullV1 < fullV2)
+          return -1;
+        return 0;
+      };
+      const downloadAndInstall = (url) => {
+        uni.showLoading({
+          title: "下载中...",
+          mask: true
+        });
+        const dtask = plus.downloader.createDownload(url, {
+          filename: "_doc/update/"
+        }, (d2, status) => {
+          uni.hideLoading();
+          if (status == 200) {
+            formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:371", "下载成功：" + d2.filename);
+            plus.runtime.install(d2.filename, {}, () => {
+              formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:373", "安装成功");
+              plus.runtime.restart();
+            }, (e2) => {
+              formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:376", "安装失败：" + e2.message);
+              uni.showToast({
+                title: "安装失败",
+                icon: "none"
+              });
+            });
+          } else {
+            formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:383", "下载失败：" + status);
+            uni.showToast({
+              title: "下载失败",
+              icon: "none"
+            });
+          }
+        });
+        dtask.start();
+      };
+      vue.onMounted(() => {
+        if (typeof plus !== "undefined") {
+          plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
+            versionNumber.value = wgtinfo.version;
+          });
+        } else {
+          versionNumber.value = "开发模式";
+        }
+      });
+      const __returned__ = { userInfo, passwordPopup, oldPassword, newPassword, confirmPassword, versionNumber, openPasswordModal, closePasswordModal, handleLogout, changePassword, checkUpdate, compareVersion, downloadAndInstall, onMounted: vue.onMounted, ref: vue.ref, get userStore() {
         return userStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
@@ -19384,13 +20891,19 @@ ${i3}
       vue.createElementVNode("view", { class: "divider" }),
       vue.createElementVNode("view", { class: "versionApp" }, [
         vue.createElementVNode("view", { class: "appTitle" }, "当前应用版本"),
-        vue.createElementVNode("view", null, "v25-050-20"),
+        vue.createElementVNode(
+          "view",
+          null,
+          vue.toDisplayString($setup.versionNumber),
+          1
+          /* TEXT */
+        ),
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
           style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
           "hover-class": "is-hover",
-          onClick: _cache[2] || (_cache[2] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+          onClick: $setup.checkUpdate
         }, "版本更新")
       ]),
       vue.createCommentVNode(" 添加修改密码弹窗 "),
@@ -19411,7 +20924,7 @@ ${i3}
                     "input",
                     {
                       type: "password",
-                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.oldPassword = $event),
+                      "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.oldPassword = $event),
                       placeholder: "请输入旧密码",
                       class: "password-input"
                     },
@@ -19428,7 +20941,7 @@ ${i3}
                     "input",
                     {
                       type: "password",
-                      "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.newPassword = $event),
+                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.newPassword = $event),
                       placeholder: "请输入新密码",
                       class: "password-input"
                     },
@@ -19445,7 +20958,7 @@ ${i3}
                     "input",
                     {
                       type: "password",
-                      "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.confirmPassword = $event),
+                      "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.confirmPassword = $event),
                       placeholder: "请再次输入新密码",
                       class: "password-input"
                     },
