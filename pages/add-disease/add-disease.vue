@@ -1193,7 +1193,9 @@ import {idStore} from "@/store/idStorage";
 		}
 
 		// 提取第三级名称列表
-		const thirdLevelNames = selectedSecondLevel.children.map(item => item.name);
+		const thirdLevelNames = selectedSecondLevel.children
+			.filter(item => item.status === '0')
+			.map(item => item.name);
 		typeMultiArray.value[2] = [...thirdLevelNames];
 
 		// 如果第三列索引超出范围，重置为0
