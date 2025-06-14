@@ -29,6 +29,12 @@
 		ref,
 		computed
 	} from "vue";
+  import {readBridgeImage} from "@/utils/readJsonNew";
+  import {userStore} from "@/store";
+  import {idStore} from "@/store/idStorage";
+
+  const userInfo = userStore();
+  const idStorageInfo = idStore();
 
 	const props = defineProps({
 		data: {
@@ -66,10 +72,11 @@
 
 	// 获取图片URL，如果值为"/"或不存在，则使用默认图片
 	const getImageUrl = (value) => {
+    console.log('图片value',  value)
 		if (!value || value === '/') {
 			return '/static/image/disease.png';
 		}
-		return value;
+		return readBridgeImage(userInfo.username, idStorageInfo.buildingId, value);
 	};
 
 	// 点击预览图片

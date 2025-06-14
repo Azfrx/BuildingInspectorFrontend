@@ -275,7 +275,20 @@ export function saveBridgeImages(userName, buildingId, tempImagePaths) {
 }
 
 export function saveBridgeImage(userName, buildingId, tempImagePath) {
-    return saveBridgeImages(userName, buildingId, [tempImagePath])[0];
+    return new Promise(async (resolve, reject) => {
+        try {
+            // 等待saveBridgeImages完成并获取结果数组
+            const imageUrls = await saveBridgeImages(userName, buildingId, [tempImagePath]);
+            // 返回数组中的第一个元素
+            if (imageUrls && imageUrls.length > 0) {
+                resolve(imageUrls[0]);
+            } else {
+                reject(new Error('未能保存图片'));
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
 }
 
 export function saveBridgeZip(userName, buildingId){

@@ -147,12 +147,33 @@ const loadDiseaseData = async () => {
           bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
 
           if(bridgedata.property.children[7].children[0].value !== '/'){
-            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value,  bridgedata.property.children[7].children[0].value);
+            try {
+              const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
+              if (savedImageUrl) {
+                bridgedata.property.children[7].children[0].value = savedImageUrl;
+              } else {
+                console.error('保存图片1失败: 返回的URL为空');
+              }
+            } catch (error) {
+              console.error('保存图片1出错:', error);
+              // 保留原始值，避免字段消失
+            }
           }
           if(bridgedata.property.children[7].children[1].value !== '/'){
-            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value,  bridgedata.property.children[7].children[1].value);
+            try {
+              const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[1].value);
+              if (savedImageUrl) {
+                bridgedata.property.children[7].children[1].value = savedImageUrl;
+              } else {
+                console.error('保存图片2失败: 返回的URL为空');
+              }
+            } catch (error) {
+              console.error('保存图片2出错:', error);
+              // 保留原始值，避免字段消失
+            }
           }
 
+          console.log('保存后的桥梁卡片数据:', bridgedata);
           //调用接口将数据存在本地(disease)
           await setProperty(userInfo.username,buildingId.value, bridgedata);
         } else {
