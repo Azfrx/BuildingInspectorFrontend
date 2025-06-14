@@ -600,7 +600,7 @@
 				</view>
 
 				<view class="part-UploadImage">
-					<view class="part-title">上传图片或视频</view>
+					<view class="part-title">上传图片</view>
 					<view class="upload-view">
 						<uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
 							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
