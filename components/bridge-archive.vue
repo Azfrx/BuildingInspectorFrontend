@@ -147,10 +147,10 @@ const loadDiseaseData = async () => {
           bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
 
           if(bridgedata.property.children[7].children[0].value !== '/'){
-            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
+            bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value,  bridgedata.property.children[7].children[0].value);
           }
           if(bridgedata.property.children[7].children[1].value !== '/'){
-            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value, property.children[7].children[1].value);
+            bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value,  bridgedata.property.children[7].children[1].value);
           }
 
           //调用接口将数据存在本地(disease)
