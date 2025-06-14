@@ -280,14 +280,18 @@ export function saveBridgeImage(userName, buildingId, tempImagePath) {
 
 export function saveBridgeZip(userName, buildingId){
     //void plus.zip.compress(src, zipfile, successCB, errorCB);
-    const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));
-    const zipfile = plus.io.convertLocalFileSystemURL( DOC_BASE_PATH + userName + '/building/' + buildingId);
-    plus.zip.compress(src,zipfile,
-        function() {
-            console.log("Compress success!");
-        },function(error) {
-            console.log("Compress error!");
+    return new Promise((resolve, reject) => {
+        const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));
+        const zipfile = plus.io.convertLocalFileSystemURL( DOC_BASE_PATH + getUserDir(userName) + '/building/' + buildingId);
+        plus.zip.compress(src, zipfile,
+            function() {
+                console.log("Compress success!");
+                resolve(zipfile + '.zip');
+            },
+            function(error) {
+                console.log("Compress error:", error);
+                reject(error);
+        });
     });
-    return zipfile + '.zip';
 }
 

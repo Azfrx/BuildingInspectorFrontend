@@ -402,9 +402,11 @@ const deleteDisease = (itemId) => {
 
 const submitZip = async () => {
   console.log('提交压缩文件,buildingId', buildingId.value);
-  const zipFilePath = saveBridgeZip(userInfo.username, buildingId.value);
-
   try {
+    // 等待压缩完成
+    const zipFilePath = await saveBridgeZip(userInfo.username, buildingId.value);
+    console.log('压缩完成，文件路径:', zipFilePath);
+
     const responseLogin = await uni.request({
       url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
       method: 'POST'
