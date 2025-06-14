@@ -31,7 +31,1615 @@ if (uni.restoreGlobal) {
 }
 (function(vue) {
   "use strict";
-  const _imports_0$8 = "/static/image/loginLogo.jpg";
+  const ON_LOAD = "onLoad";
+  function formatAppLog(type, filename, ...args) {
+    if (uni.__log__) {
+      uni.__log__(type, filename, ...args);
+    } else {
+      console[type].apply(console, [...args, filename]);
+    }
+  }
+  function resolveEasycom(component, easycom2) {
+    return typeof component === "string" ? easycom2 : component;
+  }
+  const createHook = (lifecycle) => (hook, target = vue.getCurrentInstance()) => {
+    !vue.isInSSRComponentSetup && vue.injectHook(lifecycle, hook, target);
+  };
+  const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
+  let __currentFilePath$1 = null;
+  function getFullPath$1(path) {
+    const docPath = plus.io.convertLocalFileSystemURL(path);
+    return docPath;
+  }
+  function saveData$1(data) {
+    return new Promise((resolve, reject) => {
+      if (!__currentFilePath$1) {
+        return reject(new Error("请先执行读取操作获取文件路径"));
+      }
+      const fullPath = getFullPath$1(__currentFilePath$1);
+      formatAppLog("log", "at utils/reviseJson.js:18", "准备保存文件到路径:", fullPath);
+      plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, (fs2) => {
+        formatAppLog("log", "at utils/reviseJson.js:21", "获取文件系统成功");
+        fs2.root.getFile(fullPath, { create: true }, (fileEntry) => {
+          formatAppLog("log", "at utils/reviseJson.js:23", "获取文件入口成功");
+          fileEntry.createWriter((writer) => {
+            const wait = plus.nativeUI.showWaiting("正在保存信息");
+            writer.seek(0);
+            const jsonString = JSON.stringify(data, null, 2);
+            formatAppLog("log", "at utils/reviseJson.js:29", "准备写入数据:", data);
+            writer.onwrite = () => {
+              wait.close();
+              formatAppLog("log", "at utils/reviseJson.js:33", "写入成功");
+              plus.nativeUI.toast("保存成功");
+              resolve(true);
+            };
+            writer.onerror = (e2) => {
+              wait.close();
+              formatAppLog("error", "at utils/reviseJson.js:40", "写入失败:", e2.message);
+              plus.nativeUI.toast("保存失败");
+              reject(e2);
+            };
+            writer.write(jsonString);
+          }, (error) => {
+            formatAppLog("error", "at utils/reviseJson.js:47", "创建写入器失败:", error);
+            reject(error);
+          });
+        }, (error) => {
+          formatAppLog("error", "at utils/reviseJson.js:51", "获取文件入口失败:", error);
+          reject(error);
+        });
+      }, (error) => {
+        formatAppLog("error", "at utils/reviseJson.js:55", "获取文件系统失败:", error);
+        reject(error);
+      });
+    });
+  }
+  function trackPath$1(path) {
+    formatAppLog("log", "at utils/reviseJson.js:64", "设置文件路径:", path);
+    __currentFilePath$1 = path;
+  }
+  const DOC_BASE_PATH$2 = "_doc/";
+  function getCurrentDateStr$1() {
+    const now2 = /* @__PURE__ */ new Date();
+    const year = now2.getFullYear().toString().slice(-2);
+    const month = (now2.getMonth() + 1).toString().padStart(2, "0");
+    const day = now2.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  function getUserDir$1(userName) {
+    return `UD${getCurrentDateStr$1()}-${userName}`;
+  }
+  const FILE_NAMING$2 = {
+    project: (userName) => `${getUserDir$1(userName)}/project/projects.json`,
+    task: (userName, projectId2) => `${getUserDir$1(userName)}/project/${projectId2}/task.json`,
+    property: (userName, buildingId2) => `${getUserDir$1(userName)}/building/${buildingId2}/property.json`,
+    object: (userName, buildingId2) => `${getUserDir$1(userName)}/building/${buildingId2}/object.json`,
+    disease: (userName, buildingId2, yearId) => `${getUserDir$1(userName)}/building/${buildingId2}/disease/${yearId}.json`,
+    AllUserInfo: (userName) => `${getUserDir$1(userName)}/AllUserInfo.json`
+  };
+  async function setJsonData$1(path, data) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: true }, (fileEntry) => {
+          fileEntry.createWriter((writer) => {
+            writer.onwriteend = () => {
+              resolve();
+            };
+            writer.onerror = () => {
+              reject(`文件写入失败: ${path}`);
+            };
+            const jsonData = JSON.stringify(data, null, 2);
+            writer.write(jsonData);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+  function setProject(userName, data) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.project(userName);
+    trackPath$1(path);
+    return setJsonData$1(path, data);
+  }
+  function setTask(userName, projectId2, data) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.task(userName, projectId2);
+    trackPath$1(path);
+    return setJsonData$1(path, data);
+  }
+  function setObject(userName, buildingId2, data) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.object(userName, buildingId2);
+    trackPath$1(path);
+    return setJsonData$1(path, data);
+  }
+  function setAllUserInfo(userName, data) {
+    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.AllUserInfo(userName);
+    trackPath$1(path);
+    return setJsonData$1(path, data);
+  }
+  var isVue2 = false;
+  function set(target, key, val) {
+    if (Array.isArray(target)) {
+      target.length = Math.max(target.length, key);
+      target.splice(key, 1, val);
+      return val;
+    }
+    target[key] = val;
+    return val;
+  }
+  function del(target, key) {
+    if (Array.isArray(target)) {
+      target.splice(key, 1);
+      return;
+    }
+    delete target[key];
+  }
+  function getDevtoolsGlobalHook() {
+    return getTarget().__VUE_DEVTOOLS_GLOBAL_HOOK__;
+  }
+  function getTarget() {
+    return typeof navigator !== "undefined" && typeof window !== "undefined" ? window : typeof global !== "undefined" ? global : {};
+  }
+  const isProxyAvailable = typeof Proxy === "function";
+  const HOOK_SETUP = "devtools-plugin:setup";
+  const HOOK_PLUGIN_SETTINGS_SET = "plugin:settings:set";
+  let supported;
+  let perf;
+  function isPerformanceSupported() {
+    var _a;
+    if (supported !== void 0) {
+      return supported;
+    }
+    if (typeof window !== "undefined" && window.performance) {
+      supported = true;
+      perf = window.performance;
+    } else if (typeof global !== "undefined" && ((_a = global.perf_hooks) === null || _a === void 0 ? void 0 : _a.performance)) {
+      supported = true;
+      perf = global.perf_hooks.performance;
+    } else {
+      supported = false;
+    }
+    return supported;
+  }
+  function now() {
+    return isPerformanceSupported() ? perf.now() : Date.now();
+  }
+  class ApiProxy {
+    constructor(plugin, hook) {
+      this.target = null;
+      this.targetQueue = [];
+      this.onQueue = [];
+      this.plugin = plugin;
+      this.hook = hook;
+      const defaultSettings = {};
+      if (plugin.settings) {
+        for (const id in plugin.settings) {
+          const item = plugin.settings[id];
+          defaultSettings[id] = item.defaultValue;
+        }
+      }
+      const localSettingsSaveId = `__vue-devtools-plugin-settings__${plugin.id}`;
+      let currentSettings = Object.assign({}, defaultSettings);
+      try {
+        const raw = localStorage.getItem(localSettingsSaveId);
+        const data = JSON.parse(raw);
+        Object.assign(currentSettings, data);
+      } catch (e2) {
+      }
+      this.fallbacks = {
+        getSettings() {
+          return currentSettings;
+        },
+        setSettings(value) {
+          try {
+            localStorage.setItem(localSettingsSaveId, JSON.stringify(value));
+          } catch (e2) {
+          }
+          currentSettings = value;
+        },
+        now() {
+          return now();
+        }
+      };
+      if (hook) {
+        hook.on(HOOK_PLUGIN_SETTINGS_SET, (pluginId, value) => {
+          if (pluginId === this.plugin.id) {
+            this.fallbacks.setSettings(value);
+          }
+        });
+      }
+      this.proxiedOn = new Proxy({}, {
+        get: (_target, prop) => {
+          if (this.target) {
+            return this.target.on[prop];
+          } else {
+            return (...args) => {
+              this.onQueue.push({
+                method: prop,
+                args
+              });
+            };
+          }
+        }
+      });
+      this.proxiedTarget = new Proxy({}, {
+        get: (_target, prop) => {
+          if (this.target) {
+            return this.target[prop];
+          } else if (prop === "on") {
+            return this.proxiedOn;
+          } else if (Object.keys(this.fallbacks).includes(prop)) {
+            return (...args) => {
+              this.targetQueue.push({
+                method: prop,
+                args,
+                resolve: () => {
+                }
+              });
+              return this.fallbacks[prop](...args);
+            };
+          } else {
+            return (...args) => {
+              return new Promise((resolve) => {
+                this.targetQueue.push({
+                  method: prop,
+                  args,
+                  resolve
+                });
+              });
+            };
+          }
+        }
+      });
+    }
+    async setRealTarget(target) {
+      this.target = target;
+      for (const item of this.onQueue) {
+        this.target.on[item.method](...item.args);
+      }
+      for (const item of this.targetQueue) {
+        item.resolve(await this.target[item.method](...item.args));
+      }
+    }
+  }
+  function setupDevtoolsPlugin(pluginDescriptor, setupFn) {
+    const descriptor = pluginDescriptor;
+    const target = getTarget();
+    const hook = getDevtoolsGlobalHook();
+    const enableProxy = isProxyAvailable && descriptor.enableEarlyProxy;
+    if (hook && (target.__VUE_DEVTOOLS_PLUGIN_API_AVAILABLE__ || !enableProxy)) {
+      hook.emit(HOOK_SETUP, pluginDescriptor, setupFn);
+    } else {
+      const proxy = enableProxy ? new ApiProxy(descriptor, hook) : null;
+      const list = target.__VUE_DEVTOOLS_PLUGINS__ = target.__VUE_DEVTOOLS_PLUGINS__ || [];
+      list.push({
+        pluginDescriptor: descriptor,
+        setupFn,
+        proxy
+      });
+      if (proxy)
+        setupFn(proxy.proxiedTarget);
+    }
+  }
+  /*!
+   * pinia v2.1.7
+   * (c) 2023 Eduardo San Martin Morote
+   * @license MIT
+   */
+  let activePinia;
+  const setActivePinia = (pinia) => activePinia = pinia;
+  const piniaSymbol = Symbol("pinia");
+  function isPlainObject(o2) {
+    return o2 && typeof o2 === "object" && Object.prototype.toString.call(o2) === "[object Object]" && typeof o2.toJSON !== "function";
+  }
+  var MutationType;
+  (function(MutationType2) {
+    MutationType2["direct"] = "direct";
+    MutationType2["patchObject"] = "patch object";
+    MutationType2["patchFunction"] = "patch function";
+  })(MutationType || (MutationType = {}));
+  const IS_CLIENT = typeof window !== "undefined";
+  const USE_DEVTOOLS = IS_CLIENT;
+  const _global = /* @__PURE__ */ (() => typeof window === "object" && window.window === window ? window : typeof self === "object" && self.self === self ? self : typeof global === "object" && global.global === global ? global : typeof globalThis === "object" ? globalThis : { HTMLElement: null })();
+  function bom(blob, { autoBom = false } = {}) {
+    if (autoBom && /^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(blob.type)) {
+      return new Blob([String.fromCharCode(65279), blob], { type: blob.type });
+    }
+    return blob;
+  }
+  function download(url, name, opts) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("GET", url);
+    xhr.responseType = "blob";
+    xhr.onload = function() {
+      saveAs(xhr.response, name, opts);
+    };
+    xhr.onerror = function() {
+      console.error("could not download file");
+    };
+    xhr.send();
+  }
+  function corsEnabled(url) {
+    const xhr = new XMLHttpRequest();
+    xhr.open("HEAD", url, false);
+    try {
+      xhr.send();
+    } catch (e2) {
+    }
+    return xhr.status >= 200 && xhr.status <= 299;
+  }
+  function click(node) {
+    try {
+      node.dispatchEvent(new MouseEvent("click"));
+    } catch (e2) {
+      const evt = document.createEvent("MouseEvents");
+      evt.initMouseEvent("click", true, true, window, 0, 0, 0, 80, 20, false, false, false, false, 0, null);
+      node.dispatchEvent(evt);
+    }
+  }
+  const _navigator = typeof navigator === "object" ? navigator : { userAgent: "" };
+  const isMacOSWebView = /* @__PURE__ */ (() => /Macintosh/.test(_navigator.userAgent) && /AppleWebKit/.test(_navigator.userAgent) && !/Safari/.test(_navigator.userAgent))();
+  const saveAs = !IS_CLIENT ? () => {
+  } : (
+    // Use download attribute first if possible (#193 Lumia mobile) unless this is a macOS WebView or mini program
+    typeof HTMLAnchorElement !== "undefined" && "download" in HTMLAnchorElement.prototype && !isMacOSWebView ? downloadSaveAs : (
+      // Use msSaveOrOpenBlob as a second approach
+      "msSaveOrOpenBlob" in _navigator ? msSaveAs : (
+        // Fallback to using FileReader and a popup
+        fileSaverSaveAs
+      )
+    )
+  );
+  function downloadSaveAs(blob, name = "download", opts) {
+    const a2 = document.createElement("a");
+    a2.download = name;
+    a2.rel = "noopener";
+    if (typeof blob === "string") {
+      a2.href = blob;
+      if (a2.origin !== location.origin) {
+        if (corsEnabled(a2.href)) {
+          download(blob, name, opts);
+        } else {
+          a2.target = "_blank";
+          click(a2);
+        }
+      } else {
+        click(a2);
+      }
+    } else {
+      a2.href = URL.createObjectURL(blob);
+      setTimeout(function() {
+        URL.revokeObjectURL(a2.href);
+      }, 4e4);
+      setTimeout(function() {
+        click(a2);
+      }, 0);
+    }
+  }
+  function msSaveAs(blob, name = "download", opts) {
+    if (typeof blob === "string") {
+      if (corsEnabled(blob)) {
+        download(blob, name, opts);
+      } else {
+        const a2 = document.createElement("a");
+        a2.href = blob;
+        a2.target = "_blank";
+        setTimeout(function() {
+          click(a2);
+        });
+      }
+    } else {
+      navigator.msSaveOrOpenBlob(bom(blob, opts), name);
+    }
+  }
+  function fileSaverSaveAs(blob, name, opts, popup) {
+    popup = popup || open("", "_blank");
+    if (popup) {
+      popup.document.title = popup.document.body.innerText = "downloading...";
+    }
+    if (typeof blob === "string")
+      return download(blob, name, opts);
+    const force = blob.type === "application/octet-stream";
+    const isSafari = /constructor/i.test(String(_global.HTMLElement)) || "safari" in _global;
+    const isChromeIOS = /CriOS\/[\d]+/.test(navigator.userAgent);
+    if ((isChromeIOS || force && isSafari || isMacOSWebView) && typeof FileReader !== "undefined") {
+      const reader = new FileReader();
+      reader.onloadend = function() {
+        let url = reader.result;
+        if (typeof url !== "string") {
+          popup = null;
+          throw new Error("Wrong reader.result type");
+        }
+        url = isChromeIOS ? url : url.replace(/^data:[^;]*;/, "data:attachment/file;");
+        if (popup) {
+          popup.location.href = url;
+        } else {
+          location.assign(url);
+        }
+        popup = null;
+      };
+      reader.readAsDataURL(blob);
+    } else {
+      const url = URL.createObjectURL(blob);
+      if (popup)
+        popup.location.assign(url);
+      else
+        location.href = url;
+      popup = null;
+      setTimeout(function() {
+        URL.revokeObjectURL(url);
+      }, 4e4);
+    }
+  }
+  function toastMessage(message, type) {
+    const piniaMessage = "🍍 " + message;
+    if (typeof __VUE_DEVTOOLS_TOAST__ === "function") {
+      __VUE_DEVTOOLS_TOAST__(piniaMessage, type);
+    } else if (type === "error") {
+      console.error(piniaMessage);
+    } else if (type === "warn") {
+      console.warn(piniaMessage);
+    } else {
+      console.log(piniaMessage);
+    }
+  }
+  function isPinia(o2) {
+    return "_a" in o2 && "install" in o2;
+  }
+  function checkClipboardAccess() {
+    if (!("clipboard" in navigator)) {
+      toastMessage(`Your browser doesn't support the Clipboard API`, "error");
+      return true;
+    }
+  }
+  function checkNotFocusedError(error) {
+    if (error instanceof Error && error.message.toLowerCase().includes("document is not focused")) {
+      toastMessage('You need to activate the "Emulate a focused page" setting in the "Rendering" panel of devtools.', "warn");
+      return true;
+    }
+    return false;
+  }
+  async function actionGlobalCopyState(pinia) {
+    if (checkClipboardAccess())
+      return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(pinia.state.value));
+      toastMessage("Global state copied to clipboard.");
+    } catch (error) {
+      if (checkNotFocusedError(error))
+        return;
+      toastMessage(`Failed to serialize the state. Check the console for more details.`, "error");
+      console.error(error);
+    }
+  }
+  async function actionGlobalPasteState(pinia) {
+    if (checkClipboardAccess())
+      return;
+    try {
+      loadStoresState(pinia, JSON.parse(await navigator.clipboard.readText()));
+      toastMessage("Global state pasted from clipboard.");
+    } catch (error) {
+      if (checkNotFocusedError(error))
+        return;
+      toastMessage(`Failed to deserialize the state from clipboard. Check the console for more details.`, "error");
+      console.error(error);
+    }
+  }
+  async function actionGlobalSaveState(pinia) {
+    try {
+      saveAs(new Blob([JSON.stringify(pinia.state.value)], {
+        type: "text/plain;charset=utf-8"
+      }), "pinia-state.json");
+    } catch (error) {
+      toastMessage(`Failed to export the state as JSON. Check the console for more details.`, "error");
+      console.error(error);
+    }
+  }
+  let fileInput;
+  function getFileOpener() {
+    if (!fileInput) {
+      fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.accept = ".json";
+    }
+    function openFile() {
+      return new Promise((resolve, reject) => {
+        fileInput.onchange = async () => {
+          const files = fileInput.files;
+          if (!files)
+            return resolve(null);
+          const file = files.item(0);
+          if (!file)
+            return resolve(null);
+          return resolve({ text: await file.text(), file });
+        };
+        fileInput.oncancel = () => resolve(null);
+        fileInput.onerror = reject;
+        fileInput.click();
+      });
+    }
+    return openFile;
+  }
+  async function actionGlobalOpenStateFile(pinia) {
+    try {
+      const open2 = getFileOpener();
+      const result = await open2();
+      if (!result)
+        return;
+      const { text, file } = result;
+      loadStoresState(pinia, JSON.parse(text));
+      toastMessage(`Global state imported from "${file.name}".`);
+    } catch (error) {
+      toastMessage(`Failed to import the state from JSON. Check the console for more details.`, "error");
+      console.error(error);
+    }
+  }
+  function loadStoresState(pinia, state) {
+    for (const key in state) {
+      const storeState = pinia.state.value[key];
+      if (storeState) {
+        Object.assign(storeState, state[key]);
+      } else {
+        pinia.state.value[key] = state[key];
+      }
+    }
+  }
+  function formatDisplay(display) {
+    return {
+      _custom: {
+        display
+      }
+    };
+  }
+  const PINIA_ROOT_LABEL = "🍍 Pinia (root)";
+  const PINIA_ROOT_ID = "_root";
+  function formatStoreForInspectorTree(store) {
+    return isPinia(store) ? {
+      id: PINIA_ROOT_ID,
+      label: PINIA_ROOT_LABEL
+    } : {
+      id: store.$id,
+      label: store.$id
+    };
+  }
+  function formatStoreForInspectorState(store) {
+    if (isPinia(store)) {
+      const storeNames = Array.from(store._s.keys());
+      const storeMap = store._s;
+      const state2 = {
+        state: storeNames.map((storeId) => ({
+          editable: true,
+          key: storeId,
+          value: store.state.value[storeId]
+        })),
+        getters: storeNames.filter((id) => storeMap.get(id)._getters).map((id) => {
+          const store2 = storeMap.get(id);
+          return {
+            editable: false,
+            key: id,
+            value: store2._getters.reduce((getters, key) => {
+              getters[key] = store2[key];
+              return getters;
+            }, {})
+          };
+        })
+      };
+      return state2;
+    }
+    const state = {
+      state: Object.keys(store.$state).map((key) => ({
+        editable: true,
+        key,
+        value: store.$state[key]
+      }))
+    };
+    if (store._getters && store._getters.length) {
+      state.getters = store._getters.map((getterName) => ({
+        editable: false,
+        key: getterName,
+        value: store[getterName]
+      }));
+    }
+    if (store._customProperties.size) {
+      state.customProperties = Array.from(store._customProperties).map((key) => ({
+        editable: true,
+        key,
+        value: store[key]
+      }));
+    }
+    return state;
+  }
+  function formatEventData(events) {
+    if (!events)
+      return {};
+    if (Array.isArray(events)) {
+      return events.reduce((data, event) => {
+        data.keys.push(event.key);
+        data.operations.push(event.type);
+        data.oldValue[event.key] = event.oldValue;
+        data.newValue[event.key] = event.newValue;
+        return data;
+      }, {
+        oldValue: {},
+        keys: [],
+        operations: [],
+        newValue: {}
+      });
+    } else {
+      return {
+        operation: formatDisplay(events.type),
+        key: formatDisplay(events.key),
+        oldValue: events.oldValue,
+        newValue: events.newValue
+      };
+    }
+  }
+  function formatMutationType(type) {
+    switch (type) {
+      case MutationType.direct:
+        return "mutation";
+      case MutationType.patchFunction:
+        return "$patch";
+      case MutationType.patchObject:
+        return "$patch";
+      default:
+        return "unknown";
+    }
+  }
+  let isTimelineActive = true;
+  const componentStateTypes = [];
+  const MUTATIONS_LAYER_ID = "pinia:mutations";
+  const INSPECTOR_ID = "pinia";
+  const { assign: assign$1 } = Object;
+  const getStoreType = (id) => "🍍 " + id;
+  function registerPiniaDevtools(app, pinia) {
+    setupDevtoolsPlugin({
+      id: "dev.esm.pinia",
+      label: "Pinia 🍍",
+      logo: "https://pinia.vuejs.org/logo.svg",
+      packageName: "pinia",
+      homepage: "https://pinia.vuejs.org",
+      componentStateTypes,
+      app
+    }, (api) => {
+      if (typeof api.now !== "function") {
+        toastMessage("You seem to be using an outdated version of Vue Devtools. Are you still using the Beta release instead of the stable one? You can find the links at https://devtools.vuejs.org/guide/installation.html.");
+      }
+      api.addTimelineLayer({
+        id: MUTATIONS_LAYER_ID,
+        label: `Pinia 🍍`,
+        color: 15064968
+      });
+      api.addInspector({
+        id: INSPECTOR_ID,
+        label: "Pinia 🍍",
+        icon: "storage",
+        treeFilterPlaceholder: "Search stores",
+        actions: [
+          {
+            icon: "content_copy",
+            action: () => {
+              actionGlobalCopyState(pinia);
+            },
+            tooltip: "Serialize and copy the state"
+          },
+          {
+            icon: "content_paste",
+            action: async () => {
+              await actionGlobalPasteState(pinia);
+              api.sendInspectorTree(INSPECTOR_ID);
+              api.sendInspectorState(INSPECTOR_ID);
+            },
+            tooltip: "Replace the state with the content of your clipboard"
+          },
+          {
+            icon: "save",
+            action: () => {
+              actionGlobalSaveState(pinia);
+            },
+            tooltip: "Save the state as a JSON file"
+          },
+          {
+            icon: "folder_open",
+            action: async () => {
+              await actionGlobalOpenStateFile(pinia);
+              api.sendInspectorTree(INSPECTOR_ID);
+              api.sendInspectorState(INSPECTOR_ID);
+            },
+            tooltip: "Import the state from a JSON file"
+          }
+        ],
+        nodeActions: [
+          {
+            icon: "restore",
+            tooltip: 'Reset the state (with "$reset")',
+            action: (nodeId) => {
+              const store = pinia._s.get(nodeId);
+              if (!store) {
+                toastMessage(`Cannot reset "${nodeId}" store because it wasn't found.`, "warn");
+              } else if (typeof store.$reset !== "function") {
+                toastMessage(`Cannot reset "${nodeId}" store because it doesn't have a "$reset" method implemented.`, "warn");
+              } else {
+                store.$reset();
+                toastMessage(`Store "${nodeId}" reset.`);
+              }
+            }
+          }
+        ]
+      });
+      api.on.inspectComponent((payload, ctx) => {
+        const proxy = payload.componentInstance && payload.componentInstance.proxy;
+        if (proxy && proxy._pStores) {
+          const piniaStores = payload.componentInstance.proxy._pStores;
+          Object.values(piniaStores).forEach((store) => {
+            payload.instanceData.state.push({
+              type: getStoreType(store.$id),
+              key: "state",
+              editable: true,
+              value: store._isOptionsAPI ? {
+                _custom: {
+                  value: vue.toRaw(store.$state),
+                  actions: [
+                    {
+                      icon: "restore",
+                      tooltip: "Reset the state of this store",
+                      action: () => store.$reset()
+                    }
+                  ]
+                }
+              } : (
+                // NOTE: workaround to unwrap transferred refs
+                Object.keys(store.$state).reduce((state, key) => {
+                  state[key] = store.$state[key];
+                  return state;
+                }, {})
+              )
+            });
+            if (store._getters && store._getters.length) {
+              payload.instanceData.state.push({
+                type: getStoreType(store.$id),
+                key: "getters",
+                editable: false,
+                value: store._getters.reduce((getters, key) => {
+                  try {
+                    getters[key] = store[key];
+                  } catch (error) {
+                    getters[key] = error;
+                  }
+                  return getters;
+                }, {})
+              });
+            }
+          });
+        }
+      });
+      api.on.getInspectorTree((payload) => {
+        if (payload.app === app && payload.inspectorId === INSPECTOR_ID) {
+          let stores = [pinia];
+          stores = stores.concat(Array.from(pinia._s.values()));
+          payload.rootNodes = (payload.filter ? stores.filter((store) => "$id" in store ? store.$id.toLowerCase().includes(payload.filter.toLowerCase()) : PINIA_ROOT_LABEL.toLowerCase().includes(payload.filter.toLowerCase())) : stores).map(formatStoreForInspectorTree);
+        }
+      });
+      api.on.getInspectorState((payload) => {
+        if (payload.app === app && payload.inspectorId === INSPECTOR_ID) {
+          const inspectedStore = payload.nodeId === PINIA_ROOT_ID ? pinia : pinia._s.get(payload.nodeId);
+          if (!inspectedStore) {
+            return;
+          }
+          if (inspectedStore) {
+            payload.state = formatStoreForInspectorState(inspectedStore);
+          }
+        }
+      });
+      api.on.editInspectorState((payload, ctx) => {
+        if (payload.app === app && payload.inspectorId === INSPECTOR_ID) {
+          const inspectedStore = payload.nodeId === PINIA_ROOT_ID ? pinia : pinia._s.get(payload.nodeId);
+          if (!inspectedStore) {
+            return toastMessage(`store "${payload.nodeId}" not found`, "error");
+          }
+          const { path } = payload;
+          if (!isPinia(inspectedStore)) {
+            if (path.length !== 1 || !inspectedStore._customProperties.has(path[0]) || path[0] in inspectedStore.$state) {
+              path.unshift("$state");
+            }
+          } else {
+            path.unshift("state");
+          }
+          isTimelineActive = false;
+          payload.set(inspectedStore, path, payload.state.value);
+          isTimelineActive = true;
+        }
+      });
+      api.on.editComponentState((payload) => {
+        if (payload.type.startsWith("🍍")) {
+          const storeId = payload.type.replace(/^🍍\s*/, "");
+          const store = pinia._s.get(storeId);
+          if (!store) {
+            return toastMessage(`store "${storeId}" not found`, "error");
+          }
+          const { path } = payload;
+          if (path[0] !== "state") {
+            return toastMessage(`Invalid path for store "${storeId}":
+${path}
+Only state can be modified.`);
+          }
+          path[0] = "$state";
+          isTimelineActive = false;
+          payload.set(store, path, payload.state.value);
+          isTimelineActive = true;
+        }
+      });
+    });
+  }
+  function addStoreToDevtools(app, store) {
+    if (!componentStateTypes.includes(getStoreType(store.$id))) {
+      componentStateTypes.push(getStoreType(store.$id));
+    }
+    setupDevtoolsPlugin({
+      id: "dev.esm.pinia",
+      label: "Pinia 🍍",
+      logo: "https://pinia.vuejs.org/logo.svg",
+      packageName: "pinia",
+      homepage: "https://pinia.vuejs.org",
+      componentStateTypes,
+      app,
+      settings: {
+        logStoreChanges: {
+          label: "Notify about new/deleted stores",
+          type: "boolean",
+          defaultValue: true
+        }
+        // useEmojis: {
+        //   label: 'Use emojis in messages ⚡️',
+        //   type: 'boolean',
+        //   defaultValue: true,
+        // },
+      }
+    }, (api) => {
+      const now2 = typeof api.now === "function" ? api.now.bind(api) : Date.now;
+      store.$onAction(({ after, onError, name, args }) => {
+        const groupId = runningActionId++;
+        api.addTimelineEvent({
+          layerId: MUTATIONS_LAYER_ID,
+          event: {
+            time: now2(),
+            title: "🛫 " + name,
+            subtitle: "start",
+            data: {
+              store: formatDisplay(store.$id),
+              action: formatDisplay(name),
+              args
+            },
+            groupId
+          }
+        });
+        after((result) => {
+          activeAction = void 0;
+          api.addTimelineEvent({
+            layerId: MUTATIONS_LAYER_ID,
+            event: {
+              time: now2(),
+              title: "🛬 " + name,
+              subtitle: "end",
+              data: {
+                store: formatDisplay(store.$id),
+                action: formatDisplay(name),
+                args,
+                result
+              },
+              groupId
+            }
+          });
+        });
+        onError((error) => {
+          activeAction = void 0;
+          api.addTimelineEvent({
+            layerId: MUTATIONS_LAYER_ID,
+            event: {
+              time: now2(),
+              logType: "error",
+              title: "💥 " + name,
+              subtitle: "end",
+              data: {
+                store: formatDisplay(store.$id),
+                action: formatDisplay(name),
+                args,
+                error
+              },
+              groupId
+            }
+          });
+        });
+      }, true);
+      store._customProperties.forEach((name) => {
+        vue.watch(() => vue.unref(store[name]), (newValue, oldValue) => {
+          api.notifyComponentUpdate();
+          api.sendInspectorState(INSPECTOR_ID);
+          if (isTimelineActive) {
+            api.addTimelineEvent({
+              layerId: MUTATIONS_LAYER_ID,
+              event: {
+                time: now2(),
+                title: "Change",
+                subtitle: name,
+                data: {
+                  newValue,
+                  oldValue
+                },
+                groupId: activeAction
+              }
+            });
+          }
+        }, { deep: true });
+      });
+      store.$subscribe(({ events, type }, state) => {
+        api.notifyComponentUpdate();
+        api.sendInspectorState(INSPECTOR_ID);
+        if (!isTimelineActive)
+          return;
+        const eventData = {
+          time: now2(),
+          title: formatMutationType(type),
+          data: assign$1({ store: formatDisplay(store.$id) }, formatEventData(events)),
+          groupId: activeAction
+        };
+        if (type === MutationType.patchFunction) {
+          eventData.subtitle = "⤵️";
+        } else if (type === MutationType.patchObject) {
+          eventData.subtitle = "🧩";
+        } else if (events && !Array.isArray(events)) {
+          eventData.subtitle = events.type;
+        }
+        if (events) {
+          eventData.data["rawEvent(s)"] = {
+            _custom: {
+              display: "DebuggerEvent",
+              type: "object",
+              tooltip: "raw DebuggerEvent[]",
+              value: events
+            }
+          };
+        }
+        api.addTimelineEvent({
+          layerId: MUTATIONS_LAYER_ID,
+          event: eventData
+        });
+      }, { detached: true, flush: "sync" });
+      const hotUpdate = store._hotUpdate;
+      store._hotUpdate = vue.markRaw((newStore) => {
+        hotUpdate(newStore);
+        api.addTimelineEvent({
+          layerId: MUTATIONS_LAYER_ID,
+          event: {
+            time: now2(),
+            title: "🔥 " + store.$id,
+            subtitle: "HMR update",
+            data: {
+              store: formatDisplay(store.$id),
+              info: formatDisplay(`HMR update`)
+            }
+          }
+        });
+        api.notifyComponentUpdate();
+        api.sendInspectorTree(INSPECTOR_ID);
+        api.sendInspectorState(INSPECTOR_ID);
+      });
+      const { $dispose } = store;
+      store.$dispose = () => {
+        $dispose();
+        api.notifyComponentUpdate();
+        api.sendInspectorTree(INSPECTOR_ID);
+        api.sendInspectorState(INSPECTOR_ID);
+        api.getSettings().logStoreChanges && toastMessage(`Disposed "${store.$id}" store 🗑`);
+      };
+      api.notifyComponentUpdate();
+      api.sendInspectorTree(INSPECTOR_ID);
+      api.sendInspectorState(INSPECTOR_ID);
+      api.getSettings().logStoreChanges && toastMessage(`"${store.$id}" store installed 🆕`);
+    });
+  }
+  let runningActionId = 0;
+  let activeAction;
+  function patchActionForGrouping(store, actionNames, wrapWithProxy) {
+    const actions = actionNames.reduce((storeActions, actionName) => {
+      storeActions[actionName] = vue.toRaw(store)[actionName];
+      return storeActions;
+    }, {});
+    for (const actionName in actions) {
+      store[actionName] = function() {
+        const _actionId = runningActionId;
+        const trackedStore = wrapWithProxy ? new Proxy(store, {
+          get(...args) {
+            activeAction = _actionId;
+            return Reflect.get(...args);
+          },
+          set(...args) {
+            activeAction = _actionId;
+            return Reflect.set(...args);
+          }
+        }) : store;
+        activeAction = _actionId;
+        const retValue = actions[actionName].apply(trackedStore, arguments);
+        activeAction = void 0;
+        return retValue;
+      };
+    }
+  }
+  function devtoolsPlugin({ app, store, options }) {
+    if (store.$id.startsWith("__hot:")) {
+      return;
+    }
+    store._isOptionsAPI = !!options.state;
+    patchActionForGrouping(store, Object.keys(options.actions), store._isOptionsAPI);
+    const originalHotUpdate = store._hotUpdate;
+    vue.toRaw(store)._hotUpdate = function(newStore) {
+      originalHotUpdate.apply(this, arguments);
+      patchActionForGrouping(store, Object.keys(newStore._hmrPayload.actions), !!store._isOptionsAPI);
+    };
+    addStoreToDevtools(
+      app,
+      // FIXME: is there a way to allow the assignment from Store<Id, S, G, A> to StoreGeneric?
+      store
+    );
+  }
+  function createPinia() {
+    const scope = vue.effectScope(true);
+    const state = scope.run(() => vue.ref({}));
+    let _p = [];
+    let toBeInstalled = [];
+    const pinia = vue.markRaw({
+      install(app) {
+        setActivePinia(pinia);
+        {
+          pinia._a = app;
+          app.provide(piniaSymbol, pinia);
+          app.config.globalProperties.$pinia = pinia;
+          if (USE_DEVTOOLS) {
+            registerPiniaDevtools(app, pinia);
+          }
+          toBeInstalled.forEach((plugin) => _p.push(plugin));
+          toBeInstalled = [];
+        }
+      },
+      use(plugin) {
+        if (!this._a && !isVue2) {
+          toBeInstalled.push(plugin);
+        } else {
+          _p.push(plugin);
+        }
+        return this;
+      },
+      _p,
+      // it's actually undefined here
+      // @ts-expect-error
+      _a: null,
+      _e: scope,
+      _s: /* @__PURE__ */ new Map(),
+      state
+    });
+    if (USE_DEVTOOLS && typeof Proxy !== "undefined") {
+      pinia.use(devtoolsPlugin);
+    }
+    return pinia;
+  }
+  function patchObject(newState, oldState) {
+    for (const key in oldState) {
+      const subPatch = oldState[key];
+      if (!(key in newState)) {
+        continue;
+      }
+      const targetValue = newState[key];
+      if (isPlainObject(targetValue) && isPlainObject(subPatch) && !vue.isRef(subPatch) && !vue.isReactive(subPatch)) {
+        newState[key] = patchObject(targetValue, subPatch);
+      } else {
+        {
+          newState[key] = subPatch;
+        }
+      }
+    }
+    return newState;
+  }
+  const noop = () => {
+  };
+  function addSubscription(subscriptions, callback, detached, onCleanup = noop) {
+    subscriptions.push(callback);
+    const removeSubscription = () => {
+      const idx = subscriptions.indexOf(callback);
+      if (idx > -1) {
+        subscriptions.splice(idx, 1);
+        onCleanup();
+      }
+    };
+    if (!detached && vue.getCurrentScope()) {
+      vue.onScopeDispose(removeSubscription);
+    }
+    return removeSubscription;
+  }
+  function triggerSubscriptions(subscriptions, ...args) {
+    subscriptions.slice().forEach((callback) => {
+      callback(...args);
+    });
+  }
+  const fallbackRunWithContext = (fn) => fn();
+  function mergeReactiveObjects(target, patchToApply) {
+    if (target instanceof Map && patchToApply instanceof Map) {
+      patchToApply.forEach((value, key) => target.set(key, value));
+    }
+    if (target instanceof Set && patchToApply instanceof Set) {
+      patchToApply.forEach(target.add, target);
+    }
+    for (const key in patchToApply) {
+      if (!patchToApply.hasOwnProperty(key))
+        continue;
+      const subPatch = patchToApply[key];
+      const targetValue = target[key];
+      if (isPlainObject(targetValue) && isPlainObject(subPatch) && target.hasOwnProperty(key) && !vue.isRef(subPatch) && !vue.isReactive(subPatch)) {
+        target[key] = mergeReactiveObjects(targetValue, subPatch);
+      } else {
+        target[key] = subPatch;
+      }
+    }
+    return target;
+  }
+  const skipHydrateSymbol = Symbol("pinia:skipHydration");
+  function shouldHydrate(obj) {
+    return !isPlainObject(obj) || !obj.hasOwnProperty(skipHydrateSymbol);
+  }
+  const { assign } = Object;
+  function isComputed(o2) {
+    return !!(vue.isRef(o2) && o2.effect);
+  }
+  function createOptionsStore(id, options, pinia, hot) {
+    const { state, actions, getters } = options;
+    const initialState = pinia.state.value[id];
+    let store;
+    function setup() {
+      if (!initialState && !hot) {
+        {
+          pinia.state.value[id] = state ? state() : {};
+        }
+      }
+      const localState = hot ? (
+        // use ref() to unwrap refs inside state TODO: check if this is still necessary
+        vue.toRefs(vue.ref(state ? state() : {}).value)
+      ) : vue.toRefs(pinia.state.value[id]);
+      return assign(localState, actions, Object.keys(getters || {}).reduce((computedGetters, name) => {
+        if (name in localState) {
+          console.warn(`[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name}" in store "${id}".`);
+        }
+        computedGetters[name] = vue.markRaw(vue.computed(() => {
+          setActivePinia(pinia);
+          const store2 = pinia._s.get(id);
+          return getters[name].call(store2, store2);
+        }));
+        return computedGetters;
+      }, {}));
+    }
+    store = createSetupStore(id, setup, options, pinia, hot, true);
+    return store;
+  }
+  function createSetupStore($id, setup, options = {}, pinia, hot, isOptionsStore) {
+    let scope;
+    const optionsForPlugin = assign({ actions: {} }, options);
+    if (!pinia._e.active) {
+      throw new Error("Pinia destroyed");
+    }
+    const $subscribeOptions = {
+      deep: true
+      // flush: 'post',
+    };
+    {
+      $subscribeOptions.onTrigger = (event) => {
+        if (isListening) {
+          debuggerEvents = event;
+        } else if (isListening == false && !store._hotUpdating) {
+          if (Array.isArray(debuggerEvents)) {
+            debuggerEvents.push(event);
+          } else {
+            console.error("🍍 debuggerEvents should be an array. This is most likely an internal Pinia bug.");
+          }
+        }
+      };
+    }
+    let isListening;
+    let isSyncListening;
+    let subscriptions = [];
+    let actionSubscriptions = [];
+    let debuggerEvents;
+    const initialState = pinia.state.value[$id];
+    if (!isOptionsStore && !initialState && !hot) {
+      {
+        pinia.state.value[$id] = {};
+      }
+    }
+    const hotState = vue.ref({});
+    let activeListener;
+    function $patch(partialStateOrMutator) {
+      let subscriptionMutation;
+      isListening = isSyncListening = false;
+      {
+        debuggerEvents = [];
+      }
+      if (typeof partialStateOrMutator === "function") {
+        partialStateOrMutator(pinia.state.value[$id]);
+        subscriptionMutation = {
+          type: MutationType.patchFunction,
+          storeId: $id,
+          events: debuggerEvents
+        };
+      } else {
+        mergeReactiveObjects(pinia.state.value[$id], partialStateOrMutator);
+        subscriptionMutation = {
+          type: MutationType.patchObject,
+          payload: partialStateOrMutator,
+          storeId: $id,
+          events: debuggerEvents
+        };
+      }
+      const myListenerId = activeListener = Symbol();
+      vue.nextTick().then(() => {
+        if (activeListener === myListenerId) {
+          isListening = true;
+        }
+      });
+      isSyncListening = true;
+      triggerSubscriptions(subscriptions, subscriptionMutation, pinia.state.value[$id]);
+    }
+    const $reset = isOptionsStore ? function $reset2() {
+      const { state } = options;
+      const newState = state ? state() : {};
+      this.$patch(($state) => {
+        assign($state, newState);
+      });
+    } : (
+      /* istanbul ignore next */
+      () => {
+        throw new Error(`🍍: Store "${$id}" is built using the setup syntax and does not implement $reset().`);
+      }
+    );
+    function $dispose() {
+      scope.stop();
+      subscriptions = [];
+      actionSubscriptions = [];
+      pinia._s.delete($id);
+    }
+    function wrapAction(name, action) {
+      return function() {
+        setActivePinia(pinia);
+        const args = Array.from(arguments);
+        const afterCallbackList = [];
+        const onErrorCallbackList = [];
+        function after(callback) {
+          afterCallbackList.push(callback);
+        }
+        function onError(callback) {
+          onErrorCallbackList.push(callback);
+        }
+        triggerSubscriptions(actionSubscriptions, {
+          args,
+          name,
+          store,
+          after,
+          onError
+        });
+        let ret;
+        try {
+          ret = action.apply(this && this.$id === $id ? this : store, args);
+        } catch (error) {
+          triggerSubscriptions(onErrorCallbackList, error);
+          throw error;
+        }
+        if (ret instanceof Promise) {
+          return ret.then((value) => {
+            triggerSubscriptions(afterCallbackList, value);
+            return value;
+          }).catch((error) => {
+            triggerSubscriptions(onErrorCallbackList, error);
+            return Promise.reject(error);
+          });
+        }
+        triggerSubscriptions(afterCallbackList, ret);
+        return ret;
+      };
+    }
+    const _hmrPayload = /* @__PURE__ */ vue.markRaw({
+      actions: {},
+      getters: {},
+      state: [],
+      hotState
+    });
+    const partialStore = {
+      _p: pinia,
+      // _s: scope,
+      $id,
+      $onAction: addSubscription.bind(null, actionSubscriptions),
+      $patch,
+      $reset,
+      $subscribe(callback, options2 = {}) {
+        const removeSubscription = addSubscription(subscriptions, callback, options2.detached, () => stopWatcher());
+        const stopWatcher = scope.run(() => vue.watch(() => pinia.state.value[$id], (state) => {
+          if (options2.flush === "sync" ? isSyncListening : isListening) {
+            callback({
+              storeId: $id,
+              type: MutationType.direct,
+              events: debuggerEvents
+            }, state);
+          }
+        }, assign({}, $subscribeOptions, options2)));
+        return removeSubscription;
+      },
+      $dispose
+    };
+    const store = vue.reactive(assign(
+      {
+        _hmrPayload,
+        _customProperties: vue.markRaw(/* @__PURE__ */ new Set())
+        // devtools custom properties
+      },
+      partialStore
+      // must be added later
+      // setupStore
+    ));
+    pinia._s.set($id, store);
+    const runWithContext = pinia._a && pinia._a.runWithContext || fallbackRunWithContext;
+    const setupStore = runWithContext(() => pinia._e.run(() => (scope = vue.effectScope()).run(setup)));
+    for (const key in setupStore) {
+      const prop = setupStore[key];
+      if (vue.isRef(prop) && !isComputed(prop) || vue.isReactive(prop)) {
+        if (hot) {
+          set(hotState.value, key, vue.toRef(setupStore, key));
+        } else if (!isOptionsStore) {
+          if (initialState && shouldHydrate(prop)) {
+            if (vue.isRef(prop)) {
+              prop.value = initialState[key];
+            } else {
+              mergeReactiveObjects(prop, initialState[key]);
+            }
+          }
+          {
+            pinia.state.value[$id][key] = prop;
+          }
+        }
+        {
+          _hmrPayload.state.push(key);
+        }
+      } else if (typeof prop === "function") {
+        const actionValue = hot ? prop : wrapAction(key, prop);
+        {
+          setupStore[key] = actionValue;
+        }
+        {
+          _hmrPayload.actions[key] = prop;
+        }
+        optionsForPlugin.actions[key] = prop;
+      } else {
+        if (isComputed(prop)) {
+          _hmrPayload.getters[key] = isOptionsStore ? (
+            // @ts-expect-error
+            options.getters[key]
+          ) : prop;
+          if (IS_CLIENT) {
+            const getters = setupStore._getters || // @ts-expect-error: same
+            (setupStore._getters = vue.markRaw([]));
+            getters.push(key);
+          }
+        }
+      }
+    }
+    {
+      assign(store, setupStore);
+      assign(vue.toRaw(store), setupStore);
+    }
+    Object.defineProperty(store, "$state", {
+      get: () => hot ? hotState.value : pinia.state.value[$id],
+      set: (state) => {
+        if (hot) {
+          throw new Error("cannot set hotState");
+        }
+        $patch(($state) => {
+          assign($state, state);
+        });
+      }
+    });
+    {
+      store._hotUpdate = vue.markRaw((newStore) => {
+        store._hotUpdating = true;
+        newStore._hmrPayload.state.forEach((stateKey) => {
+          if (stateKey in store.$state) {
+            const newStateTarget = newStore.$state[stateKey];
+            const oldStateSource = store.$state[stateKey];
+            if (typeof newStateTarget === "object" && isPlainObject(newStateTarget) && isPlainObject(oldStateSource)) {
+              patchObject(newStateTarget, oldStateSource);
+            } else {
+              newStore.$state[stateKey] = oldStateSource;
+            }
+          }
+          set(store, stateKey, vue.toRef(newStore.$state, stateKey));
+        });
+        Object.keys(store.$state).forEach((stateKey) => {
+          if (!(stateKey in newStore.$state)) {
+            del(store, stateKey);
+          }
+        });
+        isListening = false;
+        isSyncListening = false;
+        pinia.state.value[$id] = vue.toRef(newStore._hmrPayload, "hotState");
+        isSyncListening = true;
+        vue.nextTick().then(() => {
+          isListening = true;
+        });
+        for (const actionName in newStore._hmrPayload.actions) {
+          const action = newStore[actionName];
+          set(store, actionName, wrapAction(actionName, action));
+        }
+        for (const getterName in newStore._hmrPayload.getters) {
+          const getter = newStore._hmrPayload.getters[getterName];
+          const getterValue = isOptionsStore ? (
+            // special handling of options api
+            vue.computed(() => {
+              setActivePinia(pinia);
+              return getter.call(store, store);
+            })
+          ) : getter;
+          set(store, getterName, getterValue);
+        }
+        Object.keys(store._hmrPayload.getters).forEach((key) => {
+          if (!(key in newStore._hmrPayload.getters)) {
+            del(store, key);
+          }
+        });
+        Object.keys(store._hmrPayload.actions).forEach((key) => {
+          if (!(key in newStore._hmrPayload.actions)) {
+            del(store, key);
+          }
+        });
+        store._hmrPayload = newStore._hmrPayload;
+        store._getters = newStore._getters;
+        store._hotUpdating = false;
+      });
+    }
+    if (USE_DEVTOOLS) {
+      const nonEnumerable = {
+        writable: true,
+        configurable: true,
+        // avoid warning on devtools trying to display this property
+        enumerable: false
+      };
+      ["_p", "_hmrPayload", "_getters", "_customProperties"].forEach((p2) => {
+        Object.defineProperty(store, p2, assign({ value: store[p2] }, nonEnumerable));
+      });
+    }
+    pinia._p.forEach((extender) => {
+      if (USE_DEVTOOLS) {
+        const extensions = scope.run(() => extender({
+          store,
+          app: pinia._a,
+          pinia,
+          options: optionsForPlugin
+        }));
+        Object.keys(extensions || {}).forEach((key) => store._customProperties.add(key));
+        assign(store, extensions);
+      } else {
+        assign(store, scope.run(() => extender({
+          store,
+          app: pinia._a,
+          pinia,
+          options: optionsForPlugin
+        })));
+      }
+    });
+    if (store.$state && typeof store.$state === "object" && typeof store.$state.constructor === "function" && !store.$state.constructor.toString().includes("[native code]")) {
+      console.warn(`[🍍]: The "state" must be a plain object. It cannot be
+	state: () => new MyClass()
+Found in store "${store.$id}".`);
+    }
+    if (initialState && isOptionsStore && options.hydrate) {
+      options.hydrate(store.$state, initialState);
+    }
+    isListening = true;
+    isSyncListening = true;
+    return store;
+  }
+  function defineStore(idOrOptions, setup, setupOptions) {
+    let id;
+    let options;
+    const isSetupStore = typeof setup === "function";
+    if (typeof idOrOptions === "string") {
+      id = idOrOptions;
+      options = isSetupStore ? setupOptions : setup;
+    } else {
+      options = idOrOptions;
+      id = idOrOptions.id;
+      if (typeof id !== "string") {
+        throw new Error(`[🍍]: "defineStore()" must be passed a store id as its first argument.`);
+      }
+    }
+    function useStore(pinia, hot) {
+      const hasContext = vue.hasInjectionContext();
+      pinia = // in test mode, ignore the argument provided as we can always retrieve a
+      // pinia instance with getActivePinia()
+      pinia || (hasContext ? vue.inject(piniaSymbol, null) : null);
+      if (pinia)
+        setActivePinia(pinia);
+      if (!activePinia) {
+        throw new Error(`[🍍]: "getActivePinia()" was called but there was no active Pinia. Are you trying to use a store before calling "app.use(pinia)"?
+See https://pinia.vuejs.org/core-concepts/outside-component-usage.html for help.
+This will fail in production.`);
+      }
+      pinia = activePinia;
+      if (!pinia._s.has(id)) {
+        if (isSetupStore) {
+          createSetupStore(id, setup, options, pinia);
+        } else {
+          createOptionsStore(id, options, pinia);
+        }
+        {
+          useStore._pinia = pinia;
+        }
+      }
+      const store = pinia._s.get(id);
+      if (hot) {
+        const hotId = "__hot:" + id;
+        const newStore = isSetupStore ? createSetupStore(hotId, setup, options, pinia, true) : createOptionsStore(hotId, assign({}, options), pinia, true);
+        hot._hotUpdate(newStore);
+        delete pinia.state.value[hotId];
+        pinia._s.delete(hotId);
+      }
+      if (IS_CLIENT) {
+        const currentInstance = vue.getCurrentInstance();
+        if (currentInstance && currentInstance.proxy && // avoid adding stores that are just built for hot module replacement
+        !hot) {
+          const vm = currentInstance.proxy;
+          const cache = "_pStores" in vm ? vm._pStores : vm._pStores = {};
+          cache[id] = store;
+        }
+      }
+      return store;
+    }
+    useStore.$id = id;
+    return useStore;
+  }
+  const userStore = defineStore("user", () => {
+    const username = vue.ref("");
+    const password = vue.ref("");
+    const userId2 = vue.ref("");
+    const projectId2 = vue.ref("");
+    const taskId = vue.ref("");
+    const buildingId2 = vue.ref("");
+    const currentDir = vue.ref("");
+    const setUserInfo = (userinfo) => {
+      username.value = userinfo.username;
+      password.value = userinfo.password;
+    };
+    const setUserId = (Id) => {
+      userId2.value = Id.value;
+    };
+    const setProjectId = (Id) => {
+      projectId2.value = Id.value;
+    };
+    const setTaskId = (Id) => {
+      taskId.value = Id.value;
+    };
+    const setBuildingId = (Id) => {
+      buildingId2.value = Id.value;
+    };
+    const setDir = (dir) => {
+      currentDir.value = dir.value;
+    };
+    return {
+      username,
+      password,
+      userId: userId2,
+      projectId: projectId2,
+      taskId,
+      buildingId: buildingId2,
+      setUserInfo,
+      setUserId,
+      setProjectId,
+      setTaskId,
+      setBuildingId,
+      setDir
+    };
+  });
+  const _imports_0$6 = "/static/image/loginLogo.jpg";
   const _export_sfc = (sfc, props) => {
     const target = sfc.__vccOpts || sfc;
     for (const [key, val] of props) {
@@ -39,47 +1647,123 @@ if (uni.restoreGlobal) {
     }
     return target;
   };
-  const _sfc_main$H = {
+  const _sfc_main$A = {
     __name: "LoginPage",
     setup(__props, { expose: __expose }) {
       __expose();
       const username = vue.ref("");
       const password = vue.ref("");
-      const rememberPassword = vue.ref(false);
-      const offlineLogin = vue.ref(false);
+      const userInfo = userStore();
+      const rememberPassword2 = vue.ref(false);
+      const offlineLogin2 = vue.ref(false);
       const showPassword = vue.ref(false);
+      const loading = vue.ref(false);
       const toggleRememberPassword = () => {
-        rememberPassword.value = !rememberPassword.value;
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:70", "切换记住密码状态，当前状态:", rememberPassword2.value);
+        rememberPassword2.value = !rememberPassword2.value;
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:72", "切换后的状态:", rememberPassword2.value);
       };
       const toggleOfflineLogin = () => {
-        offlineLogin.value = !offlineLogin.value;
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:76", "切换离线登录状态，当前状态:", offlineLogin2.value);
+        offlineLogin2.value = !offlineLogin2.value;
+        formatAppLog("log", "at pages/LoginPage/LoginPage.vue:78", "切换后的状态:", offlineLogin2.value);
       };
+      vue.onMounted(async () => {
+      });
+      vue.onMounted(() => {
+        if (uni.getStorageSync("username") && uni.getStorageSync("password")) {
+          username.value = uni.getStorageSync("username");
+          password.value = uni.getStorageSync("password");
+        }
+      });
       const togglePasswordVisibility = () => {
         showPassword.value = !showPassword.value;
       };
-      const handleLogin = () => {
-        if (username.value === "admin" && password.value === "123456") {
-          uni.navigateTo({
-            url: "/pages/home/home"
-          });
-        } else {
+      const handleLogin = async () => {
+        if (!username.value || !password.value) {
           uni.showToast({
-            title: "用户名或密码错误",
+            title: "请输入用户名和密码",
             icon: "none"
           });
+          return;
+        }
+        loading.value = true;
+        try {
+          formatAppLog("log", "at pages/LoginPage/LoginPage.vue:127", "当前登录模式:", offlineLogin2.value ? "离线登录" : "在线登录");
+          formatAppLog("log", "at pages/LoginPage/LoginPage.vue:128", "记住密码状态:", rememberPassword2.value);
+          if (offlineLogin2.value) {
+            const localUsername = uni.getStorageSync("username");
+            const localPassword = uni.getStorageSync("password");
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:132", "进入离线登录逻辑");
+            if (localUsername && localPassword && localUsername === username.value && localPassword === password.value) {
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:138", "离线登录成功，准备跳转");
+              uni.navigateTo({
+                url: "/pages/home/home"
+              });
+            } else {
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:144", "离线登录失败：用户名或密码不匹配");
+              uni.showToast({
+                title: "用户名或密码错误",
+                icon: "none"
+              });
+            }
+          } else {
+            const response = await uni.request({
+              url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+              method: "POST"
+            });
+            formatAppLog("log", "at pages/LoginPage/LoginPage.vue:157", "登录响应:", response.data);
+            if (response.data.code === 0) {
+              userInfo.setUserInfo({
+                username: username.value,
+                password: password.value
+              });
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:176", "登录成功，准备跳转");
+              uni.navigateTo({
+                url: "/pages/home/home"
+              });
+              formatAppLog("log", "at pages/LoginPage/LoginPage.vue:181", "记住密码状态:", rememberPassword2.value);
+              if (rememberPassword2.value) {
+                formatAppLog("log", "at pages/LoginPage/LoginPage.vue:183", "准备保存用户信息");
+                uni.setStorageSync("username", username.value);
+                uni.setStorageSync("password", password.value);
+              } else {
+                formatAppLog("log", "at pages/LoginPage/LoginPage.vue:192", "未勾选记住密码，不保存用户信息");
+                uni.removeStorageSync("username");
+                uni.removeStorageSync("password");
+              }
+            } else {
+              uni.showToast({
+                title: response.data.msg || "登录失败",
+                icon: "none"
+              });
+            }
+          }
+        } catch (error) {
+          formatAppLog("error", "at pages/LoginPage/LoginPage.vue:204", "登录失败:", error);
+          uni.showToast({
+            title: "登录失败，请稍后重试",
+            icon: "none"
+          });
+        } finally {
+          loading.value = false;
         }
       };
-      const __returned__ = { username, password, rememberPassword, offlineLogin, showPassword, toggleRememberPassword, toggleOfflineLogin, togglePasswordVisibility, handleLogin, ref: vue.ref };
+      const __returned__ = { username, password, userInfo, rememberPassword: rememberPassword2, offlineLogin: offlineLogin2, showPassword, loading, toggleRememberPassword, toggleOfflineLogin, togglePasswordVisibility, handleLogin, ref: vue.ref, onMounted: vue.onMounted, get setAllUserInfo() {
+        return setAllUserInfo;
+      }, get userStore() {
+        return userStore;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$G(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "loginPage" }, [
       vue.createElementVNode("view", { class: "logo" }, [
         vue.createElementVNode("view", { class: "logo-container" }, [
           vue.createElementVNode("image", {
-            src: _imports_0$8,
+            src: _imports_0$6,
             mode: "widthFix",
             style: { "width": "100%", "background-color": "#ffffff" }
           })
@@ -128,13 +1812,19 @@ if (uni.restoreGlobal) {
         ]),
         vue.createElementVNode("view", { class: "item_3" }, [
           vue.createElementVNode("radio-group", { name: "radio" }, [
-            vue.createElementVNode("label", { onClick: $setup.toggleRememberPassword }, [
-              vue.createElementVNode("radio", { checked: $setup.rememberPassword }, null, 8, ["checked"]),
-              vue.createTextVNode("记住密码 ")
+            vue.createElementVNode("label", null, [
+              vue.createElementVNode("radio", {
+                checked: $setup.rememberPassword,
+                onClick: $setup.toggleRememberPassword
+              }, null, 8, ["checked"]),
+              vue.createElementVNode("span", null, "记住密码")
             ]),
-            vue.createElementVNode("label", { onClick: $setup.toggleOfflineLogin }, [
-              vue.createElementVNode("radio", { checked: $setup.offlineLogin }, null, 8, ["checked"]),
-              vue.createTextVNode("离线登录 ")
+            vue.createElementVNode("label", null, [
+              vue.createElementVNode("radio", {
+                checked: $setup.offlineLogin,
+                onClick: $setup.toggleOfflineLogin
+              }, null, 8, ["checked"]),
+              vue.createElementVNode("span", null, "离线登录")
             ])
           ])
         ]),
@@ -150,192 +1840,11 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$H, [["render", _sfc_render$G], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
-  const ON_LOAD = "onLoad";
-  function formatAppLog(type, filename, ...args) {
-    if (uni.__log__) {
-      uni.__log__(type, filename, ...args);
-    } else {
-      console[type].apply(console, [...args, filename]);
-    }
-  }
-  function resolveEasycom(component, easycom2) {
-    return typeof component === "string" ? easycom2 : component;
-  }
-  const createHook = (lifecycle) => (hook, target = vue.getCurrentInstance()) => {
-    !vue.isInSSRComponentSetup && vue.injectHook(lifecycle, hook, target);
-  };
-  const onLoad = /* @__PURE__ */ createHook(ON_LOAD);
-  const _sfc_main$G = {
-    __name: "login",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const username = vue.ref("");
-      const password = vue.ref("");
-      const rememberPassword = vue.ref(false);
-      const autoLogin = vue.ref(false);
-      onLoad(() => {
-        const isLoggedIn = uni.getStorageSync("isLoggedIn");
-        if (isLoggedIn) {
-          uni.redirectTo({
-            url: "/pages/home/home"
-          });
-        }
-        rememberPassword.value = uni.getStorageSync("rememberPassword") || false;
-        autoLogin.value = uni.getStorageSync("autoLogin") || false;
-        if (rememberPassword.value) {
-          username.value = uni.getStorageSync("username") || "";
-          password.value = uni.getStorageSync("password") || "";
-        }
-        if (autoLogin.value && username.value && password.value) {
-          login();
-        }
-      });
-      const login = () => {
-        if (!username.value || !password.value) {
-          uni.showToast({
-            title: "请输入用户名和密码",
-            icon: "none"
-          });
-          return;
-        }
-        const correctUsername = "admin";
-        const correctPassword = "123456";
-        if (username.value === correctUsername && password.value === correctPassword) {
-          uni.showToast({
-            title: "登录成功",
-            icon: "success"
-          });
-          uni.setStorageSync("isLoggedIn", true);
-          if (rememberPassword.value) {
-            uni.setStorageSync("username", username.value);
-            uni.setStorageSync("password", password.value);
-          } else {
-            uni.removeStorageSync("username");
-            uni.removeStorageSync("password");
-          }
-          uni.setStorageSync("rememberPassword", rememberPassword.value);
-          uni.setStorageSync("autoLogin", autoLogin.value);
-          uni.setStorageSync("isOnline", true);
-          uni.redirectTo({
-            url: "/pages/home/home"
-          });
-        } else {
-          uni.showToast({
-            title: "用户名或密码错误",
-            icon: "none"
-          });
-        }
-      };
-      const toggleRememberPassword = (event) => {
-        rememberPassword.value = event.detail.value.length > 0;
-        uni.setStorageSync("rememberPassword", rememberPassword.value);
-        if (!rememberPassword.value) {
-          autoLogin.value = false;
-          uni.setStorageSync("autoLogin", false);
-        }
-      };
-      const toggleAutoLogin = (event) => {
-        autoLogin.value = event.detail.value.length > 0;
-        uni.setStorageSync("autoLogin", autoLogin.value);
-        if (autoLogin.value) {
-          rememberPassword.value = true;
-          uni.setStorageSync("rememberPassword", true);
-        }
-      };
-      const offlineLogin = () => {
-        uni.showToast({
-          title: "离线登录成功",
-          icon: "success"
-        });
-        uni.setStorageSync("isLoggedIn", true);
-        uni.setStorageSync("isOnline", false);
-        uni.redirectTo({
-          url: "/pages/home/home"
-        });
-      };
-      const __returned__ = { username, password, rememberPassword, autoLogin, login, toggleRememberPassword, toggleAutoLogin, offlineLogin, ref: vue.ref, get onLoad() {
-        return onLoad;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$F(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "login" }, [
-      vue.createElementVNode("view", { class: "login-box" }, [
-        vue.createElementVNode("view", { class: "login-box-title" }, "登录"),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "login-box-username",
-            placeholder: "请输入账号",
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.username = $event)
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.username]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "input",
-          {
-            class: "login-box-password",
-            placeholder: "请输入密码",
-            password: "",
-            "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.password = $event)
-          },
-          null,
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vModelText, $setup.password]
-        ]),
-        vue.createElementVNode("view", { class: "login-box-option" }, [
-          vue.createElementVNode(
-            "checkbox-group",
-            { onChange: $setup.toggleRememberPassword },
-            [
-              vue.createElementVNode("label", { class: "login-box-option-rememberPassword" }, [
-                vue.createElementVNode("checkbox", { checked: $setup.rememberPassword }, null, 8, ["checked"]),
-                vue.createElementVNode("text", null, "记住密码")
-              ])
-            ],
-            32
-            /* NEED_HYDRATION */
-          ),
-          vue.createElementVNode(
-            "checkbox-group",
-            { onChange: $setup.toggleAutoLogin },
-            [
-              vue.createElementVNode("label", { class: "login-box-option-autoLogin" }, [
-                vue.createElementVNode("checkbox", { checked: $setup.autoLogin }, null, 8, ["checked"]),
-                vue.createElementVNode("text", null, "自动登录")
-              ])
-            ],
-            32
-            /* NEED_HYDRATION */
-          )
-        ]),
-        vue.createElementVNode("view", {
-          class: "login-box-button",
-          onClick: _cache[2] || (_cache[2] = ($event) => $setup.login())
-        }, "登录"),
-        vue.createElementVNode("view", { class: "login-box-offline" }, [
-          vue.createElementVNode("view", {
-            class: "login-box-offline-box",
-            onClick: $setup.offlineLogin
-          }, "离线登录")
-        ])
-      ])
-    ]);
-  }
-  const PagesLoginLogin = /* @__PURE__ */ _export_sfc(_sfc_main$G, [["render", _sfc_render$F], ["__scopeId", "data-v-e4e4508d"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/login/login.vue"]]);
-  const _imports_0$7 = "/static/image/loginLogo.png";
-  const _imports_1$3 = "/static/image/bridgenew.png";
+  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
+  const _imports_0$5 = "/static/image/loginLogo.png";
+  const _imports_1$2 = "/static/image/bridgenew.png";
   const _imports_2$2 = "/static/image/setting.png";
-  const _sfc_main$F = {
+  const _sfc_main$z = {
     __name: "home",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -357,11 +1866,11 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$E(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { id: "homePage" }, [
       vue.createElementVNode("view", { class: "logo" }, [
         vue.createElementVNode("image", {
-          src: _imports_0$7,
+          src: _imports_0$5,
           mode: "widthFix",
           style: { "width": "100%" }
         })
@@ -378,7 +1887,7 @@ if (uni.restoreGlobal) {
               vue.createElementVNode("view", { class: "icon-item" }, [
                 vue.createElementVNode("view", { class: "icon-box" }, [
                   vue.createElementVNode("image", {
-                    src: _imports_1$3,
+                    src: _imports_1$2,
                     mode: "widthFix",
                     class: "home-icon"
                   })
@@ -414,1646 +1923,27 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$F, [["render", _sfc_render$E], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
-  const noMessage = "/static/image/noMessage.svg";
-  const _sfc_main$E = {
-    __name: "message",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const __returned__ = { get noMessage() {
-        return noMessage;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const DOC_BASE_PATH$1 = "_doc/";
+  function getCurrentDateStr() {
+    const now2 = /* @__PURE__ */ new Date();
+    const year = now2.getFullYear().toString().slice(-2);
+    const month = (now2.getMonth() + 1).toString().padStart(2, "0");
+    const day = now2.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+  function getUserDir(userName) {
+    return `UD${getCurrentDateStr()}-${userName}`;
+  }
+  const FILE_NAMING$1 = {
+    project: (userName) => `${getUserDir(userName)}/project/projects.json`,
+    task: (userName, projectId2) => `${getUserDir(userName)}/project/${projectId2}/task.json`,
+    property: (userName, buildingId2) => `${getUserDir(userName)}/building/${buildingId2}/property.json`,
+    disease: (userName, buildingId2, yearId) => `${getUserDir(userName)}/building/${buildingId2}/disease/${yearId}.json`,
+    Object: (userName, buildingId2) => `${getUserDir(userName)}/building/${buildingId2}/object.json`,
+    AllUserInfo: (userName) => `${getUserDir(userName)}/AllUserInfo.json`
   };
-  function _sfc_render$D(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "message" }, [
-      vue.createElementVNode("view", { class: "message-none" }, [
-        vue.createElementVNode("image", {
-          class: "message-none-icon",
-          src: $setup.noMessage
-        }, null, 8, ["src"]),
-        vue.createElementVNode("view", { class: "message-none-text" }, "没有相关数据哦")
-      ])
-    ]);
-  }
-  const PagesMessageMessage = /* @__PURE__ */ _export_sfc(_sfc_main$E, [["render", _sfc_render$D], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/message/message.vue"]]);
-  const _sfc_main$D = {
-    __name: "infoItem",
-    props: {
-      infoKey: String,
-      infoValue: String
-    },
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const props = __props;
-      const __returned__ = { props, ref: vue.ref };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$C(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "infoItem" }, [
-      vue.createElementVNode(
-        "view",
-        { class: "infoItem-key" },
-        vue.toDisplayString($setup.props.infoKey),
-        1
-        /* TEXT */
-      ),
-      vue.createElementVNode(
-        "view",
-        { class: "infoItem-value" },
-        vue.toDisplayString($setup.props.infoValue),
-        1
-        /* TEXT */
-      )
-    ]);
-  }
-  const infoItem = /* @__PURE__ */ _export_sfc(_sfc_main$D, [["render", _sfc_render$C], ["__scopeId", "data-v-e152a2e4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/infoItem.vue"]]);
-  const _sfc_main$C = {
-    __name: "userinfo",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const userinfo = vue.ref([{
-        key: "姓名",
-        value: "西工院检测05"
-      }, {
-        key: "编号",
-        value: "xigy05"
-      }, {
-        key: "手机号码",
-        value: "12345678901"
-      }, {
-        key: "权属单位",
-        value: "陕西交控工程技术有限公司"
-      }]);
-      const photoSrc = vue.ref("/static/image/zjl.png");
-      const changePhoto = () => {
-        uni.chooseImage({
-          count: 1,
-          sizeType: ["original", "compressed"],
-          sourceType: ["album", "camera"],
-          success: (res) => {
-            photoSrc.value = res.tempFilePaths[0];
-          },
-          fail: (err) => {
-            formatAppLog("error", "at pages/userinfo/userinfo.vue:38", "头像选择失败", err);
-          }
-        });
-      };
-      const __returned__ = { userinfo, photoSrc, changePhoto, ref: vue.ref, infoItem };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$B(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "userinfo" }, [
-      vue.createElementVNode("view", { class: "userinfo-photoBox" }, [
-        vue.createElementVNode("image", {
-          class: "userinfo-photoBox-photo",
-          src: $setup.photoSrc,
-          onClick: $setup.changePhoto
-        }, null, 8, ["src"])
-      ]),
-      (vue.openBlock(true), vue.createElementBlock(
-        vue.Fragment,
-        null,
-        vue.renderList($setup.userinfo, (item, index) => {
-          return vue.openBlock(), vue.createBlock($setup["infoItem"], {
-            key: index,
-            infoKey: item.key,
-            infoValue: item.value
-          }, null, 8, ["infoKey", "infoValue"]);
-        }),
-        128
-        /* KEYED_FRAGMENT */
-      ))
-    ]);
-  }
-  const PagesUserinfoUserinfo = /* @__PURE__ */ _export_sfc(_sfc_main$C, [["render", _sfc_render$B], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/userinfo/userinfo.vue"]]);
-  const _imports_0$6 = "/static/image/exclamation.svg";
-  const _imports_1$2 = "/static/image/rightArrow.svg";
-  const _sfc_main$B = {
-    __name: "setting",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const toVersionInfo = () => {
-        uni.navigateTo({
-          url: "/pages/versionInfo/versionInfo"
-        });
-      };
-      const logout = () => {
-        uni.removeStorageSync("isLoggedIn");
-        uni.removeStorageSync("autoLogin");
-        uni.redirectTo({ url: "/pages/login/login" });
-      };
-      const __returned__ = { toVersionInfo, logout };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "setting" }, [
-      vue.createElementVNode("view", {
-        class: "setting-versionInfo",
-        onClick: $setup.toVersionInfo
-      }, [
-        vue.createElementVNode("view", { class: "setting-versionInfo-left" }, [
-          vue.createElementVNode("image", {
-            class: "setting-versionInfo-left-icon",
-            src: _imports_0$6
-          }),
-          vue.createElementVNode("view", { class: "setting-versionInfo-left-text" }, "版本信息")
-        ]),
-        vue.createElementVNode("image", {
-          class: "setting-versionInfo-rightArrow",
-          src: _imports_1$2
-        })
-      ]),
-      vue.createElementVNode("view", {
-        class: "setting-logout",
-        onClick: $setup.logout
-      }, " 注销登录 ")
-    ]);
-  }
-  const PagesSettingSetting = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/setting/setting.vue"]]);
-  const popup = {
-    data() {
-      return {};
-    },
-    created() {
-      this.popup = this.getParent();
-    },
-    methods: {
-      /**
-       * 获取父元素实例
-       */
-      getParent(name = "uniPopup") {
-        let parent = this.$parent;
-        let parentName = parent.$options.name;
-        while (parentName !== name) {
-          parent = parent.$parent;
-          if (!parent)
-            return false;
-          parentName = parent.$options.name;
-        }
-        return parent;
-      }
-    }
-  };
-  const isObject = (val) => val !== null && typeof val === "object";
-  const defaultDelimiters = ["{", "}"];
-  class BaseFormatter {
-    constructor() {
-      this._caches = /* @__PURE__ */ Object.create(null);
-    }
-    interpolate(message, values, delimiters = defaultDelimiters) {
-      if (!values) {
-        return [message];
-      }
-      let tokens = this._caches[message];
-      if (!tokens) {
-        tokens = parse(message, delimiters);
-        this._caches[message] = tokens;
-      }
-      return compile(tokens, values);
-    }
-  }
-  const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
-  const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
-  function parse(format, [startDelimiter, endDelimiter]) {
-    const tokens = [];
-    let position = 0;
-    let text = "";
-    while (position < format.length) {
-      let char = format[position++];
-      if (char === startDelimiter) {
-        if (text) {
-          tokens.push({ type: "text", value: text });
-        }
-        text = "";
-        let sub = "";
-        char = format[position++];
-        while (char !== void 0 && char !== endDelimiter) {
-          sub += char;
-          char = format[position++];
-        }
-        const isClosed = char === endDelimiter;
-        const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
-        tokens.push({ value: sub, type });
-      } else {
-        text += char;
-      }
-    }
-    text && tokens.push({ type: "text", value: text });
-    return tokens;
-  }
-  function compile(tokens, values) {
-    const compiled = [];
-    let index = 0;
-    const mode = Array.isArray(values) ? "list" : isObject(values) ? "named" : "unknown";
-    if (mode === "unknown") {
-      return compiled;
-    }
-    while (index < tokens.length) {
-      const token = tokens[index];
-      switch (token.type) {
-        case "text":
-          compiled.push(token.value);
-          break;
-        case "list":
-          compiled.push(values[parseInt(token.value, 10)]);
-          break;
-        case "named":
-          if (mode === "named") {
-            compiled.push(values[token.value]);
-          } else {
-            {
-              console.warn(`Type of token '${token.type}' and format of value '${mode}' don't match!`);
-            }
-          }
-          break;
-        case "unknown":
-          {
-            console.warn(`Detect 'unknown' type of token!`);
-          }
-          break;
-      }
-      index++;
-    }
-    return compiled;
-  }
-  const LOCALE_ZH_HANS = "zh-Hans";
-  const LOCALE_ZH_HANT = "zh-Hant";
-  const LOCALE_EN = "en";
-  const LOCALE_FR = "fr";
-  const LOCALE_ES = "es";
-  const hasOwnProperty = Object.prototype.hasOwnProperty;
-  const hasOwn = (val, key) => hasOwnProperty.call(val, key);
-  const defaultFormatter = new BaseFormatter();
-  function include(str, parts) {
-    return !!parts.find((part) => str.indexOf(part) !== -1);
-  }
-  function startsWith(str, parts) {
-    return parts.find((part) => str.indexOf(part) === 0);
-  }
-  function normalizeLocale(locale, messages2) {
-    if (!locale) {
-      return;
-    }
-    locale = locale.trim().replace(/_/g, "-");
-    if (messages2 && messages2[locale]) {
-      return locale;
-    }
-    locale = locale.toLowerCase();
-    if (locale === "chinese") {
-      return LOCALE_ZH_HANS;
-    }
-    if (locale.indexOf("zh") === 0) {
-      if (locale.indexOf("-hans") > -1) {
-        return LOCALE_ZH_HANS;
-      }
-      if (locale.indexOf("-hant") > -1) {
-        return LOCALE_ZH_HANT;
-      }
-      if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
-        return LOCALE_ZH_HANT;
-      }
-      return LOCALE_ZH_HANS;
-    }
-    let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
-    if (messages2 && Object.keys(messages2).length > 0) {
-      locales = Object.keys(messages2);
-    }
-    const lang = startsWith(locale, locales);
-    if (lang) {
-      return lang;
-    }
-  }
-  class I18n {
-    constructor({ locale, fallbackLocale, messages: messages2, watcher, formater: formater2 }) {
-      this.locale = LOCALE_EN;
-      this.fallbackLocale = LOCALE_EN;
-      this.message = {};
-      this.messages = {};
-      this.watchers = [];
-      if (fallbackLocale) {
-        this.fallbackLocale = fallbackLocale;
-      }
-      this.formater = formater2 || defaultFormatter;
-      this.messages = messages2 || {};
-      this.setLocale(locale || LOCALE_EN);
-      if (watcher) {
-        this.watchLocale(watcher);
-      }
-    }
-    setLocale(locale) {
-      const oldLocale = this.locale;
-      this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
-      if (!this.messages[this.locale]) {
-        this.messages[this.locale] = {};
-      }
-      this.message = this.messages[this.locale];
-      if (oldLocale !== this.locale) {
-        this.watchers.forEach((watcher) => {
-          watcher(this.locale, oldLocale);
-        });
-      }
-    }
-    getLocale() {
-      return this.locale;
-    }
-    watchLocale(fn) {
-      const index = this.watchers.push(fn) - 1;
-      return () => {
-        this.watchers.splice(index, 1);
-      };
-    }
-    add(locale, message, override = true) {
-      const curMessages = this.messages[locale];
-      if (curMessages) {
-        if (override) {
-          Object.assign(curMessages, message);
-        } else {
-          Object.keys(message).forEach((key) => {
-            if (!hasOwn(curMessages, key)) {
-              curMessages[key] = message[key];
-            }
-          });
-        }
-      } else {
-        this.messages[locale] = message;
-      }
-    }
-    f(message, values, delimiters) {
-      return this.formater.interpolate(message, values, delimiters).join("");
-    }
-    t(key, locale, values) {
-      let message = this.message;
-      if (typeof locale === "string") {
-        locale = normalizeLocale(locale, this.messages);
-        locale && (message = this.messages[locale]);
-      } else {
-        values = locale;
-      }
-      if (!hasOwn(message, key)) {
-        console.warn(`Cannot translate the value of keypath ${key}. Use the value of keypath as default.`);
-        return key;
-      }
-      return this.formater.interpolate(message[key], values).join("");
-    }
-  }
-  function watchAppLocale(appVm, i18n) {
-    if (appVm.$watchLocale) {
-      appVm.$watchLocale((newLocale) => {
-        i18n.setLocale(newLocale);
-      });
-    } else {
-      appVm.$watch(() => appVm.$locale, (newLocale) => {
-        i18n.setLocale(newLocale);
-      });
-    }
-  }
-  function getDefaultLocale() {
-    if (typeof uni !== "undefined" && uni.getLocale) {
-      return uni.getLocale();
-    }
-    if (typeof global !== "undefined" && global.getLocale) {
-      return global.getLocale();
-    }
-    return LOCALE_EN;
-  }
-  function initVueI18n(locale, messages2 = {}, fallbackLocale, watcher) {
-    if (typeof locale !== "string") {
-      const options = [
-        messages2,
-        locale
-      ];
-      locale = options[0];
-      messages2 = options[1];
-    }
-    if (typeof locale !== "string") {
-      locale = getDefaultLocale();
-    }
-    if (typeof fallbackLocale !== "string") {
-      fallbackLocale = typeof __uniConfig !== "undefined" && __uniConfig.fallbackLocale || LOCALE_EN;
-    }
-    const i18n = new I18n({
-      locale,
-      fallbackLocale,
-      messages: messages2,
-      watcher
-    });
-    let t2 = (key, values) => {
-      if (typeof getApp !== "function") {
-        t2 = function(key2, values2) {
-          return i18n.t(key2, values2);
-        };
-      } else {
-        let isWatchedAppLocale = false;
-        t2 = function(key2, values2) {
-          const appVm = getApp().$vm;
-          if (appVm) {
-            appVm.$locale;
-            if (!isWatchedAppLocale) {
-              isWatchedAppLocale = true;
-              watchAppLocale(appVm, i18n);
-            }
-          }
-          return i18n.t(key2, values2);
-        };
-      }
-      return t2(key, values);
-    };
-    return {
-      i18n,
-      f(message, values, delimiters) {
-        return i18n.f(message, values, delimiters);
-      },
-      t(key, values) {
-        return t2(key, values);
-      },
-      add(locale2, message, override = true) {
-        return i18n.add(locale2, message, override);
-      },
-      watch(fn) {
-        return i18n.watchLocale(fn);
-      },
-      getLocale() {
-        return i18n.getLocale();
-      },
-      setLocale(newLocale) {
-        return i18n.setLocale(newLocale);
-      }
-    };
-  }
-  const en$3 = {
-    "uni-popup.cancel": "cancel",
-    "uni-popup.ok": "ok",
-    "uni-popup.placeholder": "pleace enter",
-    "uni-popup.title": "Hint",
-    "uni-popup.shareTitle": "Share to"
-  };
-  const zhHans$2 = {
-    "uni-popup.cancel": "取消",
-    "uni-popup.ok": "确定",
-    "uni-popup.placeholder": "请输入",
-    "uni-popup.title": "提示",
-    "uni-popup.shareTitle": "分享到"
-  };
-  const zhHant$2 = {
-    "uni-popup.cancel": "取消",
-    "uni-popup.ok": "確定",
-    "uni-popup.placeholder": "請輸入",
-    "uni-popup.title": "提示",
-    "uni-popup.shareTitle": "分享到"
-  };
-  const messages$2 = {
-    en: en$3,
-    "zh-Hans": zhHans$2,
-    "zh-Hant": zhHant$2
-  };
-  const {
-    t: t$3
-  } = initVueI18n(messages$2);
-  const _sfc_main$A = {
-    name: "uniPopupDialog",
-    mixins: [popup],
-    emits: ["confirm", "close", "update:modelValue", "input"],
-    props: {
-      inputType: {
-        type: String,
-        default: "text"
-      },
-      showClose: {
-        type: Boolean,
-        default: true
-      },
-      modelValue: {
-        type: [Number, String],
-        default: ""
-      },
-      placeholder: {
-        type: [String, Number],
-        default: ""
-      },
-      type: {
-        type: String,
-        default: "error"
-      },
-      mode: {
-        type: String,
-        default: "base"
-      },
-      title: {
-        type: String,
-        default: ""
-      },
-      content: {
-        type: String,
-        default: ""
-      },
-      beforeClose: {
-        type: Boolean,
-        default: false
-      },
-      cancelText: {
-        type: String,
-        default: ""
-      },
-      confirmText: {
-        type: String,
-        default: ""
-      },
-      maxlength: {
-        type: Number,
-        default: -1
-      },
-      focus: {
-        type: Boolean,
-        default: true
-      }
-    },
-    data() {
-      return {
-        dialogType: "error",
-        val: ""
-      };
-    },
-    computed: {
-      okText() {
-        return this.confirmText || t$3("uni-popup.ok");
-      },
-      closeText() {
-        return this.cancelText || t$3("uni-popup.cancel");
-      },
-      placeholderText() {
-        return this.placeholder || t$3("uni-popup.placeholder");
-      },
-      titleText() {
-        return this.title || t$3("uni-popup.title");
-      }
-    },
-    watch: {
-      type(val) {
-        this.dialogType = val;
-      },
-      mode(val) {
-        if (val === "input") {
-          this.dialogType = "info";
-        }
-      },
-      value(val) {
-        if (this.maxlength != -1 && this.mode === "input") {
-          this.val = val.slice(0, this.maxlength);
-        } else {
-          this.val = val;
-        }
-      },
-      val(val) {
-        this.$emit("update:modelValue", val);
-      }
-    },
-    created() {
-      this.popup.disableMask();
-      if (this.mode === "input") {
-        this.dialogType = "info";
-        this.val = this.value;
-        this.val = this.modelValue;
-      } else {
-        this.dialogType = this.type;
-      }
-    },
-    methods: {
-      /**
-       * 点击确认按钮
-       */
-      onOk() {
-        if (this.mode === "input") {
-          this.$emit("confirm", this.val);
-        } else {
-          this.$emit("confirm");
-        }
-        if (this.beforeClose)
-          return;
-        this.popup.close();
-      },
-      /**
-       * 点击取消按钮
-       */
-      closeDialog() {
-        this.$emit("close");
-        if (this.beforeClose)
-          return;
-        this.popup.close();
-      },
-      close() {
-        this.popup.close();
-      }
-    }
-  };
-  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "uni-popup-dialog" }, [
-      vue.createElementVNode("view", { class: "uni-dialog-title" }, [
-        vue.createElementVNode(
-          "text",
-          {
-            class: vue.normalizeClass(["uni-dialog-title-text", ["uni-popup__" + $data.dialogType]])
-          },
-          vue.toDisplayString($options.titleText),
-          3
-          /* TEXT, CLASS */
-        )
-      ]),
-      $props.mode === "base" ? (vue.openBlock(), vue.createElementBlock("view", {
-        key: 0,
-        class: "uni-dialog-content"
-      }, [
-        vue.renderSlot(_ctx.$slots, "default", {}, () => [
-          vue.createElementVNode(
-            "text",
-            { class: "uni-dialog-content-text" },
-            vue.toDisplayString($props.content),
-            1
-            /* TEXT */
-          )
-        ], true)
-      ])) : (vue.openBlock(), vue.createElementBlock("view", {
-        key: 1,
-        class: "uni-dialog-content"
-      }, [
-        vue.renderSlot(_ctx.$slots, "default", {}, () => [
-          vue.withDirectives(vue.createElementVNode("input", {
-            class: "uni-dialog-input",
-            maxlength: $props.maxlength,
-            "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $data.val = $event),
-            type: $props.inputType,
-            placeholder: $options.placeholderText,
-            focus: $props.focus
-          }, null, 8, ["maxlength", "type", "placeholder", "focus"]), [
-            [vue.vModelDynamic, $data.val]
-          ])
-        ], true)
-      ])),
-      vue.createElementVNode("view", { class: "uni-dialog-button-group" }, [
-        $props.showClose ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "uni-dialog-button",
-          onClick: _cache[1] || (_cache[1] = (...args) => $options.closeDialog && $options.closeDialog(...args))
-        }, [
-          vue.createElementVNode(
-            "text",
-            { class: "uni-dialog-button-text" },
-            vue.toDisplayString($options.closeText),
-            1
-            /* TEXT */
-          )
-        ])) : vue.createCommentVNode("v-if", true),
-        vue.createElementVNode(
-          "view",
-          {
-            class: vue.normalizeClass(["uni-dialog-button", $props.showClose ? "uni-border-left" : ""]),
-            onClick: _cache[2] || (_cache[2] = (...args) => $options.onOk && $options.onOk(...args))
-          },
-          [
-            vue.createElementVNode(
-              "text",
-              { class: "uni-dialog-button-text uni-button-color" },
-              vue.toDisplayString($options.okText),
-              1
-              /* TEXT */
-            )
-          ],
-          2
-          /* CLASS */
-        )
-      ])
-    ]);
-  }
-  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-d78c88b7"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup-dialog/uni-popup-dialog.vue"]]);
-  class MPAnimation {
-    constructor(options, _this) {
-      this.options = options;
-      this.animation = uni.createAnimation({
-        ...options
-      });
-      this.currentStepAnimates = {};
-      this.next = 0;
-      this.$ = _this;
-    }
-    _nvuePushAnimates(type, args) {
-      let aniObj = this.currentStepAnimates[this.next];
-      let styles = {};
-      if (!aniObj) {
-        styles = {
-          styles: {},
-          config: {}
-        };
-      } else {
-        styles = aniObj;
-      }
-      if (animateTypes1.includes(type)) {
-        if (!styles.styles.transform) {
-          styles.styles.transform = "";
-        }
-        let unit = "";
-        if (type === "rotate") {
-          unit = "deg";
-        }
-        styles.styles.transform += `${type}(${args + unit}) `;
-      } else {
-        styles.styles[type] = `${args}`;
-      }
-      this.currentStepAnimates[this.next] = styles;
-    }
-    _animateRun(styles = {}, config = {}) {
-      let ref = this.$.$refs["ani"].ref;
-      if (!ref)
-        return;
-      return new Promise((resolve, reject) => {
-        nvueAnimation.transition(ref, {
-          styles,
-          ...config
-        }, (res) => {
-          resolve();
-        });
-      });
-    }
-    _nvueNextAnimate(animates, step = 0, fn) {
-      let obj = animates[step];
-      if (obj) {
-        let {
-          styles,
-          config
-        } = obj;
-        this._animateRun(styles, config).then(() => {
-          step += 1;
-          this._nvueNextAnimate(animates, step, fn);
-        });
-      } else {
-        this.currentStepAnimates = {};
-        typeof fn === "function" && fn();
-        this.isEnd = true;
-      }
-    }
-    step(config = {}) {
-      this.animation.step(config);
-      return this;
-    }
-    run(fn) {
-      this.$.animationData = this.animation.export();
-      this.$.timer = setTimeout(() => {
-        typeof fn === "function" && fn();
-      }, this.$.durationTime);
-    }
-  }
-  const animateTypes1 = [
-    "matrix",
-    "matrix3d",
-    "rotate",
-    "rotate3d",
-    "rotateX",
-    "rotateY",
-    "rotateZ",
-    "scale",
-    "scale3d",
-    "scaleX",
-    "scaleY",
-    "scaleZ",
-    "skew",
-    "skewX",
-    "skewY",
-    "translate",
-    "translate3d",
-    "translateX",
-    "translateY",
-    "translateZ"
-  ];
-  const animateTypes2 = ["opacity", "backgroundColor"];
-  const animateTypes3 = ["width", "height", "left", "right", "top", "bottom"];
-  animateTypes1.concat(animateTypes2, animateTypes3).forEach((type) => {
-    MPAnimation.prototype[type] = function(...args) {
-      this.animation[type](...args);
-      return this;
-    };
-  });
-  function createAnimation(option, _this) {
-    if (!_this)
-      return;
-    clearTimeout(_this.timer);
-    return new MPAnimation(option, _this);
-  }
-  const _sfc_main$z = {
-    name: "uniTransition",
-    emits: ["click", "change"],
-    props: {
-      show: {
-        type: Boolean,
-        default: false
-      },
-      modeClass: {
-        type: [Array, String],
-        default() {
-          return "fade";
-        }
-      },
-      duration: {
-        type: Number,
-        default: 300
-      },
-      styles: {
-        type: Object,
-        default() {
-          return {};
-        }
-      },
-      customClass: {
-        type: String,
-        default: ""
-      },
-      onceRender: {
-        type: Boolean,
-        default: false
-      }
-    },
-    data() {
-      return {
-        isShow: false,
-        transform: "",
-        opacity: 1,
-        animationData: {},
-        durationTime: 300,
-        config: {}
-      };
-    },
-    watch: {
-      show: {
-        handler(newVal) {
-          if (newVal) {
-            this.open();
-          } else {
-            if (this.isShow) {
-              this.close();
-            }
-          }
-        },
-        immediate: true
-      }
-    },
-    computed: {
-      // 生成样式数据
-      stylesObject() {
-        let styles = {
-          ...this.styles,
-          "transition-duration": this.duration / 1e3 + "s"
-        };
-        let transform = "";
-        for (let i2 in styles) {
-          let line = this.toLine(i2);
-          transform += line + ":" + styles[i2] + ";";
-        }
-        return transform;
-      },
-      // 初始化动画条件
-      transformStyles() {
-        return "transform:" + this.transform + ";opacity:" + this.opacity + ";" + this.stylesObject;
-      }
-    },
-    created() {
-      this.config = {
-        duration: this.duration,
-        timingFunction: "ease",
-        transformOrigin: "50% 50%",
-        delay: 0
-      };
-      this.durationTime = this.duration;
-    },
-    methods: {
-      /**
-       *  ref 触发 初始化动画
-       */
-      init(obj = {}) {
-        if (obj.duration) {
-          this.durationTime = obj.duration;
-        }
-        this.animation = createAnimation(Object.assign(this.config, obj), this);
-      },
-      /**
-       * 点击组件触发回调
-       */
-      onClick() {
-        this.$emit("click", {
-          detail: this.isShow
-        });
-      },
-      /**
-       * ref 触发 动画分组
-       * @param {Object} obj
-       */
-      step(obj, config = {}) {
-        if (!this.animation)
-          return;
-        for (let i2 in obj) {
-          try {
-            if (typeof obj[i2] === "object") {
-              this.animation[i2](...obj[i2]);
-            } else {
-              this.animation[i2](obj[i2]);
-            }
-          } catch (e2) {
-            formatAppLog("error", "at uni_modules/uni-transition/components/uni-transition/uni-transition.vue:148", `方法 ${i2} 不存在`);
-          }
-        }
-        this.animation.step(config);
-        return this;
-      },
-      /**
-       *  ref 触发 执行动画
-       */
-      run(fn) {
-        if (!this.animation)
-          return;
-        this.animation.run(fn);
-      },
-      // 开始过度动画
-      open() {
-        clearTimeout(this.timer);
-        this.transform = "";
-        this.isShow = true;
-        let { opacity, transform } = this.styleInit(false);
-        if (typeof opacity !== "undefined") {
-          this.opacity = opacity;
-        }
-        this.transform = transform;
-        this.$nextTick(() => {
-          this.timer = setTimeout(() => {
-            this.animation = createAnimation(this.config, this);
-            this.tranfromInit(false).step();
-            this.animation.run();
-            this.$emit("change", {
-              detail: this.isShow
-            });
-          }, 20);
-        });
-      },
-      // 关闭过度动画
-      close(type) {
-        if (!this.animation)
-          return;
-        this.tranfromInit(true).step().run(() => {
-          this.isShow = false;
-          this.animationData = null;
-          this.animation = null;
-          let { opacity, transform } = this.styleInit(false);
-          this.opacity = opacity || 1;
-          this.transform = transform;
-          this.$emit("change", {
-            detail: this.isShow
-          });
-        });
-      },
-      // 处理动画开始前的默认样式
-      styleInit(type) {
-        let styles = {
-          transform: ""
-        };
-        let buildStyle = (type2, mode) => {
-          if (mode === "fade") {
-            styles.opacity = this.animationType(type2)[mode];
-          } else {
-            styles.transform += this.animationType(type2)[mode] + " ";
-          }
-        };
-        if (typeof this.modeClass === "string") {
-          buildStyle(type, this.modeClass);
-        } else {
-          this.modeClass.forEach((mode) => {
-            buildStyle(type, mode);
-          });
-        }
-        return styles;
-      },
-      // 处理内置组合动画
-      tranfromInit(type) {
-        let buildTranfrom = (type2, mode) => {
-          let aniNum = null;
-          if (mode === "fade") {
-            aniNum = type2 ? 0 : 1;
-          } else {
-            aniNum = type2 ? "-100%" : "0";
-            if (mode === "zoom-in") {
-              aniNum = type2 ? 0.8 : 1;
-            }
-            if (mode === "zoom-out") {
-              aniNum = type2 ? 1.2 : 1;
-            }
-            if (mode === "slide-right") {
-              aniNum = type2 ? "100%" : "0";
-            }
-            if (mode === "slide-bottom") {
-              aniNum = type2 ? "100%" : "0";
-            }
-          }
-          this.animation[this.animationMode()[mode]](aniNum);
-        };
-        if (typeof this.modeClass === "string") {
-          buildTranfrom(type, this.modeClass);
-        } else {
-          this.modeClass.forEach((mode) => {
-            buildTranfrom(type, mode);
-          });
-        }
-        return this.animation;
-      },
-      animationType(type) {
-        return {
-          fade: type ? 0 : 1,
-          "slide-top": `translateY(${type ? "0" : "-100%"})`,
-          "slide-right": `translateX(${type ? "0" : "100%"})`,
-          "slide-bottom": `translateY(${type ? "0" : "100%"})`,
-          "slide-left": `translateX(${type ? "0" : "-100%"})`,
-          "zoom-in": `scaleX(${type ? 1 : 0.8}) scaleY(${type ? 1 : 0.8})`,
-          "zoom-out": `scaleX(${type ? 1 : 1.2}) scaleY(${type ? 1 : 1.2})`
-        };
-      },
-      // 内置动画类型与实际动画对应字典
-      animationMode() {
-        return {
-          fade: "opacity",
-          "slide-top": "translateY",
-          "slide-right": "translateX",
-          "slide-bottom": "translateY",
-          "slide-left": "translateX",
-          "zoom-in": "scale",
-          "zoom-out": "scale"
-        };
-      },
-      // 驼峰转中横线
-      toLine(name) {
-        return name.replace(/([A-Z])/g, "-$1").toLowerCase();
-      }
-    }
-  };
-  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
-      ref: "ani",
-      animation: $data.animationData,
-      class: vue.normalizeClass($props.customClass),
-      style: vue.normalizeStyle($options.transformStyles),
-      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
-    }, [
-      vue.renderSlot(_ctx.$slots, "default")
-    ], 14, ["animation"])), [
-      [vue.vShow, $data.isShow]
-    ]);
-  }
-  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
-  const _sfc_main$y = {
-    name: "uniPopup",
-    components: {},
-    emits: ["change", "maskClick"],
-    props: {
-      // 开启动画
-      animation: {
-        type: Boolean,
-        default: true
-      },
-      // 弹出层类型，可选值，top: 顶部弹出层；bottom：底部弹出层；center：全屏弹出层
-      // message: 消息提示 ; dialog : 对话框
-      type: {
-        type: String,
-        default: "center"
-      },
-      // maskClick
-      isMaskClick: {
-        type: Boolean,
-        default: null
-      },
-      // TODO 2 个版本后废弃属性 ，使用 isMaskClick
-      maskClick: {
-        type: Boolean,
-        default: null
-      },
-      backgroundColor: {
-        type: String,
-        default: "none"
-      },
-      safeArea: {
-        type: Boolean,
-        default: true
-      },
-      maskBackgroundColor: {
-        type: String,
-        default: "rgba(0, 0, 0, 0.4)"
-      },
-      borderRadius: {
-        type: String
-      }
-    },
-    watch: {
-      /**
-       * 监听type类型
-       */
-      type: {
-        handler: function(type) {
-          if (!this.config[type])
-            return;
-          this[this.config[type]](true);
-        },
-        immediate: true
-      },
-      isDesktop: {
-        handler: function(newVal) {
-          if (!this.config[newVal])
-            return;
-          this[this.config[this.type]](true);
-        },
-        immediate: true
-      },
-      /**
-       * 监听遮罩是否可点击
-       * @param {Object} val
-       */
-      maskClick: {
-        handler: function(val) {
-          this.mkclick = val;
-        },
-        immediate: true
-      },
-      isMaskClick: {
-        handler: function(val) {
-          this.mkclick = val;
-        },
-        immediate: true
-      },
-      // H5 下禁止底部滚动
-      showPopup(show) {
-      }
-    },
-    data() {
-      return {
-        duration: 300,
-        ani: [],
-        showPopup: false,
-        showTrans: false,
-        popupWidth: 0,
-        popupHeight: 0,
-        config: {
-          top: "top",
-          bottom: "bottom",
-          center: "center",
-          left: "left",
-          right: "right",
-          message: "top",
-          dialog: "center",
-          share: "bottom"
-        },
-        maskClass: {
-          position: "fixed",
-          bottom: 0,
-          top: 0,
-          left: 0,
-          right: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.4)"
-        },
-        transClass: {
-          backgroundColor: "transparent",
-          borderRadius: this.borderRadius || "0",
-          position: "fixed",
-          left: 0,
-          right: 0
-        },
-        maskShow: true,
-        mkclick: true,
-        popupstyle: "top"
-      };
-    },
-    computed: {
-      getStyles() {
-        let res = { backgroundColor: this.bg };
-        if (this.borderRadius || "0") {
-          res = Object.assign(res, { borderRadius: this.borderRadius });
-        }
-        return res;
-      },
-      isDesktop() {
-        return this.popupWidth >= 500 && this.popupHeight >= 500;
-      },
-      bg() {
-        if (this.backgroundColor === "" || this.backgroundColor === "none") {
-          return "transparent";
-        }
-        return this.backgroundColor;
-      }
-    },
-    mounted() {
-      const fixSize = () => {
-        const {
-          windowWidth,
-          windowHeight,
-          windowTop,
-          safeArea,
-          screenHeight,
-          safeAreaInsets
-        } = uni.getSystemInfoSync();
-        this.popupWidth = windowWidth;
-        this.popupHeight = windowHeight + (windowTop || 0);
-        if (safeArea && this.safeArea) {
-          this.safeAreaInsets = safeAreaInsets.bottom;
-        } else {
-          this.safeAreaInsets = 0;
-        }
-      };
-      fixSize();
-    },
-    // TODO vue3
-    unmounted() {
-      this.setH5Visible();
-    },
-    activated() {
-      this.setH5Visible(!this.showPopup);
-    },
-    deactivated() {
-      this.setH5Visible(true);
-    },
-    created() {
-      if (this.isMaskClick === null && this.maskClick === null) {
-        this.mkclick = true;
-      } else {
-        this.mkclick = this.isMaskClick !== null ? this.isMaskClick : this.maskClick;
-      }
-      if (this.animation) {
-        this.duration = 300;
-      } else {
-        this.duration = 0;
-      }
-      this.messageChild = null;
-      this.clearPropagation = false;
-      this.maskClass.backgroundColor = this.maskBackgroundColor;
-    },
-    methods: {
-      setH5Visible(visible = true) {
-      },
-      /**
-       * 公用方法，不显示遮罩层
-       */
-      closeMask() {
-        this.maskShow = false;
-      },
-      /**
-       * 公用方法，遮罩层禁止点击
-       */
-      disableMask() {
-        this.mkclick = false;
-      },
-      // TODO nvue 取消冒泡
-      clear(e2) {
-        e2.stopPropagation();
-        this.clearPropagation = true;
-      },
-      open(direction) {
-        if (this.showPopup) {
-          return;
-        }
-        let innerType = ["top", "center", "bottom", "left", "right", "message", "dialog", "share"];
-        if (!(direction && innerType.indexOf(direction) !== -1)) {
-          direction = this.type;
-        }
-        if (!this.config[direction]) {
-          formatAppLog("error", "at uni_modules/uni-popup/components/uni-popup/uni-popup.vue:310", "缺少类型：", direction);
-          return;
-        }
-        this[this.config[direction]]();
-        this.$emit("change", {
-          show: true,
-          type: direction
-        });
-      },
-      close(type) {
-        this.showTrans = false;
-        this.$emit("change", {
-          show: false,
-          type: this.type
-        });
-        clearTimeout(this.timer);
-        this.timer = setTimeout(() => {
-          this.showPopup = false;
-        }, 300);
-      },
-      // TODO 处理冒泡事件，头条的冒泡事件有问题 ，先这样兼容
-      touchstart() {
-        this.clearPropagation = false;
-      },
-      onTap() {
-        if (this.clearPropagation) {
-          this.clearPropagation = false;
-          return;
-        }
-        this.$emit("maskClick");
-        if (!this.mkclick)
-          return;
-        this.close();
-      },
-      /**
-       * 顶部弹出样式处理
-       */
-      top(type) {
-        this.popupstyle = this.isDesktop ? "fixforpc-top" : "top";
-        this.ani = ["slide-top"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          right: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPopup = true;
-        this.showTrans = true;
-        this.$nextTick(() => {
-          this.showPoptrans();
-          if (this.messageChild && this.type === "message") {
-            this.messageChild.timerClose();
-          }
-        });
-      },
-      /**
-       * 底部弹出样式处理
-       */
-      bottom(type) {
-        this.popupstyle = "bottom";
-        this.ani = ["slide-bottom"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          right: 0,
-          bottom: 0,
-          paddingBottom: this.safeAreaInsets + "px",
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      /**
-       * 中间弹出样式处理
-       */
-      center(type) {
-        this.popupstyle = "center";
-        this.ani = ["zoom-out", "fade"];
-        this.transClass = {
-          position: "fixed",
-          display: "flex",
-          flexDirection: "column",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          top: 0,
-          justifyContent: "center",
-          alignItems: "center",
-          borderRadius: this.borderRadius || "0"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      left(type) {
-        this.popupstyle = "left";
-        this.ani = ["slide-left"];
-        this.transClass = {
-          position: "fixed",
-          left: 0,
-          bottom: 0,
-          top: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0",
-          display: "flex",
-          flexDirection: "column"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      right(type) {
-        this.popupstyle = "right";
-        this.ani = ["slide-right"];
-        this.transClass = {
-          position: "fixed",
-          bottom: 0,
-          right: 0,
-          top: 0,
-          backgroundColor: this.bg,
-          borderRadius: this.borderRadius || "0",
-          display: "flex",
-          flexDirection: "column"
-        };
-        if (type)
-          return;
-        this.showPoptrans();
-      },
-      showPoptrans() {
-        this.$nextTick(() => {
-          this.showPopup = true;
-          this.showTrans = true;
-        });
-      }
-    }
-  };
-  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$6);
-    return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
-      "view",
-      {
-        key: 0,
-        class: vue.normalizeClass(["uni-popup", [$data.popupstyle, $options.isDesktop ? "fixforpc-z-index" : ""]])
-      },
-      [
-        vue.createElementVNode(
-          "view",
-          {
-            onTouchstart: _cache[1] || (_cache[1] = (...args) => $options.touchstart && $options.touchstart(...args))
-          },
-          [
-            $data.maskShow ? (vue.openBlock(), vue.createBlock(_component_uni_transition, {
-              key: "1",
-              name: "mask",
-              "mode-class": "fade",
-              styles: $data.maskClass,
-              duration: $data.duration,
-              show: $data.showTrans,
-              onClick: $options.onTap
-            }, null, 8, ["styles", "duration", "show", "onClick"])) : vue.createCommentVNode("v-if", true),
-            vue.createVNode(_component_uni_transition, {
-              key: "2",
-              "mode-class": $data.ani,
-              name: "content",
-              styles: $data.transClass,
-              duration: $data.duration,
-              show: $data.showTrans,
-              onClick: $options.onTap
-            }, {
-              default: vue.withCtx(() => [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: vue.normalizeClass(["uni-popup__wrapper", [$data.popupstyle]]),
-                    style: vue.normalizeStyle($options.getStyles),
-                    onClick: _cache[0] || (_cache[0] = (...args) => $options.clear && $options.clear(...args))
-                  },
-                  [
-                    vue.renderSlot(_ctx.$slots, "default", {}, void 0, true)
-                  ],
-                  6
-                  /* CLASS, STYLE */
-                )
-              ]),
-              _: 3
-              /* FORWARDED */
-            }, 8, ["mode-class", "styles", "duration", "show", "onClick"])
-          ],
-          32
-          /* NEED_HYDRATION */
-        )
-      ],
-      2
-      /* CLASS */
-    )) : vue.createCommentVNode("v-if", true);
-  }
-  const __easycom_2$1 = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
-  const _imports_0$5 = "/static/image/bridge.svg";
-  const _sfc_main$x = {
-    __name: "versionInfo",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const versionPopup = vue.ref(null);
-      const togglePopup = () => {
-        versionPopup.value.open();
-      };
-      const handleConfirm = () => {
-        versionPopup.value.close();
-      };
-      const handleClose = () => {
-      };
-      const __returned__ = { versionPopup, togglePopup, handleConfirm, handleClose, ref: vue.ref };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup_dialog = resolveEasycom(vue.resolveDynamicComponent("uni-popup-dialog"), __easycom_0$7);
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
-    return vue.openBlock(), vue.createElementBlock(
-      vue.Fragment,
-      null,
-      [
-        vue.createElementVNode("view", { class: "versionInfo" }, [
-          vue.createElementVNode("view", { class: "versionInfo-version" }, [
-            vue.createElementVNode("image", {
-              class: "versionInfo-version-icon",
-              src: _imports_0$5
-            }),
-            vue.createElementVNode("view", { class: "versionInfo-version-text" }, "当前版本: v3.1")
-          ]),
-          vue.createElementVNode("view", {
-            class: "versionInfo-check",
-            onClick: $setup.togglePopup
-          }, "检查版本更新"),
-          vue.createElementVNode("view", { class: "versionInfo-company" }, "©2023~2025 陕西交控工程技术有限公司")
-        ]),
-        vue.createVNode(
-          _component_uni_popup,
-          {
-            ref: "versionPopup",
-            type: "dialog"
-          },
-          {
-            default: vue.withCtx(() => [
-              vue.createVNode(_component_uni_popup_dialog, {
-                title: "更新提示",
-                content: "已经是最新版本",
-                showClose: false,
-                confirmText: "确定",
-                onConfirm: $setup.handleConfirm,
-                onClose: $setup.handleClose
-              })
-            ]),
-            _: 1
-            /* STABLE */
-          },
-          512
-          /* NEED_PATCH */
-        )
-      ],
-      64
-      /* STABLE_FRAGMENT */
-    );
-  }
-  const PagesVersionInfoVersionInfo = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/versionInfo/versionInfo.vue"]]);
-  let __currentFilePath$1 = null;
-  function getFullPath$2(path) {
-    const docPath = plus.io.convertLocalFileSystemURL(path);
-    return docPath;
-  }
-  function saveData$1(data2) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath$1) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath$2(__currentFilePath$1);
-      formatAppLog("log", "at utils/reviseJson.js:18", "准备保存文件到路径:", fullPath);
-      plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, (fs2) => {
-        formatAppLog("log", "at utils/reviseJson.js:21", "获取文件系统成功");
-        fs2.root.getFile(fullPath, { create: true }, (fileEntry) => {
-          formatAppLog("log", "at utils/reviseJson.js:23", "获取文件入口成功");
-          fileEntry.createWriter((writer) => {
-            const wait = plus.nativeUI.showWaiting("正在保存信息");
-            writer.seek(0);
-            const jsonString = JSON.stringify(data2, null, 2);
-            formatAppLog("log", "at utils/reviseJson.js:29", "准备写入数据:", data2);
-            writer.onwrite = () => {
-              wait.close();
-              formatAppLog("log", "at utils/reviseJson.js:33", "写入成功");
-              plus.nativeUI.toast("保存成功");
-              resolve(true);
-            };
-            writer.onerror = (e2) => {
-              wait.close();
-              formatAppLog("error", "at utils/reviseJson.js:40", "写入失败:", e2.message);
-              plus.nativeUI.toast("保存失败");
-              reject(e2);
-            };
-            writer.write(jsonString);
-          }, (error) => {
-            formatAppLog("error", "at utils/reviseJson.js:47", "创建写入器失败:", error);
-            reject(error);
-          });
-        }, (error) => {
-          formatAppLog("error", "at utils/reviseJson.js:51", "获取文件入口失败:", error);
-          reject(error);
-        });
-      }, (error) => {
-        formatAppLog("error", "at utils/reviseJson.js:55", "获取文件系统失败:", error);
-        reject(error);
-      });
-    });
-  }
-  function trackPath$1(path) {
-    formatAppLog("log", "at utils/reviseJson.js:64", "设置文件路径:", path);
-    __currentFilePath$1 = path;
-  }
-  const DOC_BASE_PATH$2 = "_doc/";
-  const FILE_NAMING$2 = {
-    project: (userId2) => `${userId2}/project/projects.json`,
-    task: (userId2, projectId) => `${userId2}/project/${projectId}/task.json`,
-    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
-    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
-    Object: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/object.json`
-  };
-  async function getJsonData$1(path) {
+  async function getJsonData(path) {
     return new Promise((resolve, reject) => {
       plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
         fs2.root.getFile(path, { create: false }, (fileEntry) => {
@@ -2073,316 +1963,136 @@ if (uni.restoreGlobal) {
       }, reject);
     });
   }
-  function getProject(userId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.project(userId2);
+  function getProject(userName) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.project(userName);
     trackPath$1(path);
-    return getJsonData$1(path);
+    return getJsonData(path);
   }
-  function getTask(userId2, projectId) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.task(userId2, projectId);
+  function getTask(userName, projectId2) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.task(userName, projectId2);
     trackPath$1(path);
-    return getJsonData$1(path);
+    return getJsonData(path);
   }
-  function getProperty(userId2, buildingId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.property(userId2, buildingId2);
+  function getProperty(userName, buildingId2) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.property(userName, buildingId2);
     trackPath$1(path);
-    return getJsonData$1(path);
+    return getJsonData(path);
   }
-  function getDisease(userId2, buildingId2, yearId) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.disease(userId2, buildingId2, yearId);
+  function getDisease(userName, buildingId2, yearId) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.disease(userName, buildingId2, yearId);
     trackPath$1(path);
-    return getJsonData$1(path);
+    return getJsonData(path);
   }
-  function getObject(userId2, buildingId2) {
-    const path = DOC_BASE_PATH$2 + FILE_NAMING$2.Object(userId2, buildingId2);
+  function getObject(userName, buildingId2) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.Object(userName, buildingId2);
     trackPath$1(path);
-    return getJsonData$1(path);
+    return getJsonData(path);
   }
-  const DOC_BASE_PATH$1 = "_doc/";
-  const FILE_NAMING$1 = {
-    project: (userId2) => `${userId2}/project/projects.json`,
-    task: (userId2, projectId) => `${userId2}/project/${projectId}/task.json`,
-    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
-    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
-    diseaseImages: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/disease/images`,
-    ADImages: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/ADImages`
-  };
-  let __currentFilePath = null;
-  function getFullPath$1(path) {
-    const docPath = plus.io.convertLocalFileSystemURL(path);
-    return docPath;
+  function getAllUserInfo(userName) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.AllUserInfo(userName);
+    trackPath$1(path);
+    return getJsonData(path);
   }
-  async function setJsonData(path, data2) {
-    return new Promise((resolve, reject) => {
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getFile(path, { create: true }, (fileEntry) => {
-          fileEntry.createWriter((writer) => {
-            writer.onwriteend = () => {
-              resolve();
-            };
-            writer.onerror = () => {
-              reject(`文件写入失败: ${path}`);
-            };
-            const jsonData = JSON.stringify(data2, null, 2);
-            writer.write(jsonData);
-          }, reject);
-        }, reject);
-      }, reject);
-    });
-  }
-  function saveData(data2) {
-    return new Promise((resolve, reject) => {
-      if (!__currentFilePath) {
-        return reject(new Error("请先执行读取操作获取文件路径"));
-      }
-      const fullPath = getFullPath$1(__currentFilePath);
-      formatAppLog("log", "at utils/reviseNew.js:52", "准备保存文件到路径:", fullPath);
-      const wait = plus.nativeUI.showWaiting("正在保存信息");
-      setJsonData(fullPath, data2).then(() => {
-        wait.close();
-        formatAppLog("log", "at utils/reviseNew.js:59", "写入成功");
-        plus.nativeUI.toast("保存成功");
-        resolve(true);
-      }).catch((error) => {
-        wait.close();
-        formatAppLog("error", "at utils/reviseNew.js:65", "写入失败:", error);
-        plus.nativeUI.toast("保存失败");
-        reject(error);
-      });
-    });
-  }
-  function trackPath(path) {
-    formatAppLog("log", "at utils/reviseNew.js:74", "设置文件路径:", path);
-    __currentFilePath = path;
-  }
-  function setDisease(userId2, buildingId2, yearId, data2) {
-    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.disease(userId2, buildingId2, yearId);
-    trackPath(path);
-    return saveData(data2);
-  }
-  function saveDiseaseImages(userId2, buildingId2, tempImagePaths) {
-    return new Promise((resolve, reject) => {
-      const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.diseaseImages(userId2, buildingId2);
-      const fullTargetPath = getFullPath$1(targetDirPath);
-      formatAppLog("log", "at utils/reviseNew.js:110", "准备保存图片到目录:", fullTargetPath);
-      const wait = plus.nativeUI.showWaiting("正在保存图片");
-      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
-        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
-          formatAppLog("log", "at utils/reviseNew.js:119", "目标目录已创建或已存在");
-          const savePromises = tempImagePaths.map((tempPath, index) => {
-            return new Promise((resolveFile, rejectFile) => {
-              const fileName = `disease_${Date.now()}_${index}.jpg`;
-              plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
-                fileEntry.copyTo(dirEntry, fileName, (newFile) => {
-                  formatAppLog("log", "at utils/reviseNew.js:131", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
-                  resolveFile(newFile.fullPath);
-                }, (error) => {
-                  formatAppLog("error", "at utils/reviseNew.js:134", `图片 ${index + 1} 保存失败:`, error);
-                  rejectFile(error);
-                });
-              }, (error) => {
-                formatAppLog("error", "at utils/reviseNew.js:138", `无法访问临时文件 ${tempPath}:`, error);
-                rejectFile(error);
-              });
-            });
-          });
-          Promise.all(savePromises).then((savedPaths) => {
-            wait.close();
-            formatAppLog("log", "at utils/reviseNew.js:148", "所有图片保存成功:", savedPaths);
-            plus.nativeUI.toast("图片保存成功");
-            resolve(savedPaths);
-          }).catch((error) => {
-            wait.close();
-            formatAppLog("error", "at utils/reviseNew.js:154", "图片保存失败:", error);
-            plus.nativeUI.toast("图片保存失败");
-            reject(error);
-          });
-        }, (error) => {
-          wait.close();
-          formatAppLog("error", "at utils/reviseNew.js:160", "创建目录失败:", error);
-          plus.nativeUI.toast("创建图片目录失败");
-          reject(error);
-        });
-      }, (error) => {
-        wait.close();
-        formatAppLog("error", "at utils/reviseNew.js:166", "文件系统访问失败:", error);
-        plus.nativeUI.toast("文件系统访问失败");
-        reject(error);
-      });
-    });
-  }
-  const _sfc_main$w = {
-    __name: "testWrite",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const writeResult = vue.ref(null);
-      const readResult = vue.ref(null);
-      const testData = {
-        test: {
-          name: "测试项目",
-          description: "这是一个测试项目"
-        }
-      };
-      const testProject = async () => {
-        try {
-          const userId2 = "1";
-          const path = `_doc/${userId2}/project/projects.json`;
-          trackPath(path);
-          const data2 = await getProject(userId2);
-          readResult.value = data2;
-          await saveData(testData.test);
-          writeResult.value = "项目文件操作成功";
-        } catch (error) {
-          writeResult.value = "项目文件操作失败: " + error.message;
-        }
-      };
-      const testTask = async () => {
-        try {
-          const userId2 = "1";
-          const projectId = "1";
-          const path = `_doc/${userId2}/project/${projectId}/task.json`;
-          trackPath(path);
-          const data2 = await getTask(userId2, projectId);
-          readResult.value = data2;
-          await saveData(testData.test);
-          writeResult.value = "任务文件操作成功";
-        } catch (error) {
-          writeResult.value = "任务文件操作失败: " + error.message;
-        }
-      };
-      const testProperty = async () => {
-        try {
-          const userId2 = "1";
-          const buildingId2 = "5";
-          const path = `_doc/${userId2}/building/${buildingId2}/property.json`;
-          trackPath(path);
-          const data2 = await getProperty(userId2, buildingId2);
-          readResult.value = data2;
-          await saveData(testData.test);
-          writeResult.value = "属性文件操作成功";
-        } catch (error) {
-          writeResult.value = "属性文件操作失败: " + error.message;
-        }
-      };
-      const testDisease = async () => {
-        try {
-          const userId2 = "1";
-          const buildingId2 = "5";
-          const yearId = "2023";
-          const path = `_doc/${userId2}/building/${buildingId2}/disease/${yearId}.json`;
-          trackPath(path);
-          const data2 = await getDisease(userId2, buildingId2, yearId);
-          readResult.value = data2;
-          await saveData(testData.test);
-          writeResult.value = "病害文件操作成功";
-        } catch (error) {
-          writeResult.value = "病害文件操作失败: " + error.message;
-        }
-      };
-      const __returned__ = { writeResult, readResult, testData, testProject, testTask, testProperty, testDisease, ref: vue.ref, get getProject() {
-        return getProject;
-      }, get getTask() {
-        return getTask;
-      }, get getProperty() {
-        return getProperty;
-      }, get getDisease() {
-        return getDisease;
-      }, get saveData() {
-        return saveData;
-      }, get trackPath() {
-        return trackPath;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "button-group" }, [
-        vue.createElementVNode("button", { onClick: $setup.testProject }, "测试项目文件"),
-        vue.createElementVNode("button", { onClick: $setup.testTask }, "测试任务文件"),
-        vue.createElementVNode("button", { onClick: $setup.testProperty }, "测试属性文件"),
-        vue.createElementVNode("button", { onClick: $setup.testDisease }, "测试病害文件")
-      ]),
-      $setup.writeResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-        vue.createElementVNode("text", null, "写入结果: "),
-        vue.createElementVNode(
-          "text",
-          null,
-          vue.toDisplayString($setup.writeResult),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true),
-      $setup.readResult ? (vue.openBlock(), vue.createElementBlock("view", { key: 1 }, [
-        vue.createElementVNode("text", null, "读取结果: "),
-        vue.createElementVNode(
-          "text",
-          null,
-          vue.toDisplayString(JSON.stringify($setup.readResult, null, 2)),
-          1
-          /* TEXT */
-        )
-      ])) : vue.createCommentVNode("v-if", true)
-    ]);
-  }
-  const PagesTestWriteTestWrite = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-5a80cfda"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/testWrite/testWrite.vue"]]);
   const _imports_0$4 = "/static/image/RightOutline.svg";
-  const _sfc_main$v = {
+  const _sfc_main$y = {
     __name: "bridge",
     setup(__props, { expose: __expose }) {
       __expose();
-      const detectUnit = vue.ref("");
-      const detectPerson = vue.ref("");
-      const years = vue.ref([2024, 2023, 2022]);
+      function getCurrentDateStr2() {
+        const now2 = /* @__PURE__ */ new Date();
+        const year = now2.getFullYear().toString().slice(-2);
+        const month = (now2.getMonth() + 1).toString().padStart(2, "0");
+        const day = now2.getDate().toString().padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      }
+      function getUserDir2(userName) {
+        return `UD${getCurrentDateStr2()}-${userName}`;
+      }
+      const years = vue.ref([2025, 2024, 2023, 2022, 2021, 2020]);
+      const currentYear = vue.ref((/* @__PURE__ */ new Date()).getFullYear());
+      const initData = vue.ref(null);
+      const infoData = vue.ref({});
+      const userInfo = userStore();
+      const dir = vue.ref("");
       const selectedYearIndex = vue.ref(0);
-      const fileData = vue.ref(null);
-      const getData = async () => {
+      const init = async () => {
         try {
-          const response = await getProject(3);
-          formatAppLog("log", "at pages/bridge/bridge.vue:81", "获取到的原始数据:", JSON.stringify(response));
-          if (!response || response.code !== 0) {
-            formatAppLog("error", "at pages/bridge/bridge.vue:85", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
-            fileData.value = null;
-            return;
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          formatAppLog("log", "at pages/bridge/bridge.vue:104", "用户信息:", responseLogin.data);
+          const token = responseLogin.data.token;
+          infoData.value = responseLogin.data;
+          if (responseLogin.data.userName) {
+            dir.value = getUserDir2(responseLogin.data.userName);
+            formatAppLog("log", "at pages/bridge/bridge.vue:112", "当前用户目录:", dir.value);
+            userInfo.setDir(dir.value);
           }
-          fileData.value = {
-            data: {
-              projects: response.data.projects || []
-            }
-          };
-          formatAppLog("log", "at pages/bridge/bridge.vue:96", "处理后的数据:", JSON.stringify(fileData.value));
-          if (fileData.value.data.projects && fileData.value.data.projects.length > 0) {
-            const projectYear = fileData.value.data.projects[0].year;
-            formatAppLog("log", "at pages/bridge/bridge.vue:101", "项目年份:", projectYear);
-            const index = years.value.findIndex((year) => year === projectYear);
-            if (index !== -1) {
-              selectedYearIndex.value = index;
-              formatAppLog("log", "at pages/bridge/bridge.vue:107", "设置年份索引:", index);
-            } else {
-              formatAppLog("log", "at pages/bridge/bridge.vue:109", "未找到匹配的年份，使用默认索引 0");
-            }
+          if (token) {
+            const getData = async () => {
+              try {
+                const projectResponse = await uni.request({
+                  url: "http://60.205.13.156:8090/api/project",
+                  method: "GET",
+                  header: {
+                    "Authorization": `${token}`
+                  }
+                });
+                formatAppLog("log", "at pages/bridge/bridge.vue:126", "获取到的项目数据:", projectResponse.data);
+                if (projectResponse.data.code === 0) {
+                  initData.value = projectResponse.data;
+                  if (responseLogin.data.userId) {
+                    setProject(responseLogin.data.userName, initData.value);
+                    dir.value = getUserDir2(responseLogin.data.userName);
+                  }
+                } else {
+                  uni.showToast({
+                    title: projectResponse.data.msg || "获取数据失败",
+                    icon: "none"
+                  });
+                }
+              } catch (error) {
+                formatAppLog("error", "at pages/bridge/bridge.vue:142", "获取项目数据失败:", error);
+                uni.showToast({
+                  title: "获取数据失败，请稍后重试",
+                  icon: "none"
+                });
+              }
+            };
+            await getData();
+          } else {
+            formatAppLog("error", "at pages/bridge/bridge.vue:152", "未获取到有效token");
+            uni.showToast({
+              title: "登录信息无效，请重新登录",
+              icon: "none"
+            });
           }
         } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:113", "获取数据失败:", error);
-          fileData.value = null;
+          formatAppLog("error", "at pages/bridge/bridge.vue:159", "初始化数据失败:", error);
         }
       };
+      const filteredProjects = vue.computed(() => {
+        if (!initData.value || !initData.value.data || !initData.value.data.projects) {
+          return [];
+        }
+        return initData.value.data.projects.filter((project) => {
+          return project.year == currentYear.value;
+        });
+      });
       const changeYear = (e2) => {
         selectedYearIndex.value = e2.detail.value;
+        currentYear.value = years.value[selectedYearIndex.value];
+        formatAppLog("log", "at pages/bridge/bridge.vue:177", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
       };
       const back = () => {
         uni.navigateBack();
       };
       const goToList = (item) => {
+        userInfo.setProjectId({ value: item.id });
         uni.navigateTo({
-          url: `/pages/List/List?projectId=${item.code || ""}&projectName=${encodeURIComponent(item.projectName || "")}&company=${encodeURIComponent(item.company || "")}&status=${encodeURIComponent(item.status || "")}&progress=${encodeURIComponent(item.progress || "")}`
+          url: `/pages/List/List?projectId=${item.id}`
         });
-      };
-      const getInspectorNames = (inspectors) => {
-        if (!inspectors || !Array.isArray(inspectors))
-          return "暂无数据";
-        return inspectors.map((inspector) => inspector.userName).join(" / ");
       };
       const getStatusText = (status) => {
         switch (status) {
@@ -2394,17 +2104,40 @@ if (uni.restoreGlobal) {
             return "未知状态";
         }
       };
-      vue.onMounted(() => {
-        getData();
+      const currentProject = vue.computed(() => {
+        if (!initData.value || !initData.value.data || !initData.value.data.projects) {
+          return null;
+        }
+        const project = initData.value.data.projects.find((p2) => p2.id == projectId.value);
+        return project || initData.value.data.projects[0];
       });
-      const __returned__ = { detectUnit, detectPerson, years, selectedYearIndex, fileData, getData, changeYear, back, goToList, getInspectorNames, getStatusText, ref: vue.ref, onMounted: vue.onMounted, get getProject() {
+      vue.onMounted(async () => {
+        await init();
+      });
+      const handleRadioChange = (e2) => {
+        const value = e2.detail.value;
+        if (value === "remember") {
+          rememberPassword.value = true;
+          offlineLogin.value = false;
+        } else if (value === "offline") {
+          offlineLogin.value = true;
+          rememberPassword.value = false;
+        }
+      };
+      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, years, currentYear, initData, infoData, userInfo, dir, selectedYearIndex, init, filteredProjects, changeYear, back, goToList, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
+        return getAllUserInfo;
+      }, get getProject() {
         return getProject;
+      }, get setProject() {
+        return setProject;
+      }, get userStore() {
+        return userStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -2412,25 +2145,27 @@ if (uni.restoreGlobal) {
         vue.createCommentVNode(" 内容区 "),
         vue.createElementVNode("view", { class: "container" }, [
           vue.createCommentVNode(" 信息卡片 "),
-          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 0,
-            class: "info-card"
-          }, [
+          vue.createElementVNode("view", { class: "info-card" }, [
             vue.createElementVNode("view", { class: "info-boxes" }, [
               vue.createElementVNode("view", { class: "info-box" }, [
                 vue.createElementVNode("text", { class: "label" }, "检测单位"),
                 vue.createElementVNode(
                   "text",
                   { class: "value" },
-                  vue.toDisplayString($setup.fileData.data.projects[0].dept.deptName || "暂无数据"),
+                  vue.toDisplayString($setup.infoData.userDept || "暂无数据"),
                   1
                   /* TEXT */
                 )
               ]),
               vue.createElementVNode("view", { class: "info-box" }, [
                 vue.createElementVNode("text", { class: "label" }, "检测人员"),
-                vue.createCommentVNode(` <text class="value">{{ getInspectorNames(fileData.data.projects[0].inspectors) || '暂无数据' }}</text> `),
-                vue.createElementVNode("text", { class: "value" }, "张三三")
+                vue.createElementVNode(
+                  "text",
+                  { class: "value" },
+                  vue.toDisplayString($setup.infoData.userName || "暂无数据"),
+                  1
+                  /* TEXT */
+                )
               ]),
               vue.createElementVNode("view", { class: "info-box" }, [
                 vue.createElementVNode("text", { class: "label" }, "检测年度"),
@@ -2444,7 +2179,7 @@ if (uni.restoreGlobal) {
                     vue.createElementVNode(
                       "text",
                       { class: "value" },
-                      vue.toDisplayString($setup.years[$setup.selectedYearIndex]) + "年度",
+                      vue.toDisplayString($setup.currentYear) + "年度",
                       1
                       /* TEXT */
                     ),
@@ -2456,16 +2191,13 @@ if (uni.restoreGlobal) {
                 ], 40, ["value", "range"])
               ])
             ])
-          ])) : vue.createCommentVNode("v-if", true),
+          ]),
           vue.createCommentVNode(" 项目列表 "),
-          $setup.fileData && $setup.fileData.data && $setup.fileData.data.projects && $setup.fileData.data.projects.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 1,
-            class: "bridge-list"
-          }, [
+          vue.createElementVNode("view", { class: "bridge-list" }, [
             (vue.openBlock(true), vue.createElementBlock(
               vue.Fragment,
               null,
-              vue.renderList($setup.fileData.data.projects, (item, index) => {
+              vue.renderList($setup.filteredProjects, (item, index) => {
                 return vue.openBlock(), vue.createElementBlock("view", {
                   class: "bridge-item",
                   key: index,
@@ -2523,37 +2255,15 @@ if (uni.restoreGlobal) {
               128
               /* KEYED_FRAGMENT */
             ))
-          ])) : !$setup.fileData ? (vue.openBlock(), vue.createElementBlock(
-            vue.Fragment,
-            { key: 2 },
-            [
-              vue.createCommentVNode(" 加载状态 "),
-              vue.createElementVNode("view", { class: "loading" }, [
-                vue.createElementVNode("text", null, "加载中...")
-              ])
-            ],
-            2112
-            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-          )) : (vue.openBlock(), vue.createElementBlock(
-            vue.Fragment,
-            { key: 3 },
-            [
-              vue.createCommentVNode(" 无数据状态 "),
-              vue.createElementVNode("view", { class: "no-data" }, [
-                vue.createElementVNode("text", null, "暂无数据")
-              ])
-            ],
-            2112
-            /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-          ))
+          ])
         ])
       ],
       2112
       /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
     );
   }
-  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
-  const _sfc_main$u = {
+  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
+  const _sfc_main$x = {
     __name: "List",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2563,106 +2273,127 @@ if (uni.restoreGlobal) {
       const projectInfo = vue.ref({});
       const searchText = vue.ref("");
       const bridges = vue.ref([]);
-      const getProjectData = async () => {
-        var _a, _b, _c;
-        try {
-          const response = await getProject(3);
-          formatAppLog("log", "at pages/List/List.vue:82", "获取到的原始数据:", JSON.stringify(response));
-          if (!response || response.code !== 0) {
-            formatAppLog("error", "at pages/List/List.vue:86", "获取数据失败:", (response == null ? void 0 : response.msg) || "未知错误");
-            return;
-          }
-          if (response.data && response.data.projects && response.data.projects.length > 0) {
-            const project = response.data.projects[0];
-            projectInfo.value = {
-              projectName: project.name,
-              code: project.code,
-              status: project.status === "1" ? "已完成" : "未完成",
-              company: ((_a = project.ownerDept) == null ? void 0 : _a.deptName) || "",
-              progress: project.number || "0/0",
-              year: project.year,
-              timeRange: `${project.startDate || ""} - ${project.endDate || ""}`,
-              detectionUnit: ((_b = project.dept) == null ? void 0 : _b.deptName) || "",
-              inspector: ((_c = project.inspectors) == null ? void 0 : _c.map((i2) => i2.userName).join(" / ")) || ""
-            };
-          }
-          const bridgeData = await getTask(3, 1);
-          90;
-          formatAppLog("log", "at pages/List/List.vue:108", "获取到的桥梁数据:", bridgeData);
-          if (bridgeData && bridgeData.data && bridgeData.data.tasks) {
-            bridges.value = bridgeData.data.tasks.map((task) => {
-              var _a2, _b2, _c2, _d, _e2, _f, _g;
-              return {
-                id: task.id,
-                code: ((_a2 = task.building) == null ? void 0 : _a2.buildingCode) || "",
-                name: ((_b2 = task.building) == null ? void 0 : _b2.name) || "",
-                location: `${((_c2 = task.building) == null ? void 0 : _c2.routeCode) || ""} / ${((_d = task.building) == null ? void 0 : _d.routeName) || ""} / ${((_e2 = task.building) == null ? void 0 : _e2.bridgePileNumber) || ""}`,
-                type: "small",
-                // 默认类型
-                length: ((_f = task.building) == null ? void 0 : _f.bridgeLength) || "",
-                class: ((_g = task.building) == null ? void 0 : _g.rootPropertyId) || ""
-              };
-            });
-            formatAppLog("log", "at pages/List/List.vue:120", "处理后的桥梁列表:", bridges.value);
+      const projectId2 = vue.ref(2);
+      const initData = vue.ref(null);
+      const initTaskData = vue.ref(null);
+      const taskBridgeId = vue.ref(0);
+      const userInfo = userStore();
+      const getURLParams = () => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.projectId) {
+            projectId2.value = options.projectId;
+            formatAppLog("log", "at pages/List/List.vue:102", "接收到的项目ID:", projectId2.value);
           } else {
-            bridges.value = [];
-            formatAppLog("error", "at pages/List/List.vue:123", "桥梁数据格式不正确");
+            formatAppLog("log", "at pages/List/List.vue:104", "未接收到项目ID，使用默认值:", projectId2.value);
+          }
+        }
+      };
+      const init = async () => {
+        getURLParams();
+        const responseLogin = await uni.request({
+          url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+          method: "POST"
+        });
+        formatAppLog("log", "at pages/List/List.vue:118", "用户信息:", responseLogin.data);
+        const token = responseLogin.data.token;
+        const getData = async () => {
+          try {
+            const response = await uni.request({
+              //Bug1 这里的项目id是写死的
+              url: `http://60.205.13.156:8090/api/project/${projectId2.value}/task`,
+              method: "GET",
+              header: {
+                "Authorization": `${token}`
+              }
+            });
+            formatAppLog("log", "at pages/List/List.vue:131", "获取到的任务数据:", response.data);
+            if (response.data.code === 0) {
+              initTaskData.value = response.data;
+              setTask(responseLogin.data.userName, projectId2.value, initTaskData.value);
+            } else {
+              uni.showToast({
+                title: response.data.msg || "获取数据失败",
+                icon: "none"
+              });
+            }
+          } catch (error) {
+            formatAppLog("error", "at pages/List/List.vue:155", "获取任务数据失败:", error);
             uni.showToast({
-              title: "桥梁数据格式不正确",
+              title: "获取数据失败，请稍后重试",
               icon: "none"
             });
           }
-        } catch (error) {
-          formatAppLog("error", "at pages/List/List.vue:130", "获取数据失败:", error);
-          uni.showToast({
-            title: "获取数据失败",
-            icon: "none"
-          });
-        }
+        };
+        await getData();
+        projectInfo.value = await getProject(responseLogin.data.userName);
+        formatAppLog("log", "at pages/List/List.vue:166", "项目数据111", projectInfo.value);
+        formatAppLog("log", "at pages/List/List.vue:167", "currentProject的值:", currentProject.value.name);
       };
       vue.onMounted(() => {
-        getProjectData();
+        getURLParams();
+        init();
+      });
+      const currentProject = vue.computed(() => {
+        if (!projectInfo.value || !projectInfo.value.data || !projectInfo.value.data.projects) {
+          return {};
+        }
+        const project = projectInfo.value.data.projects.find((p2) => p2.id == projectId2.value);
+        return project || projectInfo.value.data.projects[0] || {};
       });
       const getBridgeIcon = (type) => {
         const icons = {
-          "small": "/static/image/bridge-small.png",
-          "cross": "/static/image/bridge-cross.png",
-          "arch": "/static/image/bridge-arch.png",
-          "suspension": "/static/images/bridge-suspension.png",
-          "main": "/static/image/bridge-arch.png",
-          // 暂时使用拱桥图标代替主线桥图标
-          "ramp": "/static/image/bridge-cross.png"
-          // 暂时使用立交桥图标代替匝道桥图标
+          "2": "/static/image/bridge1.png",
+          //拱桥
+          "1": "/static/image/bridge2.png",
+          //梁式桥
+          "4": "/static/image/bridge3.png",
+          //斜拉桥
+          "3": "/static/images/bridge4.png"
+          //悬索桥
         };
-        return icons[type] || icons["small"];
+        return icons[type] || icons["arch"];
       };
       const goToDetail = (bridge) => {
+        userInfo.setBuildingId({ value: bridge.buildingId });
         uni.navigateTo({
-          url: `/pages/bridge-disease/bridge-disease`
+          url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
         });
       };
       const filteredBridges = vue.computed(() => {
+        if (!initTaskData.value || !initTaskData.value.data || !initTaskData.value.data.tasks) {
+          return [];
+        }
         if (!searchText.value) {
-          return bridges.value;
+          return initTaskData.value.data.tasks;
         }
         const searchLower = searchText.value.toLowerCase();
-        return bridges.value.filter((bridge) => {
-          return bridge.name.toLowerCase().includes(searchLower) || bridge.code.toLowerCase().includes(searchLower) || bridge.location.toLowerCase().includes(searchLower);
+        return initTaskData.value.data.tasks.filter((bridge) => {
+          var _a, _b, _c, _d;
+          return ((_a = bridge.building) == null ? void 0 : _a.name) && bridge.building.name.toLowerCase().includes(searchLower) || ((_b = bridge.building) == null ? void 0 : _b.buildingCode) && bridge.building.buildingCode.toLowerCase().includes(searchLower) || ((_c = bridge.building) == null ? void 0 : _c.routeName) && bridge.building.routeName.toLowerCase().includes(searchLower) || ((_d = bridge.building) == null ? void 0 : _d.bridgePileNumber) && bridge.building.bridgePileNumber.toLowerCase().includes(searchLower);
         });
       });
       const handleSearch = () => {
-        formatAppLog("log", "at pages/List/List.vue:178", "搜索关键词:", searchText.value);
+        formatAppLog("log", "at pages/List/List.vue:230", "搜索关键词:", searchText.value);
       };
-      const __returned__ = { back, projectInfo, searchText, bridges, getProjectData, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
+      const __returned__ = { back, projectInfo, searchText, bridges, projectId: projectId2, initData, initTaskData, taskBridgeId, userInfo, getURLParams, init, currentProject, getBridgeIcon, goToDetail, filteredBridges, handleSearch, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getProject() {
         return getProject;
       }, get getTask() {
         return getTask;
+      }, get setTask() {
+        return setTask;
+      }, get userStore() {
+        return userStore;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
+    var _a, _b, _c, _d, _e2;
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createCommentVNode(" 顶部信息卡片 "),
       vue.createElementVNode("view", { class: "info-card" }, [
@@ -2670,7 +2401,7 @@ if (uni.restoreGlobal) {
           vue.createElementVNode(
             "view",
             { class: "title" },
-            vue.toDisplayString($setup.projectInfo.projectName || "项目名称"),
+            vue.toDisplayString($setup.currentProject.name || "项目名称"),
             1
             /* TEXT */
           ),
@@ -2678,14 +2409,14 @@ if (uni.restoreGlobal) {
             vue.createElementVNode(
               "text",
               null,
-              "项目编号: " + vue.toDisplayString($setup.projectInfo.code),
+              "项目编号: " + vue.toDisplayString($setup.currentProject.code || ""),
               1
               /* TEXT */
             ),
             vue.createElementVNode(
               "text",
               null,
-              "检测状态: " + vue.toDisplayString($setup.projectInfo.status),
+              "检测状态: " + vue.toDisplayString($setup.currentProject.status === "0" ? "未完成" : $setup.currentProject.status === "1" ? "已完成" : ""),
               1
               /* TEXT */
             )
@@ -2694,14 +2425,14 @@ if (uni.restoreGlobal) {
             vue.createElementVNode(
               "text",
               null,
-              "项目单位: " + vue.toDisplayString($setup.projectInfo.company),
+              "项目单位: " + vue.toDisplayString(((_a = $setup.currentProject.ownerDept) == null ? void 0 : _a.deptName) || ""),
               1
               /* TEXT */
             ),
             vue.createElementVNode(
               "text",
               null,
-              "检测数量: " + vue.toDisplayString($setup.projectInfo.progress),
+              "检测数量: " + vue.toDisplayString(((_d = (_c = (_b = $setup.initTaskData) == null ? void 0 : _b.data) == null ? void 0 : _c.tasks) == null ? void 0 : _d.length) || 0),
               1
               /* TEXT */
             )
@@ -2710,14 +2441,14 @@ if (uni.restoreGlobal) {
             vue.createElementVNode(
               "text",
               null,
-              "检测年度: " + vue.toDisplayString($setup.projectInfo.year),
+              "检测年度: " + vue.toDisplayString($setup.currentProject.year || "") + "年度",
               1
               /* TEXT */
             ),
             vue.createElementVNode(
               "text",
               null,
-              "起止时间: " + vue.toDisplayString($setup.projectInfo.timeRange),
+              "起止时间: " + vue.toDisplayString($setup.currentProject.createTime || ""),
               1
               /* TEXT */
             )
@@ -2726,7 +2457,7 @@ if (uni.restoreGlobal) {
             vue.createElementVNode(
               "text",
               null,
-              "检测单位: " + vue.toDisplayString($setup.projectInfo.detectionUnit),
+              "检测单位: " + vue.toDisplayString(((_e2 = $setup.currentProject.dept) == null ? void 0 : _e2.deptName) || ""),
               1
               /* TEXT */
             )
@@ -2735,7 +2466,7 @@ if (uni.restoreGlobal) {
             vue.createElementVNode(
               "text",
               null,
-              "检测人员: " + vue.toDisplayString($setup.projectInfo.inspector),
+              "检测人员: " + vue.toDisplayString($setup.currentProject.inspectors ? $setup.currentProject.inspectors.map((inspector) => inspector.userName).join("/") : ""),
               1
               /* TEXT */
             )
@@ -2760,12 +2491,13 @@ if (uni.restoreGlobal) {
           [vue.vModelText, $setup.searchText]
         ])
       ]),
-      vue.createCommentVNode(" 桥梁列表 "),
+      vue.createCommentVNode(" 桥梁任务列表 "),
       vue.createElementVNode("view", { class: "bridge-list" }, [
         (vue.openBlock(true), vue.createElementBlock(
           vue.Fragment,
           null,
           vue.renderList($setup.filteredBridges, (bridge) => {
+            var _a2, _b2, _c2, _d2;
             return vue.openBlock(), vue.createElementBlock("view", {
               class: "bridge-item",
               key: bridge.id,
@@ -2773,7 +2505,7 @@ if (uni.restoreGlobal) {
             }, [
               vue.createElementVNode("view", { class: "bridge-icon" }, [
                 vue.createElementVNode("image", {
-                  src: $setup.getBridgeIcon(bridge.type),
+                  src: $setup.getBridgeIcon(bridge.building.bridgeType),
                   mode: "aspectFit"
                 }, null, 8, ["src"])
               ]),
@@ -2781,21 +2513,21 @@ if (uni.restoreGlobal) {
                 vue.createElementVNode(
                   "view",
                   { class: "bridge-code" },
-                  vue.toDisplayString(bridge.code),
+                  vue.toDisplayString(bridge.building.buildingCode),
                   1
                   /* TEXT */
                 ),
                 vue.createElementVNode(
                   "view",
                   { class: "bridge-name" },
-                  vue.toDisplayString(bridge.name),
+                  vue.toDisplayString(bridge.building.name),
                   1
                   /* TEXT */
                 ),
                 vue.createElementVNode(
                   "view",
                   { class: "bridge-location" },
-                  vue.toDisplayString(bridge.location),
+                  vue.toDisplayString((((_a2 = bridge == null ? void 0 : bridge.building) == null ? void 0 : _a2.routeCode) || "") + "/" + (((_b2 = bridge == null ? void 0 : bridge.building) == null ? void 0 : _b2.routeName) || "") + "/" + (((_c2 = bridge == null ? void 0 : bridge.building) == null ? void 0 : _c2.bridgePileNumber) || "")),
                   1
                   /* TEXT */
                 )
@@ -2805,14 +2537,14 @@ if (uni.restoreGlobal) {
                   vue.createElementVNode(
                     "text",
                     { class: "bridge-length" },
-                    vue.toDisplayString(bridge.length),
+                    vue.toDisplayString(bridge.building.bridgeLength) + "m",
                     1
                     /* TEXT */
                   ),
                   vue.createElementVNode(
                     "text",
                     { class: "bridge-class" },
-                    vue.toDisplayString(bridge.class) + "类",
+                    vue.toDisplayString(((_d2 = bridge.building) == null ? void 0 : _d2.bridgeRank) || "/") + "类",
                     1
                     /* TEXT */
                   )
@@ -2823,18 +2555,18 @@ if (uni.restoreGlobal) {
           }),
           128
           /* KEYED_FRAGMENT */
-        )),
-        vue.createCommentVNode(" 无搜索结果提示 "),
-        $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "no-result"
-        }, [
-          vue.createElementVNode("text", null, "未找到匹配的桥梁")
-        ])) : vue.createCommentVNode("v-if", true)
-      ])
+        ))
+      ]),
+      vue.createCommentVNode(" 无搜索结果提示 "),
+      $setup.filteredBridges.length === 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+        key: 0,
+        class: "no-result"
+      }, [
+        vue.createElementVNode("text", null, "未找到匹配的桥梁")
+      ])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
+  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
   const fontData = [
     {
       "font_class": "arrow-down",
@@ -3485,7 +3217,7 @@ if (uni.restoreGlobal) {
     const reg = /^[0-9]*$/g;
     return typeof val === "number" || reg.test(val) ? val + "px" : val;
   };
-  const _sfc_main$t = {
+  const _sfc_main$w = {
     name: "UniIcons",
     emits: ["click"],
     props: {
@@ -3517,9 +3249,9 @@ if (uni.restoreGlobal) {
     },
     computed: {
       unicode() {
-        let code2 = this.icons.find((v2) => v2.font_class === this.type);
-        if (code2) {
-          return code2.unicode;
+        let code = this.icons.find((v2) => v2.font_class === this.type);
+        if (code) {
+          return code.unicode;
         }
         return "";
       },
@@ -3539,7 +3271,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "text",
       {
@@ -3554,7 +3286,293 @@ if (uni.restoreGlobal) {
       /* CLASS, STYLE */
     );
   }
-  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
+  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
+  const isObject = (val) => val !== null && typeof val === "object";
+  const defaultDelimiters = ["{", "}"];
+  class BaseFormatter {
+    constructor() {
+      this._caches = /* @__PURE__ */ Object.create(null);
+    }
+    interpolate(message, values, delimiters = defaultDelimiters) {
+      if (!values) {
+        return [message];
+      }
+      let tokens = this._caches[message];
+      if (!tokens) {
+        tokens = parse(message, delimiters);
+        this._caches[message] = tokens;
+      }
+      return compile(tokens, values);
+    }
+  }
+  const RE_TOKEN_LIST_VALUE = /^(?:\d)+/;
+  const RE_TOKEN_NAMED_VALUE = /^(?:\w)+/;
+  function parse(format, [startDelimiter, endDelimiter]) {
+    const tokens = [];
+    let position = 0;
+    let text = "";
+    while (position < format.length) {
+      let char = format[position++];
+      if (char === startDelimiter) {
+        if (text) {
+          tokens.push({ type: "text", value: text });
+        }
+        text = "";
+        let sub = "";
+        char = format[position++];
+        while (char !== void 0 && char !== endDelimiter) {
+          sub += char;
+          char = format[position++];
+        }
+        const isClosed = char === endDelimiter;
+        const type = RE_TOKEN_LIST_VALUE.test(sub) ? "list" : isClosed && RE_TOKEN_NAMED_VALUE.test(sub) ? "named" : "unknown";
+        tokens.push({ value: sub, type });
+      } else {
+        text += char;
+      }
+    }
+    text && tokens.push({ type: "text", value: text });
+    return tokens;
+  }
+  function compile(tokens, values) {
+    const compiled = [];
+    let index = 0;
+    const mode = Array.isArray(values) ? "list" : isObject(values) ? "named" : "unknown";
+    if (mode === "unknown") {
+      return compiled;
+    }
+    while (index < tokens.length) {
+      const token = tokens[index];
+      switch (token.type) {
+        case "text":
+          compiled.push(token.value);
+          break;
+        case "list":
+          compiled.push(values[parseInt(token.value, 10)]);
+          break;
+        case "named":
+          if (mode === "named") {
+            compiled.push(values[token.value]);
+          } else {
+            {
+              console.warn(`Type of token '${token.type}' and format of value '${mode}' don't match!`);
+            }
+          }
+          break;
+        case "unknown":
+          {
+            console.warn(`Detect 'unknown' type of token!`);
+          }
+          break;
+      }
+      index++;
+    }
+    return compiled;
+  }
+  const LOCALE_ZH_HANS = "zh-Hans";
+  const LOCALE_ZH_HANT = "zh-Hant";
+  const LOCALE_EN = "en";
+  const LOCALE_FR = "fr";
+  const LOCALE_ES = "es";
+  const hasOwnProperty = Object.prototype.hasOwnProperty;
+  const hasOwn = (val, key) => hasOwnProperty.call(val, key);
+  const defaultFormatter = new BaseFormatter();
+  function include(str, parts) {
+    return !!parts.find((part) => str.indexOf(part) !== -1);
+  }
+  function startsWith(str, parts) {
+    return parts.find((part) => str.indexOf(part) === 0);
+  }
+  function normalizeLocale(locale, messages2) {
+    if (!locale) {
+      return;
+    }
+    locale = locale.trim().replace(/_/g, "-");
+    if (messages2 && messages2[locale]) {
+      return locale;
+    }
+    locale = locale.toLowerCase();
+    if (locale === "chinese") {
+      return LOCALE_ZH_HANS;
+    }
+    if (locale.indexOf("zh") === 0) {
+      if (locale.indexOf("-hans") > -1) {
+        return LOCALE_ZH_HANS;
+      }
+      if (locale.indexOf("-hant") > -1) {
+        return LOCALE_ZH_HANT;
+      }
+      if (include(locale, ["-tw", "-hk", "-mo", "-cht"])) {
+        return LOCALE_ZH_HANT;
+      }
+      return LOCALE_ZH_HANS;
+    }
+    let locales = [LOCALE_EN, LOCALE_FR, LOCALE_ES];
+    if (messages2 && Object.keys(messages2).length > 0) {
+      locales = Object.keys(messages2);
+    }
+    const lang = startsWith(locale, locales);
+    if (lang) {
+      return lang;
+    }
+  }
+  class I18n {
+    constructor({ locale, fallbackLocale, messages: messages2, watcher, formater: formater2 }) {
+      this.locale = LOCALE_EN;
+      this.fallbackLocale = LOCALE_EN;
+      this.message = {};
+      this.messages = {};
+      this.watchers = [];
+      if (fallbackLocale) {
+        this.fallbackLocale = fallbackLocale;
+      }
+      this.formater = formater2 || defaultFormatter;
+      this.messages = messages2 || {};
+      this.setLocale(locale || LOCALE_EN);
+      if (watcher) {
+        this.watchLocale(watcher);
+      }
+    }
+    setLocale(locale) {
+      const oldLocale = this.locale;
+      this.locale = normalizeLocale(locale, this.messages) || this.fallbackLocale;
+      if (!this.messages[this.locale]) {
+        this.messages[this.locale] = {};
+      }
+      this.message = this.messages[this.locale];
+      if (oldLocale !== this.locale) {
+        this.watchers.forEach((watcher) => {
+          watcher(this.locale, oldLocale);
+        });
+      }
+    }
+    getLocale() {
+      return this.locale;
+    }
+    watchLocale(fn) {
+      const index = this.watchers.push(fn) - 1;
+      return () => {
+        this.watchers.splice(index, 1);
+      };
+    }
+    add(locale, message, override = true) {
+      const curMessages = this.messages[locale];
+      if (curMessages) {
+        if (override) {
+          Object.assign(curMessages, message);
+        } else {
+          Object.keys(message).forEach((key) => {
+            if (!hasOwn(curMessages, key)) {
+              curMessages[key] = message[key];
+            }
+          });
+        }
+      } else {
+        this.messages[locale] = message;
+      }
+    }
+    f(message, values, delimiters) {
+      return this.formater.interpolate(message, values, delimiters).join("");
+    }
+    t(key, locale, values) {
+      let message = this.message;
+      if (typeof locale === "string") {
+        locale = normalizeLocale(locale, this.messages);
+        locale && (message = this.messages[locale]);
+      } else {
+        values = locale;
+      }
+      if (!hasOwn(message, key)) {
+        console.warn(`Cannot translate the value of keypath ${key}. Use the value of keypath as default.`);
+        return key;
+      }
+      return this.formater.interpolate(message[key], values).join("");
+    }
+  }
+  function watchAppLocale(appVm, i18n) {
+    if (appVm.$watchLocale) {
+      appVm.$watchLocale((newLocale) => {
+        i18n.setLocale(newLocale);
+      });
+    } else {
+      appVm.$watch(() => appVm.$locale, (newLocale) => {
+        i18n.setLocale(newLocale);
+      });
+    }
+  }
+  function getDefaultLocale() {
+    if (typeof uni !== "undefined" && uni.getLocale) {
+      return uni.getLocale();
+    }
+    if (typeof global !== "undefined" && global.getLocale) {
+      return global.getLocale();
+    }
+    return LOCALE_EN;
+  }
+  function initVueI18n(locale, messages2 = {}, fallbackLocale, watcher) {
+    if (typeof locale !== "string") {
+      const options = [
+        messages2,
+        locale
+      ];
+      locale = options[0];
+      messages2 = options[1];
+    }
+    if (typeof locale !== "string") {
+      locale = getDefaultLocale();
+    }
+    if (typeof fallbackLocale !== "string") {
+      fallbackLocale = typeof __uniConfig !== "undefined" && __uniConfig.fallbackLocale || LOCALE_EN;
+    }
+    const i18n = new I18n({
+      locale,
+      fallbackLocale,
+      messages: messages2,
+      watcher
+    });
+    let t2 = (key, values) => {
+      if (typeof getApp !== "function") {
+        t2 = function(key2, values2) {
+          return i18n.t(key2, values2);
+        };
+      } else {
+        let isWatchedAppLocale = false;
+        t2 = function(key2, values2) {
+          const appVm = getApp().$vm;
+          if (appVm) {
+            appVm.$locale;
+            if (!isWatchedAppLocale) {
+              isWatchedAppLocale = true;
+              watchAppLocale(appVm, i18n);
+            }
+          }
+          return i18n.t(key2, values2);
+        };
+      }
+      return t2(key, values);
+    };
+    return {
+      i18n,
+      f(message, values, delimiters) {
+        return i18n.f(message, values, delimiters);
+      },
+      t(key, values) {
+        return t2(key, values);
+      },
+      add(locale2, message, override = true) {
+        return i18n.add(locale2, message, override);
+      },
+      watch(fn) {
+        return i18n.watchLocale(fn);
+      },
+      getLocale() {
+        return i18n.getLocale();
+      },
+      setLocale(newLocale) {
+        return i18n.setLocale(newLocale);
+      }
+    };
+  }
   const en$2 = {
     "uni-search-bar.cancel": "cancel",
     "uni-search-bar.placeholder": "Search enter content"
@@ -3575,7 +3593,7 @@ if (uni.restoreGlobal) {
   const {
     t: t$2
   } = initVueI18n(messages$1);
-  const _sfc_main$s = {
+  const _sfc_main$v = {
     name: "UniSearchBar",
     emits: ["input", "update:modelValue", "clear", "cancel", "confirm", "blur", "focus"],
     props: {
@@ -3717,8 +3735,8 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$5);
+  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-searchbar" }, [
       vue.createElementVNode(
         "view",
@@ -3793,7 +3811,7 @@ if (uni.restoreGlobal) {
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
+  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
   let mpMixins = {};
   mpMixins = {
     data() {
@@ -3865,7 +3883,7 @@ if (uni.restoreGlobal) {
     (Comp.$renderjs || (Comp.$renderjs = [])).push("renderswipe");
     (Comp.$renderjsModules || (Comp.$renderjsModules = {}))["renderswipe"] = "74bb5072";
   };
-  const _sfc_main$r = {
+  const _sfc_main$u = {
     mixins: [mpwxs, bindIngXMixins, otherMixins],
     emits: ["click", "change"],
     props: {
@@ -3935,7 +3953,7 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -4032,11 +4050,11 @@ if (uni.restoreGlobal) {
     );
   }
   if (typeof block0 === "function")
-    block0(_sfc_main$r);
+    block0(_sfc_main$u);
   if (typeof block1 === "function")
-    block1(_sfc_main$r);
-  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
-  const _sfc_main$q = {
+    block1(_sfc_main$u);
+  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
+  const _sfc_main$t = {
     name: "uniSwipeAction",
     data() {
       return {};
@@ -4062,14 +4080,14 @@ if (uni.restoreGlobal) {
       }
     }
   };
-  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.renderSlot(_ctx.$slots, "default")
     ]);
   }
-  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
+  const __easycom_1$4 = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
   const _imports_0$3 = "/static/image/disease.png";
-  const _sfc_main$p = {
+  const _sfc_main$s = {
     __name: "disease-item",
     props: {
       item: {
@@ -4160,6 +4178,12 @@ if (uni.restoreGlobal) {
       vue.onMounted(() => {
         isSelected.value = props.selected;
       });
+      const editDisease = () => {
+        const itemData = encodeURIComponent(JSON.stringify(props.item));
+        uni.navigateTo({
+          url: `/pages/add-disease/add-disease?mode=edit&id=${props.item.id}&data=${itemData}`
+        });
+      };
       const handleSwipeClick = (e2) => {
         if (e2.index === 0) {
           closeSwipe();
@@ -4180,7 +4204,7 @@ if (uni.restoreGlobal) {
                   id: props.item.id,
                   isDelete: true
                 };
-                formatAppLog("log", "at components/disease-item/disease-item.vue:170", "准备发送deleteDisease事件，ID:", props.item.id);
+                formatAppLog("log", "at components/disease-item/disease-item.vue:178", "准备发送deleteDisease事件，ID:", props.item.id);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -4211,14 +4235,14 @@ if (uni.restoreGlobal) {
           emit("swipe-opened", props.item.id);
         }
       };
-      const __returned__ = { props, emit, isSelected, swipeAction, swipeOptions, handleSwipeClick, handleItemClick, closeSwipe, swipeChange, ref: vue.ref, watch: vue.watch, onMounted: vue.onMounted };
+      const __returned__ = { props, emit, isSelected, swipeAction, swipeOptions, editDisease, handleSwipeClick, handleItemClick, closeSwipe, swipeChange, ref: vue.ref, watch: vue.watch, onMounted: vue.onMounted };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$3);
-    const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$3);
+  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$5);
+    const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$4);
     return vue.openBlock(), vue.createBlock(
       _component_uni_swipe_action,
       {
@@ -4256,76 +4280,71 @@ if (uni.restoreGlobal) {
                     /* CLASS */
                   )
                 ])) : vue.createCommentVNode("v-if", true),
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: vue.normalizeClass(["disease-content", $props.selectMode ? "with-select" : ""])
-                  },
-                  [
-                    vue.createElementVNode("view", { class: "item-header" }, [
-                      vue.createElementVNode(
-                        "text",
-                        { class: "title" },
-                        vue.toDisplayString($props.item.component.biObject.name) + "/" + vue.toDisplayString($props.item.component.name) + "/" + vue.toDisplayString($props.item.type),
-                        1
-                        /* TEXT */
-                      )
-                    ]),
-                    vue.createElementVNode("view", { class: "content-container" }, [
-                      vue.createElementVNode("view", { class: "left-column" }, [
-                        vue.createElementVNode("view", { class: "info-row" }, [
-                          vue.createElementVNode("text", { class: "label" }, "病害描述："),
-                          vue.createElementVNode(
-                            "text",
-                            { class: "description-text" },
-                            vue.toDisplayString($props.item.description),
-                            1
-                            /* TEXT */
-                          )
-                        ]),
-                        vue.createElementVNode("view", { class: "info-row" }, [
-                          vue.createElementVNode("text", { class: "label" }, "采集时间："),
-                          vue.createElementVNode(
-                            "text",
-                            null,
-                            vue.toDisplayString($props.item.createTime),
-                            1
-                            /* TEXT */
-                          )
-                        ])
+                vue.createElementVNode("view", {
+                  class: "disease-content",
+                  onClick: $setup.editDisease
+                }, [
+                  vue.createElementVNode("view", { class: "item-header" }, [
+                    vue.createElementVNode(
+                      "text",
+                      { class: "title" },
+                      vue.toDisplayString($props.item.component.name) + "/" + vue.toDisplayString($props.item.type),
+                      1
+                      /* TEXT */
+                    )
+                  ]),
+                  vue.createElementVNode("view", { class: "content-container" }, [
+                    vue.createElementVNode("view", { class: "left-column" }, [
+                      vue.createElementVNode("view", { class: "info-row" }, [
+                        vue.createElementVNode("text", { class: "label" }, "病害描述："),
+                        vue.createElementVNode(
+                          "text",
+                          { class: "description-text" },
+                          vue.toDisplayString($props.item.description),
+                          1
+                          /* TEXT */
+                        )
                       ]),
-                      vue.createElementVNode("view", { class: "right-column" }, [
-                        vue.createElementVNode("view", { class: "info-row" }, [
-                          vue.createElementVNode("text", { class: "label" }, "缺损数量："),
-                          vue.createElementVNode(
-                            "text",
-                            null,
-                            vue.toDisplayString($props.item.quantity),
-                            1
-                            /* TEXT */
-                          )
-                        ]),
-                        vue.createElementVNode("view", { class: "info-row" }, [
-                          vue.createElementVNode("text", { class: "label" }, "评定标度/参考评定："),
-                          vue.createElementVNode(
-                            "text",
-                            null,
-                            vue.toDisplayString($props.item.level) + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否"),
-                            1
-                            /* TEXT */
-                          )
-                        ])
+                      vue.createElementVNode("view", { class: "info-row" }, [
+                        vue.createElementVNode("text", { class: "label" }, "采集时间："),
+                        vue.createElementVNode(
+                          "text",
+                          null,
+                          vue.toDisplayString($props.item.createTime),
+                          1
+                          /* TEXT */
+                        )
                       ])
                     ]),
-                    vue.createElementVNode("image", {
-                      class: "image-icon",
-                      src: _imports_0$3,
-                      mode: "aspectFit"
-                    })
-                  ],
-                  2
-                  /* CLASS */
-                )
+                    vue.createElementVNode("view", { class: "right-column" }, [
+                      vue.createElementVNode("view", { class: "info-row" }, [
+                        vue.createElementVNode("text", { class: "label" }, "缺损数量："),
+                        vue.createElementVNode(
+                          "text",
+                          null,
+                          vue.toDisplayString($props.item.quantity),
+                          1
+                          /* TEXT */
+                        )
+                      ]),
+                      vue.createElementVNode("view", { class: "info-row" }, [
+                        vue.createElementVNode("text", { class: "label" }, "评定标度/参考评定："),
+                        vue.createElementVNode(
+                          "text",
+                          null,
+                          vue.toDisplayString($props.item.level) + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否"),
+                          1
+                          /* TEXT */
+                        )
+                      ])
+                    ])
+                  ]),
+                  vue.createElementVNode("image", {
+                    class: "image-icon",
+                    src: _imports_0$3,
+                    mode: "aspectFit"
+                  })
+                ])
               ])
             ]),
             _: 1
@@ -4339,8 +4358,121 @@ if (uni.restoreGlobal) {
       /* NEED_PATCH */
     );
   }
-  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
-  const _sfc_main$o = {
+  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
+  const DOC_BASE_PATH = "_doc/";
+  const FILE_NAMING = {
+    project: (userId2) => `${userId2}/project/projects.json`,
+    task: (userId2, projectId2) => `${userId2}/project/${projectId2}/task.json`,
+    property: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/property.json`,
+    disease: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/disease/${yearId}.json`,
+    diseaseImages: (userId2, buildingId2) => `${userId2}/building/${buildingId2}/disease/images`,
+    ADImages: (userId2, buildingId2, yearId) => `${userId2}/building/${buildingId2}/ADImages`
+  };
+  let __currentFilePath = null;
+  function getFullPath(path) {
+    const docPath = plus.io.convertLocalFileSystemURL(path);
+    return docPath;
+  }
+  async function setJsonData(path, data) {
+    return new Promise((resolve, reject) => {
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getFile(path, { create: true }, (fileEntry) => {
+          fileEntry.createWriter((writer) => {
+            writer.onwriteend = () => {
+              resolve();
+            };
+            writer.onerror = () => {
+              reject(`文件写入失败: ${path}`);
+            };
+            const jsonData = JSON.stringify(data, null, 2);
+            writer.write(jsonData);
+          }, reject);
+        }, reject);
+      }, reject);
+    });
+  }
+  function saveData(data) {
+    return new Promise((resolve, reject) => {
+      if (!__currentFilePath) {
+        return reject(new Error("请先执行读取操作获取文件路径"));
+      }
+      const fullPath = getFullPath(__currentFilePath);
+      formatAppLog("log", "at utils/reviseNew.js:52", "准备保存文件到路径:", fullPath);
+      const wait = plus.nativeUI.showWaiting("正在保存信息");
+      setJsonData(fullPath, data).then(() => {
+        wait.close();
+        formatAppLog("log", "at utils/reviseNew.js:59", "写入成功");
+        plus.nativeUI.toast("保存成功");
+        resolve(true);
+      }).catch((error) => {
+        wait.close();
+        formatAppLog("error", "at utils/reviseNew.js:65", "写入失败:", error);
+        plus.nativeUI.toast("保存失败");
+        reject(error);
+      });
+    });
+  }
+  function trackPath(path) {
+    formatAppLog("log", "at utils/reviseNew.js:74", "设置文件路径:", path);
+    __currentFilePath = path;
+  }
+  function setDisease(userId2, buildingId2, yearId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.disease(userId2, buildingId2, yearId);
+    trackPath(path);
+    return saveData(data);
+  }
+  function saveDiseaseImages(userId2, buildingId2, tempImagePaths) {
+    return new Promise((resolve, reject) => {
+      const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userId2, buildingId2);
+      const fullTargetPath = getFullPath(targetDirPath);
+      formatAppLog("log", "at utils/reviseNew.js:110", "准备保存图片到目录:", fullTargetPath);
+      const wait = plus.nativeUI.showWaiting("正在保存图片");
+      plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
+        fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
+          formatAppLog("log", "at utils/reviseNew.js:119", "目标目录已创建或已存在");
+          const savePromises = tempImagePaths.map((tempPath, index) => {
+            return new Promise((resolveFile, rejectFile) => {
+              const fileName = `disease_${Date.now()}_${index}.jpg`;
+              plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
+                fileEntry.copyTo(dirEntry, fileName, (newFile) => {
+                  formatAppLog("log", "at utils/reviseNew.js:131", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                  resolveFile(newFile.fullPath);
+                }, (error) => {
+                  formatAppLog("error", "at utils/reviseNew.js:134", `图片 ${index + 1} 保存失败:`, error);
+                  rejectFile(error);
+                });
+              }, (error) => {
+                formatAppLog("error", "at utils/reviseNew.js:138", `无法访问临时文件 ${tempPath}:`, error);
+                rejectFile(error);
+              });
+            });
+          });
+          Promise.all(savePromises).then((savedPaths) => {
+            wait.close();
+            formatAppLog("log", "at utils/reviseNew.js:148", "所有图片保存成功:", savedPaths);
+            plus.nativeUI.toast("图片保存成功");
+            resolve(savedPaths);
+          }).catch((error) => {
+            wait.close();
+            formatAppLog("error", "at utils/reviseNew.js:154", "图片保存失败:", error);
+            plus.nativeUI.toast("图片保存失败");
+            reject(error);
+          });
+        }, (error) => {
+          wait.close();
+          formatAppLog("error", "at utils/reviseNew.js:160", "创建目录失败:", error);
+          plus.nativeUI.toast("创建图片目录失败");
+          reject(error);
+        });
+      }, (error) => {
+        wait.close();
+        formatAppLog("error", "at utils/reviseNew.js:166", "文件系统访问失败:", error);
+        plus.nativeUI.toast("文件系统访问失败");
+        reject(error);
+      });
+    });
+  }
+  const _sfc_main$r = {
     __name: "current-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -4554,9 +4686,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$4);
-    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
+  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$6);
+    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$3);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
         vue.createElementVNode("view", { class: "view-search-bar" }, [
@@ -4630,8 +4762,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
-  const _sfc_main$n = /* @__PURE__ */ Object.assign({
+  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
+  const _sfc_main$q = /* @__PURE__ */ Object.assign({
     name: "history-disease"
   }, {
     __name: "history-disease",
@@ -4729,7 +4861,7 @@ if (uni.restoreGlobal) {
             selectedItems.value.splice(index, 1);
           }
         }
-        formatAppLog("log", "at components/history-disease.vue:207", "当前选中项:", selectedItems.value);
+        formatAppLog("log", "at components/history-disease.vue:208", "当前选中项:", selectedItems.value);
       };
       const copyDisease = () => {
         if (selectedItems.value.length === 0) {
@@ -4760,7 +4892,7 @@ if (uni.restoreGlobal) {
         });
         Promise.all(copiedDiseases.map((disease) => {
           return new Promise((resolve) => {
-            formatAppLog("log", "at components/history-disease.vue:257", "发送添加新病害事件给current-disease组件:", disease);
+            formatAppLog("log", "at components/history-disease.vue:258", "发送添加新病害事件给current-disease组件:", disease);
             uni.$emit("addNewDisease", disease);
             resolve();
           });
@@ -4771,7 +4903,7 @@ if (uni.restoreGlobal) {
           });
           toggleSelectMode();
         }).catch((error) => {
-          formatAppLog("error", "at components/history-disease.vue:273", "复制病害失败:", error);
+          formatAppLog("error", "at components/history-disease.vue:274", "复制病害失败:", error);
           uni.showToast({
             title: "复制失败，请重试",
             icon: "none"
@@ -4789,7 +4921,7 @@ if (uni.restoreGlobal) {
       };
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/history-disease.vue:296", "搜索内容:", e2);
+        formatAppLog("log", "at components/history-disease.vue:297", "搜索内容:", e2);
         closeAllSwipeActions();
         expandAllTypes();
       };
@@ -4845,7 +4977,7 @@ if (uni.restoreGlobal) {
         });
       };
       vue.onMounted(() => {
-        formatAppLog("log", "at components/history-disease.vue:376", "history-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/history-disease.vue:377", "history-disease组件挂载，准备加载数据");
         loadDiseaseData();
         expandAllTypes();
       });
@@ -4856,9 +4988,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   });
-  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$4);
-    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$2);
+  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$6);
+    const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$3);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
       vue.createElementVNode("view", { class: "search-add-container" }, [
         vue.createElementVNode("view", { class: "view-search-bar" }, [
@@ -5004,8 +5136,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
-  const _sfc_main$m = {
+  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
+  const _sfc_main$p = {
     __name: "administrative-identification-data",
     props: {
       data: {
@@ -5021,7 +5153,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -5052,8 +5184,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
-  const _sfc_main$l = {
+  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
+  const _sfc_main$o = {
     __name: "bridge-tech",
     props: {
       data: {
@@ -5069,7 +5201,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -5134,8 +5266,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
-  const _sfc_main$k = {
+  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
+  const _sfc_main$n = {
     __name: "bridge-structure",
     props: {
       data: {
@@ -5177,7 +5309,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 保持桥梁分孔和结构体系单独显示 "),
       $setup.structureData && $setup.structureData.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
@@ -5346,8 +5478,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
-  const _sfc_main$j = {
+  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
+  const _sfc_main$m = {
     __name: "bridge-files",
     props: {
       data: {
@@ -5363,7 +5495,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -5394,8 +5526,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_3$1 = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
-  const _sfc_main$i = {
+  const __easycom_3$1 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
+  const _sfc_main$l = {
     __name: "bridge-inspection-history",
     props: {
       data: {
@@ -5423,7 +5555,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -5488,8 +5620,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
-  const _sfc_main$h = {
+  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
+  const _sfc_main$k = {
     __name: "maintenance-records",
     props: {
       data: {
@@ -5519,7 +5651,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -5584,8 +5716,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
-  const _sfc_main$g = {
+  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
+  const _sfc_main$j = {
     __name: "notes",
     props: {
       data: {
@@ -5601,7 +5733,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createElementVNode("view", { class: "part-area" }, [
         vue.createElementVNode("view", { class: "part-area-title" }, "需要说明的事项(含桥梁管养单位的变更情况)"),
@@ -5615,8 +5747,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
-  const _sfc_main$f = {
+  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
+  const _sfc_main$i = {
     __name: "other-info",
     props: {
       data: {
@@ -5664,7 +5796,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 照片区域，每行两张照片 "),
       vue.createElementVNode("view", { class: "image-container" }, [
@@ -5727,8 +5859,8 @@ if (uni.restoreGlobal) {
       ))
     ]);
   }
-  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
-  const _sfc_main$e = {
+  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
+  const _sfc_main$h = {
     __name: "bridge-archive",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -5743,10 +5875,10 @@ if (uni.restoreGlobal) {
       };
       vue.onMounted(async () => {
         try {
-          const data2 = await getProperty("3", "39");
-          formatAppLog("log", "at components/bridge-archive.vue:67", "获取到桥梁档案数据:", data2);
-          if (data2 && Object.keys(data2).length > 0) {
-            bridgeArchive2.value = data2;
+          const data = await getProperty("3", "39");
+          formatAppLog("log", "at components/bridge-archive.vue:67", "获取到桥梁档案数据:", data);
+          if (data && Object.keys(data).length > 0) {
+            bridgeArchive2.value = data;
           }
         } catch (error) {
           formatAppLog("error", "at components/bridge-archive.vue:74", "获取桥梁档案数据失败:", error);
@@ -5763,9 +5895,9 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$2);
-    const _component_bridge_tech = resolveEasycom(vue.resolveDynamicComponent("bridge-tech"), __easycom_1$1);
+  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$4);
+    const _component_bridge_tech = resolveEasycom(vue.resolveDynamicComponent("bridge-tech"), __easycom_1$2);
     const _component_bridge_structure = resolveEasycom(vue.resolveDynamicComponent("bridge-structure"), __easycom_2);
     const _component_bridge_files = resolveEasycom(vue.resolveDynamicComponent("bridge-files"), __easycom_3$1);
     const _component_bridge_inspection_history = resolveEasycom(vue.resolveDynamicComponent("bridge-inspection-history"), __easycom_4);
@@ -5887,1216 +6019,1715 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
-  const msg = "ObjectTree success";
-  const code = 0;
-  const data = {
-    orderNum: 0,
-    delFlag: "0",
-    children: [
-      {
-        orderNum: 1,
-        delFlag: "0",
-        children: [
-          {
-            orderNum: 1,
-            delFlag: "0",
-            id: 709,
-            ancestors: "0,704,705,706",
-            templateObjectId: 2011,
-            comments: [
-              {
-                code: "R-1-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:38",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）1",
-                id: 244,
-                status: "0"
-              },
-              {
-                code: "R-1-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:38",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）2",
-                id: 245,
-                status: "0"
-              },
-              {
-                code: "R-2-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:38",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）3",
-                id: 246,
-                status: "0"
-              },
-              {
-                code: "R-2-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）4",
-                id: 247,
-                status: "0"
-              },
-              {
-                code: "R-3-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）5",
-                id: 248,
-                status: "0"
-              },
-              {
-                code: "R-3-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）6",
-                id: 249,
-                status: "0"
-              },
-              {
-                code: "R-4-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）7",
-                id: 250,
-                status: "0"
-              },
-              {
-                code: "R-4-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）8",
-                id: 251,
-                status: "0"
-              },
-              {
-                code: "R-5-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）9",
-                id: 252,
-                status: "0"
-              },
-              {
-                code: "R-5-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）10",
-                id: 253,
-                status: "0"
-              },
-              {
-                code: "R-6-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）11",
-                id: 254,
-                status: "0"
-              },
-              {
-                code: "R-6-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:39",
-                name: "上部承重构件（主梁、挂梁）12",
-                id: 255,
-                status: "0"
-              },
-              {
-                code: "R-7-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）13",
-                id: 256,
-                status: "0"
-              },
-              {
-                code: "R-7-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）14",
-                id: 257,
-                status: "0"
-              },
-              {
-                code: "R-8-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）15",
-                id: 258,
-                status: "0"
-              },
-              {
-                code: "R-8-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）16",
-                id: 259,
-                status: "0"
-              },
-              {
-                code: "R-9-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）17",
-                id: 260,
-                status: "0"
-              },
-              {
-                code: "R-9-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）18",
-                id: 261,
-                status: "0"
-              },
-              {
-                code: "R-10-1#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:39",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）19",
-                id: 262,
-                status: "0"
-              },
-              {
-                code: "R-10-2#上部承重构件（主梁、挂梁）",
-                updateTime: "2025-04-21 16:53:40",
-                delFlag: "0",
-                biObjectId: 709,
-                createBy: "admin",
-                createTime: "2025-04-21 16:53:40",
-                name: "上部承重构件（主梁、挂梁）20",
-                id: 263,
-                status: "0"
-              }
-            ],
-            count: 20,
-            weight: 0.7,
-            updateTime: "2025-04-21 16:50:36",
-            parentId: 706,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "上部承重构件（主梁、挂梁）",
-            diseaseTypes: [
-              {
-                createBy: "admin",
-                code: "5.2.1-1",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "涂层劣化",
-                updateTime: "2025-04-14 17:14:06",
-                id: 15,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-2",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "锈蚀",
-                updateTime: "2025-04-14 17:14:06",
-                id: 16,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-3",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "焊缝开裂",
-                updateTime: "2025-04-14 17:14:06",
-                id: 17,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-4",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "铆钉（螺栓）损失",
-                updateTime: "2025-04-14 17:14:06",
-                id: 18,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-5",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "构件裂缝",
-                updateTime: "2025-04-14 17:14:06",
-                id: 19,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-6",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "跨中挠度",
-                updateTime: "2025-04-14 17:14:06",
-                id: 20,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-7",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "构件变形",
-                updateTime: "2025-04-14 17:14:06",
-                id: 21,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-8",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "结构变位",
-                updateTime: "2025-04-14 17:14:06",
-                id: 22,
-                minScale: 1,
-                status: "0"
-              }
-            ],
-            status: "0"
-          },
-          {
-            orderNum: 2,
-            delFlag: "0",
-            id: 710,
-            ancestors: "0,704,705,706",
-            templateObjectId: 2012,
-            count: 0,
-            weight: 0.18,
-            updateTime: "2025-04-21 16:50:36",
-            parentId: 706,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "上部一般构件（湿接缝、横隔板等）",
-            diseaseTypes: [
-              {
-                createBy: "admin",
-                code: "5.2.1-1",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "涂层劣化",
-                updateTime: "2025-04-14 17:14:06",
-                id: 15,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-2",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "锈蚀",
-                updateTime: "2025-04-14 17:14:06",
-                id: 16,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-3",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "焊缝开裂",
-                updateTime: "2025-04-14 17:14:06",
-                id: 17,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-4",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "铆钉（螺栓）损失",
-                updateTime: "2025-04-14 17:14:06",
-                id: 18,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-5",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "构件裂缝",
-                updateTime: "2025-04-14 17:14:06",
-                id: 19,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-6",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "跨中挠度",
-                updateTime: "2025-04-14 17:14:06",
-                id: 20,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-7",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "构件变形",
-                updateTime: "2025-04-14 17:14:06",
-                id: 21,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.2.1-8",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "结构变位",
-                updateTime: "2025-04-14 17:14:06",
-                id: 22,
-                minScale: 1,
-                status: "0"
-              }
-            ],
-            status: "0"
-          },
-          {
-            orderNum: 3,
-            delFlag: "0",
-            id: 711,
-            ancestors: "0,704,705,706",
-            templateObjectId: 2013,
-            comments: [
-              {
-                code: "R-1#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:19",
-                name: "支座1",
-                id: 264,
-                status: "0"
-              },
-              {
-                code: "R-2#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座2",
-                id: 265,
-                status: "0"
-              },
-              {
-                code: "R-3#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座3",
-                id: 266,
-                status: "0"
-              },
-              {
-                code: "R-4#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座4",
-                id: 267,
-                status: "0"
-              },
-              {
-                code: "R-5#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座5",
-                id: 268,
-                status: "0"
-              },
-              {
-                code: "R-6#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座6",
-                id: 269,
-                status: "0"
-              },
-              {
-                code: "R-7#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座7",
-                id: 270,
-                status: "0"
-              },
-              {
-                code: "R-8#支座",
-                updateTime: "2025-04-21 16:57:19",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座8",
-                id: 271,
-                status: "0"
-              },
-              {
-                code: "R-9#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座9",
-                id: 272,
-                status: "0"
-              },
-              {
-                code: "R-10#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座10",
-                id: 273,
-                status: "0"
-              },
-              {
-                code: "R-11#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座11",
-                id: 274,
-                status: "0"
-              },
-              {
-                code: "R-12#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座12",
-                id: 275,
-                status: "0"
-              },
-              {
-                code: "R-13#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座13",
-                id: 276,
-                status: "0"
-              },
-              {
-                code: "R-14#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座14",
-                id: 277,
-                status: "0"
-              },
-              {
-                code: "R-15#支座",
-                updateTime: "2025-04-21 16:57:20",
-                delFlag: "0",
-                biObjectId: 711,
-                createBy: "admin",
-                createTime: "2025-04-21 16:57:20",
-                name: "支座15",
-                id: 278,
-                status: "0"
-              }
-            ],
-            count: 15,
-            weight: 0.12,
-            updateTime: "2025-04-21 16:50:36",
-            parentId: 706,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "支座",
-            diseaseTypes: [
-              {
-                createBy: "admin",
-                code: "5.3.1-1",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "橡胶支座老化变质、开裂",
-                updateTime: "2025-04-14 17:14:06",
-                id: 23,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.1-2",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "板式支座缺陷",
-                updateTime: "2025-04-14 17:14:06",
-                id: 24,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.1-3",
-                maxScale: 5,
-                createTime: "2025-04-14 17:14:06",
-                name: "板式支座位置串动、脱空或剪切超限",
-                updateTime: "2025-04-14 17:14:06",
-                id: 25,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.1-4",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "盆式支座组件损坏",
-                updateTime: "2025-04-14 17:14:06",
-                id: 26,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.1-5",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "聚四氟乙烯滑板磨损",
-                updateTime: "2025-04-14 17:14:06",
-                id: 27,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.1-6",
-                maxScale: 3,
-                createTime: "2025-04-14 17:14:06",
-                name: "盆式支座位移、转角超限",
-                updateTime: "2025-04-14 17:14:06",
-                id: 28,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.2-1",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "钢支座组件或功能缺陷",
-                updateTime: "2025-04-14 17:14:06",
-                id: 29,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.2-2",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "钢支座位移、转角超限",
-                updateTime: "2025-04-14 17:14:06",
-                id: 30,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.2-3",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "钢支座部件磨损、裂缝",
-                updateTime: "2025-04-14 17:14:06",
-                id: 31,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.3-1",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "混凝土缺损",
-                updateTime: "2025-04-14 17:14:06",
-                id: 32,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.3-2",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "活动支座滑动面不平整、生锈咬死",
-                updateTime: "2025-04-14 17:14:06",
-                id: 33,
-                minScale: 1,
-                status: "0"
-              },
-              {
-                createBy: "admin",
-                code: "5.3.3-3",
-                maxScale: 4,
-                createTime: "2025-04-14 17:14:06",
-                name: "承有裂纹、切口或偏移",
-                updateTime: "2025-04-14 17:14:06",
-                id: 34,
-                minScale: 1,
-                status: "0"
-              }
-            ],
-            status: "0"
-          }
-        ],
-        id: 706,
-        ancestors: "0,704,705",
-        templateObjectId: 201,
-        count: 0,
-        weight: 0.4,
-        updateTime: "2025-04-21 16:50:36",
-        parentId: 705,
-        createBy: "admin",
-        createTime: "2025-04-21 16:50:36",
-        name: "上部结构",
-        status: "0"
-      },
-      {
-        orderNum: 2,
-        delFlag: "0",
-        children: [
-          {
-            orderNum: 1,
-            delFlag: "0",
-            id: 712,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2021,
-            count: 0,
-            weight: 0.02,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "翼墙、耳墙",
-            status: "0"
-          },
-          {
-            orderNum: 2,
-            delFlag: "0",
-            id: 713,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2022,
-            count: 0,
-            weight: 0.01,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "锥坡、护坡",
-            status: "0"
-          },
-          {
-            orderNum: 3,
-            delFlag: "0",
-            id: 714,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2023,
-            count: 0,
-            weight: 0.3,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "桥墩",
-            status: "0"
-          },
-          {
-            orderNum: 4,
-            delFlag: "0",
-            id: 715,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2024,
-            count: 0,
-            weight: 0.3,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "桥台",
-            status: "0"
-          },
-          {
-            orderNum: 5,
-            delFlag: "0",
-            id: 716,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2025,
-            count: 0,
-            weight: 0.28,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "墩台基础",
-            status: "0"
-          },
-          {
-            orderNum: 6,
-            delFlag: "0",
-            id: 717,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2026,
-            count: 0,
-            weight: 0.07,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:37",
-            name: "河床",
-            status: "0"
-          },
-          {
-            orderNum: 7,
-            delFlag: "0",
-            id: 718,
-            ancestors: "0,704,705,707",
-            templateObjectId: 2027,
-            count: 0,
-            weight: 0.02,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 707,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "调治构造物",
-            status: "0"
-          }
-        ],
-        id: 707,
-        ancestors: "0,704,705",
-        templateObjectId: 202,
-        count: 0,
-        weight: 0.4,
-        updateTime: "2025-04-21 16:50:36",
-        parentId: 705,
-        createBy: "admin",
-        createTime: "2025-04-21 16:50:37",
-        name: "下部结构",
-        status: "0"
-      },
-      {
-        orderNum: 3,
-        delFlag: "0",
-        children: [
-          {
-            orderNum: 1,
-            delFlag: "0",
-            id: 719,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2031,
-            count: 0,
-            weight: 0.4,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "桥面铺装",
-            status: "0"
-          },
-          {
-            orderNum: 2,
-            delFlag: "0",
-            id: 720,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2032,
-            count: 0,
-            weight: 0.25,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "伸缩缝装置",
-            status: "0"
-          },
-          {
-            orderNum: 3,
-            delFlag: "0",
-            id: 721,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2033,
-            count: 0,
-            weight: 0.1,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "人行道",
-            status: "0"
-          },
-          {
-            orderNum: 4,
-            delFlag: "0",
-            id: 722,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2034,
-            count: 0,
-            weight: 0.1,
-            updateTime: "2025-04-21 16:50:37",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "栏杆、护栏",
-            status: "0"
-          },
-          {
-            orderNum: 5,
-            delFlag: "0",
-            id: 723,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2035,
-            count: 0,
-            weight: 0.1,
-            updateTime: "2025-04-21 16:50:38",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "排水系统",
-            status: "0"
-          },
-          {
-            orderNum: 6,
-            delFlag: "0",
-            id: 724,
-            ancestors: "0,704,705,708",
-            templateObjectId: 2036,
-            count: 0,
-            weight: 0.05,
-            updateTime: "2025-04-21 16:50:38",
-            parentId: 708,
-            createBy: "admin",
-            createTime: "2025-04-21 16:50:38",
-            name: "照明、标志",
-            status: "0"
-          }
-        ],
-        id: 708,
-        ancestors: "0,704,705",
-        templateObjectId: 203,
-        count: 0,
-        weight: 0.2,
-        updateTime: "2025-04-21 16:50:36",
-        parentId: 705,
-        createBy: "admin",
-        createTime: "2025-04-21 16:50:37",
-        name: "桥面系",
-        status: "0"
-      }
-    ],
-    id: 705,
-    ancestors: "0,704",
-    templateObjectId: 2,
-    count: 0,
-    updateTime: "2025-04-21 16:50:36",
-    parentId: 704,
-    createBy: "admin",
-    parentName: "K38+837白洋互通主线桥",
-    createTime: "2025-04-21 16:50:36",
-    name: "K38+837白洋互通主线桥(K1474+780)-右线(钢梁桥)",
-    status: "0"
-  };
-  const structureJSON = {
-    msg,
-    code,
-    data
-  };
-  const _sfc_main$d = {
-    __name: "structure-info",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const tabItems = vue.ref([]);
-      const structures = vue.ref([]);
-      const selectedIndex = vue.ref(0);
-      const confirmed = vue.ref(false);
-      const activeTab = vue.ref(0);
-      const popupContent = vue.ref("");
-      const currentStructure = vue.ref();
-      const currentEdit = vue.ref();
-      const editSuffix = vue.ref("");
-      const editNumber = vue.ref("");
-      const selectedStructure = vue.ref(null);
-      const popup2 = vue.ref(null);
-      const confirmPopup = vue.ref(null);
-      const confirmStructure = () => {
-        confirmPopup.value.open();
-      };
-      const confirmConfirm = () => {
-        confirmed.value = true;
-        confirmPopup.value.close();
-      };
-      const closeConfirmPopup = () => {
-        confirmPopup.value.close();
-      };
-      const changeTab = (index) => {
-        selectedIndex.value = index;
-      };
-      const suffix = vue.ref("");
-      const segments = vue.ref([{
-        id: generateId(),
-        typeIndex: 0,
-        value: "",
-        start: "",
-        end: ""
-      }]);
-      function generateId() {
-        return "id_" + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
-      }
-      const isAllSelected = vue.computed(() => currentStructure.value.comments.every((item) => item.selected));
-      const hasSelection = vue.computed(() => currentStructure.value.comments.some((item) => item.selected));
-      const showPopup = (item) => {
-        currentStructure.value = item;
-        if (!item.comments) {
-          popupContent.value = "create";
-          suffix.value = "#" + currentStructure.value.name;
-        } else {
-          popupContent.value = "read";
-          item.comments.forEach((item2) => {
-            item2.selected = false;
-          });
-        }
-        popup2.value.open();
-      };
-      const changeStructureState = (structure) => {
-        formatAppLog("log", "at components/structure-info.vue:247", structure);
-        structure.status = structure.status === "0" ? "1" : "0";
-      };
-      const toggleSelectAll = () => {
-        const all = isAllSelected.value;
-        currentStructure.value.comments.forEach((item) => item.selected = !all);
-      };
-      const selectItem = (index) => {
-        currentStructure.value.comments[index].selected = !currentStructure.value.comments[index].selected;
-      };
-      const singleDelete = (comment) => {
-        if (!comment)
-          return;
-        currentStructure.value.comments = currentStructure.value.comments.filter((item) => item !== comment);
-        uni.showToast({
-          title: "删除成功",
-          icon: "none"
-        });
-      };
-      const batchDelete = () => {
-        if (!hasSelection.value)
-          return;
-        currentStructure.value.comments = currentStructure.value.comments.filter((item) => !item.selected);
-        uni.showToast({
-          title: "批量删除成功",
-          icon: "none"
-        });
-      };
-      const edit = (structure) => {
-        currentEdit.value = structure;
-        editSuffix.value = "#" + structure.code.split("#")[1];
-        editNumber.value = structure.code.split("#")[0];
-        popupContent.value = "edit";
-      };
-      const addSegment = () => {
-        segments.value.push({
-          id: generateId(),
-          typeIndex: 0,
-          value: "",
-          start: "",
-          end: ""
-        });
-      };
-      const typeChange = (e2) => {
-        const id = e2.id;
-        const newValue = e2.event.detail.value;
-        const index = segments.value.findIndex((segment) => segment.id === id);
-        if (index !== -1) {
-          segments.value[index].typeIndex = newValue;
-        }
-      };
-      const removeSegment = (index) => {
-        segments.value.splice(index, 1);
-      };
-      function getCurrentFormattedTime() {
-        const now = /* @__PURE__ */ new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, "0");
-        const day = String(now.getDate()).padStart(2, "0");
-        const hours = String(now.getHours()).padStart(2, "0");
-        const minutes = String(now.getMinutes()).padStart(2, "0");
-        const seconds = String(now.getSeconds()).padStart(2, "0");
-        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-      }
-      const generateCombinations = (segs, index = 0, path = [], result = []) => {
-        if (index === segs.length) {
-          const combined = path.join("-");
-          result.push({
-            // name: `${combined}${suffix.value}`,
-            // number: combined,
-            // suffix: suffix.value
-            biObjectId: currentStructure.value.id,
-            code: `${combined}${suffix.value}`,
-            createBy: "user",
-            createTime: getCurrentFormattedTime(),
-            delFlag: "0",
-            // 未知属性
-            // id: ,//不知道id是啥
-            name: `${suffix.value.split("#")[1] + (result.length + 1)}`,
-            status: "0",
-            updateTime: getCurrentFormattedTime()
-          });
-          return;
-        }
-        const seg = segs[index];
-        if (seg.typeIndex === 0) {
-          generateCombinations(segs, index + 1, [...path, seg.value], result);
-        } else if (seg.typeIndex === 1) {
-          const start = Number(seg.start);
-          const end = Number(seg.end);
-          for (let i2 = start; i2 <= end; i2++) {
-            generateCombinations(segs, index + 1, [...path, i2], result);
-          }
-        }
-        return result;
-      };
-      const generateNameObjects = () => {
-        return generateCombinations(segments.value);
-      };
-      const cancel = () => {
-        popup2.value.close();
-      };
-      const confirm = () => {
-        currentStructure.value.comments = generateNameObjects();
-        currentStructure.value.count = currentStructure.value.comments.length;
-        popup2.value.close();
-      };
-      const editCancel = () => {
-        popupContent.value = "read";
-      };
-      const editConfirm = () => {
-        const match = currentEdit.value.name.match(/\d+$/);
-        const number = match ? match[0] : "";
-        currentEdit.value.name = editSuffix.value.split("#")[1] + number;
-        currentEdit.value.code = `${editNumber.value + editSuffix.value}`;
-        popupContent.value = "read";
-      };
-      const selectStructure = (item, index) => {
-        selectedStructure.value = item;
-      };
-      vue.onMounted(() => {
-        structures.value = JSON.parse(JSON.stringify(structureJSON.data));
-        tabItems.value = structures.value.children.map((item) => item.name);
-        formatAppLog("log", "at components/structure-info.vue:406", structures.value);
+  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
+  class MPAnimation {
+    constructor(options, _this) {
+      this.options = options;
+      this.animation = uni.createAnimation({
+        ...options
       });
-      const __returned__ = { tabItems, structures, selectedIndex, confirmed, activeTab, popupContent, currentStructure, currentEdit, editSuffix, editNumber, selectedStructure, popup: popup2, confirmPopup, confirmStructure, confirmConfirm, closeConfirmPopup, changeTab, suffix, segments, generateId, isAllSelected, hasSelection, showPopup, changeStructureState, toggleSelectAll, selectItem, singleDelete, batchDelete, edit, addSegment, typeChange, removeSegment, getCurrentFormattedTime, generateCombinations, generateNameObjects, cancel, confirm, editCancel, editConfirm, selectStructure, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, get structureJSON() {
-        return structureJSON;
-      } };
+      this.currentStepAnimates = {};
+      this.next = 0;
+      this.$ = _this;
+    }
+    _nvuePushAnimates(type, args) {
+      let aniObj = this.currentStepAnimates[this.next];
+      let styles = {};
+      if (!aniObj) {
+        styles = {
+          styles: {},
+          config: {}
+        };
+      } else {
+        styles = aniObj;
+      }
+      if (animateTypes1.includes(type)) {
+        if (!styles.styles.transform) {
+          styles.styles.transform = "";
+        }
+        let unit = "";
+        if (type === "rotate") {
+          unit = "deg";
+        }
+        styles.styles.transform += `${type}(${args + unit}) `;
+      } else {
+        styles.styles[type] = `${args}`;
+      }
+      this.currentStepAnimates[this.next] = styles;
+    }
+    _animateRun(styles = {}, config = {}) {
+      let ref = this.$.$refs["ani"].ref;
+      if (!ref)
+        return;
+      return new Promise((resolve, reject) => {
+        nvueAnimation.transition(ref, {
+          styles,
+          ...config
+        }, (res) => {
+          resolve();
+        });
+      });
+    }
+    _nvueNextAnimate(animates, step = 0, fn) {
+      let obj = animates[step];
+      if (obj) {
+        let {
+          styles,
+          config
+        } = obj;
+        this._animateRun(styles, config).then(() => {
+          step += 1;
+          this._nvueNextAnimate(animates, step, fn);
+        });
+      } else {
+        this.currentStepAnimates = {};
+        typeof fn === "function" && fn();
+        this.isEnd = true;
+      }
+    }
+    step(config = {}) {
+      this.animation.step(config);
+      return this;
+    }
+    run(fn) {
+      this.$.animationData = this.animation.export();
+      this.$.timer = setTimeout(() => {
+        typeof fn === "function" && fn();
+      }, this.$.durationTime);
+    }
+  }
+  const animateTypes1 = [
+    "matrix",
+    "matrix3d",
+    "rotate",
+    "rotate3d",
+    "rotateX",
+    "rotateY",
+    "rotateZ",
+    "scale",
+    "scale3d",
+    "scaleX",
+    "scaleY",
+    "scaleZ",
+    "skew",
+    "skewX",
+    "skewY",
+    "translate",
+    "translate3d",
+    "translateX",
+    "translateY",
+    "translateZ"
+  ];
+  const animateTypes2 = ["opacity", "backgroundColor"];
+  const animateTypes3 = ["width", "height", "left", "right", "top", "bottom"];
+  animateTypes1.concat(animateTypes2, animateTypes3).forEach((type) => {
+    MPAnimation.prototype[type] = function(...args) {
+      this.animation[type](...args);
+      return this;
+    };
+  });
+  function createAnimation(option, _this) {
+    if (!_this)
+      return;
+    clearTimeout(_this.timer);
+    return new MPAnimation(option, _this);
+  }
+  const _sfc_main$g = {
+    name: "uniTransition",
+    emits: ["click", "change"],
+    props: {
+      show: {
+        type: Boolean,
+        default: false
+      },
+      modeClass: {
+        type: [Array, String],
+        default() {
+          return "fade";
+        }
+      },
+      duration: {
+        type: Number,
+        default: 300
+      },
+      styles: {
+        type: Object,
+        default() {
+          return {};
+        }
+      },
+      customClass: {
+        type: String,
+        default: ""
+      },
+      onceRender: {
+        type: Boolean,
+        default: false
+      }
+    },
+    data() {
+      return {
+        isShow: false,
+        transform: "",
+        opacity: 1,
+        animationData: {},
+        durationTime: 300,
+        config: {}
+      };
+    },
+    watch: {
+      show: {
+        handler(newVal) {
+          if (newVal) {
+            this.open();
+          } else {
+            if (this.isShow) {
+              this.close();
+            }
+          }
+        },
+        immediate: true
+      }
+    },
+    computed: {
+      // 生成样式数据
+      stylesObject() {
+        let styles = {
+          ...this.styles,
+          "transition-duration": this.duration / 1e3 + "s"
+        };
+        let transform = "";
+        for (let i2 in styles) {
+          let line = this.toLine(i2);
+          transform += line + ":" + styles[i2] + ";";
+        }
+        return transform;
+      },
+      // 初始化动画条件
+      transformStyles() {
+        return "transform:" + this.transform + ";opacity:" + this.opacity + ";" + this.stylesObject;
+      }
+    },
+    created() {
+      this.config = {
+        duration: this.duration,
+        timingFunction: "ease",
+        transformOrigin: "50% 50%",
+        delay: 0
+      };
+      this.durationTime = this.duration;
+    },
+    methods: {
+      /**
+       *  ref 触发 初始化动画
+       */
+      init(obj = {}) {
+        if (obj.duration) {
+          this.durationTime = obj.duration;
+        }
+        this.animation = createAnimation(Object.assign(this.config, obj), this);
+      },
+      /**
+       * 点击组件触发回调
+       */
+      onClick() {
+        this.$emit("click", {
+          detail: this.isShow
+        });
+      },
+      /**
+       * ref 触发 动画分组
+       * @param {Object} obj
+       */
+      step(obj, config = {}) {
+        if (!this.animation)
+          return;
+        for (let i2 in obj) {
+          try {
+            if (typeof obj[i2] === "object") {
+              this.animation[i2](...obj[i2]);
+            } else {
+              this.animation[i2](obj[i2]);
+            }
+          } catch (e2) {
+            formatAppLog("error", "at uni_modules/uni-transition/components/uni-transition/uni-transition.vue:148", `方法 ${i2} 不存在`);
+          }
+        }
+        this.animation.step(config);
+        return this;
+      },
+      /**
+       *  ref 触发 执行动画
+       */
+      run(fn) {
+        if (!this.animation)
+          return;
+        this.animation.run(fn);
+      },
+      // 开始过度动画
+      open() {
+        clearTimeout(this.timer);
+        this.transform = "";
+        this.isShow = true;
+        let { opacity, transform } = this.styleInit(false);
+        if (typeof opacity !== "undefined") {
+          this.opacity = opacity;
+        }
+        this.transform = transform;
+        this.$nextTick(() => {
+          this.timer = setTimeout(() => {
+            this.animation = createAnimation(this.config, this);
+            this.tranfromInit(false).step();
+            this.animation.run();
+            this.$emit("change", {
+              detail: this.isShow
+            });
+          }, 20);
+        });
+      },
+      // 关闭过度动画
+      close(type) {
+        if (!this.animation)
+          return;
+        this.tranfromInit(true).step().run(() => {
+          this.isShow = false;
+          this.animationData = null;
+          this.animation = null;
+          let { opacity, transform } = this.styleInit(false);
+          this.opacity = opacity || 1;
+          this.transform = transform;
+          this.$emit("change", {
+            detail: this.isShow
+          });
+        });
+      },
+      // 处理动画开始前的默认样式
+      styleInit(type) {
+        let styles = {
+          transform: ""
+        };
+        let buildStyle = (type2, mode) => {
+          if (mode === "fade") {
+            styles.opacity = this.animationType(type2)[mode];
+          } else {
+            styles.transform += this.animationType(type2)[mode] + " ";
+          }
+        };
+        if (typeof this.modeClass === "string") {
+          buildStyle(type, this.modeClass);
+        } else {
+          this.modeClass.forEach((mode) => {
+            buildStyle(type, mode);
+          });
+        }
+        return styles;
+      },
+      // 处理内置组合动画
+      tranfromInit(type) {
+        let buildTranfrom = (type2, mode) => {
+          let aniNum = null;
+          if (mode === "fade") {
+            aniNum = type2 ? 0 : 1;
+          } else {
+            aniNum = type2 ? "-100%" : "0";
+            if (mode === "zoom-in") {
+              aniNum = type2 ? 0.8 : 1;
+            }
+            if (mode === "zoom-out") {
+              aniNum = type2 ? 1.2 : 1;
+            }
+            if (mode === "slide-right") {
+              aniNum = type2 ? "100%" : "0";
+            }
+            if (mode === "slide-bottom") {
+              aniNum = type2 ? "100%" : "0";
+            }
+          }
+          this.animation[this.animationMode()[mode]](aniNum);
+        };
+        if (typeof this.modeClass === "string") {
+          buildTranfrom(type, this.modeClass);
+        } else {
+          this.modeClass.forEach((mode) => {
+            buildTranfrom(type, mode);
+          });
+        }
+        return this.animation;
+      },
+      animationType(type) {
+        return {
+          fade: type ? 0 : 1,
+          "slide-top": `translateY(${type ? "0" : "-100%"})`,
+          "slide-right": `translateX(${type ? "0" : "100%"})`,
+          "slide-bottom": `translateY(${type ? "0" : "100%"})`,
+          "slide-left": `translateX(${type ? "0" : "-100%"})`,
+          "zoom-in": `scaleX(${type ? 1 : 0.8}) scaleY(${type ? 1 : 0.8})`,
+          "zoom-out": `scaleX(${type ? 1 : 1.2}) scaleY(${type ? 1 : 1.2})`
+        };
+      },
+      // 内置动画类型与实际动画对应字典
+      animationMode() {
+        return {
+          fade: "opacity",
+          "slide-top": "translateY",
+          "slide-right": "translateX",
+          "slide-bottom": "translateY",
+          "slide-left": "translateX",
+          "zoom-in": "scale",
+          "zoom-out": "scale"
+        };
+      },
+      // 驼峰转中横线
+      toLine(name) {
+        return name.replace(/([A-Z])/g, "-$1").toLowerCase();
+      }
+    }
+  };
+  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
+      ref: "ani",
+      animation: $data.animationData,
+      class: vue.normalizeClass($props.customClass),
+      style: vue.normalizeStyle($options.transformStyles),
+      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
+    }, [
+      vue.renderSlot(_ctx.$slots, "default")
+    ], 14, ["animation"])), [
+      [vue.vShow, $data.isShow]
+    ]);
+  }
+  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
+  const _sfc_main$f = {
+    name: "uniPopup",
+    components: {},
+    emits: ["change", "maskClick"],
+    props: {
+      // 开启动画
+      animation: {
+        type: Boolean,
+        default: true
+      },
+      // 弹出层类型，可选值，top: 顶部弹出层；bottom：底部弹出层；center：全屏弹出层
+      // message: 消息提示 ; dialog : 对话框
+      type: {
+        type: String,
+        default: "center"
+      },
+      // maskClick
+      isMaskClick: {
+        type: Boolean,
+        default: null
+      },
+      // TODO 2 个版本后废弃属性 ，使用 isMaskClick
+      maskClick: {
+        type: Boolean,
+        default: null
+      },
+      backgroundColor: {
+        type: String,
+        default: "none"
+      },
+      safeArea: {
+        type: Boolean,
+        default: true
+      },
+      maskBackgroundColor: {
+        type: String,
+        default: "rgba(0, 0, 0, 0.4)"
+      },
+      borderRadius: {
+        type: String
+      }
+    },
+    watch: {
+      /**
+       * 监听type类型
+       */
+      type: {
+        handler: function(type) {
+          if (!this.config[type])
+            return;
+          this[this.config[type]](true);
+        },
+        immediate: true
+      },
+      isDesktop: {
+        handler: function(newVal) {
+          if (!this.config[newVal])
+            return;
+          this[this.config[this.type]](true);
+        },
+        immediate: true
+      },
+      /**
+       * 监听遮罩是否可点击
+       * @param {Object} val
+       */
+      maskClick: {
+        handler: function(val) {
+          this.mkclick = val;
+        },
+        immediate: true
+      },
+      isMaskClick: {
+        handler: function(val) {
+          this.mkclick = val;
+        },
+        immediate: true
+      },
+      // H5 下禁止底部滚动
+      showPopup(show) {
+      }
+    },
+    data() {
+      return {
+        duration: 300,
+        ani: [],
+        showPopup: false,
+        showTrans: false,
+        popupWidth: 0,
+        popupHeight: 0,
+        config: {
+          top: "top",
+          bottom: "bottom",
+          center: "center",
+          left: "left",
+          right: "right",
+          message: "top",
+          dialog: "center",
+          share: "bottom"
+        },
+        maskClass: {
+          position: "fixed",
+          bottom: 0,
+          top: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.4)"
+        },
+        transClass: {
+          backgroundColor: "transparent",
+          borderRadius: this.borderRadius || "0",
+          position: "fixed",
+          left: 0,
+          right: 0
+        },
+        maskShow: true,
+        mkclick: true,
+        popupstyle: "top"
+      };
+    },
+    computed: {
+      getStyles() {
+        let res = { backgroundColor: this.bg };
+        if (this.borderRadius || "0") {
+          res = Object.assign(res, { borderRadius: this.borderRadius });
+        }
+        return res;
+      },
+      isDesktop() {
+        return this.popupWidth >= 500 && this.popupHeight >= 500;
+      },
+      bg() {
+        if (this.backgroundColor === "" || this.backgroundColor === "none") {
+          return "transparent";
+        }
+        return this.backgroundColor;
+      }
+    },
+    mounted() {
+      const fixSize = () => {
+        const {
+          windowWidth,
+          windowHeight,
+          windowTop,
+          safeArea,
+          screenHeight,
+          safeAreaInsets
+        } = uni.getSystemInfoSync();
+        this.popupWidth = windowWidth;
+        this.popupHeight = windowHeight + (windowTop || 0);
+        if (safeArea && this.safeArea) {
+          this.safeAreaInsets = safeAreaInsets.bottom;
+        } else {
+          this.safeAreaInsets = 0;
+        }
+      };
+      fixSize();
+    },
+    // TODO vue3
+    unmounted() {
+      this.setH5Visible();
+    },
+    activated() {
+      this.setH5Visible(!this.showPopup);
+    },
+    deactivated() {
+      this.setH5Visible(true);
+    },
+    created() {
+      if (this.isMaskClick === null && this.maskClick === null) {
+        this.mkclick = true;
+      } else {
+        this.mkclick = this.isMaskClick !== null ? this.isMaskClick : this.maskClick;
+      }
+      if (this.animation) {
+        this.duration = 300;
+      } else {
+        this.duration = 0;
+      }
+      this.messageChild = null;
+      this.clearPropagation = false;
+      this.maskClass.backgroundColor = this.maskBackgroundColor;
+    },
+    methods: {
+      setH5Visible(visible = true) {
+      },
+      /**
+       * 公用方法，不显示遮罩层
+       */
+      closeMask() {
+        this.maskShow = false;
+      },
+      /**
+       * 公用方法，遮罩层禁止点击
+       */
+      disableMask() {
+        this.mkclick = false;
+      },
+      // TODO nvue 取消冒泡
+      clear(e2) {
+        e2.stopPropagation();
+        this.clearPropagation = true;
+      },
+      open(direction) {
+        if (this.showPopup) {
+          return;
+        }
+        let innerType = ["top", "center", "bottom", "left", "right", "message", "dialog", "share"];
+        if (!(direction && innerType.indexOf(direction) !== -1)) {
+          direction = this.type;
+        }
+        if (!this.config[direction]) {
+          formatAppLog("error", "at uni_modules/uni-popup/components/uni-popup/uni-popup.vue:310", "缺少类型：", direction);
+          return;
+        }
+        this[this.config[direction]]();
+        this.$emit("change", {
+          show: true,
+          type: direction
+        });
+      },
+      close(type) {
+        this.showTrans = false;
+        this.$emit("change", {
+          show: false,
+          type: this.type
+        });
+        clearTimeout(this.timer);
+        this.timer = setTimeout(() => {
+          this.showPopup = false;
+        }, 300);
+      },
+      // TODO 处理冒泡事件，头条的冒泡事件有问题 ，先这样兼容
+      touchstart() {
+        this.clearPropagation = false;
+      },
+      onTap() {
+        if (this.clearPropagation) {
+          this.clearPropagation = false;
+          return;
+        }
+        this.$emit("maskClick");
+        if (!this.mkclick)
+          return;
+        this.close();
+      },
+      /**
+       * 顶部弹出样式处理
+       */
+      top(type) {
+        this.popupstyle = this.isDesktop ? "fixforpc-top" : "top";
+        this.ani = ["slide-top"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          right: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPopup = true;
+        this.showTrans = true;
+        this.$nextTick(() => {
+          this.showPoptrans();
+          if (this.messageChild && this.type === "message") {
+            this.messageChild.timerClose();
+          }
+        });
+      },
+      /**
+       * 底部弹出样式处理
+       */
+      bottom(type) {
+        this.popupstyle = "bottom";
+        this.ani = ["slide-bottom"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingBottom: this.safeAreaInsets + "px",
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      /**
+       * 中间弹出样式处理
+       */
+      center(type) {
+        this.popupstyle = "center";
+        this.ani = ["zoom-out", "fade"];
+        this.transClass = {
+          position: "fixed",
+          display: "flex",
+          flexDirection: "column",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          top: 0,
+          justifyContent: "center",
+          alignItems: "center",
+          borderRadius: this.borderRadius || "0"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      left(type) {
+        this.popupstyle = "left";
+        this.ani = ["slide-left"];
+        this.transClass = {
+          position: "fixed",
+          left: 0,
+          bottom: 0,
+          top: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0",
+          display: "flex",
+          flexDirection: "column"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      right(type) {
+        this.popupstyle = "right";
+        this.ani = ["slide-right"];
+        this.transClass = {
+          position: "fixed",
+          bottom: 0,
+          right: 0,
+          top: 0,
+          backgroundColor: this.bg,
+          borderRadius: this.borderRadius || "0",
+          display: "flex",
+          flexDirection: "column"
+        };
+        if (type)
+          return;
+        this.showPoptrans();
+      },
+      showPoptrans() {
+        this.$nextTick(() => {
+          this.showPopup = true;
+          this.showTrans = true;
+        });
+      }
+    }
+  };
+  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$3);
+    return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        key: 0,
+        class: vue.normalizeClass(["uni-popup", [$data.popupstyle, $options.isDesktop ? "fixforpc-z-index" : ""]])
+      },
+      [
+        vue.createElementVNode(
+          "view",
+          {
+            onTouchstart: _cache[1] || (_cache[1] = (...args) => $options.touchstart && $options.touchstart(...args))
+          },
+          [
+            $data.maskShow ? (vue.openBlock(), vue.createBlock(_component_uni_transition, {
+              key: "1",
+              name: "mask",
+              "mode-class": "fade",
+              styles: $data.maskClass,
+              duration: $data.duration,
+              show: $data.showTrans,
+              onClick: $options.onTap
+            }, null, 8, ["styles", "duration", "show", "onClick"])) : vue.createCommentVNode("v-if", true),
+            vue.createVNode(_component_uni_transition, {
+              key: "2",
+              "mode-class": $data.ani,
+              name: "content",
+              styles: $data.transClass,
+              duration: $data.duration,
+              show: $data.showTrans,
+              onClick: $options.onTap
+            }, {
+              default: vue.withCtx(() => [
+                vue.createElementVNode(
+                  "view",
+                  {
+                    class: vue.normalizeClass(["uni-popup__wrapper", [$data.popupstyle]]),
+                    style: vue.normalizeStyle($options.getStyles),
+                    onClick: _cache[0] || (_cache[0] = (...args) => $options.clear && $options.clear(...args))
+                  },
+                  [
+                    vue.renderSlot(_ctx.$slots, "default", {}, void 0, true)
+                  ],
+                  6
+                  /* CLASS, STYLE */
+                )
+              ]),
+              _: 3
+              /* FORWARDED */
+            }, 8, ["mode-class", "styles", "duration", "show", "onClick"])
+          ],
+          32
+          /* NEED_HYDRATION */
+        )
+      ],
+      2
+      /* CLASS */
+    )) : vue.createCommentVNode("v-if", true);
+  }
+  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
+  function obj2strClass(obj) {
+    let classess = "";
+    for (let key in obj) {
+      const val = obj[key];
+      if (val) {
+        classess += `${key} `;
+      }
+    }
+    return classess;
+  }
+  function obj2strStyle(obj) {
+    let style = "";
+    for (let key in obj) {
+      const val = obj[key];
+      style += `${key}:${val};`;
+    }
+    return style;
+  }
+  const _sfc_main$e = {
+    name: "uni-easyinput",
+    emits: [
+      "click",
+      "iconClick",
+      "update:modelValue",
+      "input",
+      "focus",
+      "blur",
+      "confirm",
+      "clear",
+      "eyes",
+      "change",
+      "keyboardheightchange"
+    ],
+    model: {
+      prop: "modelValue",
+      event: "update:modelValue"
+    },
+    options: {
+      virtualHost: true
+    },
+    inject: {
+      form: {
+        from: "uniForm",
+        default: null
+      },
+      formItem: {
+        from: "uniFormItem",
+        default: null
+      }
+    },
+    props: {
+      name: String,
+      value: [Number, String],
+      modelValue: [Number, String],
+      type: {
+        type: String,
+        default: "text"
+      },
+      clearable: {
+        type: Boolean,
+        default: true
+      },
+      autoHeight: {
+        type: Boolean,
+        default: false
+      },
+      placeholder: {
+        type: String,
+        default: " "
+      },
+      placeholderStyle: String,
+      focus: {
+        type: Boolean,
+        default: false
+      },
+      disabled: {
+        type: Boolean,
+        default: false
+      },
+      maxlength: {
+        type: [Number, String],
+        default: 140
+      },
+      confirmType: {
+        type: String,
+        default: "done"
+      },
+      clearSize: {
+        type: [Number, String],
+        default: 24
+      },
+      inputBorder: {
+        type: Boolean,
+        default: true
+      },
+      prefixIcon: {
+        type: String,
+        default: ""
+      },
+      suffixIcon: {
+        type: String,
+        default: ""
+      },
+      trim: {
+        type: [Boolean, String],
+        default: false
+      },
+      cursorSpacing: {
+        type: Number,
+        default: 0
+      },
+      passwordIcon: {
+        type: Boolean,
+        default: true
+      },
+      adjustPosition: {
+        type: Boolean,
+        default: true
+      },
+      primaryColor: {
+        type: String,
+        default: "#2979ff"
+      },
+      styles: {
+        type: Object,
+        default() {
+          return {
+            color: "#333",
+            backgroundColor: "#fff",
+            disableColor: "#F7F6F6",
+            borderColor: "#e5e5e5"
+          };
+        }
+      },
+      errorMessage: {
+        type: [String, Boolean],
+        default: ""
+      }
+    },
+    data() {
+      return {
+        focused: false,
+        val: "",
+        showMsg: "",
+        border: false,
+        isFirstBorder: false,
+        showClearIcon: false,
+        showPassword: false,
+        focusShow: false,
+        localMsg: "",
+        isEnter: false
+        // 用于判断当前是否是使用回车操作
+      };
+    },
+    computed: {
+      // 输入框内是否有值
+      isVal() {
+        const val = this.val;
+        if (val || val === 0) {
+          return true;
+        }
+        return false;
+      },
+      msg() {
+        return this.localMsg || this.errorMessage;
+      },
+      // 因为uniapp的input组件的maxlength组件必须要数值，这里转为数值，用户可以传入字符串数值
+      inputMaxlength() {
+        return Number(this.maxlength);
+      },
+      // 处理外层样式的style
+      boxStyle() {
+        return `color:${this.inputBorder && this.msg ? "#e43d33" : this.styles.color};`;
+      },
+      // input 内容的类和样式处理
+      inputContentClass() {
+        return obj2strClass({
+          "is-input-border": this.inputBorder,
+          "is-input-error-border": this.inputBorder && this.msg,
+          "is-textarea": this.type === "textarea",
+          "is-disabled": this.disabled,
+          "is-focused": this.focusShow
+        });
+      },
+      inputContentStyle() {
+        const focusColor = this.focusShow ? this.primaryColor : this.styles.borderColor;
+        const borderColor = this.inputBorder && this.msg ? "#dd524d" : focusColor;
+        return obj2strStyle({
+          "border-color": borderColor || "#e5e5e5",
+          "background-color": this.disabled ? this.styles.disableColor : this.styles.backgroundColor
+        });
+      },
+      // input右侧样式
+      inputStyle() {
+        const paddingRight = this.type === "password" || this.clearable || this.prefixIcon ? "" : "10px";
+        return obj2strStyle({
+          "padding-right": paddingRight,
+          "padding-left": this.prefixIcon ? "" : "10px"
+        });
+      }
+    },
+    watch: {
+      value(newVal) {
+        if (newVal === null) {
+          this.val = "";
+          return;
+        }
+        this.val = newVal;
+      },
+      modelValue(newVal) {
+        if (newVal === null) {
+          this.val = "";
+          return;
+        }
+        this.val = newVal;
+      },
+      focus(newVal) {
+        this.$nextTick(() => {
+          this.focused = this.focus;
+          this.focusShow = this.focus;
+        });
+      }
+    },
+    created() {
+      this.init();
+      if (this.form && this.formItem) {
+        this.$watch("formItem.errMsg", (newVal) => {
+          this.localMsg = newVal;
+        });
+      }
+    },
+    mounted() {
+      this.$nextTick(() => {
+        this.focused = this.focus;
+        this.focusShow = this.focus;
+      });
+    },
+    methods: {
+      /**
+       * 初始化变量值
+       */
+      init() {
+        if (this.value || this.value === 0) {
+          this.val = this.value;
+        } else if (this.modelValue || this.modelValue === 0 || this.modelValue === "") {
+          this.val = this.modelValue;
+        } else {
+          this.val = "";
+        }
+      },
+      /**
+       * 点击图标时触发
+       * @param {Object} type
+       */
+      onClickIcon(type) {
+        this.$emit("iconClick", type);
+      },
+      /**
+       * 显示隐藏内容，密码框时生效
+       */
+      onEyes() {
+        this.showPassword = !this.showPassword;
+        this.$emit("eyes", this.showPassword);
+      },
+      /**
+       * 输入时触发
+       * @param {Object} event
+       */
+      onInput(event) {
+        let value = event.detail.value;
+        if (this.trim) {
+          if (typeof this.trim === "boolean" && this.trim) {
+            value = this.trimStr(value);
+          }
+          if (typeof this.trim === "string") {
+            value = this.trimStr(value, this.trim);
+          }
+        }
+        if (this.errMsg)
+          this.errMsg = "";
+        this.val = value;
+        this.$emit("input", value);
+        this.$emit("update:modelValue", value);
+      },
+      /**
+       * 外部调用方法
+       * 获取焦点时触发
+       * @param {Object} event
+       */
+      onFocus() {
+        this.$nextTick(() => {
+          this.focused = true;
+        });
+        this.$emit("focus", null);
+      },
+      _Focus(event) {
+        this.focusShow = true;
+        this.$emit("focus", event);
+      },
+      /**
+       * 外部调用方法
+       * 失去焦点时触发
+       * @param {Object} event
+       */
+      onBlur() {
+        this.focused = false;
+        this.$emit("blur", null);
+      },
+      _Blur(event) {
+        event.detail.value;
+        this.focusShow = false;
+        this.$emit("blur", event);
+        if (this.isEnter === false) {
+          this.$emit("change", this.val);
+        }
+        if (this.form && this.formItem) {
+          const { validateTrigger } = this.form;
+          if (validateTrigger === "blur") {
+            this.formItem.onFieldChange();
+          }
+        }
+      },
+      /**
+       * 按下键盘的发送键
+       * @param {Object} e
+       */
+      onConfirm(e2) {
+        this.$emit("confirm", this.val);
+        this.isEnter = true;
+        this.$emit("change", this.val);
+        this.$nextTick(() => {
+          this.isEnter = false;
+        });
+      },
+      /**
+       * 清理内容
+       * @param {Object} event
+       */
+      onClear(event) {
+        this.val = "";
+        this.$emit("input", "");
+        this.$emit("update:modelValue", "");
+        this.$emit("clear");
+      },
+      /**
+       * 键盘高度发生变化的时候触发此事件
+       * 兼容性：微信小程序2.7.0+、App 3.1.0+
+       * @param {Object} event
+       */
+      onkeyboardheightchange(event) {
+        this.$emit("keyboardheightchange", event);
+      },
+      /**
+       * 去除空格
+       */
+      trimStr(str, pos = "both") {
+        if (pos === "both") {
+          return str.trim();
+        } else if (pos === "left") {
+          return str.trimLeft();
+        } else if (pos === "right") {
+          return str.trimRight();
+        } else if (pos === "start") {
+          return str.trimStart();
+        } else if (pos === "end") {
+          return str.trimEnd();
+        } else if (pos === "all") {
+          return str.replace(/\s+/g, "");
+        } else if (pos === "none") {
+          return str;
+        }
+        return str;
+      }
+    }
+  };
+  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
+    return vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        class: vue.normalizeClass(["uni-easyinput", { "uni-easyinput-error": $options.msg }]),
+        style: vue.normalizeStyle($options.boxStyle)
+      },
+      [
+        vue.createElementVNode(
+          "view",
+          {
+            class: vue.normalizeClass(["uni-easyinput__content", $options.inputContentClass]),
+            style: vue.normalizeStyle($options.inputContentStyle)
+          },
+          [
+            $props.prefixIcon ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+              key: 0,
+              class: "content-clear-icon",
+              type: $props.prefixIcon,
+              color: "#c0c4cc",
+              onClick: _cache[0] || (_cache[0] = ($event) => $options.onClickIcon("prefix")),
+              size: "22"
+            }, null, 8, ["type"])) : vue.createCommentVNode("v-if", true),
+            vue.renderSlot(_ctx.$slots, "left", {}, void 0, true),
+            $props.type === "textarea" ? (vue.openBlock(), vue.createElementBlock("textarea", {
+              key: 1,
+              class: vue.normalizeClass(["uni-easyinput__content-textarea", { "input-padding": $props.inputBorder }]),
+              name: $props.name,
+              value: $data.val,
+              placeholder: $props.placeholder,
+              placeholderStyle: $props.placeholderStyle,
+              disabled: $props.disabled,
+              "placeholder-class": "uni-easyinput__placeholder-class",
+              maxlength: $options.inputMaxlength,
+              focus: $data.focused,
+              autoHeight: $props.autoHeight,
+              "cursor-spacing": $props.cursorSpacing,
+              "adjust-position": $props.adjustPosition,
+              onInput: _cache[1] || (_cache[1] = (...args) => $options.onInput && $options.onInput(...args)),
+              onBlur: _cache[2] || (_cache[2] = (...args) => $options._Blur && $options._Blur(...args)),
+              onFocus: _cache[3] || (_cache[3] = (...args) => $options._Focus && $options._Focus(...args)),
+              onConfirm: _cache[4] || (_cache[4] = (...args) => $options.onConfirm && $options.onConfirm(...args)),
+              onKeyboardheightchange: _cache[5] || (_cache[5] = (...args) => $options.onkeyboardheightchange && $options.onkeyboardheightchange(...args))
+            }, null, 42, ["name", "value", "placeholder", "placeholderStyle", "disabled", "maxlength", "focus", "autoHeight", "cursor-spacing", "adjust-position"])) : (vue.openBlock(), vue.createElementBlock("input", {
+              key: 2,
+              type: $props.type === "password" ? "text" : $props.type,
+              class: "uni-easyinput__content-input",
+              style: vue.normalizeStyle($options.inputStyle),
+              name: $props.name,
+              value: $data.val,
+              password: !$data.showPassword && $props.type === "password",
+              placeholder: $props.placeholder,
+              placeholderStyle: $props.placeholderStyle,
+              "placeholder-class": "uni-easyinput__placeholder-class",
+              disabled: $props.disabled,
+              maxlength: $options.inputMaxlength,
+              focus: $data.focused,
+              confirmType: $props.confirmType,
+              "cursor-spacing": $props.cursorSpacing,
+              "adjust-position": $props.adjustPosition,
+              onFocus: _cache[6] || (_cache[6] = (...args) => $options._Focus && $options._Focus(...args)),
+              onBlur: _cache[7] || (_cache[7] = (...args) => $options._Blur && $options._Blur(...args)),
+              onInput: _cache[8] || (_cache[8] = (...args) => $options.onInput && $options.onInput(...args)),
+              onConfirm: _cache[9] || (_cache[9] = (...args) => $options.onConfirm && $options.onConfirm(...args)),
+              onKeyboardheightchange: _cache[10] || (_cache[10] = (...args) => $options.onkeyboardheightchange && $options.onkeyboardheightchange(...args))
+            }, null, 44, ["type", "name", "value", "password", "placeholder", "placeholderStyle", "disabled", "maxlength", "focus", "confirmType", "cursor-spacing", "adjust-position"])),
+            $props.type === "password" && $props.passwordIcon ? (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 3 },
+              [
+                vue.createCommentVNode(" 开启密码时显示小眼睛 "),
+                $options.isVal ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+                  key: 0,
+                  class: vue.normalizeClass(["content-clear-icon", { "is-textarea-icon": $props.type === "textarea" }]),
+                  type: $data.showPassword ? "eye-slash-filled" : "eye-filled",
+                  size: 22,
+                  color: $data.focusShow ? $props.primaryColor : "#c0c4cc",
+                  onClick: $options.onEyes
+                }, null, 8, ["class", "type", "color", "onClick"])) : vue.createCommentVNode("v-if", true)
+              ],
+              64
+              /* STABLE_FRAGMENT */
+            )) : vue.createCommentVNode("v-if", true),
+            $props.suffixIcon ? (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 4 },
+              [
+                $props.suffixIcon ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+                  key: 0,
+                  class: "content-clear-icon",
+                  type: $props.suffixIcon,
+                  color: "#c0c4cc",
+                  onClick: _cache[11] || (_cache[11] = ($event) => $options.onClickIcon("suffix")),
+                  size: "22"
+                }, null, 8, ["type"])) : vue.createCommentVNode("v-if", true)
+              ],
+              64
+              /* STABLE_FRAGMENT */
+            )) : (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 5 },
+              [
+                $props.clearable && $options.isVal && !$props.disabled && $props.type !== "textarea" ? (vue.openBlock(), vue.createBlock(_component_uni_icons, {
+                  key: 0,
+                  class: vue.normalizeClass(["content-clear-icon", { "is-textarea-icon": $props.type === "textarea" }]),
+                  type: "clear",
+                  size: $props.clearSize,
+                  color: $options.msg ? "#dd524d" : $data.focusShow ? $props.primaryColor : "#c0c4cc",
+                  onClick: $options.onClear
+                }, null, 8, ["class", "size", "color", "onClick"])) : vue.createCommentVNode("v-if", true)
+              ],
+              64
+              /* STABLE_FRAGMENT */
+            )),
+            vue.renderSlot(_ctx.$slots, "right", {}, void 0, true)
+          ],
+          6
+          /* CLASS, STYLE */
+        )
+      ],
+      6
+      /* CLASS, STYLE */
+    );
+  }
+  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-f7a14e66"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-easyinput/uni-easyinput.vue"]]);
+  const _sfc_main$d = {
+    __name: "CustomSwitch",
+    props: {
+      modelValue: {
+        type: Boolean,
+        default: false
+      },
+      activeColor: {
+        type: String,
+        default: "#409EFF"
+      },
+      inactiveColor: {
+        type: String,
+        default: "#F56C6C"
+      }
+    },
+    emits: ["update:modelValue", "change"],
+    setup(__props, { expose: __expose, emit: __emit }) {
+      __expose();
+      const props = __props;
+      const emit = __emit;
+      const toggle = () => {
+        emit("update:modelValue", !props.modelValue);
+        emit("change", !props.modelValue);
+      };
+      const __returned__ = { props, emit, toggle };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
   function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
+    return vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        class: vue.normalizeClass(["custom-switch", { "is-checked": $props.modelValue }]),
+        onClick: $setup.toggle
+      },
+      [
+        vue.createElementVNode(
+          "view",
+          {
+            class: "switch-track",
+            style: vue.normalizeStyle({ backgroundColor: $props.modelValue ? $props.activeColor : $props.inactiveColor })
+          },
+          [
+            vue.createElementVNode(
+              "view",
+              {
+                class: "switch-thumb",
+                style: vue.normalizeStyle({ transform: $props.modelValue ? "translateX(100%)" : "translateX(0)" })
+              },
+              null,
+              4
+              /* STYLE */
+            )
+          ],
+          4
+          /* STYLE */
+        )
+      ],
+      2
+      /* CLASS */
+    );
+  }
+  const CustomSwitch = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-1fd8a634"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/CustomSwitch.vue"]]);
+  const _sfc_main$c = {
+    __name: "structure-info",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const confirmed = vue.ref(false);
+      const confirmPopup = vue.ref(null);
+      const structureData = vue.ref(null);
+      const selectedIndex = vue.ref(0);
+      const selectedSecondIndex = vue.ref(0);
+      const selectedThirdIndex = vue.ref(-1);
+      const editPopup = vue.ref(null);
+      const currentEditItem = vue.ref(null);
+      const TaskBridgeId = vue.ref(0);
+      const resultData = vue.ref(null);
+      const userInfo = userStore();
+      const bridgeIdFromURL = vue.computed(() => {
+        var _a;
+        const pages2 = getCurrentPages();
+        if (pages2.length > 0) {
+          const currentPage = pages2[pages2.length - 1];
+          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
+          if (options && options.bridgeId) {
+            return options.bridgeId;
+          }
+        }
+        return 0;
+      });
+      vue.watch(bridgeIdFromURL, (newVal) => {
+        if (newVal) {
+          TaskBridgeId.value = newVal;
+          formatAppLog("log", "at components/structure-info.vue:170", "接收到的桥梁ID:", TaskBridgeId.value);
+        }
+      });
+      const init = async () => {
+        if (bridgeIdFromURL.value) {
+          TaskBridgeId.value = bridgeIdFromURL.value;
+        }
+        const responseLogin = await uni.request({
+          url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+          method: "POST"
+        });
+        formatAppLog("log", "at components/structure-info.vue:184", "用户信息:", responseLogin.data);
+        const token = responseLogin.data.token;
+        const getData = async () => {
+          try {
+            const response = await uni.request({
+              //寫死 因爲只有55是最新數據
+              url: `http://60.205.13.156:8090/api/building/${TaskBridgeId.value}/object`,
+              method: "GET",
+              header: {
+                "Authorization": `${token}`
+              }
+            });
+            formatAppLog("log", "at components/structure-info.vue:196", "获取到的桥梁构件数据:", response.data);
+            if (response.data.code === 0) {
+              structureData.value = response.data;
+              resultData.value = response.data.data;
+              setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
+              formatAppLog("log", "at components/structure-info.vue:202", "structureData:", structureData.value);
+              formatAppLog("log", "at components/structure-info.vue:203", "resultData:", resultData.value);
+              formatAppLog("log", "at components/structure-info.vue:205", "第一层结构数据:", structureData.value.children);
+              if (structureData.value.children) {
+                structureData.value.children.forEach((item, index) => {
+                  formatAppLog("log", "at components/structure-info.vue:208", `第一层结构 ${index + 1}:`, item.name);
+                });
+              }
+              normalizeStatusFields(resultData.value);
+            } else {
+              uni.showToast({
+                title: response.data.msg || "获取数据失败",
+                icon: "none"
+              });
+            }
+          } catch (error) {
+            formatAppLog("error", "at components/structure-info.vue:223", "获取桥梁构件数据失败:", error);
+            uni.showToast({
+              title: "获取数据失败，请稍后重试",
+              icon: "none"
+            });
+          }
+        };
+        await getData();
+      };
+      const secondLevelItems = vue.computed(() => {
+        var _a, _b, _c;
+        if (!((_c = (_b = (_a = structureData.value) == null ? void 0 : _a.data.children) == null ? void 0 : _b[selectedIndex.value]) == null ? void 0 : _c.children)) {
+          return [];
+        }
+        return structureData.value.data.children[selectedIndex.value].children;
+      });
+      const thirdLevelItems = vue.computed(() => {
+        var _a, _b;
+        if (!((_b = (_a = secondLevelItems.value) == null ? void 0 : _a[selectedSecondIndex.value]) == null ? void 0 : _b.children)) {
+          return [];
+        }
+        return secondLevelItems.value[selectedSecondIndex.value].children;
+      });
+      const confirmStructure = () => {
+        formatAppLog("log", "at components/structure-info.vue:252", "准备提交的数据:", resultData.value);
+        confirmPopup.value.open();
+      };
+      const confirmConfirm = () => {
+        calculateAndUpdateCounts();
+        storeDataLocally();
+        confirmPopup.value.close();
+        uni.showToast({
+          title: "构件信息已保存",
+          icon: "success",
+          duration: 2e3
+        });
+      };
+      const calculateAndUpdateCounts = () => {
+        if (!resultData.value || !resultData.value.children) {
+          formatAppLog("warn", "at components/structure-info.vue:282", "resultData结构不完整，无法计算count总和");
+          return;
+        }
+        resultData.value.children.forEach((firstLevel) => {
+          if (!firstLevel || !firstLevel.children)
+            return;
+          let firstLevelTotal = 0;
+          firstLevel.children.forEach((secondLevel) => {
+            if (!secondLevel || !secondLevel.children)
+              return;
+            let secondLevelTotal = 0;
+            secondLevel.children.forEach((thirdLevel) => {
+              if (!thirdLevel)
+                return;
+              const count = Number(thirdLevel.count || 0);
+              secondLevelTotal += count;
+              formatAppLog("log", "at components/structure-info.vue:306", `第三层节点 ${thirdLevel.name || "未命名"} 的count: ${count}`);
+            });
+            secondLevel.count = secondLevelTotal;
+            firstLevelTotal += secondLevelTotal;
+            formatAppLog("log", "at components/structure-info.vue:313", `第二层节点 ${secondLevel.name || "未命名"} 的count总和: ${secondLevelTotal}`);
+          });
+          firstLevel.count = firstLevelTotal;
+          formatAppLog("log", "at components/structure-info.vue:319", `第一层节点 ${firstLevel.name || "未命名"} 的count总和: ${firstLevelTotal}`);
+        });
+        let totalCount = 0;
+        resultData.value.children.forEach((firstLevel) => {
+          totalCount += Number(firstLevel.count || 0);
+        });
+        resultData.value.count = totalCount;
+        formatAppLog("log", "at components/structure-info.vue:331", `所有节点的count总和: ${totalCount}`);
+        formatAppLog("log", "at components/structure-info.vue:332", "更新后的resultData:", resultData.value);
+      };
+      const closeConfirmPopup = () => {
+        confirmPopup.value.close();
+      };
+      const changeTab = (index) => {
+        var _a, _b, _c;
+        selectedIndex.value = index;
+        selectedSecondIndex.value = 0;
+        selectedThirdIndex.value = -1;
+        const firstLevelItem = (_c = (_b = (_a = structureData.value) == null ? void 0 : _a.data) == null ? void 0 : _b.children) == null ? void 0 : _c[index];
+        if (firstLevelItem) {
+          formatAppLog("log", "at components/structure-info.vue:347", "选中的第一层结构:", firstLevelItem.name);
+        } else {
+          formatAppLog("log", "at components/structure-info.vue:349", "选中的第一层结构不存在或数据结构有问题");
+        }
+      };
+      const changeSecondTab = (index) => {
+        var _a;
+        selectedSecondIndex.value = index;
+        selectedThirdIndex.value = -1;
+        const secondLevelItem = (_a = secondLevelItems.value) == null ? void 0 : _a[index];
+        if (secondLevelItem) {
+          formatAppLog("log", "at components/structure-info.vue:360", "选中的第二层结构:", secondLevelItem.name);
+          if (!secondLevelItem.children || secondLevelItem.children.length === 0) {
+            formatAppLog("log", "at components/structure-info.vue:363", "该第二层结构没有第三层数据");
+          }
+        } else {
+          formatAppLog("log", "at components/structure-info.vue:366", "选中的第二层结构不存在或数据结构有问题");
+        }
+      };
+      const changeThirdTab = (index) => {
+        if (selectedThirdIndex.value === index) {
+          selectedThirdIndex.value = -1;
+        } else {
+          selectedThirdIndex.value = index;
+        }
+        formatAppLog("log", "at components/structure-info.vue:377", "选中的第三层结构:", thirdLevelItems.value[index]);
+      };
+      const handleCancel = () => {
+        selectedThirdIndex.value = -1;
+      };
+      const handleEdit = (index) => {
+        currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
+        if (currentEditItem.value) {
+          if (currentEditItem.value.status === void 0) {
+            currentEditItem.value.status = true;
+          }
+          if (currentEditItem.value.quantity === void 0) {
+            currentEditItem.value.quantity = 0;
+          }
+        }
+        editPopup.value.open();
+      };
+      const handleDisable = (index) => {
+        formatAppLog("log", "at components/structure-info.vue:399", "切换状态前:", thirdLevelItems.value[index].status);
+        const currentStatus = thirdLevelItems.value[index].status;
+        thirdLevelItems.value[index].status = currentStatus === "0" ? "1" : "0";
+        formatAppLog("log", "at components/structure-info.vue:404", "切换状态后:", thirdLevelItems.value[index].status);
+        const item = thirdLevelItems.value[index];
+        item.count = item.status === "0" ? Number(item.quantity || 0) : 0;
+        formatAppLog("log", "at components/structure-info.vue:411", `已更新${item.name}的count为${item.count}, status为${item.status}`);
+        updateResultData(item);
+        formatAppLog("log", "at components/structure-info.vue:417", "所有第三层构件信息:");
+        thirdLevelItems.value.forEach((item2) => {
+          formatAppLog("log", "at components/structure-info.vue:419", `构件名称: ${item2.name}, 构件数量: ${item2.count || 0}, 状态标志: ${item2.status || "0"}`);
+        });
+        selectedThirdIndex.value = -1;
+      };
+      const setStatus = (e2) => {
+        if (currentEditItem.value) {
+          currentEditItem.value.status = e2.detail.value ? "0" : "1";
+          formatAppLog("log", "at components/structure-info.vue:430", "Switch toggled, new status:", currentEditItem.value.status);
+          if (currentEditItem.value.status === "1") {
+            currentEditItem.value.quantity = 0;
+            formatAppLog("log", "at components/structure-info.vue:435", "状态改为停用，数量自动置为0");
+          }
+        }
+      };
+      const saveEdit = () => {
+        const originalItem = thirdLevelItems.value.find((item) => item.name === currentEditItem.value.name);
+        if (originalItem) {
+          originalItem.status = currentEditItem.value.status;
+          if (originalItem.status === "1") {
+            originalItem.quantity = 0;
+          } else {
+            originalItem.quantity = Number(currentEditItem.value.quantity);
+          }
+          originalItem.count = originalItem.status === "0" ? originalItem.quantity : 0;
+          formatAppLog("log", "at components/structure-info.vue:454", `已更新${originalItem.name}的count为${originalItem.count}`);
+          updateResultData(originalItem);
+          formatAppLog("log", "at components/structure-info.vue:460", "所有第三层构件信息:");
+          thirdLevelItems.value.forEach((item) => {
+            formatAppLog("log", "at components/structure-info.vue:462", `构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || "0"}`);
+          });
+        }
+        closeEditPopup();
+      };
+      const closeEditPopup = () => {
+        editPopup.value.close();
+        selectedThirdIndex.value = -1;
+      };
+      const updateResultData = (updatedItem) => {
+        if (!resultData.value || !resultData.value.children) {
+          formatAppLog("error", "at components/structure-info.vue:477", "resultData未正确初始化");
+          return;
+        }
+        const firstLevelIndex = selectedIndex.value;
+        const secondLevelIndex = selectedSecondIndex.value;
+        const itemName = updatedItem.name;
+        if (resultData.value.children[firstLevelIndex] && resultData.value.children[firstLevelIndex].children[secondLevelIndex]) {
+          const thirdLevelItems2 = resultData.value.children[firstLevelIndex].children[secondLevelIndex].children;
+          if (thirdLevelItems2) {
+            const targetItem = thirdLevelItems2.find((item) => item.name === itemName);
+            if (targetItem) {
+              const updateData = {
+                count: updatedItem.count,
+                status: updatedItem.status,
+                name: updatedItem.name,
+                quantity: updatedItem.quantity
+              };
+              Object.assign(targetItem, updateData);
+              formatAppLog("log", "at components/structure-info.vue:511", `已更新resultData中${itemName}的count为${updatedItem.count}, status为${targetItem.status}`);
+            } else {
+              formatAppLog("warn", "at components/structure-info.vue:513", `未在resultData中找到名称为${itemName}的项`);
+            }
+          } else {
+            formatAppLog("warn", "at components/structure-info.vue:516", "resultData中没有第三层数据");
+          }
+        } else {
+          formatAppLog("warn", "at components/structure-info.vue:519", "resultData中的层级结构不完整");
+        }
+        formatAppLog("log", "at components/structure-info.vue:523", "更新后的resultData:", resultData.value);
+      };
+      const storeDataLocally = async () => {
+        try {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          if (!responseLogin.data) {
+            uni.showToast({
+              title: "获取用户信息失败",
+              icon: "none"
+            });
+            return;
+          }
+          setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
+          formatAppLog("log", "at components/structure-info.vue:544", "已将数据存储到本地:", resultData.value);
+        } catch (error) {
+          formatAppLog("error", "at components/structure-info.vue:547", "存储数据错误:", error);
+          uni.showToast({
+            title: "存储数据出错，请稍后重试",
+            icon: "none"
+          });
+        }
+      };
+      const normalizeStatusFields = (data) => {
+        if (!data || !data.children)
+          return;
+        data.children.forEach((firstLevel) => {
+          if (!firstLevel)
+            return;
+          if (typeof firstLevel.status === "boolean") {
+            firstLevel.status = firstLevel.status ? "0" : "1";
+          }
+          if (firstLevel.children) {
+            firstLevel.children.forEach((secondLevel) => {
+              if (!secondLevel)
+                return;
+              if (typeof secondLevel.status === "boolean") {
+                secondLevel.status = secondLevel.status ? "0" : "1";
+              }
+              if (secondLevel.children) {
+                secondLevel.children.forEach((thirdLevel) => {
+                  if (!thirdLevel)
+                    return;
+                  if (typeof thirdLevel.status === "boolean") {
+                    thirdLevel.status = thirdLevel.status ? "0" : "1";
+                  }
+                });
+              }
+            });
+          }
+        });
+        formatAppLog("log", "at components/structure-info.vue:593", '已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
+      };
+      vue.onMounted(async () => {
+        formatAppLog("log", "at components/structure-info.vue:597", "初始bridgeId:", bridgeIdFromURL.value);
+        if (bridgeIdFromURL.value) {
+          TaskBridgeId.value = bridgeIdFromURL.value;
+        }
+        await init();
+      });
+      const __returned__ = { confirmed, confirmPopup, structureData, selectedIndex, selectedSecondIndex, selectedThirdIndex, editPopup, currentEditItem, TaskBridgeId, resultData, userInfo, bridgeIdFromURL, init, secondLevelItems, thirdLevelItems, confirmStructure, confirmConfirm, calculateAndUpdateCounts, closeConfirmPopup, changeTab, changeSecondTab, changeThirdTab, handleCancel, handleEdit, handleDisable, setStatus, saveEdit, closeEditPopup, updateResultData, storeDataLocally, normalizeStatusFields, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, CustomSwitch, get setObject() {
+        return setObject;
+      }, get userStore() {
+        return userStore;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+    var _a;
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
+    const _component_uni_easyinput = resolveEasycom(vue.resolveDynamicComponent("uni-easyinput"), __easycom_1$1);
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createElementVNode("view", { class: "confirm-row" }, [
         vue.createElementVNode("span", { class: "confirm-text" }, "结构信息状态："),
@@ -7113,8 +7744,9 @@ if (uni.restoreGlobal) {
         vue.createElementVNode("view", { class: "confirm-button-container" }, [
           vue.createElementVNode("button", {
             onClick: $setup.confirmStructure,
-            class: "confirm-button"
-          }, "确定构件信息")
+            class: "confirm-button",
+            disabled: $setup.confirmed
+          }, "保存构件信息", 8, ["disabled"])
         ])
       ]),
       vue.createVNode(
@@ -7145,13 +7777,15 @@ if (uni.restoreGlobal) {
         512
         /* NEED_PATCH */
       ),
+      vue.createCommentVNode(" 添加侧边栏 "),
       vue.createElementVNode("view", { class: "content-layout" }, [
-        vue.createCommentVNode("左侧边栏"),
+        vue.createCommentVNode(" 第一个侧边栏 "),
         vue.createElementVNode("view", { class: "sidebar" }, [
+          vue.createCommentVNode(" Bug 后端接口json文件对不上 还是旧版本 "),
           (vue.openBlock(true), vue.createElementBlock(
             vue.Fragment,
             null,
-            vue.renderList($setup.tabItems, (item, index) => {
+            vue.renderList(((_a = $setup.structureData) == null ? void 0 : _a.data.children) || [], (item, index) => {
               return vue.openBlock(), vue.createElementBlock("view", {
                 key: index,
                 class: vue.normalizeClass(["sidebar-item", $setup.selectedIndex === index ? "active" : ""]),
@@ -7160,7 +7794,7 @@ if (uni.restoreGlobal) {
                 vue.createElementVNode(
                   "view",
                   { class: "sidebar-item-content" },
-                  vue.toDisplayString(item),
+                  vue.toDisplayString(item.name || "未命名"),
                   1
                   /* TEXT */
                 )
@@ -7170,331 +7804,175 @@ if (uni.restoreGlobal) {
             /* KEYED_FRAGMENT */
           ))
         ]),
-        vue.createCommentVNode(" 右侧内容区 "),
-        vue.createElementVNode("view", { class: "content" }, [
+        vue.createCommentVNode(" 第二个侧边栏 "),
+        vue.createElementVNode("view", { class: "sidebar second-sidebar" }, [
+          $setup.secondLevelItems.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+            (vue.openBlock(true), vue.createElementBlock(
+              vue.Fragment,
+              null,
+              vue.renderList($setup.secondLevelItems, (item, index) => {
+                return vue.openBlock(), vue.createElementBlock("view", {
+                  key: index,
+                  class: vue.normalizeClass(["sidebar-item", $setup.selectedSecondIndex === index ? "active" : ""]),
+                  onClick: ($event) => $setup.changeSecondTab(index)
+                }, [
+                  vue.createElementVNode(
+                    "view",
+                    { class: "sidebar-item-content" },
+                    vue.toDisplayString(item.name || "未命名"),
+                    1
+                    /* TEXT */
+                  )
+                ], 10, ["onClick"]);
+              }),
+              128
+              /* KEYED_FRAGMENT */
+            ))
+          ])) : (vue.openBlock(), vue.createElementBlock("view", {
+            key: 1,
+            class: "no-data-tip"
+          }, " 不存在第二层数据 "))
+        ]),
+        vue.createCommentVNode(" 第三个侧边栏 "),
+        $setup.thirdLevelItems.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "sidebar third-sidebar"
+        }, [
           (vue.openBlock(true), vue.createElementBlock(
             vue.Fragment,
             null,
-            vue.renderList($setup.structures.children[$setup.selectedIndex].children, (item, index) => {
+            vue.renderList($setup.thirdLevelItems, (item, index) => {
               return vue.openBlock(), vue.createElementBlock("view", {
-                class: vue.normalizeClass(["structure-item", { "selected": $setup.selectedStructure === item }]),
-                onClick: ($event) => $setup.selectStructure(item, index)
+                key: index,
+                class: vue.normalizeClass(["sidebar-item", $setup.selectedThirdIndex === index ? "active" : ""]),
+                onClick: ($event) => $setup.changeThirdTab(index)
               }, [
-                (vue.openBlock(), vue.createElementBlock(
-                  "view",
-                  {
-                    key: index,
-                    class: "structure-name"
-                  },
-                  vue.toDisplayString(item.name),
-                  1
-                  /* TEXT */
-                )),
-                vue.createElementVNode("view", {
-                  class: vue.normalizeClass(["structure-state-button", item.status === "0" ? "button-on" : "button-off", $setup.confirmed ? "disabled" : ""]),
-                  onClick: vue.withModifiers(($event) => $setup.selectedStructure === item && !$setup.confirmed && $setup.changeStructureState(item), ["stop"])
-                }, vue.toDisplayString(item.status === "0" ? "启用部件" : "停用部件"), 11, ["onClick"]),
-                vue.createElementVNode("view", {
-                  class: vue.normalizeClass(["structure-number-button", $setup.confirmed ? "disabled" : ""]),
-                  onClick: vue.withModifiers(($event) => $setup.selectedStructure === item && !$setup.confirmed && $setup.showPopup(item), ["stop"])
-                }, vue.toDisplayString(item.comments ? "查看编号" : "创建编号"), 11, ["onClick"])
+                vue.createElementVNode("view", { class: "sidebar-item-content" }, [
+                  vue.createElementVNode(
+                    "text",
+                    {
+                      class: vue.normalizeClass(["item-name", { "disabled-text": item.status === "1" }])
+                    },
+                    vue.toDisplayString(item.name || "未命名"),
+                    3
+                    /* TEXT, CLASS */
+                  ),
+                  vue.createElementVNode("view", { class: "item-info-right" }, [
+                    item.status === "0" ? (vue.openBlock(), vue.createElementBlock(
+                      "text",
+                      {
+                        key: 0,
+                        class: "item-quantity"
+                      },
+                      "数量 " + vue.toDisplayString(item.quantity || 0),
+                      1
+                      /* TEXT */
+                    )) : (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 1,
+                      class: "disabled-button"
+                    }, "已停用")),
+                    vue.createElementVNode("image", {
+                      src: _imports_0$4,
+                      class: "rightarrow"
+                    })
+                  ])
+                ]),
+                $setup.selectedThirdIndex === index ? (vue.openBlock(), vue.createElementBlock("view", {
+                  key: 0,
+                  class: "action-buttons"
+                }, [
+                  vue.createElementVNode("button", {
+                    onClick: _cache[0] || (_cache[0] = vue.withModifiers(($event) => $setup.handleCancel(), ["stop"]))
+                  }, "取消"),
+                  vue.createElementVNode("button", {
+                    onClick: vue.withModifiers(($event) => $setup.handleEdit(index), ["stop"])
+                  }, "编辑", 8, ["onClick"]),
+                  vue.createElementVNode("button", {
+                    onClick: vue.withModifiers(($event) => $setup.handleDisable(index), ["stop"]),
+                    "data-status": item.status === "0" ? "disabled" : "enabled"
+                  }, vue.toDisplayString(item.status === "0" ? "停用" : "启用"), 9, ["onClick", "data-status"])
+                ])) : vue.createCommentVNode("v-if", true)
               ], 10, ["onClick"]);
             }),
-            256
-            /* UNKEYED_FRAGMENT */
+            128
+            /* KEYED_FRAGMENT */
           ))
-        ])
+        ])) : (vue.openBlock(), vue.createElementBlock(
+          vue.Fragment,
+          { key: 1 },
+          [
+            vue.createCommentVNode(" 当没有第三层数据时显示提示 "),
+            vue.createElementVNode("view", { class: "sidebar third-sidebar" }, [
+              vue.createElementVNode("view", { class: "no-data-tip" }, " 不存在構件 ")
+            ])
+          ],
+          2112
+          /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+        ))
       ]),
-      vue.createCommentVNode(" 底部弹出层 "),
+      vue.createCommentVNode(" 添加编辑弹窗 "),
       vue.createVNode(
         _component_uni_popup,
         {
-          ref: "popup",
-          type: "bottom"
+          ref: "editPopup",
+          type: "center"
         },
         {
-          default: vue.withCtx(() => [
-            vue.createCommentVNode(" read 模式 "),
-            $setup.popupContent === "read" ? (vue.openBlock(), vue.createElementBlock("view", {
-              key: 0,
-              class: "popup-content"
-            }, [
-              vue.createElementVNode(
-                "view",
-                { class: "popup-header" },
-                " 构建编号 - " + vue.toDisplayString($setup.currentStructure.name),
-                1
-                /* TEXT */
-              ),
-              vue.createCommentVNode(" 表头 "),
-              vue.createElementVNode("view", { class: "read-table-header" }, [
-                vue.createElementVNode("view", { class: "read-cell name" }, [
-                  vue.createElementVNode("checkbox", {
-                    checked: $setup.isAllSelected,
-                    onClick: $setup.toggleSelectAll,
-                    shape: "circle"
-                  }, null, 8, ["checked"]),
-                  vue.createElementVNode("text", null, "名称")
+          default: vue.withCtx(() => {
+            var _a2;
+            return [
+              vue.createElementVNode("view", { class: "edit-popup-content" }, [
+                vue.createElementVNode("view", { class: "popup-title" }, "构件信息编辑"),
+                vue.createElementVNode("view", { class: "edit-row" }, [
+                  vue.createElementVNode("text", { class: "edit-label" }, "构件名称"),
+                  vue.createElementVNode(
+                    "text",
+                    { class: "edit-value" },
+                    vue.toDisplayString((_a2 = $setup.currentEditItem) == null ? void 0 : _a2.name),
+                    1
+                    /* TEXT */
+                  )
                 ]),
-                vue.createElementVNode("text", { class: "read-cell code" }, "编号"),
-                vue.createElementVNode("view", { class: "read-batchDelete" }, [
+                vue.createElementVNode("view", { class: "edit-row" }, [
+                  vue.createElementVNode("text", { class: "edit-label" }, "构件状态"),
+                  vue.createElementVNode("view", { class: "status-toggle" }, [
+                    vue.createElementVNode("text", { class: "status-text" }, "停用"),
+                    vue.createVNode($setup["CustomSwitch"], {
+                      modelValue: $setup.currentEditItem.status,
+                      "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.currentEditItem.status = $event),
+                      onChange: $setup.setStatus,
+                      "active-color": "#409EFF",
+                      "inactive-color": "#ff3141"
+                    }, null, 8, ["modelValue"]),
+                    vue.createElementVNode("text", { class: "status-text" }, "启用")
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "edit-row" }, [
+                  vue.createElementVNode("text", { class: "edit-label" }, "构件数量"),
+                  vue.createVNode(_component_uni_easyinput, {
+                    modelValue: $setup.currentEditItem.quantity,
+                    "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.currentEditItem.quantity = $event),
+                    type: "number",
+                    placeholder: "请输入数量",
+                    clearSize: "40",
+                    class: "quantity-input",
+                    inputStyle: { fontSize: "18rpx" },
+                    placeholderStyle: "font-size: 18rpx;"
+                  }, null, 8, ["modelValue"])
+                ]),
+                vue.createElementVNode("view", { class: "popup-buttons" }, [
                   vue.createElementVNode("button", {
-                    class: vue.normalizeClass(["btn delete", { "disabled-btn": !$setup.hasSelection }]),
-                    disabled: !$setup.hasSelection,
-                    onClick: $setup.batchDelete
-                  }, "批量删除", 10, ["disabled"])
+                    class: "popup-btn cancel-btn",
+                    onClick: $setup.closeEditPopup
+                  }, "取消"),
+                  vue.createElementVNode("button", {
+                    class: "popup-btn confirm-btn",
+                    onClick: $setup.saveEdit
+                  }, "确定")
                 ])
-              ]),
-              vue.createCommentVNode(" 列表 "),
-              vue.createElementVNode("scroll-view", {
-                "scroll-y": "",
-                class: "read-table-body"
-              }, [
-                (vue.openBlock(true), vue.createElementBlock(
-                  vue.Fragment,
-                  null,
-                  vue.renderList($setup.currentStructure.comments, (item, index) => {
-                    return vue.openBlock(), vue.createElementBlock("view", {
-                      key: item.id,
-                      class: "read-table-row"
-                    }, [
-                      vue.createElementVNode("view", { class: "read-cell name" }, [
-                        vue.createElementVNode("checkbox", {
-                          checked: item.selected,
-                          onClick: ($event) => $setup.selectItem(index),
-                          shape: "circle"
-                        }, null, 8, ["checked", "onClick"]),
-                        vue.createElementVNode(
-                          "text",
-                          { class: "text-hide" },
-                          vue.toDisplayString(item.code),
-                          1
-                          /* TEXT */
-                        )
-                      ]),
-                      vue.createElementVNode(
-                        "text",
-                        { class: "read-cell code text-hide" },
-                        vue.toDisplayString(item.code.split("#")[0]),
-                        1
-                        /* TEXT */
-                      ),
-                      vue.createElementVNode("view", { class: "read-cell actions" }, [
-                        vue.createElementVNode("button", {
-                          class: "btn delete",
-                          onClick: ($event) => $setup.singleDelete(item)
-                        }, "删除", 8, ["onClick"]),
-                        vue.createElementVNode("button", {
-                          class: "btn edit",
-                          onClick: ($event) => $setup.edit(item)
-                        }, "编辑", 8, ["onClick"])
-                      ])
-                    ]);
-                  }),
-                  128
-                  /* KEYED_FRAGMENT */
-                ))
               ])
-            ])) : $setup.popupContent === "create" ? (vue.openBlock(), vue.createElementBlock(
-              vue.Fragment,
-              { key: 1 },
-              [
-                vue.createCommentVNode(" create 模式 "),
-                vue.createElementVNode("view", { class: "popup-box" }, [
-                  vue.createElementVNode(
-                    "view",
-                    { class: "popup-header" },
-                    " 创建编号 - " + vue.toDisplayString($setup.currentStructure.name),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.createCommentVNode(" 名称后缀 "),
-                  vue.createElementVNode("view", { class: "create-suffix" }, [
-                    vue.createElementVNode("text", { class: "create-suffix-text" }, "名称后缀"),
-                    vue.withDirectives(vue.createElementVNode(
-                      "input",
-                      {
-                        "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.suffix = $event),
-                        class: "create-suffix-input",
-                        placeholder: "如 #锚具"
-                      },
-                      null,
-                      512
-                      /* NEED_PATCH */
-                    ), [
-                      [vue.vModelText, $setup.suffix]
-                    ])
-                  ]),
-                  vue.createCommentVNode(" 编号片段表格 "),
-                  vue.createElementVNode("view", { class: "create-table-header" }, [
-                    vue.createElementVNode("text", { class: "numberFragment" }, "编号片段"),
-                    vue.createElementVNode("template", { class: "create-table-cols" }, [
-                      vue.createElementVNode("text", { class: "col" }, "序号"),
-                      vue.createElementVNode("text", { class: "col" }, "类型"),
-                      vue.createElementVNode("text", { class: "col" }, "值"),
-                      vue.createElementVNode("text", { class: "col" }, "操作")
-                    ])
-                  ]),
-                  vue.createElementVNode("view", { class: "create-table-body" }, [
-                    (vue.openBlock(true), vue.createElementBlock(
-                      vue.Fragment,
-                      null,
-                      vue.renderList($setup.segments, (item, index) => {
-                        return vue.openBlock(), vue.createElementBlock("view", {
-                          class: "create-row",
-                          key: index
-                        }, [
-                          vue.createElementVNode("view", { class: "create-placeholder" }),
-                          vue.createElementVNode("template", { class: "create-row-right" }, [
-                            vue.createElementVNode(
-                              "text",
-                              { class: "create-number" },
-                              vue.toDisplayString(index + 1),
-                              1
-                              /* TEXT */
-                            ),
-                            vue.createElementVNode("picker", {
-                              mode: "selector",
-                              range: ["固定值", "序号"],
-                              value: item.typeIndex,
-                              onChange: (e2) => $setup.typeChange({ id: item.id, event: e2 }),
-                              class: "create-class"
-                            }, [
-                              vue.createElementVNode("view", { class: "create-class-value" }, [
-                                vue.createTextVNode(
-                                  vue.toDisplayString(["固定值", "序号"][item.typeIndex]) + " ",
-                                  1
-                                  /* TEXT */
-                                ),
-                                vue.createElementVNode("text", { class: "arrow-down" }, "▼")
-                              ])
-                            ], 40, ["value", "onChange"]),
-                            vue.createElementVNode("view", { class: "create-value" }, [
-                              item.typeIndex === 0 ? vue.withDirectives((vue.openBlock(), vue.createElementBlock("input", {
-                                key: 0,
-                                "onUpdate:modelValue": ($event) => item.value = $event,
-                                class: "create-value-input"
-                              }, null, 8, ["onUpdate:modelValue"])), [
-                                [vue.vModelText, item.value]
-                              ]) : (vue.openBlock(), vue.createElementBlock("view", {
-                                key: 1,
-                                class: "range-input"
-                              }, [
-                                vue.withDirectives(vue.createElementVNode("input", {
-                                  "onUpdate:modelValue": ($event) => item.start = $event,
-                                  class: "create-value-input"
-                                }, null, 8, ["onUpdate:modelValue"]), [
-                                  [vue.vModelText, item.start]
-                                ]),
-                                vue.createTextVNode(),
-                                vue.createElementVNode("text", { class: "create-value-text" }, "至"),
-                                vue.createTextVNode(),
-                                vue.withDirectives(vue.createElementVNode("input", {
-                                  "onUpdate:modelValue": ($event) => item.end = $event,
-                                  class: "create-value-input"
-                                }, null, 8, ["onUpdate:modelValue"]), [
-                                  [vue.vModelText, item.end]
-                                ])
-                              ]))
-                            ]),
-                            vue.createElementVNode("view", { class: "create-delete" }, [
-                              vue.createElementVNode("button", {
-                                class: "btn-delete",
-                                onClick: ($event) => $setup.removeSegment(index)
-                              }, "删除", 8, ["onClick"])
-                            ])
-                          ])
-                        ]);
-                      }),
-                      128
-                      /* KEYED_FRAGMENT */
-                    )),
-                    vue.createCommentVNode(" 操作按钮 "),
-                    vue.createElementVNode("view", { class: "btn-row" }, [
-                      vue.createElementVNode("button", {
-                        onClick: $setup.addSegment,
-                        class: "btn-add"
-                      }, "添加片段"),
-                      vue.createElementVNode("view", { class: "right-btns" }, [
-                        vue.createElementVNode("button", {
-                          onClick: $setup.cancel,
-                          class: "btn-cancel"
-                        }, "取消"),
-                        vue.createElementVNode("button", {
-                          onClick: $setup.confirm,
-                          class: "btn-confirm"
-                        }, "确定")
-                      ])
-                    ])
-                  ])
-                ])
-              ],
-              2112
-              /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-            )) : $setup.popupContent === "edit" ? (vue.openBlock(), vue.createElementBlock(
-              vue.Fragment,
-              { key: 2 },
-              [
-                vue.createCommentVNode(" edit 模式 "),
-                vue.createElementVNode("view", { class: "popup-content" }, [
-                  vue.createElementVNode(
-                    "view",
-                    { class: "popup-header" },
-                    " 编辑编号 - " + vue.toDisplayString($setup.currentStructure.name),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.createCommentVNode(" 名称后缀 "),
-                  vue.createElementVNode("view", { class: "create-suffix bottomBorder" }, [
-                    vue.createElementVNode("text", { class: "create-suffix-text" }, "名称后缀"),
-                    vue.withDirectives(vue.createElementVNode(
-                      "input",
-                      {
-                        "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.editSuffix = $event),
-                        class: "create-suffix-input",
-                        placeholder: "如 #锚具"
-                      },
-                      null,
-                      512
-                      /* NEED_PATCH */
-                    ), [
-                      [vue.vModelText, $setup.editSuffix]
-                    ])
-                  ]),
-                  vue.createCommentVNode(" 编号 "),
-                  vue.createElementVNode("view", { class: "create-suffix" }, [
-                    vue.createElementVNode("text", { class: "create-suffix-text" }, "编号"),
-                    vue.withDirectives(vue.createElementVNode(
-                      "input",
-                      {
-                        "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.editNumber = $event),
-                        class: "create-suffix-input",
-                        placeholder: "如 1-01-1"
-                      },
-                      null,
-                      512
-                      /* NEED_PATCH */
-                    ), [
-                      [vue.vModelText, $setup.editNumber]
-                    ])
-                  ]),
-                  vue.createCommentVNode(" 操作按钮 "),
-                  vue.createElementVNode("view", { class: "edit-btn-row" }, [
-                    vue.createElementVNode("button", {
-                      onClick: $setup.editCancel,
-                      class: "btn-cancel"
-                    }, "取消"),
-                    vue.createElementVNode("button", {
-                      onClick: $setup.editConfirm,
-                      class: "btn-confirm"
-                    }, "确定")
-                  ])
-                ])
-              ],
-              2112
-              /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-            )) : vue.createCommentVNode("v-if", true)
-          ]),
+            ];
+          }),
           _: 1
           /* STABLE */
         },
@@ -7503,8 +7981,8 @@ if (uni.restoreGlobal) {
       )
     ]);
   }
-  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-8f2488a5"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/structure-info.vue"]]);
-  const _sfc_main$c = {
+  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-8f2488a5"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/structure-info.vue"]]);
+  const _sfc_main$b = {
     __name: "front-photo",
     props: {
       data: {
@@ -7539,7 +8017,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "photo-container" }, [
       vue.createElementVNode("view", { class: "title" }, "桥梁正面立照"),
       vue.createElementVNode("view", { class: "photos-list" }, [
@@ -7572,52 +8050,8 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-95007593"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/front-photo.vue"]]);
-  const DOC_BASE_PATH = plus.io.convertLocalFileSystemURL("_doc/");
-  const FILE_NAMING = {
-    taskList: (userId2) => `${userId2}/taskList.json`,
-    bridgeList: (userId2, bridgeListId) => `${userId2}/${bridgeListId}/bridgeList.json`,
-    bridge: (userId2, bridgeListId, bridgeId) => `${userId2}/${bridgeListId}/${bridgeId}/bridge.json`
-  };
-  function getFullPath(fileName) {
-    return `${DOC_BASE_PATH}${fileName}`;
-  }
-  async function getJsonData(fullPath) {
-    try {
-      formatAppLog("log", "at utils/readJson.js:20", "文件访问路径:", fullPath);
-      const fileSystem = await new Promise((resolve, reject) => {
-        plus.io.requestFileSystem(plus.io.PUBLIC_DOCUMENTS, resolve, reject);
-      });
-      const fileEntry = await new Promise((resolve, reject) => {
-        fileSystem.root.getFile(fullPath, { create: false }, resolve, reject);
-      });
-      const file = await new Promise((resolve, reject) => {
-        fileEntry.file(resolve, reject);
-      });
-      const jsonString = await new Promise((resolve, reject) => {
-        const reader = new plus.io.FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = reject;
-        reader.readAsText(file);
-      });
-      try {
-        return JSON.parse(jsonString);
-      } catch (parseError) {
-        formatAppLog("error", "at utils/readJson.js:49", `JSON解析失败: ${fullPath}`, parseError);
-        throw new Error("文件内容格式不正确");
-      }
-    } catch (error) {
-      formatAppLog("error", "at utils/readJson.js:54", `文件操作失败: ${fullPath}`, error);
-      throw error;
-    }
-  }
-  function getBridge(userId2, bridgeListId, bridgeId) {
-    const fileName = FILE_NAMING.bridge(userId2, bridgeListId, bridgeId);
-    const fullPath = getFullPath(fileName);
-    trackPath$1(fullPath);
-    return getJsonData(fullPath);
-  }
-  const _sfc_main$b = {
+  const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-95007593"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/front-photo.vue"]]);
+  const _sfc_main$a = {
     __name: "bridge-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -7653,9 +8087,7 @@ if (uni.restoreGlobal) {
           // 移除transform
         };
       });
-      const __returned__ = { tabs, activeTab, switchTab, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, get getBridge() {
-        return getBridge;
-      }, get saveData() {
+      const __returned__ = { tabs, activeTab, switchTab, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, get saveData() {
         return saveData$1;
       }, get trackPath() {
         return trackPath$1;
@@ -7664,7 +8096,7 @@ if (uni.restoreGlobal) {
       return __returned__;
     }
   };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createCommentVNode(" 顶部导航栏 "),
       vue.createElementVNode("view", { class: "tabs" }, [
@@ -7766,7 +8198,7 @@ if (uni.restoreGlobal) {
       ])
     ]);
   }
-  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
+  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
   const easycom = {
     autoscan: true,
     custom: {
@@ -7785,18 +8217,6 @@ if (uni.restoreGlobal) {
       }
     },
     {
-      path: "pages/login/login",
-      style: {
-        navigationBarTitleText: "",
-        navigationStyle: "custom",
-        "app-plus": {
-          titleNView: {
-            autoBackButton: false
-          }
-        }
-      }
-    },
-    {
       path: "pages/home/home",
       style: {
         navigationBarTitleText: "湖北交投桥梁定检现场检测",
@@ -7804,52 +8224,6 @@ if (uni.restoreGlobal) {
         "app-plus": {
           titleNView: {}
         }
-      }
-    },
-    {
-      path: "pages/message/message",
-      style: {
-        navigationBarTitleText: "消息管理",
-        navigationBarBackgroundColor: "#3d655f",
-        "app-plus": {
-          titleNView: {}
-        }
-      }
-    },
-    {
-      path: "pages/userinfo/userinfo",
-      style: {
-        navigationBarTitleText: "个人信息",
-        navigationBarBackgroundColor: "#3d655f",
-        "app-plus": {
-          titleNView: {}
-        }
-      }
-    },
-    {
-      path: "pages/setting/setting",
-      style: {
-        navigationBarTitleText: "设置",
-        navigationBarBackgroundColor: "#3d655f",
-        "app-plus": {
-          titleNView: {}
-        }
-      }
-    },
-    {
-      path: "pages/versionInfo/versionInfo",
-      style: {
-        navigationBarTitleText: "陕西交控定期检查",
-        navigationBarBackgroundColor: "#3d655f",
-        "app-plus": {
-          titleNView: {}
-        }
-      }
-    },
-    {
-      path: "pages/testWrite/testWrite",
-      style: {
-        navigationBarTitleText: ""
       }
     },
     {
@@ -7889,13 +8263,10 @@ if (uni.restoreGlobal) {
     {
       path: "pages/canvas/canvas",
       style: {
-        navigationBarTitleText: ""
-      }
-    },
-    {
-      path: "pages/init_data_test/init_data_test",
-      style: {
-        navigationBarTitleText: ""
+        navigationBarTitleText: "",
+        navigationBarBackgroundColor: "#0F4687",
+        navigationStyle: "custom",
+        screenOrientation: "landscape"
       }
     },
     {
@@ -10804,7 +11175,7 @@ ${i3}
   const {
     t
   } = initVueI18n(messages);
-  const _sfc_main$a = {
+  const _sfc_main$9 = {
     name: "UniLoadMore",
     emits: ["clickLoadMore"],
     props: {
@@ -10886,7 +11257,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", {
       class: "uni-load-more",
       onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
@@ -10961,8 +11332,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-9245e42c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-load-more/components/uni-load-more/uni-load-more.vue"]]);
-  const _sfc_main$9 = {
+  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-9245e42c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-load-more/components/uni-load-more/uni-load-more.vue"]]);
+  const _sfc_main$8 = {
     name: "uniDataChecklist",
     mixins: [nr.mixinDatacom || {}],
     emits: ["input", "update:modelValue", "change"],
@@ -11305,7 +11676,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_load_more = resolveEasycom(vue.resolveDynamicComponent("uni-load-more"), __easycom_0$1);
     return vue.openBlock(), vue.createElementBlock(
       "view",
@@ -11518,7 +11889,7 @@ ${i3}
       /* STYLE */
     );
   }
-  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-149d584b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-data-checkbox/uni-data-checkbox.vue"]]);
+  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-149d584b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-data-checkbox/uni-data-checkbox.vue"]]);
   const ERR_MSG_OK = "chooseAndUploadFile:ok";
   const ERR_MSG_FAIL = "chooseAndUploadFile:fail";
   function chooseImage(opts) {
@@ -11800,7 +12171,7 @@ ${i3}
     }
     return filedata;
   };
-  const _sfc_main$8 = {
+  const _sfc_main$7 = {
     name: "uploadImage",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -11947,7 +12318,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__container" }, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -12040,8 +12411,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
-  const _sfc_main$7 = {
+  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
+  const _sfc_main$6 = {
     name: "uploadFile",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -12177,7 +12548,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__files" }, [
       !$props.readonly ? (vue.openBlock(), vue.createElementBlock("view", {
         key: 0,
@@ -12259,8 +12630,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
-  const _sfc_main$6 = {
+  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
+  const _sfc_main$5 = {
     name: "uniFilePicker",
     components: {
       uploadImage,
@@ -12707,16 +13078,16 @@ ${i3}
        * 处理返回事件
        */
       setEmit() {
-        let data2 = [];
+        let data = [];
         if (this.returnType === "object") {
-          data2 = this.backObject(this.files)[0];
-          this.localValue = data2 ? data2 : null;
+          data = this.backObject(this.files)[0];
+          this.localValue = data ? data : null;
         } else {
-          data2 = this.backObject(this.files);
+          data = this.backObject(this.files);
           if (!this.localValue) {
             this.localValue = [];
           }
-          this.localValue = [...data2];
+          this.localValue = [...data];
         }
         this.$emit("update:modelValue", this.localValue);
       },
@@ -12767,7 +13138,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_upload_image = vue.resolveComponent("upload-image");
     const _component_upload_file = vue.resolveComponent("upload-file");
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker" }, [
@@ -12837,8 +13208,8 @@ ${i3}
       }, 8, ["readonly", "list-styles", "files-list", "showType", "delIcon", "onUploadFiles", "onChoose", "onDelFile"])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
-  const _sfc_main$5 = {
+  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
+  const _sfc_main$4 = {
     name: "uniCombox",
     emits: ["input", "update:modelValue"],
     props: {
@@ -12937,8 +13308,8 @@ ${i3}
       }
     }
   };
-  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$5);
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -13041,18 +13412,34 @@ ${i3}
       /* CLASS */
     );
   }
-  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-a8e6b638"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-combox/uni-combox.vue"]]);
+  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-a8e6b638"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-combox/uni-combox.vue"]]);
   const _imports_0$2 = "/static/image/AD.svg";
-  const _imports_1$1 = "/static/image/template1.png";
-  const _imports_2$1 = "/static/image/template2.png";
-  const _imports_3$1 = "/static/image/template3.png";
+  const _imports_1$1 = "/static/image/template_kxb1.png";
+  const _imports_2$1 = "/static/image/template_kxb2.png";
+  const _imports_3$1 = "/static/image/template_kxb3.png";
+  const _imports_4$1 = "/static/image/template_kxb4.png";
+  const _imports_5$1 = "/static/image/template_kxb5.png";
+  const _imports_6 = "/static/image/template_kxb6.png";
+  const _imports_7 = "/static/image/template_tl1.png";
+  const _imports_8 = "/static/image/template_xl1.png";
+  const _imports_9 = "/static/image/template_blmxl1.png";
+  const _imports_10 = "/static/image/template_blmxl2.png";
+  const _imports_11 = "/static/image/template_blmxl3.png";
+  const _imports_12 = "/static/image/template_blmxl4.png";
+  const _imports_13 = "/static/image/template_qt1.png";
+  const _imports_14 = "/static/image/template_qt2.png";
+  const _imports_15 = "/static/image/template_hgb1.png";
+  const _imports_16 = "/static/image/template_hgb2.png";
+  const _imports_17 = "/static/image/template_yq1.png";
+  const _imports_18 = "/static/image/template_gl1.png";
+  const _imports_19 = "/static/image/template_yzd1.png";
   const userId = "3";
   const buildingId = "39";
-  const _sfc_main$4 = {
+  const _sfc_main$3 = {
     __name: "add-disease",
     setup(__props, { expose: __expose }) {
       __expose();
-      const popup2 = vue.ref(null);
+      const popup = vue.ref(null);
       const ADImgs = vue.ref([]);
       const isEdit = vue.ref(false);
       const structureData = vue.ref(null);
@@ -13069,7 +13456,113 @@ ${i3}
       const type = vue.ref([]);
       const typeindex = vue.ref(-1);
       const position = vue.ref("");
+      const diseaseDataList = vue.ref([]);
       const quantity = vue.ref(1);
+      vue.watch(quantity, (newValue) => {
+        const numValue = parseInt(newValue);
+        if (isNaN(numValue) || numValue <= 0) {
+          updateDiseaseDataList(1);
+        } else if (numValue >= 10) {
+          quantity.value = 10;
+          updateDiseaseDataList(10, true);
+        } else {
+          updateDiseaseDataList(numValue);
+        }
+      });
+      const updateDiseaseDataList = (count, useRangeMode = false) => {
+        const existingData = [...diseaseDataList.value];
+        const newList = [];
+        if (useRangeMode) {
+          const firstItem = existingData.length > 0 ? existingData[0] : null;
+          newList.push({
+            referenceSurface1: (firstItem == null ? void 0 : firstItem.referenceSurface1) || "",
+            referenceSurface1Start: (firstItem == null ? void 0 : firstItem.referenceSurface1Start) || "",
+            referenceSurface1End: (firstItem == null ? void 0 : firstItem.referenceSurface1End) || "",
+            referenceSurface2: (firstItem == null ? void 0 : firstItem.referenceSurface2) || "",
+            referenceSurface2Start: (firstItem == null ? void 0 : firstItem.referenceSurface2Start) || "",
+            referenceSurface2End: (firstItem == null ? void 0 : firstItem.referenceSurface2End) || "",
+            // 范围输入字段
+            lengthMin: (firstItem == null ? void 0 : firstItem.length) || "",
+            lengthMax: "",
+            widthMin: (firstItem == null ? void 0 : firstItem.width) || "",
+            widthMax: "",
+            heightOrDepthMin: (firstItem == null ? void 0 : firstItem.heightOrDepth) || "",
+            heightOrDepthMax: "",
+            slitWidthMin: (firstItem == null ? void 0 : firstItem.slitWidth) || "",
+            slitWidthMax: "",
+            areaMin: (firstItem == null ? void 0 : firstItem.area) || "",
+            areaMax: "",
+            volumeMin: (firstItem == null ? void 0 : firstItem.volume) || "",
+            volumeMax: "",
+            angleMin: (firstItem == null ? void 0 : firstItem.angle) || "",
+            angleMax: "",
+            percentageMin: (firstItem == null ? void 0 : firstItem.percentage) || "",
+            percentageMax: "",
+            // 保留原有字段为空
+            length: "",
+            width: "",
+            heightOrDepth: "",
+            slitWidth: "",
+            area: "",
+            volume: "",
+            angle: "",
+            percentage: "",
+            crackCharacteristicsIndex: (firstItem == null ? void 0 : firstItem.crackCharacteristicsIndex) || 0,
+            trendIndex: (firstItem == null ? void 0 : firstItem.trendIndex) || 0,
+            useRangeMode: true
+          });
+        } else {
+          for (let i2 = 0; i2 < count; i2++) {
+            if (i2 < existingData.length) {
+              if (existingData[i2].useRangeMode) {
+                newList.push({
+                  referenceSurface1: existingData[i2].referenceSurface1 || "",
+                  referenceSurface1Start: existingData[i2].referenceSurface1Start || "",
+                  referenceSurface1End: existingData[i2].referenceSurface1End || "",
+                  referenceSurface2: existingData[i2].referenceSurface2 || "",
+                  referenceSurface2Start: existingData[i2].referenceSurface2Start || "",
+                  referenceSurface2End: existingData[i2].referenceSurface2End || "",
+                  // 使用Min值作为普通模式的值
+                  length: existingData[i2].lengthMin || "",
+                  width: existingData[i2].widthMin || "",
+                  heightOrDepth: existingData[i2].heightOrDepthMin || "",
+                  slitWidth: existingData[i2].slitWidthMin || "",
+                  area: existingData[i2].areaMin || "",
+                  volume: existingData[i2].volumeMin || "",
+                  angle: existingData[i2].angleMin || "",
+                  percentage: existingData[i2].percentageMin || "",
+                  crackCharacteristicsIndex: existingData[i2].crackCharacteristicsIndex || 0,
+                  trendIndex: existingData[i2].trendIndex || 0,
+                  useRangeMode: false
+                });
+              } else {
+                newList.push(existingData[i2]);
+              }
+            } else {
+              newList.push({
+                referenceSurface1: "",
+                referenceSurface1Start: "",
+                referenceSurface1End: "",
+                referenceSurface2: "",
+                referenceSurface2Start: "",
+                referenceSurface2End: "",
+                length: "",
+                width: "",
+                slitWidth: "",
+                heightOrDepth: "",
+                area: "",
+                volume: "",
+                angle: "",
+                percentage: "",
+                crackCharacteristicsIndex: 0,
+                trendIndex: 0,
+                useRangeMode: false
+              });
+            }
+          }
+        }
+        diseaseDataList.value = newList;
+      };
       const WayofDefect = vue.ref(["数值", "记载方式2", "记载方式3"]);
       const WayofDefectindex = vue.ref(0);
       const length = vue.ref("");
@@ -13101,46 +13594,16 @@ ${i3}
         value: "1"
       }]);
       const ratingCurrent = vue.ref(0);
-      const diseasePosition = vue.ref(["底板", "左翼板", "右翼板", "顶板", "左腹板", "右腹板"]);
+      const diseasePosition = vue.ref([]);
       const diseasePositionPopup = vue.ref(null);
       const selectedPosition = vue.ref("");
       const structureTypes = vue.ref(["上部结构", "下部结构", "桥面系", "附属设施"]);
       const typeMultiArray = vue.ref([
         structureTypes.value,
+        [],
         []
       ]);
-      const typeMultiIndex = vue.ref([0, 0]);
-      const quantityUnitData = vue.ref([
-        {
-          text: "个",
-          value: 0
-        },
-        {
-          text: "条",
-          value: 1
-        },
-        {
-          text: "台",
-          value: 2
-        },
-        {
-          text: "次",
-          value: 3
-        },
-        {
-          text: "月",
-          value: 4
-        },
-        {
-          text: "处",
-          value: 5
-        }
-      ]);
-      const quantityUnitOptions = vue.ref(quantityUnitData.value.map((item) => item.text));
-      const quantityUnitIndex = vue.ref(0);
-      const quantityUnitChange = (e2) => {
-        quantityUnitIndex.value = e2.detail.value;
-      };
+      const typeMultiIndex = vue.ref([0, 0, 0]);
       const natureindex = vue.ref(0);
       const nature = vue.ref([{
         text: "新病害",
@@ -13171,41 +13634,84 @@ ${i3}
         value: 4
       }]);
       const levelindex = vue.ref(1);
-      const maintenanceStatus = vue.ref([
+      const crackCharacteristicsIndex = vue.ref(0);
+      const crackCharacteristics = vue.ref([
         {
-          text: "待修复",
+          text: "纵向",
           value: 0
         },
         {
-          text: "修复中",
+          text: "横向",
           value: 1
         },
         {
-          text: "已修复",
+          text: "斜向",
           value: 2
         },
         {
-          text: "修补不良",
+          text: "L型",
+          value: 3
+        },
+        {
+          text: "U型",
+          value: 4
+        }
+      ]);
+      const trend = vue.ref([
+        {
+          text: "稳定",
+          value: 0
+        },
+        {
+          text: "发展",
+          value: 1
+        },
+        {
+          text: "新增",
+          value: 2
+        },
+        {
+          text: "已维修",
           value: 3
         }
       ]);
-      const maintenanceStatusindex = vue.ref(0);
-      const initMultiPickerColumn2 = () => {
+      const trendindex = vue.ref(0);
+      const referenceSurface1 = vue.ref("");
+      const referenceSurface2 = vue.ref("");
+      const referenceSurfacePopup = vue.ref(null);
+      const currentReferenceSurface = vue.ref(1);
+      const referenceSurfaceInput = vue.ref("");
+      const referenceSurfaceOptions = vue.ref([]);
+      const initMultiPickerColumns = () => {
         const structureType = structureTypes.value[typeMultiIndex.value[0]];
         parentObjectName.value = structureType;
         updateBiObjectOptions();
         setTimeout(() => {
-          typeMultiArray.value = [
-            structureTypes.value,
-            biObjectName.value
-          ];
+          typeMultiArray.value[1] = biObjectName.value;
           if (typeMultiIndex.value[1] >= biObjectName.value.length) {
             typeMultiIndex.value[1] = 0;
           }
-        }, 100);
+          updateThirdColumn();
+        }, 50);
+      };
+      const updateThirdColumn = () => {
+        if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          typeMultiArray.value[2] = [];
+          return;
+        }
+        const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+        if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
+          typeMultiArray.value[2] = [];
+          return;
+        }
+        const thirdLevelNames = selectedSecondLevel.children.map((item) => item.name);
+        typeMultiArray.value[2] = thirdLevelNames;
+        if (typeMultiIndex.value[2] >= thirdLevelNames.length) {
+          typeMultiIndex.value[2] = 0;
+        }
       };
       const typeColumnChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:979", "typeColumnChange:", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1327", "typeColumnChange:", e2);
         const column = e2.detail.column;
         const value = e2.detail.value;
         typeMultiIndex.value[column] = value;
@@ -13213,27 +13719,37 @@ ${i3}
           parentObjectName.value = structureTypes.value[value];
           updateBiObjectOptions();
           typeMultiIndex.value[1] = 0;
+          typeMultiIndex.value[2] = 0;
           setTimeout(() => {
-            typeMultiArray.value = [
-              structureTypes.value,
-              biObjectName.value
-            ];
+            typeMultiArray.value[1] = biObjectName.value;
+            updateThirdColumn();
           }, 100);
+        } else if (column === 1) {
+          updateThirdColumn();
         }
       };
       const typeMultiPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1009", "typeMultiPickerChange:", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1362", "typeMultiPickerChange:", e2);
         typeMultiIndex.value = e2.detail.value;
         parentObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
         biObjectindex.value = typeMultiIndex.value[1];
+        if (typeMultiArray.value[2].length > 0) {
+          const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+          const thirdLevelIndex = typeMultiIndex.value[2];
+          if (selectedSecondLevel && selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) && thirdLevelIndex < selectedSecondLevel.children.length) {
+            const selectedThirdLevel = selectedSecondLevel.children[thirdLevelIndex];
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1383", "选择了第三级组件:", selectedThirdLevel.name);
+          }
+        }
         updateDiseaseTypeOptions();
         updateComponentNumbers();
+        updateDiseasePositionOptions();
       };
       vue.watch(parentObjectName, (newVal) => {
         const index = structureTypes.value.findIndex((item) => item === newVal);
         if (index !== -1 && index !== typeMultiIndex.value[0]) {
           typeMultiIndex.value[0] = index;
-          initMultiPickerColumn2();
+          initMultiPickerColumns();
         }
       });
       vue.onMounted(() => {
@@ -13247,10 +13763,10 @@ ${i3}
           if (options.data) {
             try {
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1047", "接收到的编辑数据:", diseaseData);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1423", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1052", "解析编辑数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1428", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
@@ -13258,112 +13774,115 @@ ${i3}
             }
           }
         } else {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1062", "新增模式");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1438", "新增模式");
           if (options && options.type) {
             try {
               const typeVal = decodeURIComponent(options.type);
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1067", "接收到的病害类型位置:", typeVal);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1443", "接收到的病害类型位置:", typeVal);
               parentObjectName.value = typeVal;
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1070", "解析type参数失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1446", "解析type参数失败:", error);
               parentObjectName.value = "上部结构";
             }
           } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1075", "未接收到type参数，使用默认值: 上部结构");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1451", "未接收到type参数，使用默认值: 上部结构");
             parentObjectName.value = "上部结构";
           }
         }
         setTimeout(() => {
-          initMultiPickerColumn2();
+          initMultiPickerColumns();
         }, 200);
         filteredComponentCodes.value = [...componentCode.value];
-      });
-      const fillFormWithData = (data2) => {
-        var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1091", "开始填充表单数据:", data2);
-        if ((_a = data2.component) == null ? void 0 : _a.parentObjectName) {
-          parentObjectName.value = data2.component.parentObjectName;
-          const index = structureTypes.value.findIndex((item) => item === parentObjectName.value);
-          if (index !== -1) {
-            typeMultiIndex.value[0] = index;
-            initMultiPickerColumn2();
-          }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1103", "设置病害类型:", parentObjectName.value);
-        }
         setTimeout(() => {
-          var _a2, _b;
-          if ((_b = (_a2 = data2.component) == null ? void 0 : _a2.biObject) == null ? void 0 : _b.name) {
-            const index = biObjectName.value.findIndex((item) => item === data2.component.biObject.name);
-            if (index !== -1) {
-              biObjectindex.value = index;
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1113", "设置部件类型:", data2.component.biObject.name);
-              setTimeout(() => {
-                var _a3;
-                if ((_a3 = data2.component) == null ? void 0 : _a3.code) {
-                  const codeIndex = componentCode.value.findIndex((item) => item === data2.component.code);
-                  if (codeIndex !== -1) {
-                    componentCodeindex.value = codeIndex;
-                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1123", "设置构件编号:", data2.component.code);
-                  }
+          updateDiseasePositionOptions();
+        }, 300);
+        updateDiseaseDataList(quantity.value);
+      });
+      const fillFormWithData = (data) => {
+        var _a;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1475", "开始填充表单数据:", data);
+        if ((_a = data.component) == null ? void 0 : _a.parentObjectName) {
+          parentObjectName.value = data.component.parentObjectName;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1483", "设置病害所属大类:", parentObjectName.value);
+          const parentIndex = structureTypes.value.findIndex((item) => item === parentObjectName.value);
+          if (parentIndex !== -1) {
+            typeMultiIndex.value[0] = parentIndex;
+            setTimeout(() => {
+              var _a2, _b;
+              initMultiPickerColumns();
+              if ((_b = (_a2 = data.component) == null ? void 0 : _a2.biObject) == null ? void 0 : _b.name) {
+                const biObjectIdx = biObjectName.value.findIndex((item) => item === data.component.biObject.name);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1497", "尝试设置部件类型索引:", biObjectIdx, "对应值:", data.component.biObject.name);
+                if (biObjectIdx !== -1) {
+                  biObjectindex.value = biObjectIdx;
+                  typeMultiIndex.value[1] = biObjectIdx;
+                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1503", "成功设置部件类型:", data.component.biObject.name);
+                  setTimeout(() => {
+                    var _a3;
+                    updateDiseaseTypeOptions();
+                    if ((_a3 = data.component) == null ? void 0 : _a3.code) {
+                      componentCodeInput.value = data.component.code;
+                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1512", "成功设置构件编号:", data.component.code);
+                    }
+                    setTimeout(() => {
+                      if (data.type) {
+                        const diseaseTypeIdx = type.value.findIndex((item) => item === data.type);
+                        if (diseaseTypeIdx !== -1) {
+                          typeindex.value = diseaseTypeIdx;
+                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1522", "成功设置病害类型:", data.type);
+                        } else {
+                          formatAppLog("warn", "at pages/add-disease/add-disease.vue:1525", "未找到匹配的病害类型:", data.type);
+                        }
+                      }
+                    }, 10);
+                  }, 10);
+                } else {
+                  formatAppLog("warn", "at pages/add-disease/add-disease.vue:1531", "未找到匹配的部件类型:", data.component.biObject.name);
                 }
-              }, 50);
-            }
-          }
-          setTimeout(() => {
-            if (data2.type) {
-              const index = type.value.findIndex((item) => item === data2.type);
-              if (index !== -1) {
-                typeindex.value = index;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1137", "设置缺损类型:", data2.type);
               }
-            }
-          }, 50);
-        }, 100);
-        if (data2.position) {
-          position.value = data2.position;
-        }
-        if (data2.quantity) {
-          quantity.value = parseInt(data2.quantity) || 1;
-        }
-        if (data2.level) {
-          const index = scalesItems.findIndex((item) => item.value === data2.level.toString());
-          if (index !== -1) {
-            scalesCurrent.value = index;
+            }, 300);
           }
         }
-        if (data2.participateAssess !== void 0) {
-          const index = ratingItems.findIndex((item) => item.value === data2.participateAssess);
-          if (index !== -1) {
-            ratingCurrent.value = index;
-          }
+        if (data.position) {
+          position.value = data.position;
         }
-        if (data2.length) {
-          length.value = data2.length;
+        if (data.quantity) {
+          quantity.value = parseInt(data.quantity) || 1;
         }
-        if (data2.width) {
-          width.value = data2.width;
+        if (data.participateAssess !== void 0) {
+          participateAssessindex.value = data.participateAssess === "1" ? 1 : 0;
         }
-        if (data2.slitWidth) {
-          slitWidth.value = data2.slitWidth;
+        if (data.level) {
+          const levelVal = parseInt(data.level);
+          levelindex.value = levelVal;
         }
-        if (data2.heightOrDepth) {
-          heightOrDepth.value = data2.heightOrDepth;
+        if (data.length) {
+          length.value = data.length;
         }
-        if (data2.area) {
-          area.value = data2.area;
+        if (data.width) {
+          width.value = data.width;
         }
-        if (data2.description) {
-          description.value = data2.description;
+        if (data.slitWidth) {
+          slitWidth.value = data.slitWidth;
         }
-        if (data2.images && Array.isArray(data2.images)) {
-          fileList.value = data2.images.map((url, index) => ({
+        if (data.heightOrDepth) {
+          heightOrDepth.value = data.heightOrDepth;
+        }
+        if (data.area) {
+          area.value = data.area;
+        }
+        if (data.description) {
+          description.value = data.description;
+        }
+        if (data.images && Array.isArray(data.images)) {
+          fileList.value = data.images.map((url, index) => ({
             name: `图片${index + 1}`,
             url,
             extname: "jpg",
             size: 0
           }));
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1209", "表单数据填充完成");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1595", "表单数据填充完成");
       };
       const imageStyles = vue.reactive({
         width: "150rpx",
@@ -13371,7 +13890,7 @@ ${i3}
       });
       const beforedisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1219", "上一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1605", "上一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -13411,7 +13930,7 @@ ${i3}
       };
       const nextdisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1271", "下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1657", "下一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -13461,10 +13980,10 @@ ${i3}
         uni.redirectTo({
           url: `/pages/add-disease/add-disease?mode=edit&id=${disease.id}&data=${diseaseData}`,
           success: () => {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1339", "成功导航到病害:", disease.id);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1725", "成功导航到病害:", disease.id);
           },
           fail: (error) => {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:1342", "导航失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:1728", "导航失败:", error);
             uni.showToast({
               title: "切换失败，请重试",
               icon: "none"
@@ -13473,7 +13992,7 @@ ${i3}
         });
       };
       const savetonextdisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1352", "保存并复制到下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1738", "保存并复制到下一条");
         const diseaseData = createDiseaseData();
         if (diseaseData) {
           saveWithoutNavigateBack(diseaseData);
@@ -13488,10 +14007,6 @@ ${i3}
         let biObjectObj = null;
         if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
           biObjectObj = biObjectNameOptions.value[biObjectindex.value];
-        }
-        let componentObj = null;
-        if (componentCodeindex.value !== -1 && biObjectObj && biObjectObj.comments) {
-          componentObj = biObjectObj.comments[componentCodeindex.value];
         }
         const diseaseData = {
           createBy: "crh@znjc",
@@ -13522,30 +14037,33 @@ ${i3}
           deductPoints: 35,
           biObjectId: biObjectObj ? biObjectObj.id : null,
           projectId: 2,
-          component: componentObj ? {
+          component: biObjectObj ? {
             createBy: "admin",
             createTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
             updateTime: formatDateTime(new Date((/* @__PURE__ */ new Date()).setFullYear(2025))),
-            id: componentObj.id,
-            code: componentObj.code,
-            name: componentObj.name || `${biObjectObj.name}${componentCodeindex.value + 1}`,
-            biObjectId: biObjectObj ? biObjectObj.id : null,
+            id: biObjectObj.id,
+            // 使用部件对象ID
+            code: componentCodeInput.value,
+            // 使用输入的构件编号
+            name: biObjectObj.name,
+            // 使用部件对象名称
+            biObjectId: biObjectObj.id,
             status: "0",
             delFlag: "0",
             biObject: {
-              id: biObjectObj ? biObjectObj.id : null,
-              name: biObjectObj ? biObjectObj.name : "",
+              id: biObjectObj.id,
+              name: biObjectObj.name,
               count: 0
             },
             parentObjectName: parentObjectName.value
           } : null,
-          componentId: componentObj ? componentObj.id : null,
+          componentId: biObjectObj ? biObjectObj.id : null,
           buildingId: 37,
           images: []
           // 初始化为空数组，等待图片保存后更新
         };
-        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1435", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+        if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType || !componentCodeInput.value) {
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1815", "数据不完整，请确保选择了部件类型、输入了构件编号和缺损类型");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -13556,7 +14074,7 @@ ${i3}
         return diseaseData;
       };
       const saveWithoutNavigateBack = (diseaseData) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1449", "保存但不返回");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1829", "保存但不返回");
         uni.showLoading({
           title: "保存中..."
         });
@@ -13568,7 +14086,7 @@ ${i3}
           });
           setTimeout(() => {
             fileList.value = [];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1469", "已清空图片列表，保留其他表单数据");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1849", "已清空图片列表，保留其他表单数据");
             uni.showToast({
               title: "已保存，可继续添加下一条",
               icon: "none",
@@ -13576,7 +14094,7 @@ ${i3}
             });
           }, 500);
         }).catch((error) => {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:1480", "保存失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:1860", "保存失败:", error);
           uni.hideLoading();
           uni.showToast({
             title: "保存失败，请重试",
@@ -13596,7 +14114,7 @@ ${i3}
               const originalData = JSON.parse(decodeURIComponent(options.data));
               originalImages = originalData.images || [];
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1504", "解析原始数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1884", "解析原始数据失败:", error);
             }
           }
           const currentImageUrls = fileList.value.map((img) => img.url);
@@ -13613,12 +14131,12 @@ ${i3}
             imagesToDelete.forEach((imgPath) => {
               plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
                 fileEntry.remove(() => {
-                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1531", "删除原有图片成功:", imgPath);
+                  formatAppLog("log", "at pages/add-disease/add-disease.vue:1911", "删除原有图片成功:", imgPath);
                 }, (error) => {
-                  formatAppLog("error", "at pages/add-disease/add-disease.vue:1533", "删除原有图片失败:", error);
+                  formatAppLog("error", "at pages/add-disease/add-disease.vue:1913", "删除原有图片失败:", error);
                 });
               }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:1536", "无法访问原有图片:", error);
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:1916", "无法访问原有图片:", error);
               });
             });
           }
@@ -13632,7 +14150,7 @@ ${i3}
               }
               resolve();
             }).catch((error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1558", "保存新图片失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1938", "保存新图片失败:", error);
               reject(error);
             });
           } else {
@@ -13648,7 +14166,7 @@ ${i3}
       };
       const savedisease = () => {
         var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1578", "保存按钮点击");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1958", "保存按钮点击");
         let diseaseTypeObj = null;
         if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
           diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
@@ -13713,7 +14231,7 @@ ${i3}
           // 初始化为空数组，等待图片保存后更新
         };
         if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1653", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2033", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -13748,40 +14266,40 @@ ${i3}
         });
       };
       const typePickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1698", "picker发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2078", "picker发送选择改变，携带值为", e2.detail.value);
         const index = parseInt(e2.detail.value);
         biObjectindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1701", "biObjectindex设置为:", index, "对应的值为:", biObjectName.value[index]);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2081", "biObjectindex设置为:", index, "对应的值为:", biObjectName.value[index]);
         updateDiseaseTypeOptions();
         updateComponentNumbers();
       };
       const numberPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1710", "picker发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2090", "picker发送选择改变，携带值为", e2.detail.value);
         const index = parseInt(e2.detail.value);
         componentCodeindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1713", "componentCodeindex设置为:", index, "对应的值为:", componentCode.value[index]);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2093", "componentCodeindex设置为:", index, "对应的值为:", componentCode.value[index]);
       };
       const TypeofdefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1717", "picker发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2097", "picker发送选择改变，携带值为", e2.detail.value);
         const index = parseInt(e2.detail.value);
         typeindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1720", "typeindex设置为:", index, "对应的值为:", type.value[index]);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2100", "typeindex设置为:", index, "对应的值为:", type.value[index]);
       };
       const WayofDefectPickerChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1724", "picker发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2104", "picker发送选择改变，携带值为", e2.detail.value);
         const index = parseInt(e2.detail.value);
         WayofDefectindex.value = index;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1727", "WayofDefectindex设置为:", index, "对应的值为:", WayofDefect.value[index]);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2107", "WayofDefectindex设置为:", index, "对应的值为:", WayofDefect.value[index]);
       };
       const ScalesRadioChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1732", "radio发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2112", "radio发送选择改变，携带值为", e2.detail.value);
         const index = scalesItems.findIndex((item) => item.value === e2.detail.value);
         if (index !== -1) {
           scalesCurrent.value = index;
         }
       };
       const RatingsRadioChange = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1742", "radio发送选择改变，携带值为", e2.detail.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2122", "radio发送选择改变，携带值为", e2.detail.value);
         const index = ratingItems.findIndex((item) => item.value === e2.detail.value);
         if (index !== -1) {
           ratingCurrent.value = index;
@@ -13809,7 +14327,7 @@ ${i3}
                   id: currentId,
                   isDelete: true
                 };
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1780", "准备发送deleteDisease事件，标记删除ID:", currentId);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2160", "准备发送deleteDisease事件，标记删除ID:", currentId);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -13829,7 +14347,7 @@ ${i3}
         });
       };
       const copyAndAddDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1805", "复制并新增");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2185", "复制并新增");
         ({
           partType: biObjectName.value[biObjectindex.value],
           partNumber: componentCode.value[componentCodeindex.value],
@@ -13856,7 +14374,7 @@ ${i3}
       };
       const editDisease = () => {
         var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1840", "编辑");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2220", "编辑");
         let diseaseTypeObj = null;
         if (typeindex.value !== -1 && diseaseTypeOptions.value && diseaseTypeOptions.value[typeindex.value]) {
           diseaseTypeObj = diseaseTypeOptions.value[typeindex.value];
@@ -13921,7 +14439,7 @@ ${i3}
           // 初始化为空数组，等待图片保存后更新
         };
         if (!diseaseData.type || !diseaseData.component || !diseaseData.diseaseType) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1915", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2295", "数据不完整，请确保选择了部件类型、构件编号和缺损类型");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -13950,9 +14468,9 @@ ${i3}
         });
       };
       const handleFileSelect = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1953", "文件选择事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2333", "文件选择事件", e2);
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1956", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2336", "选择的文件数量:", e2.tempFiles.length);
           const newFiles = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -13972,29 +14490,29 @@ ${i3}
             }
           });
           fileList.value = [...fileList.value];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1992", "更新后的fileList:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2372", "更新后的fileList:", fileList.value);
           const paths = getImagePaths(fileList.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1996", "当前有效路径数:", paths.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2376", "当前有效路径数:", paths.length);
         }
       };
       const handleFileDelete = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2001", "文件删除事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2381", "文件删除事件", e2);
         if (e2 && e2.tempFile && e2.tempFile.name) {
           const fileName = e2.tempFile.name;
           fileList.value = fileList.value.filter((file) => file.name !== fileName);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2010", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2390", "删除后的文件列表:", fileList.value);
         } else if (e2 && e2.index !== void 0 && e2.index >= 0) {
           fileList.value.splice(e2.index, 1);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2014", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2394", "删除后的文件列表:", fileList.value);
         }
       };
       const getImagePaths = (fileListData) => {
         const paths = [];
         if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2023", "文件列表为空");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2403", "文件列表为空");
           return paths;
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2027", "处理文件列表:", fileListData);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2407", "处理文件列表:", fileListData);
         fileListData.forEach((file, index) => {
           let path = "";
           if (file.url) {
@@ -14009,10 +14527,10 @@ ${i3}
             path = file.image.location;
           }
           if (path) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2047", `文件[${index}]有效路径:`, path);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2427", `文件[${index}]有效路径:`, path);
             paths.push(path);
           } else {
-            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2050", `文件[${index}]没有有效路径:`, file);
+            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2430", `文件[${index}]没有有效路径:`, file);
           }
         });
         return paths;
@@ -14021,24 +14539,20 @@ ${i3}
         uni.navigateTo({
           url: `/pages/canvas/canvas?template=${templateIndex}`,
           success: (res) => {
-            res.eventChannel.once("returnData", (data2) => {
+            res.eventChannel.once("returnData", (data) => {
               ADImgs.value.push({
-                src: data2.src
+                src: data.src
               });
             });
-            popup2.value.close();
+            popup.value.close();
           }
         });
       };
       const selectCanvasTemplate = () => {
-        popup2.value.open();
+        popup.value.open();
       };
       const removeImage = (index) => {
         ADImgs.value.splice(index, 1);
-      };
-      const openDiseasePositionPopup = () => {
-        selectedPosition.value = position.value || "";
-        diseasePositionPopup.value.open();
       };
       const closeDiseasePositionPopup = () => {
         diseasePositionPopup.value.close();
@@ -14051,12 +14565,12 @@ ${i3}
         try {
           const userId2 = "3";
           const buildingId2 = "39";
-          const data2 = await getObject(userId2, buildingId2);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2106", "结构数据获取成功:", data2);
-          structureData.value = data2;
+          const data = await getObject(userId2, buildingId2);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2480", "结构数据获取成功:", data);
+          structureData.value = data;
           updateBiObjectOptions();
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2112", "获取结构数据失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2486", "获取结构数据失败:", error);
           uni.showToast({
             title: "获取结构数据失败",
             icon: "none"
@@ -14065,21 +14579,21 @@ ${i3}
       };
       const updateBiObjectOptions = () => {
         if (!structureData.value || !structureData.value.children) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2123", "结构数据不完整");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2497", "结构数据不完整");
           return;
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2127", "更新部件类型选项，当前选择:", parentObjectName.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2501", "更新部件类型选项，当前选择:", parentObjectName.value);
         const structurePart = structureData.value.children.find(
           (item) => item.name === parentObjectName.value
         );
         if (!structurePart || !structurePart.children) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2135", "未找到对应的结构部分或其子项");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2509", "未找到对应的结构部分或其子项");
           biObjectName.value = [];
           return;
         }
         biObjectNameOptions.value = structurePart.children;
         biObjectName.value = structurePart.children.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2143", "部件类型选项更新为:", biObjectName.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2517", "部件类型选项更新为:", biObjectName.value);
         biObjectindex.value = -1;
         type.value = [];
         typeindex.value = -1;
@@ -14091,333 +14605,264 @@ ${i3}
       };
       const updateComponentNumbers = () => {
         if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2163", "无效的部件类型选择");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2537", "无效的部件类型选择");
           componentCode.value = [];
           return;
         }
         const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
         if (!selectedBiObject) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2170", "选中的部件类型不存在");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2544", "选中的部件类型不存在");
           componentCode.value = [];
           return;
         }
         if (!selectedBiObject.comments || !Array.isArray(selectedBiObject.comments) || selectedBiObject.comments.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2178", "当前部件类型没有构件编号信息");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2552", "当前部件类型没有构件编号信息");
           componentCode.value = ["1", "2", "3"];
           return;
         }
         componentCode.value = selectedBiObject.comments.map((item) => item.code);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2185", "构件编号选项更新为:", componentCode.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2559", "构件编号选项更新为:", componentCode.value);
         componentCodeindex.value = -1;
       };
       const updateDiseaseTypeOptions = () => {
         if (biObjectindex.value === -1 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2194", "无效的部件类型选择");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2568", "无效的部件类型选择");
           type.value = [];
           return;
         }
         const selectedBiObject = biObjectNameOptions.value[biObjectindex.value];
         if (!selectedBiObject || !selectedBiObject.diseaseTypes) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2201", "选中的部件类型没有缺损类型定义");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2575", "选中的部件类型没有缺损类型定义");
           type.value = [];
           return;
         }
         diseaseTypeOptions.value = selectedBiObject.diseaseTypes;
         type.value = selectedBiObject.diseaseTypes.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2209", "缺损类型选项更新为:", type.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2583", "缺损类型选项更新为:", type.value);
         typeindex.value = -1;
       };
       const openComponentCodePopup = () => {
         filteredComponentCodes.value = [...componentCode.value];
         componentCodePopup.value.open();
       };
-      const closeComponentCodePopup = () => {
-        componentCodePopup.value.close();
+      const checkAndOpenComponentCodePopup = () => {
+        if (biObjectindex.value === -1) {
+          uni.showToast({
+            title: "请先选择部件类型",
+            icon: "none"
+          });
+          return;
+        }
+        openComponentCodePopup();
       };
-      const confirmComponentCode = () => {
-        if (componentCodeindex.value !== -1) {
-          closeComponentCodePopup();
+      const checkComponentCodeSelected = () => {
+        if (componentCodeindex.value === -1) {
+          uni.showToast({
+            title: "请先选择构件编号",
+            icon: "none"
+          });
+          return false;
+        }
+        return true;
+      };
+      const checkAndOpenDiseasePositionPopup = () => {
+        openPositionPopup();
+      };
+      const openPositionPopup = () => {
+        diseasePositionPopup.value.open();
+      };
+      const volume = vue.ref("");
+      const angle = vue.ref("");
+      const percentage = vue.ref("");
+      const clearQuantity = () => {
+        quantity.value = "";
+      };
+      const clearLength = () => {
+        length.value = "";
+      };
+      const clearWidth = () => {
+        width.value = "";
+      };
+      const clearHeight = () => {
+        heightOrDepth.value = "";
+      };
+      const clearSeamsWidth = () => {
+        slitWidth.value = "";
+      };
+      const clearArea = () => {
+        area.value = "";
+      };
+      const clearVolume = () => {
+        volume.value = "";
+      };
+      const clearAngle = () => {
+        angle.value = "";
+      };
+      const clearPercentage = () => {
+        percentage.value = "";
+      };
+      const getSelectedComponentName = () => {
+        if (biObjectindex.value === -1)
+          return "";
+        if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
+          return typeMultiArray.value[2][typeMultiIndex.value[2]];
+        }
+        if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
+          return typeMultiArray.value[1][typeMultiIndex.value[1]];
+        }
+        return "";
+      };
+      const componentCodeInput = vue.ref("");
+      const updateDiseasePositionOptions = () => {
+        if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+          diseasePosition.value = [];
+          return;
+        }
+        const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+        if (!selectedSecondLevel) {
+          diseasePosition.value = [];
+          return;
+        }
+        if (typeMultiArray.value[2].length > 0 && typeMultiIndex.value[2] >= 0) {
+          if (selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) && typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+            const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+            if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
+              diseasePosition.value = selectedThirdLevel.children.map((item) => item.name);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2731", "更新病害位置选项为第三级子组件:", diseasePosition.value);
+              return;
+            }
+          }
+        }
+        diseasePosition.value = ["底板", "左翼板", "右翼板", "顶板", "左腹板", "右腹板"];
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2739", "使用默认病害位置选项");
+      };
+      const parseProps = (propsString) => {
+        if (!propsString)
+          return [];
+        const result = [];
+        const refParts = propsString.split("&&");
+        refParts.forEach((refPart) => {
+          const parts = refPart.split(":=");
+          if (parts.length === 2) {
+            const values = parts[1].split("、");
+            values.forEach((value) => {
+              if (value && !result.includes(value)) {
+                result.push(value);
+              }
+            });
+          }
+        });
+        return result;
+      };
+      vue.watch([typeMultiIndex], () => {
+        updateDiseasePositionOptions();
+      }, {
+        deep: true
+      });
+      const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
+        currentReferenceSurface.value = surfaceNumber;
+        currentDiseaseIndex.value = diseaseIndex;
+        referenceSurfaceInput.value = "";
+        if (!position.value) {
+          uni.showToast({
+            title: "请先选择病害位置",
+            icon: "none"
+          });
+          return;
+        }
+        let positionProps = "";
+        let selectedComponent = null;
+        if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0 && biObjectNameOptions.value && biObjectNameOptions.value[typeMultiIndex.value[1]] && biObjectNameOptions.value[typeMultiIndex.value[1]].children) {
+          selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]].children[typeMultiIndex.value[2]];
+        } else if (typeMultiIndex.value[1] >= 0 && biObjectNameOptions.value && biObjectNameOptions.value.length > 0) {
+          selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]];
+        }
+        if (selectedComponent && selectedComponent.children && Array.isArray(selectedComponent.children)) {
+          const matchingChild = selectedComponent.children.find((child) => child.name === position.value);
+          if (matchingChild && matchingChild.props) {
+            positionProps = matchingChild.props;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2816", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
+          }
+        }
+        if (!positionProps && selectedComponent && selectedComponent.props) {
+          positionProps = selectedComponent.props;
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2823", "使用当前选中组件的props:", positionProps);
+        }
+        if (positionProps) {
+          const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
+          if (options && options.length > 0) {
+            referenceSurfaceOptions.value = options;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2831", `解析到参考面${surfaceNumber}选项:`, options);
+          } else {
+            setDefaultReferenceSurfaceOptions(surfaceNumber);
+          }
         } else {
+          setDefaultReferenceSurfaceOptions(surfaceNumber);
+        }
+        referenceSurfacePopup.value.open();
+      };
+      const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
+        if (surfaceNumber === 1) {
+          referenceSurfaceOptions.value = ["小桩号面", "大桩号面"];
+        } else {
+          referenceSurfaceOptions.value = ["左腹板", "右腹板", "内腹板", "外腹板"];
+        }
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2852", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+      };
+      const parsePropsForRef = (propsString, refKey) => {
+        if (!propsString)
+          return [];
+        const refParts = propsString.split("&&");
+        for (const refPart of refParts) {
+          if (refPart.startsWith(refKey + ":=")) {
+            const parts = refPart.split(":=");
+            if (parts.length === 2) {
+              const values = parts[1].split("、");
+              return values.filter((value) => value.trim() !== "");
+            }
+          }
+        }
+        return [];
+      };
+      const confirmreferenceSurfaceInput = () => {
+        if (!referenceSurfaceInput.value.trim()) {
           uni.showToast({
-            title: "请选择构件编号",
-            icon: "none"
-          });
-        }
-      };
-      const clearComponentSearch = () => {
-        componentCodeFilter.value = "";
-        filteredComponentCodes.value = [...componentCode.value];
-      };
-      const filterComponentCodes = () => {
-        if (!componentCodeFilter.value) {
-          filteredComponentCodes.value = [...componentCode.value];
-          return;
-        }
-        filteredComponentCodes.value = componentCode.value.filter(
-          (code2) => code2.toString().includes(componentCodeFilter.value)
-        );
-      };
-      const selectComponentCode = (index) => {
-        const selectedCode = filteredComponentCodes.value[index];
-        const originalIndex = componentCode.value.findIndex((code2) => code2 === selectedCode);
-        if (originalIndex !== -1) {
-          componentCodeindex.value = originalIndex;
-          closeComponentCodePopup();
-        }
-      };
-      const longitudinalPosition = vue.ref("");
-      const lateralPosition = vue.ref("");
-      const verticalPosition = vue.ref("");
-      const activePositionType = vue.ref("");
-      const currentPositionTitle = vue.ref("位置");
-      const longitudinalPositionOptions = vue.ref(["大桩号侧", "小桩号侧"]);
-      const lateralPositionOptions = vue.ref(["左侧", "右侧"]);
-      const verticalPositionOptions = vue.ref(["顶部", "底部"]);
-      const currentPositionOptions = vue.ref([]);
-      const positionInput1Value = vue.ref("");
-      const positionInput2Value = vue.ref("");
-      const LocationDescriptionPositionPopup = vue.ref(null);
-      const openLocationPositionPopup = (type2) => {
-        activePositionType.value = type2 || "longitudinal";
-        if (activePositionType.value === "longitudinal") {
-          currentPositionTitle.value = "纵向位置";
-          currentPositionOptions.value = longitudinalPositionOptions.value;
-        } else if (activePositionType.value === "lateral") {
-          currentPositionTitle.value = "横向位置";
-          currentPositionOptions.value = lateralPositionOptions.value;
-        } else if (activePositionType.value === "vertical") {
-          currentPositionTitle.value = "竖向位置";
-          currentPositionOptions.value = verticalPositionOptions.value;
-        }
-        LocationDescriptionPositionPopup.value.open();
-      };
-      const confirmPositionInput1 = () => {
-        const inputValue = positionInput1Value.value;
-        if (!inputValue) {
-          uni.showToast({
-            title: "请输入内容",
+            title: "请输入参考面",
             icon: "none"
           });
           return;
         }
-        if (activePositionType.value === "longitudinal") {
-          longitudinalPosition.value = inputValue;
-        } else if (activePositionType.value === "lateral") {
-          lateralPosition.value = inputValue;
-        } else if (activePositionType.value === "vertical") {
-          verticalPosition.value = inputValue;
+        if (currentReferenceSurface.value === 1) {
+          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface1 = referenceSurfaceInput.value.trim();
+        } else {
+          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface2 = referenceSurfaceInput.value.trim();
         }
-        LocationDescriptionPositionPopup.value.close();
-        positionInput1Value.value = "";
+        referenceSurfacePopup.value.close();
       };
-      const confirmPositionInput2 = () => {
-        const inputValue = positionInput2Value.value;
-        if (!inputValue) {
-          uni.showToast({
-            title: "请输入内容",
-            icon: "none"
-          });
-          return;
+      const selectReferenceSurfaceItem = (item) => {
+        if (currentReferenceSurface.value === 1) {
+          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface1 = item;
+        } else {
+          diseaseDataList.value[currentDiseaseIndex.value].referenceSurface2 = item;
         }
-        const fullValue = inputValue + "#墩侧";
-        if (activePositionType.value === "longitudinal") {
-          longitudinalPosition.value = fullValue;
-        } else if (activePositionType.value === "lateral") {
-          lateralPosition.value = fullValue;
-        } else if (activePositionType.value === "vertical") {
-          verticalPosition.value = fullValue;
-        }
-        LocationDescriptionPositionPopup.value.close();
-        positionInput2Value.value = "";
+        referenceSurfacePopup.value.close();
       };
-      const selectPositionItem = (item) => {
-        if (activePositionType.value === "longitudinal") {
-          longitudinalPosition.value = item;
-        } else if (activePositionType.value === "lateral") {
-          lateralPosition.value = item;
-        } else if (activePositionType.value === "vertical") {
-          verticalPosition.value = item;
+      const clearReferenceSurfaceStart = (diseaseIndex, surfaceNumber) => {
+        if (surfaceNumber === 1) {
+          diseaseDataList.value[diseaseIndex].referenceSurface1Start = "";
+        } else {
+          diseaseDataList.value[diseaseIndex].referenceSurface2Start = "";
         }
-        LocationDescriptionPositionPopup.value.close();
       };
-      const LocationDescriptionDistancePopup = vue.ref(null);
-      const openLocationDistancePopup = (type2) => {
-        activeDistanceType.value = type2;
-        LocationDescriptionDistancePopup.value.open();
+      const clearReferenceSurfaceEnd = (diseaseIndex, surfaceNumber) => {
+        if (surfaceNumber === 1) {
+          diseaseDataList.value[diseaseIndex].referenceSurface1End = "";
+        } else {
+          diseaseDataList.value[diseaseIndex].referenceSurface2End = "";
+        }
       };
-      const lengthUnitData = vue.ref([
-        {
-          text: "m",
-          value: 0
-        },
-        {
-          text: "cm",
-          value: 1
-        },
-        {
-          text: "mm",
-          value: 2
-        }
-      ]);
-      const lengthUnitOptions = vue.ref(lengthUnitData.value.map((item) => item.text));
-      const lengthUnitIndex = vue.ref(0);
-      const lengthUnitChange = (e2) => {
-        lengthUnitIndex.value = e2.detail.value;
-      };
-      const widthUnitData = vue.ref([
-        {
-          text: "m",
-          value: 0
-        },
-        {
-          text: "cm",
-          value: 1
-        },
-        {
-          text: "mm",
-          value: 2
-        }
-      ]);
-      const widthUnitOptions = vue.ref(widthUnitData.value.map((item) => item.text));
-      const widthUnitIndex = vue.ref(0);
-      const widthUnitChange = (e2) => {
-        widthUnitIndex.value = e2.detail.value;
-      };
-      const heightUnitData = vue.ref([
-        {
-          text: "m",
-          value: 0
-        },
-        {
-          text: "cm",
-          value: 1
-        },
-        {
-          text: "mm",
-          value: 2
-        }
-      ]);
-      const heightUnitOptions = vue.ref(heightUnitData.value.map((item) => item.text));
-      const heightUnitIndex = vue.ref(0);
-      const heightUnitChange = (e2) => {
-        heightUnitIndex.value = e2.detail.value;
-      };
-      const seamsWidthUnitData = vue.ref([
-        {
-          text: "m",
-          value: 0
-        },
-        {
-          text: "cm",
-          value: 1
-        },
-        {
-          text: "mm",
-          value: 2
-        }
-      ]);
-      const seamsWidthUnitOptions = vue.ref(seamsWidthUnitData.value.map((item) => item.text));
-      const seamsWidthUnitIndex = vue.ref(0);
-      const seamsWidthUnitChange = (e2) => {
-        seamsWidthUnitIndex.value = e2.detail.value;
-      };
-      const areaUnitData = vue.ref([
-        {
-          text: "m²",
-          value: 0
-        },
-        {
-          text: "cm²",
-          value: 1
-        },
-        {
-          text: "mm²",
-          value: 2
-        }
-      ]);
-      const areaUnitOptions = vue.ref(areaUnitData.value.map((item) => item.text));
-      const areaUnitIndex = vue.ref(0);
-      const areaUnitChange = (e2) => {
-        areaUnitIndex.value = e2.detail.value;
-      };
-      const volumeUnitData = vue.ref([
-        {
-          text: "m³",
-          value: 0
-        },
-        {
-          text: "cm³",
-          value: 1
-        },
-        {
-          text: "mm³",
-          value: 2
-        }
-      ]);
-      const volumeUnitOptions = vue.ref(volumeUnitData.value.map((item) => item.text));
-      const volumeUnitIndex = vue.ref(0);
-      const volumeUnitChange = (e2) => {
-        volumeUnitIndex.value = e2.detail.value;
-      };
-      const longitudinalDistance = vue.ref("");
-      const lateralDistance = vue.ref("");
-      const verticalDistance = vue.ref("");
-      const activeDistanceType = vue.ref("");
-      const confirmDistanceInput1 = () => {
-        const inputValue = distanceInput1Value.value;
-        if (!inputValue) {
-          uni.showToast({
-            title: "请输入数值",
-            icon: "none"
-          });
-          return;
-        }
-        if (activeDistanceType.value === "longitudinal") {
-          longitudinalDistance.value = inputValue + "米";
-        } else if (activeDistanceType.value === "lateral") {
-          lateralDistance.value = inputValue + "米";
-        } else if (activeDistanceType.value === "vertical") {
-          verticalDistance.value = inputValue + "米";
-        }
-        LocationDescriptionDistancePopup.value.close();
-        distanceInput1Value.value = "";
-      };
-      const confirmDistanceInput2 = () => {
-        const numerator = distanceInput2Numerator.value;
-        const denominator = distanceInput2Denominator.value;
-        if (!numerator || !denominator) {
-          uni.showToast({
-            title: "请完整输入分子和分母",
-            icon: "none"
-          });
-          return;
-        }
-        const fractionValue = denominator + "/" + numerator;
-        if (activeDistanceType.value === "longitudinal") {
-          longitudinalDistance.value = fractionValue;
-        } else if (activeDistanceType.value === "lateral") {
-          lateralDistance.value = fractionValue;
-        } else if (activeDistanceType.value === "vertical") {
-          verticalDistance.value = fractionValue;
-        }
-        LocationDescriptionDistancePopup.value.close();
-        distanceInput2Numerator.value = "";
-        distanceInput2Denominator.value = "";
-      };
-      const selectDistanceItem = (item) => {
-        if (activeDistanceType.value === "longitudinal") {
-          longitudinalDistance.value = item;
-        } else if (activeDistanceType.value === "lateral") {
-          lateralDistance.value = item;
-        } else if (activeDistanceType.value === "vertical") {
-          verticalDistance.value = item;
-        }
-        LocationDescriptionDistancePopup.value.close();
-      };
-      const distanceInput1Value = vue.ref("");
-      const distanceInput2Numerator = vue.ref("");
-      const distanceInput2Denominator = vue.ref("");
-      const __returned__ = { popup: popup2, ADImgs, userId, buildingId, isEdit, structureData, parentObjectName, biObjectNameOptions, diseaseTypeOptions, biObjectName, biObjectindex, componentCode, componentCodeindex, componentCodePopup, filteredComponentCodes, componentCodeFilter, type, typeindex, position, quantity, WayofDefect, WayofDefectindex, length, width, slitWidth, heightOrDepth, area, description, fileList, scalesItems, scalesCurrent, ratingItems, ratingCurrent, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, quantityUnitData, quantityUnitOptions, quantityUnitIndex, quantityUnitChange, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, maintenanceStatus, maintenanceStatusindex, initMultiPickerColumn2, typeColumnChange, typeMultiPickerChange, fillFormWithData, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, savedisease, canceldisease, typePickerChange, numberPickerChange, TypeofdefectPickerChange, WayofDefectPickerChange, ScalesRadioChange, RatingsRadioChange, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, openDiseasePositionPopup, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateBiObjectOptions, updateComponentNumbers, updateDiseaseTypeOptions, openComponentCodePopup, closeComponentCodePopup, confirmComponentCode, clearComponentSearch, filterComponentCodes, selectComponentCode, longitudinalPosition, lateralPosition, verticalPosition, activePositionType, currentPositionTitle, longitudinalPositionOptions, lateralPositionOptions, verticalPositionOptions, currentPositionOptions, positionInput1Value, positionInput2Value, LocationDescriptionPositionPopup, openLocationPositionPopup, confirmPositionInput1, confirmPositionInput2, selectPositionItem, LocationDescriptionDistancePopup, openLocationDistancePopup, lengthUnitData, lengthUnitOptions, lengthUnitIndex, lengthUnitChange, widthUnitData, widthUnitOptions, widthUnitIndex, widthUnitChange, heightUnitData, heightUnitOptions, heightUnitIndex, heightUnitChange, seamsWidthUnitData, seamsWidthUnitOptions, seamsWidthUnitIndex, seamsWidthUnitChange, areaUnitData, areaUnitOptions, areaUnitIndex, areaUnitChange, volumeUnitData, volumeUnitOptions, volumeUnitIndex, volumeUnitChange, longitudinalDistance, lateralDistance, verticalDistance, activeDistanceType, confirmDistanceInput1, confirmDistanceInput2, selectDistanceItem, distanceInput1Value, distanceInput2Numerator, distanceInput2Denominator, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, get getObject() {
+      const currentDiseaseIndex = vue.ref(0);
+      const __returned__ = { popup, ADImgs, userId, buildingId, isEdit, structureData, parentObjectName, biObjectNameOptions, diseaseTypeOptions, biObjectName, biObjectindex, componentCode, componentCodeindex, componentCodePopup, filteredComponentCodes, componentCodeFilter, type, typeindex, position, diseaseDataList, quantity, updateDiseaseDataList, WayofDefect, WayofDefectindex, length, width, slitWidth, heightOrDepth, area, description, fileList, scalesItems, scalesCurrent, ratingItems, ratingCurrent, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, crackCharacteristicsIndex, crackCharacteristics, trend, trendindex, referenceSurface1, referenceSurface2, referenceSurfacePopup, currentReferenceSurface, referenceSurfaceInput, referenceSurfaceOptions, initMultiPickerColumns, updateThirdColumn, typeColumnChange, typeMultiPickerChange, fillFormWithData, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, savedisease, canceldisease, typePickerChange, numberPickerChange, TypeofdefectPickerChange, WayofDefectPickerChange, ScalesRadioChange, RatingsRadioChange, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateBiObjectOptions, updateComponentNumbers, updateDiseaseTypeOptions, openComponentCodePopup, checkAndOpenComponentCodePopup, checkComponentCodeSelected, checkAndOpenDiseasePositionPopup, openPositionPopup, volume, angle, percentage, clearQuantity, clearLength, clearWidth, clearHeight, clearSeamsWidth, clearArea, clearVolume, clearAngle, clearPercentage, getSelectedComponentName, componentCodeInput, updateDiseasePositionOptions, parseProps, openReferenceSurfacePopup, setDefaultReferenceSurfaceOptions, parsePropsForRef, confirmreferenceSurfaceInput, selectReferenceSurfaceItem, clearReferenceSurfaceStart, clearReferenceSurfaceEnd, currentDiseaseIndex, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, get getObject() {
         return getObject;
       }, get saveDiseaseImages() {
         return saveDiseaseImages;
@@ -14426,10 +14871,10 @@ ${i3}
       return __returned__;
     }
   };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_data_checkbox = resolveEasycom(vue.resolveDynamicComponent("uni-data-checkbox"), __easycom_0);
     const _component_uni_file_picker = resolveEasycom(vue.resolveDynamicComponent("uni-file-picker"), __easycom_1);
-    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_2$1);
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
     const _component_uni_combox = resolveEasycom(vue.resolveDynamicComponent("uni-combox"), __easycom_3);
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 新增病害时显示 "),
@@ -14498,7 +14943,7 @@ ${i3}
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
               vue.createElementVNode("view", { class: "picker-left" }, [
                 vue.createElementVNode("text", { class: "picker-must" }, "*"),
-                vue.createElementVNode("view", { class: "picker-title" }, " 部件类型 ")
+                vue.createElementVNode("view", { class: "picker-title" }, " 构件名称 ")
               ]),
               vue.createElementVNode("view", { class: "picker-right" }, [
                 vue.createElementVNode(
@@ -14507,7 +14952,7 @@ ${i3}
                     class: "picker-content",
                     style: vue.normalizeStyle($setup.biObjectindex === -1 ? "color: #CCCCCC;" : "")
                   },
-                  vue.toDisplayString($setup.biObjectName[$setup.biObjectindex] || "请选择部件类型"),
+                  vue.toDisplayString($setup.getSelectedComponentName() || "请选择部件类型"),
                   5
                   /* TEXT, STYLE */
                 ),
@@ -14515,28 +14960,32 @@ ${i3}
               ])
             ])
           ], 40, ["value", "range"]),
-          vue.createCommentVNode(" 替换原来的构件编号picker为view "),
-          vue.createElementVNode("view", {
-            class: "picker",
-            onClick: $setup.openComponentCodePopup
-          }, [
+          vue.createCommentVNode(" 替换原来的构件编号picker为input输入框 "),
+          vue.createElementVNode("view", { class: "picker" }, [
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
               vue.createElementVNode("view", { class: "picker-left" }, [
                 vue.createElementVNode("text", { class: "picker-must" }, "*"),
                 vue.createElementVNode("view", { class: "picker-title" }, " 构件编号 ")
               ]),
-              vue.createElementVNode("view", { class: "picker-right" }, [
-                vue.createElementVNode(
-                  "view",
+              vue.createElementVNode("view", { class: "input-right" }, [
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
                   {
-                    class: "picker-content",
-                    style: vue.normalizeStyle($setup.componentCodeindex === -1 ? "color: #CCCCCC;" : "")
+                    class: "component-code-input",
+                    "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.componentCodeInput = $event),
+                    placeholder: "请输入构件编号",
+                    "placeholder-style": "color: #CCCCCC;"
                   },
-                  vue.toDisplayString($setup.componentCode[$setup.componentCodeindex] || "请选择构件编号"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("text", { class: "picker-icon" }, ">")
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.componentCodeInput]
+                ]),
+                vue.createElementVNode("view", {
+                  class: "clear-input",
+                  onClick: _cache[1] || (_cache[1] = ($event) => $setup.componentCodeInput = "")
+                }, "×")
               ])
             ])
           ]),
@@ -14569,7 +15018,7 @@ ${i3}
           vue.createCommentVNode(" 修改病害位置区域 - 添加点击事件 "),
           vue.createElementVNode("view", {
             class: "picker",
-            onClick: $setup.openDiseasePositionPopup
+            onClick: $setup.openPositionPopup
           }, [
             vue.createElementVNode("view", { class: "picker-titleAndContent" }, [
               vue.createElementVNode("view", { class: "picker-left" }, [
@@ -14589,123 +15038,6 @@ ${i3}
                 ),
                 vue.createElementVNode("text", { class: "picker-icon" }, ">")
               ])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "location-description" }, [
-            vue.createElementVNode("view", { class: "location-description-left" }, " 纵向位置描述 "),
-            vue.createElementVNode("view", { class: "location-description-right" }, [
-              vue.createTextVNode(" 距 "),
-              vue.createElementVNode("view", {
-                class: "location-description-right-position",
-                onClick: _cache[0] || (_cache[0] = ($event) => $setup.openLocationPositionPopup("longitudinal"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-position-input",
-                    style: vue.normalizeStyle(!$setup.longitudinalPosition ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.longitudinalPosition || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", {
-                class: "location-description-right-distance",
-                onClick: _cache[1] || (_cache[1] = ($event) => $setup.openLocationDistancePopup("longitudinal"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-distance-input",
-                    style: vue.normalizeStyle(!$setup.longitudinalDistance ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.longitudinalDistance || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", { class: "clear" }, " × ")
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "location-description" }, [
-            vue.createElementVNode("view", { class: "location-description-left" }, " 横向位置描述 "),
-            vue.createElementVNode("view", { class: "location-description-right" }, [
-              vue.createTextVNode(" 距 "),
-              vue.createElementVNode("view", {
-                class: "location-description-right-position",
-                onClick: _cache[2] || (_cache[2] = ($event) => $setup.openLocationPositionPopup("lateral"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-position-input",
-                    style: vue.normalizeStyle(!$setup.lateralPosition ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.lateralPosition || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", {
-                class: "location-description-right-distance",
-                onClick: _cache[3] || (_cache[3] = ($event) => $setup.openLocationDistancePopup("lateral"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-distance-input",
-                    style: vue.normalizeStyle(!$setup.lateralDistance ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.lateralDistance || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", { class: "clear" }, " × ")
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "location-description" }, [
-            vue.createElementVNode("view", { class: "location-description-left" }, " 竖向位置描述 "),
-            vue.createElementVNode("view", { class: "location-description-right" }, [
-              vue.createTextVNode(" 距 "),
-              vue.createElementVNode("view", {
-                class: "location-description-right-position",
-                onClick: _cache[4] || (_cache[4] = ($event) => $setup.openLocationPositionPopup("vertical"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-distance-input",
-                    style: vue.normalizeStyle(!$setup.verticalPosition ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.verticalPosition || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", {
-                class: "location-description-right-distance",
-                onClick: _cache[5] || (_cache[5] = ($event) => $setup.openLocationDistancePopup("vertical"))
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  {
-                    class: "location-description-right-distance-input",
-                    style: vue.normalizeStyle(!$setup.verticalDistance ? "color: #CCCCCC;" : "")
-                  },
-                  vue.toDisplayString($setup.verticalDistance || "请选择"),
-                  5
-                  /* TEXT, STYLE */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ]),
-              vue.createElementVNode("view", { class: "clear" }, " × ")
             ])
           ])
         ]),
@@ -14776,226 +15108,719 @@ ${i3}
             vue.createElementVNode("view", { class: "head-text" }, " 病害定量数据 ")
           ]),
           vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 缺损数量 "),
+            vue.createElementVNode("view", { class: "quantitative-data-left" }, [
+              vue.createElementVNode("text", { class: "picker-must" }, "*"),
+              vue.createElementVNode("view", null, "缺损数量")
+            ]),
             vue.createElementVNode("view", { class: "quantitative-data-right" }, [
               vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
+                vue.withDirectives(vue.createElementVNode(
+                  "input",
+                  {
+                    class: "quantitative-data-right-value-input",
+                    placeholder: "请填写",
+                    type: "number",
+                    "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.quantity = $event)
+                  },
+                  null,
+                  512
+                  /* NEED_PATCH */
+                ), [
+                  [vue.vModelText, $setup.quantity]
+                ]),
+                vue.createElementVNode("view", {
+                  class: "clear-input",
+                  onClick: $setup.clearQuantity
+                }, "×")
               ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.quantityUnitChange,
-                value: $setup.quantityUnitIndex,
-                range: $setup.quantityUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.quantityUnitOptions[$setup.quantityUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 长度 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.lengthUnitChange,
-                value: $setup.lengthUnitIndex,
-                range: $setup.lengthUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.lengthUnitOptions[$setup.lengthUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 宽度 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.widthUnitChange,
-                value: $setup.widthUnitIndex,
-                range: $setup.widthUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.widthUnitOptions[$setup.widthUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 高度/深度 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.heightUnitChange,
-                value: $setup.heightUnitIndex,
-                range: $setup.heightUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.heightUnitOptions[$setup.heightUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 缝宽 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.seamsWidthUnitChange,
-                value: $setup.seamsWidthUnitIndex,
-                range: $setup.seamsWidthUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.seamsWidthUnitOptions[$setup.seamsWidthUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 面积 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.areaUnitChange,
-                value: $setup.areaUnitIndex,
-                range: $setup.areaUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.areaUnitOptions[$setup.areaUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 体积 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("picker", {
-                class: "quantitative-data-right-unit",
-                onChange: $setup.volumeUnitChange,
-                value: $setup.volumeUnitIndex,
-                range: $setup.volumeUnitOptions
-              }, [
-                vue.createElementVNode(
-                  "view",
-                  { class: "quantitative-data-right-unit-input" },
-                  vue.toDisplayString($setup.volumeUnitOptions[$setup.volumeUnitIndex]),
-                  1
-                  /* TEXT */
-                ),
-                vue.createElementVNode("view", { class: "right-icon" }, ">")
-              ], 40, ["value", "range"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 角度 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("view", { class: "quantitative-data-right-unit-fixed" }, [
-                vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " 度 "),
-                vue.createElementVNode("view", { class: "right-icon" }, " ")
+              vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " 个 ")
               ])
             ])
           ]),
-          vue.createElementVNode("view", { class: "quantitative-data" }, [
-            vue.createElementVNode("view", { class: "quantitative-data-left" }, " 百分比 "),
-            vue.createElementVNode("view", { class: "quantitative-data-right" }, [
-              vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
-                vue.createElementVNode("input", {
-                  class: "quantitative-data-right-value-input",
-                  placeholder: "请填写"
-                }),
-                vue.createElementVNode("view", { class: "clear-input" }, "×")
-              ]),
-              vue.createElementVNode("view", { class: "quantitative-data-right-unit-fixed" }, [
-                vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " % "),
-                vue.createElementVNode("view", { class: "right-icon" }, " ")
-              ])
-            ])
-          ])
+          vue.createCommentVNode(" 使用v-for循环生成多组定量数据输入框 "),
+          (vue.openBlock(true), vue.createElementBlock(
+            vue.Fragment,
+            null,
+            vue.renderList($setup.diseaseDataList, (diseaseData, index) => {
+              return vue.openBlock(), vue.createElementBlock("view", {
+                key: index,
+                class: ""
+              }, [
+                vue.createCommentVNode(" 如果缺损数量大于1，显示缺损编号 "),
+                $setup.diseaseDataList.length > 1 ? (vue.openBlock(), vue.createElementBlock(
+                  "view",
+                  {
+                    key: 0,
+                    class: "disease-index-title"
+                  },
+                  " 缺损-" + vue.toDisplayString(index + 1),
+                  1
+                  /* TEXT */
+                )) : vue.createCommentVNode("v-if", true),
+                vue.createElementVNode("view", { class: "line-select" }, [
+                  vue.createElementVNode("view", { class: "line-select-left" }, [
+                    vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+                    vue.createElementVNode("view", null, "裂缝特征")
+                  ]),
+                  vue.createElementVNode("view", { class: "line-select-right" }, [
+                    vue.createVNode(_component_uni_data_checkbox, {
+                      mode: "tag",
+                      modelValue: diseaseData.crackCharacteristicsIndex,
+                      "onUpdate:modelValue": ($event) => diseaseData.crackCharacteristicsIndex = $event,
+                      localdata: $setup.crackCharacteristics
+                    }, null, 8, ["modelValue", "onUpdate:modelValue", "localdata"])
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "location-description" }, [
+                  vue.createElementVNode("view", { class: "location-description-left" }, " 据参考面1位置 "),
+                  vue.createElementVNode("view", { class: "location-description-right" }, [
+                    vue.createTextVNode(" 距 "),
+                    vue.createElementVNode("view", {
+                      class: "location-description-right-position",
+                      onClick: ($event) => $setup.openReferenceSurfacePopup(1, index)
+                    }, [
+                      vue.createElementVNode(
+                        "view",
+                        {
+                          class: "location-description-right-position-input",
+                          style: vue.normalizeStyle(!diseaseData.referenceSurface1 ? "color: #CCCCCC;" : "")
+                        },
+                        vue.toDisplayString(diseaseData.referenceSurface1 || "请选择"),
+                        5
+                        /* TEXT, STYLE */
+                      ),
+                      vue.createElementVNode("view", { class: "right-icon" }, ">")
+                    ], 8, ["onClick"]),
+                    vue.createElementVNode("view", { class: "reference-start" }, [
+                      vue.withDirectives(vue.createElementVNode("input", {
+                        type: "text",
+                        placeholder: "起点位置",
+                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface1Start = $event
+                      }, null, 8, ["onUpdate:modelValue"]), [
+                        [vue.vModelText, diseaseData.referenceSurface1Start]
+                      ]),
+                      vue.createElementVNode("view", {
+                        class: "clear-input",
+                        onClick: ($event) => $setup.clearReferenceSurfaceStart(index, 1)
+                      }, "×", 8, ["onClick"])
+                    ]),
+                    vue.createElementVNode("view", { class: "reference-end" }, [
+                      vue.withDirectives(vue.createElementVNode("input", {
+                        type: "text",
+                        placeholder: "终点位置",
+                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface1End = $event
+                      }, null, 8, ["onUpdate:modelValue"]), [
+                        [vue.vModelText, diseaseData.referenceSurface1End]
+                      ]),
+                      vue.createElementVNode("view", {
+                        class: "clear-input",
+                        onClick: ($event) => $setup.clearReferenceSurfaceEnd(index, 1)
+                      }, "×", 8, ["onClick"])
+                    ]),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m ")
+                    ])
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "location-description" }, [
+                  vue.createElementVNode("view", { class: "location-description-left" }, " 据参考面2位置 "),
+                  vue.createElementVNode("view", { class: "location-description-right" }, [
+                    vue.createTextVNode(" 距 "),
+                    vue.createElementVNode("view", {
+                      class: "location-description-right-position",
+                      onClick: ($event) => $setup.openReferenceSurfacePopup(2, index)
+                    }, [
+                      vue.createElementVNode(
+                        "view",
+                        {
+                          class: "location-description-right-position-input",
+                          style: vue.normalizeStyle(!diseaseData.referenceSurface2 ? "color: #CCCCCC;" : "")
+                        },
+                        vue.toDisplayString(diseaseData.referenceSurface2 || "请选择"),
+                        5
+                        /* TEXT, STYLE */
+                      ),
+                      vue.createElementVNode("view", { class: "right-icon" }, ">")
+                    ], 8, ["onClick"]),
+                    vue.createElementVNode("view", { class: "reference-start" }, [
+                      vue.withDirectives(vue.createElementVNode("input", {
+                        type: "text",
+                        placeholder: "起点位置",
+                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface2Start = $event
+                      }, null, 8, ["onUpdate:modelValue"]), [
+                        [vue.vModelText, diseaseData.referenceSurface2Start]
+                      ]),
+                      vue.createElementVNode("view", {
+                        class: "clear-input",
+                        onClick: ($event) => $setup.clearReferenceSurfaceStart(index, 2)
+                      }, "×", 8, ["onClick"])
+                    ]),
+                    vue.createElementVNode("view", { class: "reference-end" }, [
+                      vue.withDirectives(vue.createElementVNode("input", {
+                        type: "text",
+                        placeholder: "终点位置",
+                        "onUpdate:modelValue": ($event) => diseaseData.referenceSurface2End = $event
+                      }, null, 8, ["onUpdate:modelValue"]), [
+                        [vue.vModelText, diseaseData.referenceSurface2End]
+                      ]),
+                      vue.createElementVNode("view", {
+                        class: "clear-input",
+                        onClick: ($event) => $setup.clearReferenceSurfaceEnd(index, 2)
+                      }, "×", 8, ["onClick"])
+                    ]),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 长度 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 长度 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.lengthMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.lengthMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.lengthMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.lengthMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.lengthMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.lengthMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.length = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.length]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.length = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 宽度 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 宽度 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.widthMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.widthMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.widthMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.widthMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.widthMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.widthMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.width = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.width]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.width = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 高度/深度 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 高度/深度 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.heightOrDepthMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.heightOrDepthMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.heightOrDepthMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.heightOrDepthMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.heightOrDepthMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.heightOrDepthMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.heightOrDepth = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.heightOrDepth]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.heightOrDepth = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 缝宽 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 缝宽 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.slitWidthMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.slitWidthMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.slitWidthMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.slitWidthMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.slitWidthMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.slitWidthMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.slitWidth = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.slitWidth]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.slitWidth = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " mm ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 面积 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 面积 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.areaMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.areaMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.areaMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.areaMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.areaMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.areaMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.area = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.area]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.area = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m² ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 体积 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 体积 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.volumeMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.volumeMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.volumeMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.volumeMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.volumeMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.volumeMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.volume = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.volume]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.volume = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " m³ ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 角度 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 角度 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.angleMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.angleMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.angleMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.angleMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.angleMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.angleMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.angle = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.angle]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.angle = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " 度 ")
+                    ])
+                  ])
+                ]),
+                vue.createCommentVNode(" 百分比 - 根据模式显示不同的输入框 "),
+                vue.createElementVNode("view", { class: "quantitative-data" }, [
+                  vue.createElementVNode("view", { class: "quantitative-data-left" }, " 百分比 "),
+                  vue.createElementVNode("view", { class: "quantitative-data-right" }, [
+                    vue.createCommentVNode(" 范围模式 "),
+                    diseaseData.useRangeMode ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "quantitative-data-right-range"
+                    }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最小值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.percentageMin = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.percentageMin]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.percentageMin = ""
+                        }, "×", 8, ["onClick"])
+                      ]),
+                      vue.createElementVNode("view", { class: "range-separator" }, "-"),
+                      vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                        vue.withDirectives(vue.createElementVNode("input", {
+                          class: "quantitative-data-right-value-input",
+                          placeholder: "最大值",
+                          type: "number",
+                          "onUpdate:modelValue": ($event) => diseaseData.percentageMax = $event
+                        }, null, 8, ["onUpdate:modelValue"]), [
+                          [vue.vModelText, diseaseData.percentageMax]
+                        ]),
+                        vue.createElementVNode("view", {
+                          class: "clear-input",
+                          onClick: ($event) => diseaseData.percentageMax = ""
+                        }, "×", 8, ["onClick"])
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      vue.Fragment,
+                      { key: 1 },
+                      [
+                        vue.createCommentVNode(" 普通模式 "),
+                        vue.createElementVNode("view", { class: "quantitative-data-right-value" }, [
+                          vue.withDirectives(vue.createElementVNode("input", {
+                            class: "quantitative-data-right-value-input",
+                            placeholder: "请填写",
+                            type: "number",
+                            "onUpdate:modelValue": ($event) => diseaseData.percentage = $event
+                          }, null, 8, ["onUpdate:modelValue"]), [
+                            [vue.vModelText, diseaseData.percentage]
+                          ]),
+                          vue.createElementVNode("view", {
+                            class: "clear-input",
+                            onClick: ($event) => diseaseData.percentage = ""
+                          }, "×", 8, ["onClick"])
+                        ])
+                      ],
+                      64
+                      /* STABLE_FRAGMENT */
+                    )),
+                    vue.createElementVNode("view", { class: "quantitative-data-right-unit" }, [
+                      vue.createElementVNode("view", { class: "quantitative-data-right-unit-input" }, " % ")
+                    ])
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "line-select" }, [
+                  vue.createElementVNode("view", { class: "line-select-left" }, [
+                    vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
+                    vue.createElementVNode("view", null, "发展趋势")
+                  ]),
+                  vue.createElementVNode("view", { class: "line-select-right" }, [
+                    vue.createVNode(_component_uni_data_checkbox, {
+                      mode: "tag",
+                      modelValue: diseaseData.trendIndex,
+                      "onUpdate:modelValue": ($event) => diseaseData.trendIndex = $event,
+                      localdata: $setup.trend
+                    }, null, 8, ["modelValue", "onUpdate:modelValue", "localdata"])
+                  ])
+                ])
+              ]);
+            }),
+            128
+            /* KEYED_FRAGMENT */
+          ))
         ]),
         vue.createElementVNode("view", null, [
           vue.createElementVNode("view", { class: "head" }, [
@@ -15004,24 +15829,33 @@ ${i3}
           vue.createElementVNode("view", { class: "input-area" }, [
             vue.createElementVNode("view", { class: "input-area-title" }, [
               vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createTextVNode("病害描述 ")
+              vue.createElementVNode("view", null, "病害描述")
             ]),
-            vue.createElementVNode("textarea", {
-              class: "input-area-content",
-              placeholder: "请填写病害信息",
-              "auto-height": ""
-            })
+            vue.withDirectives(vue.createElementVNode(
+              "textarea",
+              {
+                class: "input-area-content",
+                "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.description = $event),
+                placeholder: "请填写病害信息",
+                "auto-height": ""
+              },
+              null,
+              512
+              /* NEED_PATCH */
+            ), [
+              [vue.vModelText, $setup.description]
+            ])
           ]),
           vue.createElementVNode("view", { class: "line-select" }, [
             vue.createElementVNode("view", { class: "line-select-left" }, [
               vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createTextVNode(" 病害性质 ")
+              vue.createElementVNode("view", null, "病害性质")
             ]),
             vue.createElementVNode("view", { class: "line-select-right" }, [
               vue.createVNode(_component_uni_data_checkbox, {
                 mode: "tag",
                 modelValue: $setup.natureindex,
-                "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.natureindex = $event),
+                "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.natureindex = $event),
                 localdata: $setup.nature
               }, null, 8, ["modelValue", "localdata"])
             ])
@@ -15029,13 +15863,13 @@ ${i3}
           vue.createElementVNode("view", { class: "line-select" }, [
             vue.createElementVNode("view", { class: "line-select-left" }, [
               vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createTextVNode(" 参与评定（构件扣分25） ")
+              vue.createElementVNode("view", null, "参与评定（构件扣分25）")
             ]),
             vue.createElementVNode("view", { class: "line-select-right" }, [
               vue.createVNode(_component_uni_data_checkbox, {
                 mode: "tag",
                 modelValue: $setup.participateAssessindex,
-                "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.participateAssessindex = $event),
+                "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.participateAssessindex = $event),
                 localdata: $setup.participateAssess
               }, null, 8, ["modelValue", "localdata"])
             ])
@@ -15043,28 +15877,14 @@ ${i3}
           vue.createElementVNode("view", { class: "line-select" }, [
             vue.createElementVNode("view", { class: "line-select-left" }, [
               vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createTextVNode(" 评定标度 ")
+              vue.createElementVNode("view", null, "评定标度")
             ]),
             vue.createElementVNode("view", { class: "line-select-right" }, [
               vue.createVNode(_component_uni_data_checkbox, {
                 mode: "tag",
                 modelValue: $setup.levelindex,
-                "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => $setup.levelindex = $event),
+                "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.levelindex = $event),
                 localdata: $setup.level
-              }, null, 8, ["modelValue", "localdata"])
-            ])
-          ]),
-          vue.createElementVNode("view", { class: "line-select" }, [
-            vue.createElementVNode("view", { class: "line-select-left" }, [
-              vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createTextVNode(" 病害维护状态 ")
-            ]),
-            vue.createElementVNode("view", { class: "line-select-right" }, [
-              vue.createVNode(_component_uni_data_checkbox, {
-                mode: "tag",
-                modelValue: $setup.maintenanceStatusindex,
-                "onUpdate:modelValue": _cache[9] || (_cache[9] = ($event) => $setup.maintenanceStatusindex = $event),
-                localdata: $setup.maintenanceStatus
               }, null, 8, ["modelValue", "localdata"])
             ])
           ])
@@ -15164,7 +15984,7 @@ ${i3}
               limit: "9",
               "image-styles": $setup.imageStyles,
               modelValue: $setup.fileList,
-              "onUpdate:modelValue": _cache[10] || (_cache[10] = ($event) => $setup.fileList = $event),
+              "onUpdate:modelValue": _cache[7] || (_cache[7] = ($event) => $setup.fileList = $event),
               "file-mediatype": "image",
               mode: "grid",
               onSelect: $setup.handleFileSelect,
@@ -15186,8 +16006,7 @@ ${i3}
                 }, [
                   vue.createElementVNode("image", {
                     src: img.src,
-                    class: "ADImage",
-                    mode: "widthFix"
+                    class: "ADImage"
                   }, null, 8, ["src"]),
                   vue.createElementVNode("view", {
                     class: "close-btn",
@@ -15200,7 +16019,7 @@ ${i3}
             )),
             vue.createElementVNode("view", {
               class: "ADImage-container",
-              onClick: _cache[11] || (_cache[11] = ($event) => $setup.selectCanvasTemplate())
+              onClick: _cache[8] || (_cache[8] = ($event) => $setup.selectCanvasTemplate())
             }, [
               vue.createElementVNode("image", {
                 src: _imports_0$2,
@@ -15221,22 +16040,126 @@ ${i3}
           default: vue.withCtx(() => [
             vue.createElementVNode("view", { class: "popup-content" }, [
               vue.createElementVNode("view", { class: "template-row" }, [
-                vue.createElementVNode("view", { class: "template-type" }, " 模板 "),
+                vue.createElementVNode("view", { class: "template-type" }, " 空心板、实心板 "),
                 vue.createElementVNode("view", { class: "template-image" }, [
                   vue.createElementVNode("image", {
                     src: _imports_1$1,
                     class: "template-image-card",
-                    onClick: _cache[12] || (_cache[12] = ($event) => $setup.onClickTemplate(1))
+                    onClick: _cache[9] || (_cache[9] = ($event) => $setup.onClickTemplate("kxb1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_2$1,
                     class: "template-image-card",
-                    onClick: _cache[13] || (_cache[13] = ($event) => $setup.onClickTemplate(2))
+                    onClick: _cache[10] || (_cache[10] = ($event) => $setup.onClickTemplate("kxb2"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_3$1,
                     class: "template-image-card",
-                    onClick: _cache[14] || (_cache[14] = ($event) => $setup.onClickTemplate(3))
+                    onClick: _cache[11] || (_cache[11] = ($event) => $setup.onClickTemplate("kxb3"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_4$1,
+                    class: "template-image-card",
+                    onClick: _cache[12] || (_cache[12] = ($event) => $setup.onClickTemplate("kxb4"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_5$1,
+                    class: "template-image-card",
+                    onClick: _cache[13] || (_cache[13] = ($event) => $setup.onClickTemplate("kxb5"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_6,
+                    class: "template-image-card",
+                    onClick: _cache[14] || (_cache[14] = ($event) => $setup.onClickTemplate("kxb6"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " T梁 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_7,
+                    class: "template-image-card",
+                    onClick: _cache[15] || (_cache[15] = ($event) => $setup.onClickTemplate("tl1"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 箱梁 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_8,
+                    class: "template-image-card",
+                    onClick: _cache[16] || (_cache[16] = ($event) => $setup.onClickTemplate("xl1"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 变截面箱梁 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_9,
+                    class: "template-image-card",
+                    onClick: _cache[17] || (_cache[17] = ($event) => $setup.onClickTemplate("blmxl1"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_10,
+                    class: "template-image-card",
+                    onClick: _cache[18] || (_cache[18] = ($event) => $setup.onClickTemplate("blmxl2"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_11,
+                    class: "template-image-card",
+                    onClick: _cache[19] || (_cache[19] = ($event) => $setup.onClickTemplate("blmxl3"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_12,
+                    class: "template-image-card",
+                    onClick: _cache[20] || (_cache[20] = ($event) => $setup.onClickTemplate("blmxl4"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 桥台、桥墩 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_13,
+                    class: "template-image-card",
+                    onClick: _cache[21] || (_cache[21] = ($event) => $setup.onClickTemplate("qt1"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_14,
+                    class: "template-image-card",
+                    onClick: _cache[22] || (_cache[22] = ($event) => $setup.onClickTemplate("qt2"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 横隔板 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_15,
+                    class: "template-image-card",
+                    onClick: _cache[23] || (_cache[23] = ($event) => $setup.onClickTemplate("hgb1"))
+                  }),
+                  vue.createElementVNode("image", {
+                    src: _imports_16,
+                    class: "template-image-card",
+                    onClick: _cache[24] || (_cache[24] = ($event) => $setup.onClickTemplate("hgb2"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 翼墙、耳墙 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_17,
+                    class: "template-image-card",
+                    onClick: _cache[25] || (_cache[25] = ($event) => $setup.onClickTemplate("yq1"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 盖梁 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_18,
+                    class: "template-image-card",
+                    onClick: _cache[26] || (_cache[26] = ($event) => $setup.onClickTemplate("gl1"))
+                  })
+                ]),
+                vue.createElementVNode("view", { class: "template-type" }, " 圆桩墩 "),
+                vue.createElementVNode("view", { class: "template-image" }, [
+                  vue.createElementVNode("image", {
+                    src: _imports_19,
+                    class: "template-image-card",
+                    onClick: _cache[27] || (_cache[27] = ($event) => $setup.onClickTemplate("yzd1"))
                   })
                 ])
               ])
@@ -15263,7 +16186,7 @@ ${i3}
                 class: "position-combox",
                 candidates: $setup.diseasePosition,
                 modelValue: $setup.selectedPosition,
-                "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $setup.selectedPosition = $event),
+                "onUpdate:modelValue": _cache[28] || (_cache[28] = ($event) => $setup.selectedPosition = $event),
                 placeholder: "请选择病害位置"
               }, null, 8, ["candidates", "modelValue"]),
               vue.createElementVNode("view", { class: "position-popup-buttons" }, [
@@ -15284,90 +16207,16 @@ ${i3}
         512
         /* NEED_PATCH */
       ),
-      vue.createCommentVNode(" 添加构件编号选择弹窗 "),
       vue.createVNode(
         _component_uni_popup,
         {
-          ref: "componentCodePopup",
-          type: "center"
-        },
-        {
-          default: vue.withCtx(() => [
-            vue.createElementVNode("view", { class: "component-popup-content" }, [
-              vue.createElementVNode("view", { class: "component-popup-title" }, "选择构件编号"),
-              vue.createElementVNode("view", { class: "component-search-box" }, [
-                vue.withDirectives(vue.createElementVNode(
-                  "input",
-                  {
-                    class: "component-search-input",
-                    "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $setup.componentCodeFilter = $event),
-                    placeholder: "输入关键字筛选",
-                    onInput: $setup.filterComponentCodes
-                  },
-                  null,
-                  544
-                  /* NEED_HYDRATION, NEED_PATCH */
-                ), [
-                  [vue.vModelText, $setup.componentCodeFilter]
-                ]),
-                $setup.componentCodeFilter ? (vue.openBlock(), vue.createElementBlock("text", {
-                  key: 0,
-                  class: "component-search-clear",
-                  onClick: $setup.clearComponentSearch
-                }, "×")) : vue.createCommentVNode("v-if", true)
-              ]),
-              vue.createElementVNode("scroll-view", {
-                class: "component-code-list",
-                "scroll-y": ""
-              }, [
-                (vue.openBlock(true), vue.createElementBlock(
-                  vue.Fragment,
-                  null,
-                  vue.renderList($setup.filteredComponentCodes, (item, index) => {
-                    return vue.openBlock(), vue.createElementBlock("view", {
-                      key: index,
-                      class: vue.normalizeClass(["component-code-item", { "component-code-item-active": $setup.componentCode[$setup.componentCodeindex] === item }]),
-                      onClick: ($event) => $setup.selectComponentCode(index)
-                    }, vue.toDisplayString(item), 11, ["onClick"]);
-                  }),
-                  128
-                  /* KEYED_FRAGMENT */
-                ))
-              ]),
-              vue.createElementVNode("view", { class: "component-popup-buttons" }, [
-                vue.createElementVNode("button", {
-                  class: "component-popup-button cancel",
-                  onClick: $setup.closeComponentCodePopup
-                }, "取消"),
-                vue.createElementVNode("button", {
-                  class: "component-popup-button confirm",
-                  onClick: $setup.confirmComponentCode
-                }, "确认")
-              ])
-            ])
-          ]),
-          _: 1
-          /* STABLE */
-        },
-        512
-        /* NEED_PATCH */
-      ),
-      vue.createVNode(
-        _component_uni_popup,
-        {
-          ref: "LocationDescriptionPositionPopup",
+          ref: "referenceSurfacePopup",
           type: "center"
         },
         {
           default: vue.withCtx(() => [
             vue.createElementVNode("view", { class: "location-description-position-popup-content" }, [
-              vue.createElementVNode(
-                "view",
-                { class: "location-description-position-popup-title" },
-                vue.toDisplayString($setup.currentPositionTitle),
-                1
-                /* TEXT */
-              ),
+              vue.createElementVNode("view", { class: "location-description-position-popup-title" }, "参考面选择"),
               vue.createElementVNode("view", { class: "location-description-position-popup-input1" }, [
                 vue.withDirectives(vue.createElementVNode(
                   "input",
@@ -15375,146 +16224,32 @@ ${i3}
                     type: "text",
                     placeholder: "请填写",
                     class: "location-description-popup-input",
-                    "onUpdate:modelValue": _cache[17] || (_cache[17] = ($event) => $setup.positionInput1Value = $event)
+                    "onUpdate:modelValue": _cache[29] || (_cache[29] = ($event) => $setup.referenceSurfaceInput = $event)
                   },
                   null,
                   512
                   /* NEED_PATCH */
                 ), [
-                  [vue.vModelText, $setup.positionInput1Value]
+                  [vue.vModelText, $setup.referenceSurfaceInput]
                 ]),
                 vue.createElementVNode("button", {
                   class: "location-description-popup-button",
-                  onClick: $setup.confirmPositionInput1
+                  onClick: $setup.confirmreferenceSurfaceInput
                 }, "确定")
-              ]),
-              vue.createElementVNode("view", { class: "location-description-position-popup-input2" }, [
-                vue.withDirectives(vue.createElementVNode(
-                  "input",
-                  {
-                    type: "text",
-                    placeholder: "请填写",
-                    class: "location-description-popup-input",
-                    "onUpdate:modelValue": _cache[18] || (_cache[18] = ($event) => $setup.positionInput2Value = $event)
-                  },
-                  null,
-                  512
-                  /* NEED_PATCH */
-                ), [
-                  [vue.vModelText, $setup.positionInput2Value]
-                ]),
-                vue.createElementVNode("view", { class: "location-description-position-popup-input2-right" }, [
-                  vue.createElementVNode("view", { class: "location-description-position-popup-input2-text" }, "#墩侧"),
-                  vue.createElementVNode("button", {
-                    class: "location-description-popup-button",
-                    onClick: $setup.confirmPositionInput2
-                  }, "确定")
-                ])
               ]),
               vue.createElementVNode("view", { class: "location-description-position-popup-input3" }, [
                 (vue.openBlock(true), vue.createElementBlock(
                   vue.Fragment,
                   null,
-                  vue.renderList($setup.currentPositionOptions, (item, index) => {
+                  vue.renderList($setup.referenceSurfaceOptions, (item, index) => {
                     return vue.openBlock(), vue.createElementBlock("view", {
                       key: index,
                       class: "location-description-position-popup-input3-item",
-                      onClick: ($event) => $setup.selectPositionItem(item)
+                      onClick: ($event) => $setup.selectReferenceSurfaceItem(item)
                     }, vue.toDisplayString(item), 9, ["onClick"]);
                   }),
                   128
                   /* KEYED_FRAGMENT */
-                ))
-              ])
-            ])
-          ]),
-          _: 1
-          /* STABLE */
-        },
-        512
-        /* NEED_PATCH */
-      ),
-      vue.createVNode(
-        _component_uni_popup,
-        {
-          ref: "LocationDescriptionDistancePopup",
-          type: "center"
-        },
-        {
-          default: vue.withCtx(() => [
-            vue.createElementVNode("view", { class: "location-description-distance-popup-content" }, [
-              vue.createElementVNode("view", { class: "location-description-distance-popup-title" }, "位置"),
-              vue.createElementVNode("view", { class: "location-description-distance-popup-input1" }, [
-                vue.withDirectives(vue.createElementVNode(
-                  "input",
-                  {
-                    type: "text",
-                    "onUpdate:modelValue": _cache[19] || (_cache[19] = ($event) => $setup.distanceInput1Value = $event),
-                    placeholder: "请填写",
-                    class: "location-description-popup-input"
-                  },
-                  null,
-                  512
-                  /* NEED_PATCH */
-                ), [
-                  [vue.vModelText, $setup.distanceInput1Value]
-                ]),
-                vue.createElementVNode("view", { class: "location-description-distance-popup-input1-right" }, [
-                  vue.createElementVNode("view", { class: "location-description-distance-popup-input1-text" }, "米"),
-                  vue.createElementVNode("button", {
-                    class: "location-description-popup-button",
-                    onClick: $setup.confirmDistanceInput1
-                  }, "确定")
-                ])
-              ]),
-              vue.createElementVNode("view", { class: "location-description-distance-popup-input2" }, [
-                vue.withDirectives(vue.createElementVNode(
-                  "input",
-                  {
-                    type: "text",
-                    "onUpdate:modelValue": _cache[20] || (_cache[20] = ($event) => $setup.distanceInput2Numerator = $event),
-                    placeholder: "请填写",
-                    class: "location-description-popup-input"
-                  },
-                  null,
-                  512
-                  /* NEED_PATCH */
-                ), [
-                  [vue.vModelText, $setup.distanceInput2Numerator]
-                ]),
-                vue.createElementVNode("view", { class: "location-description-distance-popup-input2-mid" }, "分之"),
-                vue.withDirectives(vue.createElementVNode(
-                  "input",
-                  {
-                    type: "text",
-                    "onUpdate:modelValue": _cache[21] || (_cache[21] = ($event) => $setup.distanceInput2Denominator = $event),
-                    placeholder: "请填写",
-                    class: "location-description-popup-input"
-                  },
-                  null,
-                  512
-                  /* NEED_PATCH */
-                ), [
-                  [vue.vModelText, $setup.distanceInput2Denominator]
-                ]),
-                vue.createElementVNode("button", {
-                  class: "location-description-popup-button",
-                  onClick: $setup.confirmDistanceInput2
-                }, "确定")
-              ]),
-              vue.createElementVNode("view", { class: "location-description-distance-popup-input3" }, [
-                (vue.openBlock(), vue.createElementBlock(
-                  vue.Fragment,
-                  null,
-                  vue.renderList(["1/2", "1/3", "1/4"], (item, index) => {
-                    return vue.createElementVNode("view", {
-                      key: index,
-                      class: "location-description-distance-popup-input3-item",
-                      onClick: ($event) => $setup.selectDistanceItem(item)
-                    }, vue.toDisplayString(item), 9, ["onClick"]);
-                  }),
-                  64
-                  /* STABLE_FRAGMENT */
                 ))
               ])
             ])
@@ -15527,12 +16262,19 @@ ${i3}
       )
     ]);
   }
-  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
-  function drawRulerRectTemplate(ctx, {
+  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
+  function drawKxbTemplate1(ctx, {
     logicalWidth = 8,
     logicalHeight = 8,
-    unit = "cm"
+    unit = "cm",
+    qt: qt2 = 0
   }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    const showDirectionArrow = qt2 == 0 ? true : false;
     const MAX_DRAW_WIDTH = 800;
     const MAX_DRAW_HEIGHT = 400;
     let scale = MAX_DRAW_WIDTH / logicalWidth;
@@ -15543,13 +16285,8 @@ ${i3}
       drawHeight = MAX_DRAW_HEIGHT;
       drawWidth = logicalWidth * scale;
     }
-    const centerX = 750 / 2;
-    const centerY = 950 / 2;
-    ctx.translate(centerX, centerY);
-    ctx.rotate(90 * Math.PI / 180);
-    ctx.translate(-centerY, -centerX);
-    const x = (950 - drawWidth) / 2;
-    const y2 = (750 - drawHeight) / 2;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    const y2 = (systemInfo.screenHeight - drawHeight) / 2;
     const rulerGap = 10;
     const minPixelPerUnit = 40;
     let unitStepX = 1;
@@ -15562,6 +16299,12 @@ ${i3}
     ctx.setStrokeStyle("#333");
     ctx.setFontSize(12);
     ctx.strokeRect(x, y2, drawWidth, drawHeight);
+    if (qt2 == 2) {
+      ctx.beginPath();
+      ctx.moveTo(x, y2 + scale / 2);
+      ctx.lineTo(x + drawWidth, y2 + scale / 2);
+      ctx.stroke();
+    }
     ctx.beginPath();
     ctx.moveTo(x, y2 - rulerGap);
     ctx.lineTo(x + drawWidth, y2 - rulerGap);
@@ -15606,6 +16349,65 @@ ${i3}
       ctx.stroke();
       ctx.fillText(`${logicalHeight}${unit}`, px + 10, py + 5);
     }
+    if (showDirectionArrow) {
+      const arrowStartX = x + drawWidth / 3;
+      const arrowY = y2 + drawHeight + 10;
+      const arrowEndX = x + drawWidth / 3 * 2;
+      ctx.beginPath();
+      ctx.moveTo(arrowStartX, arrowY);
+      ctx.lineTo(arrowEndX, arrowY);
+      ctx.lineTo(arrowEndX - 10, arrowY - 5);
+      ctx.moveTo(arrowEndX, arrowY);
+      ctx.lineTo(arrowEndX - 10, arrowY + 5);
+      ctx.stroke();
+      ctx.fillText("桩号增大方向", x + drawWidth / 2 - 40, arrowY + 20);
+    }
+  }
+  function drawKxbTemplate2(ctx, {
+    logicalWidth = 8,
+    logicalHeight = 8,
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    const MAX_DRAW_WIDTH = 800;
+    const MAX_DRAW_HEIGHT = 400;
+    let scale = MAX_DRAW_WIDTH / logicalWidth;
+    let drawWidth = MAX_DRAW_WIDTH;
+    let drawHeight = logicalHeight * scale;
+    if (drawHeight > MAX_DRAW_HEIGHT) {
+      scale = MAX_DRAW_HEIGHT / logicalHeight;
+      drawHeight = MAX_DRAW_HEIGHT;
+      drawWidth = logicalWidth * scale;
+    }
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    const y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    const tiltOffsetX = 50;
+    ctx.setLineWidth(1);
+    ctx.setStrokeStyle("#333");
+    ctx.setFontSize(12);
+    ctx.beginPath();
+    ctx.moveTo(x + tiltOffsetX, y2);
+    ctx.lineTo(x + drawWidth, y2);
+    ctx.lineTo(x + drawWidth - tiltOffsetX, y2 + drawHeight);
+    ctx.lineTo(x, y2 + drawHeight);
+    ctx.closePath();
+    ctx.stroke();
+    drawRuler(ctx, x + tiltOffsetX, y2 - 10, x + drawWidth, y2 - 10, "colunm", logicalWidth, 25, unit);
+    drawRuler(
+      ctx,
+      x + drawWidth + 10,
+      y2,
+      x + drawWidth + 10 - tiltOffsetX,
+      y2 + drawHeight,
+      "row",
+      logicalHeight,
+      25,
+      unit
+    );
     {
       const arrowStartX = x + drawWidth / 3;
       const arrowY = y2 + drawHeight + 10;
@@ -15620,7 +16422,7 @@ ${i3}
       ctx.fillText("桩号增大方向", x + drawWidth / 2 - 40, arrowY + 20);
     }
   }
-  function drawArchBridgeTemplate(ctx, {
+  function drawBlmxlTemplate1(ctx, {
     logicalLength = 53,
     // 总逻辑长度（单位）
     beamCount = 3,
@@ -15634,15 +16436,117 @@ ${i3}
     bridgeFu = "L"
     //桥幅
   }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
+    const drawHeight = 120;
+    const screenWidth = systemInfo.screenHeight;
+    const screenHeight = systemInfo.screenWidth;
+    const x = (screenWidth - drawHeight) / 2;
+    const y2 = (screenHeight - drawWidth) / 2;
+    const unitLevel = 25;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
+    drawRuler(
+      ctx,
+      x + drawHeight + 10,
+      y2,
+      x + drawHeight + 10,
+      y2 + drawWidth,
+      "row",
+      logicalLength,
+      unitLevel,
+      unit
+    );
+    const lineList = [];
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x + drawHeight, y2 + drawWidth);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x, y2);
+    ctx.stroke();
+    lineList.push({
+      x,
+      y: y2
+    });
+    const exponent = 0;
+    const xPoints = [lineList[0].x];
+    for (let i2 = 1; i2 < beamCount; i2++) {
+      const ratio = 1 - Math.pow(1 - i2 / (beamCount + 1), exponent);
+      const xi = x + drawHeight / 3 * 2 * ratio;
+      xPoints.push(xi);
+    }
+    for (let i2 = 0; i2 < beamCount; i2++) {
+      const py = y2 + (i2 + 1) * drawWidth / (beamCount * 2 + 1);
+      const px = xPoints[i2];
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      lineList.push({
+        x: px,
+        y: py
+      });
+      ctx.lineTo(x + drawHeight, py);
+      ctx.stroke();
+    }
+    for (let i2 = 0; i2 < beamCount; i2++) {
+      const py = y2 + (i2 + 1 + beamCount) * drawWidth / (beamCount * 2 + 1);
+      ctx.beginPath();
+      ctx.moveTo(lineList[beamCount - i2].x, py);
+      lineList.push({
+        x: lineList[beamCount - i2].x,
+        y: py
+      });
+      ctx.lineTo(x + drawHeight, py);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2 + drawWidth);
+    lineList.push({
+      x,
+      y: y2 + drawWidth
+    });
+    ctx.lineTo(x, y2 + drawWidth);
+    ctx.stroke();
+    drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount);
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
+  }
+  function drawBlmxlTemplate2(ctx, {
+    logicalLength = 53,
+    // 总逻辑长度（单位）
+    beamCount = 3,
+    // 梁数，最终桥墩数 = 2n + 1
+    unit = "m",
+    // 单位显示
+    bigBeamNumber = 36,
+    //大桩号墩
+    smallBeamNumber = 35,
+    //小桩号墩
+    bridgeFu = "L"
+    //桥幅
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
     ctx.setFontSize(12);
     ctx.setFillStyle("#333");
     const drawWidth = 800 / (beamCount * 2 + 1) < 80 ? (beamCount * 2 + 1) * 80 : 800;
     const drawHeight = beamCount * 20 > 200 ? 200 : beamCount * 20;
-    const screenWidth = 750;
-    const screenHeight = 950;
+    const screenWidth = systemInfo.screenHeight;
+    const screenHeight = systemInfo.screenWidth;
     const x = (screenWidth - drawHeight) / 2;
     const y2 = (screenHeight - drawWidth) / 2;
     const unitLevel = 25;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
     drawRuler(
       ctx,
       x + drawHeight + 10,
@@ -15706,10 +16610,247 @@ ${i3}
     ctx.lineTo(x, y2 + drawWidth);
     ctx.stroke();
     drawConvexCurve(ctx, lineList, bigBeamNumber, smallBeamNumber, bridgeFu, beamCount);
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
   }
-  function drawRuler(ctx, x, y2, endx, endy, direction, logicalLength, unitLevel, unit) {
+  function drawBlmxlTemplate3(ctx, {
+    logicalLength = 53,
+    // 总逻辑长度（单位）
+    leftBeamCount = 7,
+    // 左梁数
+    unit = "m",
+    // 单位显示
+    bigBeamNumber = 36,
+    //大桩号墩
+    smallBeamNumber = 35,
+    //小桩号墩
+    bridgeFu = "L"
+    //桥幅
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const beamCount = (leftBeamCount - 1) / 2;
+    const drawWidth = (beamCount * 2 + 1) * 100;
+    const drawHeight = beamCount * 20 > 200 ? 250 : beamCount * 25;
+    const screenWidth = systemInfo.screenHeight;
+    const screenHeight = systemInfo.screenWidth;
+    const x = (screenWidth - drawHeight) / 2;
+    const y2 = (screenHeight - drawWidth) / 2;
+    const unitLevel = 25;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
+    drawRuler(
+      ctx,
+      x + drawHeight + 10,
+      y2,
+      x + drawHeight + 10,
+      y2 + drawWidth,
+      "row",
+      logicalLength,
+      unitLevel,
+      unit
+    );
+    const lineList = [];
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x + drawHeight, y2 + drawWidth);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x, y2);
+    ctx.stroke();
+    lineList.push({
+      x,
+      y: y2
+    });
+    const xPoints = [lineList[0].x];
+    const total = beamCount * 2 + 1;
+    for (let i2 = 1; i2 <= total; i2++) {
+      const ratio = Math.log(i2 + 1) / Math.log(total + 1);
+      const xi = x + drawHeight / 3 * 2 * ratio;
+      xPoints.push(xi);
+    }
+    for (let i2 = 0; i2 < beamCount * 2 + 1; i2++) {
+      const py = y2 + (i2 + 1) * drawWidth / (beamCount * 2 + 1);
+      const px = xPoints[i2];
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      lineList.push({
+        x: px,
+        y: py
+      });
+      ctx.lineTo(x + drawHeight, py);
+      ctx.stroke();
+    }
+    ctx.beginPath();
+    ctx.moveTo(x, lineList[0].y);
+    ctx.lineTo(x, lineList[1].y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lineList[lineList.length - 1].x, lineList[lineList.length - 1].y);
+    ctx.lineTo(lineList[lineList.length - 2].x, lineList[lineList.length - 2].y);
+    ctx.stroke();
+    const newLineList = lineList.slice(1, lineList.length - 1);
+    ctx.beginPath();
+    ctx.moveTo(newLineList[0].x, newLineList[0].y);
+    for (let i2 = 1; i2 < newLineList.length - 2; i2++) {
+      const xc = (newLineList[i2].x + newLineList[i2 + 1].x) / 2;
+      const yc = (newLineList[i2].y + newLineList[i2 + 1].y) / 2;
+      ctx.quadraticCurveTo(newLineList[i2].x, newLineList[i2].y, xc, yc);
+    }
+    ctx.quadraticCurveTo(
+      newLineList[newLineList.length - 2].x,
+      newLineList[newLineList.length - 2].y,
+      newLineList[newLineList.length - 1].x,
+      newLineList[newLineList.length - 1].y
+    );
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lineList[0].x, lineList[0].y);
+    for (let i2 = 1; i2 < lineList.length; i2++) {
+      const text = `${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${i2 - 1}#`;
+      const textX = lineList[i2 - 1].x - 20;
+      const textY = lineList[i2 - 1].y - 20;
+      ctx.save();
+      ctx.translate(textX, textY);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
+  }
+  function drawBlmxlTemplate4(ctx, {
+    logicalLength = 53,
+    // 总逻辑长度（单位）
+    rightBeamCount = 7,
+    // 右梁数
+    unit = "m",
+    // 单位显示
+    bigBeamNumber = 36,
+    //大桩号墩
+    smallBeamNumber = 35,
+    //小桩号墩
+    bridgeFu = "L"
+    //桥幅
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const beamCount = (rightBeamCount - 1) / 2;
+    const drawWidth = (beamCount * 2 + 1) * 100;
+    const drawHeight = beamCount * 20 > 200 ? 250 : beamCount * 25;
+    const screenWidth = systemInfo.screenHeight;
+    const screenHeight = systemInfo.screenWidth;
+    const x = (screenWidth - drawHeight) / 2;
+    const y2 = (screenHeight - drawWidth) / 2;
+    const unitLevel = 25;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
+    drawRuler(
+      ctx,
+      x + drawHeight + 10,
+      y2,
+      x + drawHeight + 10,
+      y2 + drawWidth,
+      "row",
+      logicalLength,
+      unitLevel,
+      unit
+    );
+    const lineList = [];
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2);
+    ctx.lineTo(x + drawHeight, y2 + drawWidth);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + drawHeight, y2 + drawWidth);
+    ctx.lineTo(x, y2 + drawWidth);
+    ctx.stroke();
+    lineList.push({
+      x,
+      y: y2
+    });
+    const xPoints = [lineList[0].x];
+    const total = beamCount * 2 + 1;
+    for (let i2 = 1; i2 < total; i2++) {
+      const ratio = Math.log(i2 + 1) / Math.log(total + 1);
+      const xi = x + drawHeight / 3 * 2 * ratio;
+      xPoints.push(xi);
+    }
+    xPoints.reverse();
+    for (let i2 = 0; i2 < beamCount * 2 + 1; i2++) {
+      const py = y2 + (i2 + 1) * drawWidth / (beamCount * 2 + 1);
+      const px = xPoints[i2];
+      ctx.beginPath();
+      ctx.moveTo(px, py - 100);
+      lineList.push({
+        x: px,
+        y: py - 100
+      });
+      ctx.lineTo(x + drawHeight, py - 100);
+      ctx.stroke();
+    }
+    formatAppLog("log", "at utils/drawTemplate.js:606", "list", lineList);
+    ctx.beginPath();
+    ctx.moveTo(x, lineList[lineList.length - 1].y);
+    ctx.lineTo(x, lineList[lineList.length - 1].y + 100);
+    ctx.stroke();
+    const text = `${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${rightBeamCount - 1}#`;
+    const textX = x - 20;
+    const textY = lineList[lineList.length - 1].y - 20;
+    ctx.save();
+    ctx.translate(textX, textY);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+    const newLineList = lineList.slice(1, lineList.length);
+    ctx.beginPath();
+    ctx.moveTo(newLineList[0].x, newLineList[0].y);
+    for (let i2 = 1; i2 < newLineList.length - 2; i2++) {
+      const xc = (newLineList[i2].x + newLineList[i2 + 1].x) / 2;
+      const yc = (newLineList[i2].y + newLineList[i2 + 1].y) / 2;
+      ctx.quadraticCurveTo(newLineList[i2].x, newLineList[i2].y, xc, yc);
+    }
+    ctx.quadraticCurveTo(
+      newLineList[newLineList.length - 2].x,
+      newLineList[newLineList.length - 2].y,
+      newLineList[newLineList.length - 1].x,
+      newLineList[newLineList.length - 1].y
+    );
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(lineList[0].x, lineList[0].y);
+    for (let i2 = 2; i2 < lineList.length; i2++) {
+      const text2 = `${bridgeFu}${bigBeamNumber}-${smallBeamNumber}-${i2 - 2}#`;
+      const textX2 = lineList[i2 - 1].x - 20;
+      const textY2 = lineList[i2 - 1].y - 20;
+      ctx.save();
+      ctx.translate(textX2, textY2);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text2, 0, 0);
+      ctx.restore();
+    }
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
+  }
+  function drawRuler(ctx, x, y2, endx, endy, direction, logicalLength, unitLevel, unit, isRotated = false) {
     const intLogicalLength = Math.floor(logicalLength);
     const unitCount = logicalLength % unitLevel === 0 ? logicalLength / unitLevel : Math.floor(logicalLength / unitLevel) + 1;
+    const dis = isRotated ? 8 : -8;
+    const rowdis = isRotated ? -8 : 8;
+    const textXdis = isRotated ? -30 : 10;
+    const textYdis = isRotated ? 5 : -30;
     ctx.beginPath();
     ctx.moveTo(x, y2);
     ctx.lineTo(endx, endy);
@@ -15724,26 +16865,29 @@ ${i3}
         const px = x + i2 * (longth / (intLogicalLength / unitCount));
         ctx.beginPath();
         ctx.moveTo(px, y2 + oversetY * i2);
-        ctx.lineTo(px, y2 + 8 + oversetY * i2);
+        ctx.lineTo(px, y2 + dis + oversetY * i2);
         ctx.stroke();
         text = `${i2 * unitCount}${unit}`;
         textX = px - 10;
-        textY = y2 + 15 + oversetY * i2;
+        textY = y2 - 15 + oversetY * i2;
       } else {
         const longth = endy - y2;
         const oversetX = (endx - x) / (intLogicalLength / unitCount);
         const py = y2 + i2 * (longth / (intLogicalLength / unitCount));
         ctx.beginPath();
-        ctx.moveTo(x + oversetX, py);
-        ctx.lineTo(x + 8 + oversetX, py);
+        ctx.moveTo(x + oversetX * i2, py);
+        ctx.lineTo(x + rowdis + oversetX * i2, py);
         ctx.stroke();
         text = `${i2 * unitCount}${unit}`;
-        textX = x + 15 + oversetX;
-        textY = py - 10;
+        textX = x + textXdis + oversetX * i2;
+        textY = py + textYdis;
       }
       ctx.save();
       ctx.translate(textX, textY);
-      ctx.rotate(90 * Math.PI / 180);
+      if (direction === "row" && !isRotated || direction === "colunm" && isRotated) {
+        ctx.translate(5, 26);
+        ctx.rotate(90 * Math.PI / 180);
+      }
       ctx.fillText(text, 0, 0);
       ctx.restore();
     }
@@ -15754,23 +16898,26 @@ ${i3}
       if (direction === "colunm") {
         ctx.beginPath();
         ctx.moveTo(endx, endy);
-        ctx.lineTo(endx, endy + 8);
+        ctx.lineTo(endx, endy + dis);
         ctx.stroke();
         text = `${logicalLength}${unit}`;
         textX = endx - 10;
-        textY = endy + 15;
+        textY = endy - 15;
       } else {
         ctx.beginPath();
         ctx.moveTo(endx, endy);
-        ctx.lineTo(endx + 8, endy);
+        ctx.lineTo(endx + rowdis, endy);
         ctx.stroke();
         text = `${logicalLength}${unit}`;
-        textX = endx + 15;
-        textY = endy - 10;
+        textX = endx + textXdis;
+        textY = endy + textYdis;
       }
       ctx.save();
       ctx.translate(textX, textY);
-      ctx.rotate(90 * Math.PI / 180);
+      if (direction === "row" && !isRotated || direction === "colunm" && isRotated) {
+        ctx.translate(5, 26);
+        ctx.rotate(90 * Math.PI / 180);
+      }
       ctx.fillText(text, 0, 0);
       ctx.restore();
     }
@@ -15802,21 +16949,29 @@ ${i3}
     }
     ctx.stroke();
   }
-  function drawRulerRectTemplate4(ctx, {
+  function drawKxbTemplate3(ctx, {
     logicalWidth = 12,
     bigBeamNumber = 1,
     beamCount = 8,
     bridgeFu = "L",
     unit = "m"
   }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
+    const screenWidth = systemInfo.screenWidth;
+    const screenHeight = systemInfo.screenHeight;
     ctx.setFontSize(12);
     ctx.setFillStyle("#333");
     const miniRectHeight = 50;
-    const drawWidth = 600;
+    const drawWidth = 550;
     const drawHeight = miniRectHeight * beamCount;
-    const overSetY = 50;
-    const x = 100;
-    const y2 = 950 - drawHeight > 0 ? (950 - drawHeight) / 2 : 50;
+    const overSetY = 0;
+    const x = (screenHeight - drawWidth) / 2 - 20;
+    const y2 = (screenWidth - drawHeight) / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
     ctx.beginPath();
     ctx.moveTo(x, y2);
     ctx.lineTo(x + drawWidth, y2 + overSetY);
@@ -15868,20 +17023,476 @@ ${i3}
       "colunm",
       logicalWidth,
       20,
+      unit,
+      true
+    );
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
+  }
+  function drawKxbTemplate4(ctx, {
+    logicalWidth = 12,
+    bigBeamNumber = 1,
+    beamCount = 8,
+    bridgeFu = "L",
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    const centerX = systemInfo.screenWidth / 2;
+    const centerY = systemInfo.screenHeight / 2;
+    const screenWidth = systemInfo.screenWidth;
+    const screenHeight = systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const miniRectHeight = 50;
+    const drawWidth = 550;
+    const drawHeight = miniRectHeight * beamCount;
+    const overSetY = 50;
+    const x = (screenHeight - drawWidth) / 2 - 20;
+    const y2 = (screenWidth - drawHeight) / 2;
+    ctx.translate(centerX, centerY);
+    ctx.rotate(-90 * Math.PI / 180);
+    ctx.translate(-centerY, -centerX);
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + drawWidth, y2 + overSetY);
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x, y2 + drawHeight);
+    ctx.moveTo(x, y2 + drawHeight);
+    ctx.lineTo(x + drawWidth, y2 + drawHeight + overSetY);
+    ctx.moveTo(x + drawWidth, y2 + overSetY);
+    ctx.lineTo(x + drawWidth, y2 + drawHeight + overSetY);
+    ctx.stroke();
+    for (let i2 = 1; i2 <= beamCount; i2++) {
+      const py = y2 + i2 * miniRectHeight;
+      ctx.beginPath();
+      ctx.moveTo(x, py);
+      ctx.lineTo(x + drawWidth, py + overSetY);
+      ctx.stroke();
+      const text = `${bridgeFu}${bigBeamNumber}-${i2}`;
+      ctx.save();
+      ctx.translate(x + drawWidth + 10, py + overSetY - 34);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    for (let i2 = 1; i2 < beamCount; i2++) {
+      const py = y2 + i2 * miniRectHeight;
+      const text = `${bridgeFu}${bigBeamNumber}-${i2}`;
+      ctx.save();
+      ctx.translate(x - 16, py - 16);
+      ctx.rotate(90 * Math.PI / 180);
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(x - 40, y2 + drawHeight / 2 - 24);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText("铰缝编号", 0, 0);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(x + drawWidth + 30, y2 + overSetY + drawHeight / 2 - 20);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText("铰缝编号", 0, 0);
+    ctx.restore();
+    drawRuler(
+      ctx,
+      x + drawWidth,
+      y2 + drawHeight + overSetY + 10,
+      x,
+      y2 + drawHeight + 10,
+      "colunm",
+      logicalWidth,
+      20,
+      unit,
+      true
+    );
+    ctx.translate(centerY, centerX);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.translate(-centerX, -centerY);
+  }
+  function drawKxbTemplate5(ctx, {
+    logicalLength = 8,
+    bottomPlate = 1.2,
+    abdomenPlate = 1.2,
+    flangePlate = 1.2,
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const baseHeight = 60;
+    const drawWidth = 550;
+    const drawHeight = (bottomPlate + abdomenPlate + flangePlate) * baseHeight;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    let y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    drawRuler(ctx, x, y2 - 10, x + drawWidth, y2 - 10, "colunm", logicalLength, 20, unit);
+    ctx.strokeRect(x, y2, drawWidth, flangePlate * baseHeight);
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + flangePlate * baseHeight, flangePlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, (y2 + y2 + flangePlate * baseHeight) / 2);
+    ctx.fillText(`翼缘板`, 0, 0);
+    ctx.restore();
+    y2 += flangePlate * baseHeight;
+    ctx.strokeRect(x, y2, drawWidth, abdomenPlate * baseHeight);
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + abdomenPlate * baseHeight, abdomenPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, (y2 + y2 + abdomenPlate * baseHeight) / 2);
+    ctx.fillText(`腹板`, 0, 0);
+    ctx.restore();
+    y2 += abdomenPlate * baseHeight;
+    ctx.strokeRect(x, y2, drawWidth, bottomPlate * baseHeight);
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + bottomPlate * baseHeight, bottomPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, (y2 + y2 + bottomPlate * baseHeight) / 2);
+    ctx.fillText(`底板`, 0, 0);
+    ctx.restore();
+  }
+  function drawKxbTemplate6(ctx, {
+    logicalLength = 8,
+    bottomPlate = 1.2,
+    abdomenPlate = 1.2,
+    flangePlate = 1.2,
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const baseHeight = 60;
+    const drawWidth = 550;
+    const drawHeight = (bottomPlate + abdomenPlate + flangePlate) * baseHeight;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    let y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    const offsetX = 20;
+    drawRuler(ctx, x, y2 - 10, x + drawWidth, y2 - 10, "colunm", logicalLength, 20, unit);
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + drawWidth, y2);
+    ctx.lineTo(x + drawWidth - offsetX, y2 + flangePlate * baseHeight);
+    ctx.lineTo(x - offsetX, y2 + flangePlate * baseHeight);
+    ctx.closePath();
+    ctx.stroke();
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + flangePlate * baseHeight, flangePlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, (y2 + y2 + flangePlate * baseHeight) / 2);
+    ctx.fillText(`翼缘板`, 0, 0);
+    ctx.restore();
+    y2 += flangePlate * baseHeight;
+    ctx.beginPath();
+    ctx.moveTo(x - offsetX, y2);
+    ctx.lineTo(x + drawWidth - offsetX, y2);
+    ctx.lineTo(x + drawWidth - offsetX * 2, y2 + abdomenPlate * baseHeight);
+    ctx.lineTo(x - offsetX * 2, y2 + abdomenPlate * baseHeight);
+    ctx.closePath();
+    ctx.stroke();
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + abdomenPlate * baseHeight, abdomenPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50 - offsetX, (y2 + y2 + abdomenPlate * baseHeight) / 2);
+    ctx.fillText(`腹板`, 0, 0);
+    ctx.restore();
+    y2 += abdomenPlate * baseHeight;
+    ctx.beginPath();
+    ctx.moveTo(x - offsetX * 2, y2);
+    ctx.lineTo(x + drawWidth - offsetX * 2, y2);
+    ctx.lineTo(x + drawWidth - offsetX * 3, y2 + bottomPlate * baseHeight);
+    ctx.lineTo(x - offsetX * 3, y2 + bottomPlate * baseHeight);
+    ctx.closePath();
+    ctx.stroke();
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + bottomPlate * baseHeight, bottomPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50 - offsetX * 2, (y2 + y2 + bottomPlate * baseHeight) / 2);
+    ctx.fillText(`底板`, 0, 0);
+    ctx.restore();
+  }
+  function drawTlTemplate1(ctx, {
+    logicalLength = 8,
+    bottomPlate = 1.2,
+    abdomenPlate = 1.2,
+    flangePlate = 1.2,
+    unit = "m",
+    xl = false
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const baseHeight = 60;
+    const drawWidth = 550;
+    const totalHeight = (flangePlate * 2 + abdomenPlate * 2 + bottomPlate) * baseHeight;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    let y2 = (systemInfo.screenHeight - totalHeight) / 2;
+    drawRuler(ctx, x, y2 - 10, x + drawWidth, y2 - 10, "colunm", logicalLength, 20, unit);
+    ctx.strokeRect(x, y2, drawWidth, flangePlate * baseHeight);
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + flangePlate * baseHeight, flangePlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, y2 + flangePlate * baseHeight / 2);
+    ctx.fillText("翼缘板", 0, 0);
+    ctx.restore();
+    y2 += flangePlate * baseHeight;
+    const abdomenHeight = abdomenPlate * baseHeight;
+    if (xl) {
+      ctx.strokeRect(x, y2, drawWidth, abdomenPlate * baseHeight);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(x, y2);
+      ctx.lineTo(x, y2 + abdomenHeight);
+      ctx.moveTo(x + drawWidth, y2);
+      ctx.lineTo(x + drawWidth, y2 + abdomenHeight);
+      ctx.stroke();
+    }
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + abdomenPlate * baseHeight, abdomenPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, y2 + abdomenPlate * baseHeight / 2);
+    ctx.fillText("腹板", 0, 0);
+    ctx.restore();
+    y2 += abdomenPlate * baseHeight;
+    const bottomHeight = bottomPlate * baseHeight;
+    if (xl) {
+      ctx.strokeRect(x, y2, drawWidth, bottomPlate * baseHeight);
+    } else {
+      const cpOffset = -30;
+      ctx.beginPath();
+      ctx.moveTo(x, y2);
+      ctx.quadraticCurveTo(x + drawWidth / 2, y2 - cpOffset, x + drawWidth, y2);
+      ctx.lineTo(x + drawWidth, y2 + bottomHeight);
+      ctx.quadraticCurveTo(x + drawWidth / 2, y2 + bottomHeight + cpOffset, x, y2 + bottomHeight);
+      ctx.closePath();
+      ctx.stroke();
+    }
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + bottomHeight, bottomPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, y2 + bottomHeight / 2);
+    ctx.fillText("底板", 0, 0);
+    ctx.restore();
+    y2 += bottomHeight;
+    if (xl) {
+      ctx.strokeRect(x, y2, drawWidth, abdomenPlate * baseHeight);
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(x, y2);
+      ctx.lineTo(x, y2 + abdomenHeight);
+      ctx.moveTo(x + drawWidth, y2);
+      ctx.lineTo(x + drawWidth, y2 + abdomenHeight);
+      ctx.stroke();
+    }
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + abdomenPlate * baseHeight, abdomenPlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, y2 + abdomenPlate * baseHeight / 2);
+    ctx.fillText("腹板", 0, 0);
+    ctx.restore();
+    y2 += abdomenPlate * baseHeight;
+    ctx.strokeRect(x, y2, drawWidth, flangePlate * baseHeight);
+    drawScaleSingle(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + flangePlate * baseHeight, flangePlate, unit);
+    ctx.save();
+    ctx.translate(x - 50, y2 + flangePlate * baseHeight / 2);
+    ctx.fillText("翼缘板", 0, 0);
+    ctx.restore();
+  }
+  function drawHgbTemplate1(ctx, {
+    logicalWidth = 6,
+    logicalHeight = 4,
+    unit = "m",
+    gl = false
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const drawWidth = logicalWidth * 70;
+    const drawHeight = logicalHeight * 70;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    const y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    const cutSize = 50;
+    ctx.beginPath();
+    if (!gl) {
+      ctx.moveTo(x + cutSize, y2);
+      ctx.lineTo(x + drawWidth - cutSize, y2);
+      ctx.lineTo(x + drawWidth, y2 + cutSize);
+      ctx.lineTo(x + drawWidth, y2 + drawHeight);
+      ctx.lineTo(x, y2 + drawHeight);
+      ctx.lineTo(x, y2 + cutSize);
+    } else {
+      ctx.moveTo(x, y2);
+      ctx.lineTo(x + drawWidth, y2);
+      ctx.lineTo(x + drawWidth, y2 + drawHeight - cutSize);
+      ctx.lineTo(x + drawWidth - cutSize, y2 + drawHeight);
+      ctx.lineTo(x + cutSize, y2 + drawHeight);
+      ctx.lineTo(x, y2 + drawHeight - cutSize);
+    }
+    ctx.closePath();
+    ctx.stroke();
+    drawRuler(ctx, x, y2 - 10, x + drawWidth, y2 - 10, "colunm", logicalWidth, 20, unit);
+    drawRuler(ctx, x + drawWidth + 10, y2, x + drawWidth + 10, y2 + drawHeight, "row", logicalHeight, 20, unit);
+  }
+  function drawYqTemplate1(ctx, {
+    logicalWidth = 8,
+    logicalHeight = 4,
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const cutHeight = 40;
+    const drawWidth = logicalWidth * 70;
+    const drawHeight = logicalHeight * 70;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    const y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    const A2 = {
+      x,
+      y: y2
+    };
+    const B2 = {
+      x,
+      y: y2 + drawHeight
+    };
+    const C2 = {
+      x: x + drawWidth,
+      y: y2
+    };
+    const D2 = {
+      x: x + drawWidth,
+      y: y2 + cutHeight
+    };
+    ctx.beginPath();
+    ctx.moveTo(A2.x, A2.y);
+    ctx.lineTo(B2.x, B2.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(A2.x, A2.y);
+    ctx.lineTo(C2.x, C2.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(D2.x, D2.y);
+    ctx.lineTo(B2.x, B2.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(D2.x, D2.y);
+    ctx.lineTo(C2.x, C2.y);
+    ctx.stroke();
+    drawRuler(ctx, A2.x, A2.y - 10, A2.x + drawWidth, A2.y - 10, "colunm", logicalWidth, 20, unit);
+    drawRuler(ctx, A2.x - 10, A2.y, A2.x - 10, A2.y + drawHeight, "row", logicalHeight, 20, unit, true);
+  }
+  function drawYzdTemplate1(ctx, {
+    logicalHeight = 8,
+    unit = "m"
+  }) {
+    const systemInfo = uni.getSystemInfoSync();
+    systemInfo.screenWidth / 2;
+    systemInfo.screenHeight / 2;
+    systemInfo.screenWidth;
+    systemInfo.screenHeight;
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    const drawWidth = 400;
+    const drawHeight = logicalHeight * 50;
+    const x = (systemInfo.screenWidth - drawWidth) / 2;
+    const y2 = (systemInfo.screenHeight - drawHeight) / 2;
+    const jiaodu = [0, 90, 180, 270, 0];
+    const rectX = x + drawWidth / 2;
+    const rectY = y2;
+    const rectWidth = 200;
+    ctx.strokeRect(rectX, rectY, rectWidth, drawHeight);
+    ctx.beginPath();
+    ctx.moveTo(rectX, rectY - 10);
+    ctx.lineTo(rectX + rectWidth, rectY - 10);
+    ctx.stroke();
+    const dx = 50;
+    for (let i2 = 0; i2 <= 4; i2++) {
+      const tx = rectX + i2 * dx;
+      ctx.beginPath();
+      ctx.moveTo(tx, y2 - 10);
+      ctx.lineTo(tx, y2 - 17);
+      ctx.stroke();
+      ctx.fillText(`${jiaodu[i2]}${"'"}`, tx - 10, y2 - 25);
+    }
+    drawRuler(
+      ctx,
+      rectX + rectWidth + 10,
+      rectY,
+      rectX + rectWidth + 10,
+      rectY + drawHeight,
+      "row",
+      logicalHeight,
+      20,
       unit
     );
+    const cx = x + 100;
+    const cy = y2 + drawHeight / 2;
+    const radius = 50;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.font = "14px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("0'", cx, cy - radius - 15);
+    ctx.fillText("180'", cx, cy + radius + 15);
+    ctx.fillText("90'", cx + radius + 15, cy);
+    ctx.fillText("270'", cx - radius - 20, cy);
+    const arrowX = cx - radius - 60;
+    const arrowY = cy - radius;
+    ctx.beginPath();
+    ctx.moveTo(arrowX, arrowY);
+    ctx.lineTo(arrowX, arrowY + 100);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(arrowX - 5, arrowY + 90);
+    ctx.lineTo(arrowX, arrowY + 100);
+    ctx.lineTo(arrowX + 5, arrowY + 90);
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(cx - radius - 80, cy);
+    ctx.rotate(90 * Math.PI / 180);
+    ctx.fillText(`桩号增大方向`, 0, 0);
+    ctx.restore();
   }
+  const drawScaleSingle = (ctx, x, y2, endX, endY, text, unit) => {
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x + 8, y2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y2);
+    ctx.lineTo(x, endY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, endY);
+    ctx.lineTo(x + 8, endY);
+    ctx.stroke();
+    ctx.save();
+    ctx.setFontSize(12);
+    ctx.setFillStyle("#333");
+    ctx.translate(x + 10, (y2 + endY) / 2);
+    ctx.fillText(`${text}${unit}`, 0, 0);
+    ctx.restore();
+  };
   const _imports_0$1 = "/static/image/hand.svg";
   const _imports_1 = "/static/image/line.svg";
   const _imports_2 = "/static/image/curve.svg";
   const _imports_3 = "/static/image/rect.svg";
   const _imports_4 = "/static/image/circle.svg";
   const _imports_5 = "/static/image/text.svg";
-  const _imports_6 = "/static/image/back.svg";
-  const _imports_7 = "/static/image/save.svg";
   const canvasId = "myCanvas";
   const transparentCanvasId = "transparentCanvas";
-  const _sfc_main$3 = {
+  const _sfc_main$2 = {
     __name: "canvas",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -15911,8 +17522,10 @@ ${i3}
       const template = vue.ref("");
       const history = vue.ref([]);
       const curvePoints = vue.ref([]);
+      const transparentCurvePoints = vue.ref([]);
       const status = vue.ref("start");
-      const drawColor = vue.ref("#ff0000");
+      const drawColor = vue.ref("#333333");
+      const isLandscape = vue.ref(false);
       const textValue = vue.ref("");
       const showTextInput = vue.ref(false);
       const textInputX = vue.ref(0);
@@ -15932,12 +17545,62 @@ ${i3}
       const clickCandidates = vue.ref([]);
       const clickCycleIndex = vue.ref(0);
       const showParamPopup = vue.ref(false);
-      const rectTemplateParam = vue.ref({
+      const kxbTemplateParam1 = vue.ref({
         logicalWidth: 8,
         logicalHeight: 8,
         unit: "cm"
       });
-      const bridgeTemplateParam = vue.ref({
+      const kxbTemplateParam2 = vue.ref({
+        logicalWidth: 8,
+        logicalHeight: 8,
+        unit: "m"
+      });
+      const kxbTemplateParam3 = vue.ref({
+        logicalWidth: 12,
+        bigBeamNumber: 1,
+        beamCount: 8,
+        bridgeFu: "L",
+        unit: "m"
+      });
+      const kxbTemplateParam4 = vue.ref({
+        logicalWidth: 12,
+        bigBeamNumber: 1,
+        beamCount: 8,
+        bridgeFu: "L",
+        unit: "m"
+      });
+      const kxbTemplateParam5 = vue.ref({
+        logicalLength: 8,
+        bottomPlate: 1.2,
+        abdomenPlate: 1.2,
+        flangePlate: 1.2,
+        unit: "m"
+      });
+      const kxbTemplateParam6 = vue.ref({
+        logicalLength: 8,
+        bottomPlate: 1.2,
+        abdomenPlate: 1.2,
+        flangePlate: 1.2,
+        unit: "m"
+      });
+      const tlTemplateParam1 = vue.ref({
+        logicalLength: 8,
+        bottomPlate: 1.2,
+        abdomenPlate: 1.2,
+        flangePlate: 1.2,
+        unit: "m"
+      });
+      const hgbTemplateParam1 = vue.ref({
+        logicalWidth: 6,
+        logicalHeight: 4,
+        unit: "m"
+      });
+      const yqTemplateParam1 = vue.ref({
+        logicalWidth: 8,
+        logicalHeight: 4,
+        unit: "m"
+      });
+      const blmxlTemplateParam1 = vue.ref({
         logicalLength: 12.1,
         beamCount: 3,
         bigBeamNumber: 36,
@@ -15945,32 +17608,78 @@ ${i3}
         bridgeFu: "L",
         unit: "cm"
       });
-      const rectTemplateParam4 = vue.ref({
-        logicalWidth: 12,
-        bigBeamNumber: 1,
-        beamCount: 8,
+      const blmxlTemplateParam2 = vue.ref({
+        logicalLength: 12.1,
+        beamCount: 3,
+        bigBeamNumber: 36,
+        smallBeamNumber: 35,
         bridgeFu: "L",
+        unit: "cm"
+      });
+      const blmxlTemplateParam3 = vue.ref({
+        logicalLength: 12.1,
+        leftBeamCount: 7,
+        bigBeamNumber: 36,
+        smallBeamNumber: 35,
+        bridgeFu: "L",
+        unit: "cm"
+      });
+      const blmxlTemplateParam4 = vue.ref({
+        logicalLength: 12.1,
+        rightBeamCount: 7,
+        bigBeamNumber: 36,
+        smallBeamNumber: 35,
+        bridgeFu: "L",
+        unit: "cm"
+      });
+      const yzdTemplateParam1 = vue.ref({
+        logicalHeight: 8,
         unit: "m"
       });
       const tempParams = vue.ref({});
       const fieldList = vue.reactive([
         {
           key: "logicalWidth",
-          label: "逻辑宽度（单位数）",
+          label: "宽度（单位数）",
           type: "number"
         },
         {
           key: "logicalHeight",
-          label: "逻辑高度（单位数）",
+          label: "高度（单位数）",
           type: "number"
         },
         {
           key: "logicalLength",
-          label: "逻辑长度",
+          label: "长度",
+          type: "number"
+        },
+        {
+          key: "flangePlate",
+          label: "翼缘板",
+          type: "number"
+        },
+        {
+          key: "abdomenPlate",
+          label: "腹板",
+          type: "number"
+        },
+        {
+          key: "bottomPlate",
+          label: "底板",
           type: "number"
         },
         {
           key: "beamCount",
+          label: "梁数",
+          type: "number"
+        },
+        {
+          key: "leftBeamCount",
+          label: "梁数",
+          type: "number"
+        },
+        {
+          key: "rightBeamCount",
           label: "梁数",
           type: "number"
         },
@@ -15985,13 +17694,13 @@ ${i3}
           type: "number"
         },
         {
-          key: "unit",
-          label: "单位(cm / m)",
+          key: "bridgeFu",
+          label: "桥幅(L / R)",
           type: "text"
         },
         {
-          key: "bridge",
-          label: "桥幅(L / R)",
+          key: "unit",
+          label: "单位(cm / m)",
           type: "text"
         }
       ]);
@@ -16005,10 +17714,11 @@ ${i3}
         const systemInfo = uni.getSystemInfoSync();
         screenWidth.value = systemInfo.windowWidth;
         screenHeight.value = systemInfo.windowHeight;
-        canvasStyle.value = {
-          width: `${screenWidth.value}px`,
-          height: `${screenHeight.value}px`
-        };
+        isLandscape.value = screenWidth.value > screenHeight.value;
+        uni.onWindowResize((res) => {
+          isLandscape.value = res.size.windowWidth > res.size.windowHeight;
+          redrawCanvas();
+        });
         ctx.value = uni.createCanvasContext(canvasId);
         transparentCtx.value = uni.createCanvasContext(transparentCanvasId);
         ctx.value.setFontSize(textFontSize.value);
@@ -16016,14 +17726,64 @@ ${i3}
       });
       onLoad((options) => {
         switch (options.template) {
-          case "1":
-            template.value = "rect";
+          case "kxb1":
+            template.value = "kxb1";
             break;
-          case "2":
-            template.value = "bridge";
+          case "kxb2":
+            template.value = "kxb2";
             break;
-          case "3":
-            template.value = "rect4";
+          case "kxb3":
+            template.value = "kxb3";
+            break;
+          case "kxb4":
+            template.value = "kxb4";
+            break;
+          case "kxb5":
+            template.value = "kxb5";
+            break;
+          case "kxb6":
+            template.value = "kxb6";
+            break;
+          case "tl1":
+            template.value = "tl1";
+            break;
+          case "xl1":
+            template.value = "xl1";
+            break;
+          case "qt1":
+            template.value = "qt1";
+            break;
+          case "qt2":
+            template.value = "qt2";
+            kxbTemplateParam1.value.logicalHeight = 10;
+            kxbTemplateParam1.value.logicalWidth = 10;
+            break;
+          case "hgb1":
+            template.value = "hgb1";
+            break;
+          case "hgb2":
+            template.value = "qt1";
+            break;
+          case "yq1":
+            template.value = "yq1";
+            break;
+          case "gl1":
+            template.value = "gl1";
+            break;
+          case "blmxl1":
+            template.value = "blmxl1";
+            break;
+          case "blmxl2":
+            template.value = "blmxl2";
+            break;
+          case "blmxl3":
+            template.value = "blmxl3";
+            break;
+          case "blmxl4":
+            template.value = "blmxl4";
+            break;
+          case "yzd1":
+            template.value = "yzd1";
             break;
           default:
             template.value = "";
@@ -16109,6 +17869,9 @@ ${i3}
       const zoomOut = () => {
         scale.value /= 1.1;
         redrawCanvas();
+      };
+      const back = () => {
+        uni.navigateBack();
       };
       const undo = () => {
         let len = events.value.length;
@@ -16197,11 +17960,17 @@ ${i3}
         } = e2.touches[0];
         startX.value = x;
         startY.value = y2;
-        offsetStartX.value = x - offsetX.value;
-        offsetStartY.value = y2 - offsetY.value;
+        const logicX = (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2;
+        const logicY = (y2 - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2;
+        offsetStartX.value = logicX;
+        offsetStartY.value = logicY;
         drawing.value = true;
         if (mode.value === "curve") {
           curvePoints.value = [{
+            x: logicX,
+            y: logicY
+          }];
+          transparentCurvePoints.value = [{
             x,
             y: y2
           }];
@@ -16221,10 +17990,12 @@ ${i3}
           x,
           y: y2
         } = e2.touches[0];
+        const logicX = (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2;
+        const logicY = (y2 - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2;
         currentX.value = x;
         currentY.value = y2;
-        offsetCurrentX.value = x - offsetX.value;
-        offsetCurrentY.value = y2 - offsetY.value;
+        offsetCurrentX.value = logicX;
+        offsetCurrentY.value = logicY;
         if (mode.value !== "select") {
           transparentCtx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
           transparentCtx.value.setStrokeStyle("#ff00ff");
@@ -16240,11 +18011,15 @@ ${i3}
           drawSmoothEllipse(transparentCtx.value, startX.value, startY.value, currentX.value, currentY.value);
         } else if (mode.value === "curve") {
           curvePoints.value.push({
+            x: logicX,
+            y: logicY
+          });
+          transparentCurvePoints.value.push({
             x,
             y: y2
           });
-          transparentCtx.value.moveTo(curvePoints.value[0].x, curvePoints.value[0].y);
-          curvePoints.value.forEach((point) => {
+          transparentCtx.value.moveTo(transparentCurvePoints.value[0].x, transparentCurvePoints.value[0].y);
+          transparentCurvePoints.value.forEach((point) => {
             transparentCtx.value.lineTo(point.x, point.y);
           });
         } else if (mode.value === "select") {
@@ -16266,7 +18041,7 @@ ${i3}
                   });
                   markSavedEvent.value = true;
                 }
-                changeObjectPosition(history.value[index], dx, dy);
+                changeObjectPosition(history.value[index]);
               }
             }
             startX.value = e2.touches[0].x;
@@ -16298,8 +18073,7 @@ ${i3}
           x,
           y: y2
         } = e2.changedTouches[0];
-        x = x - offsetX.value;
-        y2 = y2 - offsetY.value;
+        const logical = screenToLogical(x, y2);
         if (mode.value !== "select" && mode.value !== "text" && status.value !== "start") {
           save();
         }
@@ -16309,14 +18083,15 @@ ${i3}
             clickWithInputShowing();
           } else {
             if (clickIndex === -1) {
-              textInputX.value = x + offsetX.value;
-              textInputY.value = y2 + 10 + offsetY.value;
+              textInputX.value = logical.x;
+              textInputY.value = logical.y;
               textValue.value = "";
-              showTextInput.value = true;
               textSelecting.value = true;
+              logicalToScreen(logical.x, logical.y);
+              showTextInput.value = true;
               textBox.value = {
-                x,
-                y: y2 - 20,
+                x: logical.x,
+                y: logical.y - 20,
                 width: 20,
                 height: 20
               };
@@ -16347,6 +18122,18 @@ ${i3}
           redrawCanvas();
         }, 50);
       };
+      function screenToLogical(x, y2) {
+        return {
+          x: (x - offsetX.value - screenWidth.value / 2) / scale.value + screenWidth.value / 2,
+          y: (y2 - offsetY.value - screenHeight.value / 2) / scale.value + screenHeight.value / 2
+        };
+      }
+      function logicalToScreen(x, y2) {
+        return {
+          x: (x - screenWidth.value / 2) * scale.value + offsetX.value + screenWidth.value / 2,
+          y: (y2 - screenHeight.value / 2) * scale.value + offsetY.value + screenHeight.value / 2
+        };
+      }
       const clickWithInputShowing = () => {
         if (changingTextIndex.value !== null) {
           history.value[changingTextIndex.value].textValue = beforeChangeText.value;
@@ -16454,7 +18241,7 @@ ${i3}
         if (chosen.action.mode !== "text") {
           if (selectedObject.value === null && candidates.length !== 0) {
             selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
-            updatedHistory[chosen.index].color = "#ff93c4";
+            updatedHistory[chosen.index].color = "#0F4687";
             selectedObject.value = updatedHistory[chosen.index];
           } else if (selectedObject.value !== null && selectedObject.value.id === chosen.action.id)
             ;
@@ -16464,7 +18251,7 @@ ${i3}
               updatedHistory[index].color = selectedObjectOriginColor.value;
             }
             selectedObjectOriginColor.value = JSON.parse(JSON.stringify(history.value[chosen.index].color));
-            updatedHistory[chosen.index].color = "#ff93c4";
+            updatedHistory[chosen.index].color = "#0F4687";
             selectedObject.value = updatedHistory[chosen.index];
           }
         }
@@ -16538,44 +18325,7 @@ ${i3}
         return false;
       };
       const changeObjectPosition = (object, dx, dy) => {
-        if (!object)
-          return;
-        switch (object.mode) {
-          case "line":
-            object.startX += dx;
-            object.startY += dy;
-            object.endX += dx;
-            object.endY += dy;
-            break;
-          case "rect":
-            object.x += dx;
-            object.y += dy;
-            break;
-          case "circle":
-            object.startX += dx;
-            object.startY += dy;
-            object.currentX += dx;
-            object.currentY += dy;
-            break;
-          case "curve":
-            if (Array.isArray(object.curvePoints)) {
-              object.curvePoints.forEach((point) => {
-                point.x += dx;
-                point.y += dy;
-              });
-            }
-            break;
-          case "text":
-            object.textInputX += dx;
-            object.textInputY += dy;
-            if (showTextInput.value) {
-              clickWithInputShowing();
-            }
-            break;
-          default:
-            formatAppLog("warn", "at pages/canvas/canvas.vue:1038", "Unknown object mode:", object.mode);
-        }
-        selectedObject.value = object;
+        return;
       };
       const saveCanvasToImage = () => {
         resetState();
@@ -16591,28 +18341,72 @@ ${i3}
             uni.navigateBack();
           },
           fail: (err) => {
-            formatAppLog("error", "at pages/canvas/canvas.vue:1073", "保存画布失败", err);
+            formatAppLog("error", "at pages/canvas/canvas.vue:1289", "保存画布失败", err);
           }
         });
       };
       const changeTemplateParam = () => {
         showParamPopup.value = true;
-        if (template.value === "rect") {
-          tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam.value));
-        } else if (template.value === "bridge") {
-          tempParams.value = JSON.parse(JSON.stringify(bridgeTemplateParam.value));
-        } else if (template.value === "rect4") {
-          tempParams.value = JSON.parse(JSON.stringify(rectTemplateParam4.value));
+        if (template.value === "kxb1") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam1.value));
+        } else if (template.value === "kxb2") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam2.value));
+        } else if (template.value === "kxb3") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam3.value));
+        } else if (template.value === "kxb4") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam4.value));
+        } else if (template.value === "kxb5") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam5.value));
+        } else if (template.value === "kxb6") {
+          tempParams.value = JSON.parse(JSON.stringify(kxbTemplateParam6.value));
+        } else if (template.value === "tl1") {
+          tempParams.value = JSON.parse(JSON.stringify(tlTemplateParam1.value));
+        } else if (template.value === "hgb1") {
+          tempParams.value = JSON.parse(JSON.stringify(hgbTemplateParam1.value));
+        } else if (template.value === "yq1") {
+          tempParams.value = JSON.parse(JSON.stringify(yqTemplateParam1.value));
+        } else if (template.value === "blmxl1") {
+          tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam1.value));
+        } else if (template.value === "blmxl2") {
+          tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam2.value));
+        } else if (template.value === "blmxl3") {
+          tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam3.value));
+        } else if (template.value === "blmxl4") {
+          tempParams.value = JSON.parse(JSON.stringify(blmxlTemplateParam4.value));
+        } else if (template.value === "yzd1") {
+          tempParams.value = JSON.parse(JSON.stringify(yzdTemplateParam1.value));
         }
       };
       const applyTemplateChange = () => {
         showParamPopup.value = false;
-        if (template.value === "rect") {
-          rectTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
-        } else if (template.value === "bridge") {
-          bridgeTemplateParam.value = JSON.parse(JSON.stringify(tempParams.value));
-        } else if (template.value === "rect4") {
-          rectTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+        if (template.value === "kxb1") {
+          kxbTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "kxb2") {
+          kxbTemplateParam2.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "kxb3") {
+          kxbTemplateParam3.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "kxb4") {
+          kxbTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "kxb5") {
+          kxbTemplateParam5.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "kxb6") {
+          kxbTemplateParam6.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "tl1") {
+          tlTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "hgb1") {
+          hgbTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "yq1") {
+          yqTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "blmxl1") {
+          blmxlTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "blmxl2") {
+          blmxlTemplateParam2.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "blmxl3") {
+          blmxlTemplateParam3.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "blmxl4") {
+          blmxlTemplateParam4.value = JSON.parse(JSON.stringify(tempParams.value));
+        } else if (template.value === "yzd1") {
+          yzdTemplateParam1.value = JSON.parse(JSON.stringify(tempParams.value));
         }
         redrawCanvas();
       };
@@ -16659,13 +18453,12 @@ ${i3}
               id: Math.random().toString(36).substr(2, 8)
             };
           } else if (mode.value === "curve") {
-            curvePoints.value.forEach((point) => {
-              point.x = point.x - offsetX.value;
-              point.y = point.y - offsetY.value;
-            });
             action = {
               mode: "curve",
-              curvePoints: curvePoints.value,
+              curvePoints: curvePoints.value.map((point) => ({
+                x: point.x,
+                y: point.y
+              })),
               color: drawColor.value,
               id: Math.random().toString(36).substr(2, 8)
             };
@@ -16675,9 +18468,12 @@ ${i3}
           action = {
             mode: "text",
             textValue: textValue.value,
-            textInputX: textInputX.value - offsetX.value,
-            textInputY: textInputY.value - 10 - offsetY.value,
-            id: Math.random().toString(36).substr(2, 8)
+            textInputX: textInputX.value,
+            // 逻辑坐标
+            textInputY: textInputY.value,
+            color: drawColor.value,
+            id: Math.random().toString(36).substr(2, 8),
+            scale: scale.value
           };
         }
         action.scale = scale.value;
@@ -16691,37 +18487,160 @@ ${i3}
         }
       };
       const drawTemplate = () => {
-        if (template.value === "rect") {
-          drawRulerRectTemplate(ctx.value, {
-            logicalWidth: Number(rectTemplateParam.value.logicalWidth),
-            logicalHeight: Number(rectTemplateParam.value.logicalHeight),
-            unit: rectTemplateParam.value.unit
+        formatAppLog("log", "at pages/canvas/canvas.vue:1448", "渲染模板", template.value);
+        if (template.value === "kxb1") {
+          drawKxbTemplate1(ctx.value, {
+            logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+            unit: kxbTemplateParam1.value.unit,
+            // 单位参数
+            qt: 0
+          });
+        } else if (template.value === "kxb2") {
+          drawKxbTemplate2(ctx.value, {
+            logicalWidth: Number(kxbTemplateParam2.value.logicalWidth),
+            logicalHeight: Number(kxbTemplateParam2.value.logicalHeight),
+            unit: kxbTemplateParam2.value.unit
             // 单位参数
           });
-        } else if (template.value === "bridge") {
-          drawArchBridgeTemplate(ctx.value, {
-            logicalLength: Number(bridgeTemplateParam.value.logicalLength),
-            beamCount: Number(bridgeTemplateParam.value.beamCount),
-            unit: bridgeTemplateParam.value.unit,
-            bigBeamNumber: Number(bridgeTemplateParam.value.bigBeamNumber),
-            smallBeamNumber: Number(bridgeTemplateParam.value.smallBeamNumber),
-            bridgeFu: bridgeTemplateParam.value.bridgeFu
+        } else if (template.value === "kxb3") {
+          drawKxbTemplate3(ctx.value, {
+            logicalWidth: kxbTemplateParam3.value.logicalWidth,
+            bigBeamNumber: kxbTemplateParam3.value.bigBeamNumber,
+            beamCount: kxbTemplateParam3.value.beamCount,
+            bridgeFu: kxbTemplateParam3.value.bridgeFu,
+            unit: kxbTemplateParam3.value.unit
           });
-        } else if (template.value === "rect4") {
-          drawRulerRectTemplate4(ctx.value, {
-            logicalWidth: rectTemplateParam4.value.logicalWidth,
-            bigBeamNumber: rectTemplateParam4.value.bigBeamNumber,
-            beamCount: rectTemplateParam4.value.beamCount,
-            bridgeFu: rectTemplateParam4.value.bridgeFu,
-            unit: rectTemplateParam4.value.unit
+        } else if (template.value === "kxb4") {
+          drawKxbTemplate4(ctx.value, {
+            logicalWidth: kxbTemplateParam4.value.logicalWidth,
+            bigBeamNumber: kxbTemplateParam4.value.bigBeamNumber,
+            beamCount: kxbTemplateParam4.value.beamCount,
+            bridgeFu: kxbTemplateParam4.value.bridgeFu,
+            unit: kxbTemplateParam4.value.unit
+          });
+        } else if (template.value === "kxb5") {
+          drawKxbTemplate5(ctx.value, {
+            logicalLength: kxbTemplateParam5.value.logicalLength,
+            bottomPlate: Number(kxbTemplateParam5.value.bottomPlate),
+            abdomenPlate: Number(kxbTemplateParam5.value.abdomenPlate),
+            flangePlate: Number(kxbTemplateParam5.value.flangePlate),
+            unit: kxbTemplateParam5.value.unit
+          });
+        } else if (template.value === "kxb6") {
+          drawKxbTemplate6(ctx.value, {
+            logicalLength: kxbTemplateParam6.value.logicalLength,
+            bottomPlate: Number(kxbTemplateParam6.value.bottomPlate),
+            abdomenPlate: Number(kxbTemplateParam6.value.abdomenPlate),
+            flangePlate: Number(kxbTemplateParam6.value.flangePlate),
+            unit: kxbTemplateParam6.value.unit
+          });
+        } else if (template.value === "tl1") {
+          drawTlTemplate1(ctx.value, {
+            logicalWidth: tlTemplateParam1.value.logicalLength,
+            bottomPlate: Number(tlTemplateParam1.value.bottomPlate),
+            abdomenPlate: Number(tlTemplateParam1.value.abdomenPlate),
+            flangePlate: Number(tlTemplateParam1.value.flangePlate),
+            unit: tlTemplateParam1.value.unit
+          });
+        } else if (template.value === "xl1") {
+          drawTlTemplate1(ctx.value, {
+            logicalWidth: tlTemplateParam1.value.logicalLength,
+            bottomPlate: Number(tlTemplateParam1.value.bottomPlate),
+            abdomenPlate: Number(tlTemplateParam1.value.abdomenPlate),
+            flangePlate: Number(tlTemplateParam1.value.flangePlate),
+            unit: tlTemplateParam1.value.unit,
+            xl: true
+          });
+        } else if (template.value === "qt1") {
+          drawKxbTemplate1(ctx.value, {
+            logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+            unit: kxbTemplateParam1.value.unit,
+            // 单位参数
+            qt: 1
+          });
+        } else if (template.value === "qt2") {
+          drawKxbTemplate1(ctx.value, {
+            logicalWidth: Number(kxbTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(kxbTemplateParam1.value.logicalHeight),
+            unit: kxbTemplateParam1.value.unit,
+            // 单位参数
+            qt: 2
+          });
+        } else if (template.value === "hgb1") {
+          drawHgbTemplate1(ctx.value, {
+            logicalWidth: Number(hgbTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(hgbTemplateParam1.value.logicalHeight),
+            unit: hgbTemplateParam1.value.unit,
+            // 单位参数
+            gl: false
+          });
+        } else if (template.value === "yq1") {
+          drawYqTemplate1(ctx.value, {
+            logicalWidth: Number(yqTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(yqTemplateParam1.value.logicalHeight),
+            unit: yqTemplateParam1.value.unit
+            // 单位参数
+          });
+        } else if (template.value === "gl1") {
+          drawHgbTemplate1(ctx.value, {
+            logicalWidth: Number(hgbTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(hgbTemplateParam1.value.logicalHeight),
+            unit: hgbTemplateParam1.value.unit,
+            // 单位参数
+            gl: true
+          });
+        } else if (template.value === "blmxl1") {
+          drawBlmxlTemplate1(ctx.value, {
+            logicalLength: Number(blmxlTemplateParam1.value.logicalLength),
+            beamCount: Number(blmxlTemplateParam1.value.beamCount),
+            unit: blmxlTemplateParam1.value.unit,
+            bigBeamNumber: Number(blmxlTemplateParam1.value.bigBeamNumber),
+            smallBeamNumber: Number(blmxlTemplateParam1.value.smallBeamNumber),
+            bridgeFu: blmxlTemplateParam1.value.bridgeFu
+          });
+        } else if (template.value === "blmxl2") {
+          drawBlmxlTemplate2(ctx.value, {
+            logicalLength: Number(blmxlTemplateParam2.value.logicalLength),
+            beamCount: Number(blmxlTemplateParam2.value.beamCount),
+            unit: blmxlTemplateParam2.value.unit,
+            bigBeamNumber: Number(blmxlTemplateParam2.value.bigBeamNumber),
+            smallBeamNumber: Number(blmxlTemplateParam2.value.smallBeamNumber),
+            bridgeFu: blmxlTemplateParam2.value.bridgeFu
+          });
+        } else if (template.value === "blmxl3") {
+          drawBlmxlTemplate3(ctx.value, {
+            logicalLength: Number(blmxlTemplateParam3.value.logicalLength),
+            leftBeamCount: Number(blmxlTemplateParam3.value.leftBeamCount),
+            unit: blmxlTemplateParam3.value.unit,
+            bigBeamNumber: Number(blmxlTemplateParam3.value.bigBeamNumber),
+            smallBeamNumber: Number(blmxlTemplateParam3.value.smallBeamNumber),
+            bridgeFu: blmxlTemplateParam3.value.bridgeFu
+          });
+        } else if (template.value === "blmxl4") {
+          drawBlmxlTemplate4(ctx.value, {
+            logicalLength: Number(blmxlTemplateParam4.value.logicalLength),
+            rightBeamCount: Number(blmxlTemplateParam4.value.rightBeamCount),
+            unit: blmxlTemplateParam4.value.unit,
+            bigBeamNumber: Number(blmxlTemplateParam4.value.bigBeamNumber),
+            smallBeamNumber: Number(blmxlTemplateParam4.value.smallBeamNumber),
+            bridgeFu: blmxlTemplateParam4.value.bridgeFu
+          });
+        } else if (template.value === "yzd1") {
+          drawYzdTemplate1(ctx.value, {
+            // logicalWidth: Number(yzdTemplateParam1.value.logicalWidth),
+            logicalHeight: Number(yzdTemplateParam1.value.logicalHeight),
+            unit: yzdTemplateParam1.value.unit
+            // 单位参数
           });
         }
       };
       const redrawCanvas = () => {
-        const now = Date.now();
-        if (now - lastRedrawTime < 16)
+        const now2 = Date.now();
+        if (now2 - lastRedrawTime < 16)
           return;
-        lastRedrawTime = now;
+        lastRedrawTime = now2;
         ctx.value.save();
         ctx.value.clearRect(0, 0, screenWidth.value, screenHeight.value);
         ctx.value.translate(offsetX.value, offsetY.value);
@@ -16729,14 +18648,10 @@ ${i3}
         ctx.value.scale(scale.value, scale.value);
         ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
         drawTemplate();
-        ctx.value.restore();
         history.value.forEach((action) => {
           ctx.value.save();
-          ctx.value.translate(screenWidth.value / 2, screenHeight.value / 2);
-          ctx.value.scale(scale.value / action.scale, scale.value / action.scale);
-          ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
           ctx.value.setStrokeStyle(action.color);
-          ctx.value.setLineWidth(1 / (scale.value / action.scale));
+          ctx.value.setLineWidth(1 / scale.value);
           ctx.value.beginPath();
           if (action.mode === "line") {
             ctx.value.moveTo(action.startX, action.startY);
@@ -16747,14 +18662,17 @@ ${i3}
             drawSmoothEllipse(ctx.value, action.startX, action.startY, action.currentX, action.currentY);
           } else if (action.mode === "curve") {
             ctx.value.moveTo(action.curvePoints[0].x, action.curvePoints[0].y);
-            action.curvePoints.forEach((point, index) => {
-              if (index > 0) {
-                ctx.value.lineTo(point.x, point.y);
-              }
-            });
+            for (let i2 = 1; i2 < action.curvePoints.length; i2++) {
+              ctx.value.lineTo(action.curvePoints[i2].x, action.curvePoints[i2].y);
+            }
           } else if (action.mode === "text") {
+            ctx.value.save();
+            ctx.value.translate(action.textInputX + 10, action.textInputY + 5);
+            ctx.value.rotate(Math.PI / 2);
             ctx.value.setFontSize(20);
-            ctx.value.fillText(action.textValue, action.textInputX, action.textInputY);
+            ctx.value.setFillStyle(action.color || "#000");
+            ctx.value.fillText(action.textValue, 0, 0);
+            ctx.value.restore();
           }
           ctx.value.stroke();
           ctx.value.restore();
@@ -16762,7 +18680,12 @@ ${i3}
         if (textSelecting.value) {
           ctx.value.setStrokeStyle("#000000");
           ctx.value.setLineWidth(0.5);
-          ctx.value.strokeRect(textBox.value.x - 2, textBox.value.y - 2, textBox.value.width + 8, textBox.value.height + 8);
+          ctx.value.strokeRect(
+            textBox.value.x + 5,
+            textBox.value.y + 20,
+            textBox.value.height + 8,
+            textBox.value.width + 10
+          );
         }
         ctx.value.restore();
         ctx.value.draw(true);
@@ -16806,16 +18729,38 @@ ${i3}
         ctx2.bezierCurveTo(cx - rx, cy + oy, cx - ox, cy + ry, cx, cy + ry);
         ctx2.bezierCurveTo(cx + ox, cy + ry, cx + rx, cy + oy, cx + rx, cy);
       };
-      const __returned__ = { canvasId, transparentCanvasId, ctx, transparentCtx, screenWidth, screenHeight, canvasStyle, offsetX, offsetY, scale, lastDistance, isScaling, mode, startX, startY, currentX, currentY, offsetStartX, offsetStartY, offsetCurrentX, offsetCurrentY, drawing, template, history, curvePoints, status, drawColor, textValue, showTextInput, textInputX, textInputY, changingTextIndex, beforeChangeText, canvasImagePath, textFontSize, textSelecting, textBox, selectedObject, selectedObjectOriginColor, touchMoveMode, events, markSavedEvent, inputAndChanged, clickCandidates, clickCycleIndex, showParamPopup, rectTemplateParam, bridgeTemplateParam, rectTemplateParam4, tempParams, fieldList, lastClick, get lastRedrawTime() {
+      const __returned__ = { canvasId, transparentCanvasId, ctx, transparentCtx, screenWidth, screenHeight, canvasStyle, offsetX, offsetY, scale, lastDistance, isScaling, mode, startX, startY, currentX, currentY, offsetStartX, offsetStartY, offsetCurrentX, offsetCurrentY, drawing, template, history, curvePoints, transparentCurvePoints, status, drawColor, isLandscape, textValue, showTextInput, textInputX, textInputY, changingTextIndex, beforeChangeText, canvasImagePath, textFontSize, textSelecting, textBox, selectedObject, selectedObjectOriginColor, touchMoveMode, events, markSavedEvent, inputAndChanged, clickCandidates, clickCycleIndex, showParamPopup, kxbTemplateParam1, kxbTemplateParam2, kxbTemplateParam3, kxbTemplateParam4, kxbTemplateParam5, kxbTemplateParam6, tlTemplateParam1, hgbTemplateParam1, yqTemplateParam1, blmxlTemplateParam1, blmxlTemplateParam2, blmxlTemplateParam3, blmxlTemplateParam4, yzdTemplateParam1, tempParams, fieldList, lastClick, get lastRedrawTime() {
         return lastRedrawTime;
       }, set lastRedrawTime(v2) {
         lastRedrawTime = v2;
-      }, eventChannel, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, zoomIn, zoomOut, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, changeTemplateParam, applyTemplateChange, cancleTemplateChange, save, drawTemplate, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, h: vue.h, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance, get drawRulerRectTemplate() {
-        return drawRulerRectTemplate;
-      }, get drawArchBridgeTemplate() {
-        return drawArchBridgeTemplate;
-      }, get drawRulerRectTemplate4() {
-        return drawRulerRectTemplate4;
+      }, eventChannel, changeColor, chooseTemplate, inputting, cancelText, confirmText, resetState, setMode, clearCanvas, zoomIn, zoomOut, back, undo, backToOldPosition, deleteSelected, getDistance, updateInputSize, touchStart, touchMove, touchEnd, screenToLogical, logicalToScreen, clickWithInputShowing, changeText, clickOnText, clickOnObject, isPointInText, isPointInShape, changeObjectPosition, saveCanvasToImage, changeTemplateParam, applyTemplateChange, cancleTemplateChange, save, drawTemplate, redrawCanvas, pointToSegmentDistance, drawEllipse, drawSmoothEllipse, ref: vue.ref, onMounted: vue.onMounted, reactive: vue.reactive, h: vue.h, nextTick: vue.nextTick, getCurrentInstance: vue.getCurrentInstance, get drawKxbTemplate1() {
+        return drawKxbTemplate1;
+      }, get drawKxbTemplate2() {
+        return drawKxbTemplate2;
+      }, get drawKxbTemplate3() {
+        return drawKxbTemplate3;
+      }, get drawKxbTemplate4() {
+        return drawKxbTemplate4;
+      }, get drawKxbTemplate5() {
+        return drawKxbTemplate5;
+      }, get drawKxbTemplate6() {
+        return drawKxbTemplate6;
+      }, get drawTlTemplate1() {
+        return drawTlTemplate1;
+      }, get drawHgbTemplate1() {
+        return drawHgbTemplate1;
+      }, get drawYqTemplate1() {
+        return drawYqTemplate1;
+      }, get drawBlmxlTemplate1() {
+        return drawBlmxlTemplate1;
+      }, get drawBlmxlTemplate2() {
+        return drawBlmxlTemplate2;
+      }, get drawBlmxlTemplate3() {
+        return drawBlmxlTemplate3;
+      }, get drawBlmxlTemplate4() {
+        return drawBlmxlTemplate4;
+      }, get drawYzdTemplate1() {
+        return drawYzdTemplate1;
       }, get onLoad() {
         return onLoad;
       } };
@@ -16823,319 +18768,553 @@ ${i3}
       return __returned__;
     }
   };
-  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "toolbar" }, [
+  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock(
+      vue.Fragment,
+      null,
+      [
         vue.createElementVNode(
-          "button",
+          "view",
           {
-            onClick: _cache[0] || (_cache[0] = ($event) => $setup.setMode("select")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "select" }])
+            class: vue.normalizeClass(["header", { headerSP: !$setup.isLandscape }])
           },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_0$1,
-              class: "icon"
-            })
-          ],
+          "绘制简图",
           2
           /* CLASS */
         ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[1] || (_cache[1] = ($event) => $setup.setMode("line")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "line" }])
-          },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_1,
-              class: "icon"
-            })
-          ],
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[2] || (_cache[2] = ($event) => $setup.setMode("curve")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "curve" }])
-          },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_2,
-              class: "icon"
-            })
-          ],
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[3] || (_cache[3] = ($event) => $setup.setMode("rect")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "rect" }])
-          },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_3,
-              class: "icon"
-            })
-          ],
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[4] || (_cache[4] = ($event) => $setup.setMode("circle")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "circle" }])
-          },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_4,
-              class: "icon"
-            })
-          ],
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[5] || (_cache[5] = ($event) => $setup.setMode("text")),
-            class: vue.normalizeClass(["iconButton", { active: $setup.mode === "text" }])
-          },
-          [
-            vue.createElementVNode("image", {
-              src: _imports_5,
-              class: "icon"
-            })
-          ],
-          2
-          /* CLASS */
-        ),
-        vue.createElementVNode("button", {
-          onClick: $setup.undo,
-          class: "iconButton"
-        }, [
-          vue.createElementVNode("image", {
-            src: _imports_6,
-            class: "icon"
-          })
-        ]),
-        vue.createElementVNode("button", {
-          onClick: $setup.saveCanvasToImage,
-          class: "iconButton"
-        }, [
-          vue.createElementVNode("image", {
-            src: _imports_7,
-            class: "icon"
-          })
-        ]),
-        vue.createElementVNode("button", {
-          onClick: $setup.changeTemplateParam,
-          class: "iconButton"
-        }, [
-          vue.createCommentVNode(` <image src='/static/image/save.svg' class="icon"></image> `),
-          vue.createTextVNode(" 修改 ")
-        ])
-      ]),
-      vue.createCommentVNode(" 参数设置弹窗 "),
-      $setup.showParamPopup ? (vue.openBlock(), vue.createElementBlock("view", {
-        key: 0,
-        class: "popup"
-      }, [
-        vue.createElementVNode("view", { class: "popup-content" }, [
-          (vue.openBlock(true), vue.createElementBlock(
-            vue.Fragment,
-            null,
-            vue.renderList($setup.fieldList, (field) => {
-              return vue.openBlock(), vue.createElementBlock("view", {
-                key: field.key
-              }, [
-                field.key in $setup.tempParams ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
-                  vue.createElementVNode(
-                    "text",
-                    null,
-                    vue.toDisplayString(field.label),
-                    1
-                    /* TEXT */
-                  ),
-                  vue.withDirectives(vue.createElementVNode("input", {
-                    "onUpdate:modelValue": ($event) => $setup.tempParams[field.key] = $event,
-                    type: field.type
-                  }, null, 8, ["onUpdate:modelValue", "type"]), [
-                    [vue.vModelDynamic, $setup.tempParams[field.key]]
-                  ])
-                ])) : vue.createCommentVNode("v-if", true)
-              ]);
-            }),
-            128
-            /* KEYED_FRAGMENT */
-          )),
-          vue.createCommentVNode(' <view v-if="tempParams.logicalWidth">\r\n					<text>逻辑宽度（单位数）</text>\r\n					<input v-model="tempParams.logicalWidth" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.logicalHeight">\r\n					<text>逻辑高度（单位数）</text>\r\n					<input v-model="tempParams.logicalHeight" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.logicalLengthl">\r\n					<text>逻辑长度 </text>\r\n					<input v-model="tempParams.logicalLength" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.beamCount">\r\n					<text>梁数 </text>\r\n					<input v-model="tempParams.beamCount" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.bigBeamNumber">\r\n					<text>大桩号墩 </text>\r\n					<input v-model="tempParams.bigBeamNumber" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.smallBeamNumber">\r\n					<text>小桩号墩 </text>\r\n					<input v-model="tempParams.smallBeamNumber" type="number" />\r\n				</view>\r\n				<view v-if="tempParams.unit">\r\n					<text>单位（如 cm / m）</text>\r\n					<input v-model="tempParams.unit" type="text" />\r\n				</view>\r\n				<view v-if="tempParams.bridge">\r\n					<text>桥幅（L / R）</text>\r\n					<input v-model="tempParams.bridge" type="text" />\r\n				</view> '),
-          vue.createElementVNode("view", { class: "popup-actions" }, [
-            vue.createElementVNode("button", {
-              onClick: $setup.applyTemplateChange,
-              type: "primary"
-            }, "确认"),
-            vue.createElementVNode("button", { onClick: $setup.cancleTemplateChange }, "取消")
-          ])
-        ])
-      ])) : vue.createCommentVNode("v-if", true),
-      vue.createElementVNode("view", { class: "functionBar" }, [
-        vue.createElementVNode("button", {
-          onClick: $setup.deleteSelected,
-          class: "functionButton"
-        }, "删除"),
-        vue.createElementVNode("button", {
-          onClick: $setup.clearCanvas,
-          class: "functionButton"
-        }, "清空"),
-        vue.createElementVNode("button", {
-          onClick: $setup.zoomIn,
-          class: "functionButton"
-        }, "放大"),
-        vue.createElementVNode("button", {
-          onClick: $setup.zoomOut,
-          class: "functionButton"
-        }, "缩小"),
-        vue.createCommentVNode(` <button @click="chooseTemplate('rect')" class="functionButton">模板1</button>\r
-			<button @click="chooseTemplate('bridge')" class="functionButton">模板2</button>\r
-			<button @click="chooseTemplate('rect4')" class="functionButton">模板3</button> `)
-      ]),
-      $setup.showTextInput ? (vue.openBlock(), vue.createElementBlock(
-        "view",
-        {
-          key: 1,
-          class: "text-input",
-          style: vue.normalizeStyle({ top: $setup.textInputY + "px", left: $setup.textInputX + "px" })
-        },
-        [
-          vue.withDirectives(vue.createElementVNode(
-            "input",
+        vue.createElementVNode("view", { class: "container" }, [
+          vue.createElementVNode(
+            "view",
             {
-              "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.textValue = $event),
-              placeholder: "输入文字...",
-              class: "input",
-              onInput: $setup.inputting
+              class: vue.normalizeClass(["toolbar", { toolbarSP: !$setup.isLandscape }])
+            },
+            [
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[0] || (_cache[0] = ($event) => $setup.setMode("select")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "select" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_0$1,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[1] || (_cache[1] = ($event) => $setup.setMode("line")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "line" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_1,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[2] || (_cache[2] = ($event) => $setup.setMode("curve")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "curve" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_2,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[3] || (_cache[3] = ($event) => $setup.setMode("rect")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "rect" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_3,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[4] || (_cache[4] = ($event) => $setup.setMode("circle")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "circle" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_4,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: _cache[5] || (_cache[5] = ($event) => $setup.setMode("text")),
+                  class: vue.normalizeClass(["iconButton", { active: $setup.mode === "text" }, { iconButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createElementVNode("image", {
+                    src: _imports_5,
+                    class: "icon"
+                  })
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "view",
+                {
+                  class: vue.normalizeClass(["separateLine", { separateLineSP: !$setup.isLandscape }])
+                },
+                null,
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.undo,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createCommentVNode(` <image src='/static/image/back.svg' class="icon"></image> `),
+                  vue.createTextVNode(" 撤销 ")
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.clearCanvas,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                "清空",
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.zoomIn,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                "放大",
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.zoomOut,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                "缩小",
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "view",
+                {
+                  class: vue.normalizeClass(["separateLine", { separateLineSP: !$setup.isLandscape }])
+                },
+                null,
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.back,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                "取消",
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.saveCanvasToImage,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createCommentVNode(` <image src='/static/image/save.svg' class="icon"></image> `),
+                  vue.createTextVNode(" 保存 ")
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "view",
+                {
+                  class: vue.normalizeClass(["separateLine", { separateLineSP: !$setup.isLandscape }])
+                },
+                null,
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "button",
+                {
+                  onClick: $setup.changeTemplateParam,
+                  class: vue.normalizeClass(["functionButton", { functionButtonSP: !$setup.isLandscape }])
+                },
+                [
+                  vue.createCommentVNode(` <image src='/static/image/save.svg' class="icon"></image> `),
+                  vue.createTextVNode(" 模板参数 ")
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createCommentVNode(` <button @click="deleteSelected" :class="['functionButton', {functionButtonSP: !isLandscape}]">删除</button> `)
+            ],
+            2
+            /* CLASS */
+          ),
+          vue.createCommentVNode(" 参数设置弹窗 "),
+          $setup.showParamPopup ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "popup"
+          }, [
+            vue.createElementVNode("view", { class: "popup-content" }, [
+              (vue.openBlock(true), vue.createElementBlock(
+                vue.Fragment,
+                null,
+                vue.renderList($setup.fieldList, (field) => {
+                  return vue.openBlock(), vue.createElementBlock("view", {
+                    key: field.key
+                  }, [
+                    field.key in $setup.tempParams ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+                      vue.createElementVNode(
+                        "text",
+                        null,
+                        vue.toDisplayString(field.label),
+                        1
+                        /* TEXT */
+                      ),
+                      vue.withDirectives(vue.createElementVNode("input", {
+                        "onUpdate:modelValue": ($event) => $setup.tempParams[field.key] = $event,
+                        type: field.type
+                      }, null, 8, ["onUpdate:modelValue", "type"]), [
+                        [vue.vModelDynamic, $setup.tempParams[field.key]]
+                      ])
+                    ])) : vue.createCommentVNode("v-if", true)
+                  ]);
+                }),
+                128
+                /* KEYED_FRAGMENT */
+              )),
+              vue.createElementVNode("view", { class: "popup-actions" }, [
+                vue.createElementVNode("button", {
+                  onClick: $setup.applyTemplateChange,
+                  type: "primary"
+                }, "确认"),
+                vue.createElementVNode("button", { onClick: $setup.cancleTemplateChange }, "取消")
+              ])
+            ])
+          ])) : vue.createCommentVNode("v-if", true),
+          vue.createCommentVNode(` <view class="functionBar">\r
+			<button @click="deleteSelected" :class="['functionButton', {functionButtonSP: !isLandscape}]">删除</button>\r
+			<button @click="clearCanvas" :class="['functionButton', {functionButtonSP: !isLandscape}]">清空</button>\r
+			<button @click="zoomIn" :class="['functionButton', {functionButtonSP: !isLandscape}]">放大</button>\r
+			<button @click="zoomOut" :class="['functionButton', {functionButtonSP: !isLandscape}]">缩小</button>\r
+		</view> `),
+          $setup.showTextInput ? (vue.openBlock(), vue.createElementBlock(
+            "view",
+            {
+              key: 1,
+              class: "text-input",
+              style: vue.normalizeStyle({ top: $setup.logicalToScreen($setup.textInputX, $setup.textInputY).y + "px", left: $setup.logicalToScreen($setup.textInputX, $setup.textInputY).x + "px" })
+            },
+            [
+              vue.withDirectives(vue.createElementVNode(
+                "input",
+                {
+                  "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.textValue = $event),
+                  placeholder: "输入文字...",
+                  class: "input",
+                  onInput: $setup.inputting
+                },
+                null,
+                544
+                /* NEED_HYDRATION, NEED_PATCH */
+              ), [
+                [vue.vModelText, $setup.textValue]
+              ]),
+              vue.createElementVNode("view", { class: "textButtons" }, [
+                vue.createElementVNode("button", { onClick: $setup.cancelText }, "取消"),
+                vue.createElementVNode("button", { onClick: $setup.confirmText }, "确定")
+              ])
+            ],
+            4
+            /* STYLE */
+          )) : vue.createCommentVNode("v-if", true),
+          vue.createElementVNode("view", { class: "colorToolbar" }, [
+            vue.createElementVNode("image", {
+              src: $setup.drawColor === "#333333" ? "/static/image/CheckedCircleFill.png" : "/static/image/CheckCircleFill.png",
+              class: vue.normalizeClass(["colorImg", { colorImgSP: !$setup.isLandscape }]),
+              onClick: _cache[7] || (_cache[7] = ($event) => $setup.changeColor("#333333"))
+            }, null, 10, ["src"]),
+            vue.createElementVNode("image", {
+              src: $setup.drawColor === "#FF3141" ? "/static/image/CheckedCircleFill-1.png" : "/static/image/CheckCircleFill-1.png",
+              class: vue.normalizeClass(["colorImg", { colorImgSP: !$setup.isLandscape }]),
+              onClick: _cache[8] || (_cache[8] = ($event) => $setup.changeColor("#FF3141"))
+            }, null, 10, ["src"]),
+            vue.createElementVNode("image", {
+              src: $setup.drawColor === "#00B578" ? "/static/image/CheckedCircleFill-2.png" : "/static/image/CheckCircleFill-2.png",
+              class: vue.normalizeClass(["colorImg", { colorImgSP: !$setup.isLandscape }]),
+              onClick: _cache[9] || (_cache[9] = ($event) => $setup.changeColor("#00B578"))
+            }, null, 10, ["src"]),
+            vue.createElementVNode("image", {
+              src: $setup.drawColor === "#1677FF" ? "/static/image/CheckedCircleFill-3.png" : "/static/image/CheckCircleFill-3.png",
+              class: vue.normalizeClass(["colorImg", { colorImgSP: !$setup.isLandscape }]),
+              onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#1677FF"))
+            }, null, 10, ["src"]),
+            vue.createElementVNode("image", {
+              src: $setup.drawColor === "#FFD24A" ? "/static/image/CheckedCircleFill-4.png" : "/static/image/CheckCircleFill-4.png",
+              class: vue.normalizeClass(["colorImg", { colorImgSP: !$setup.isLandscape }]),
+              onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#FFD24A"))
+            }, null, 10, ["src"]),
+            vue.createCommentVNode(` <button @click="changeColor('#FF3141')" class="colorButton"\r
+				style="background-color: #FF3141">{{drawColor=="#FF3141"? '√':''}}</button>\r
+			<button @click="changeColor('#00B578')" class="colorButton"\r
+				style="background-color: #00B578">{{drawColor=="#00B578"? '√':''}}</button>\r
+			<button @click="changeColor('#1677FF')" class="colorButton"\r
+				style="background-color: #1677FF">{{drawColor=="#1677FF"? '√':''}}</button>\r
+			<button @click="changeColor('#FFD24A')" class="colorButton"\r
+				style="background-color: #FFD24A">{{drawColor=="#FFD24A"? '√':''}}</button>\r
+			<button @click="changeColor('#333333')" class="colorButton"\r
+				style="background-color: #333333">{{drawColor=="#333333"? '√':''}}</button> `)
+          ]),
+          vue.createElementVNode(
+            "canvas",
+            {
+              style: vue.normalizeStyle($setup.canvasStyle),
+              "canvas-id": "myCanvas",
+              id: "myCanvas",
+              class: "canvas",
+              "disable-scroll": "true"
             },
             null,
-            544
-            /* NEED_HYDRATION, NEED_PATCH */
-          ), [
-            [vue.vModelText, $setup.textValue]
-          ]),
-          vue.createElementVNode("view", { class: "textButtons" }, [
-            vue.createElementVNode("button", { onClick: $setup.cancelText }, "取消"),
-            vue.createElementVNode("button", { onClick: $setup.confirmText }, "确定")
-          ])
-        ],
-        4
-        /* STYLE */
-      )) : vue.createCommentVNode("v-if", true),
-      vue.createCommentVNode("  模拟输入框 "),
-      vue.createCommentVNode(' <input v-if="showTextInput" v-model="textValue" :style="inputStyle" @input="updateInputSize" @blur="blur"\r\n			@confirm="confirmText" class="text-input" focus /> '),
-      vue.createElementVNode("view", { class: "toolbar" }, [
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[7] || (_cache[7] = ($event) => $setup.changeColor("#ff0000")),
-            class: "colorButton",
-            style: { "background-color": "#ff0000" }
-          },
-          vue.toDisplayString($setup.drawColor == "#ff0000" ? "√" : ""),
-          1
-          /* TEXT */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[8] || (_cache[8] = ($event) => $setup.changeColor("#00ff00")),
-            class: "colorButton",
-            style: { "background-color": "#00ff00" }
-          },
-          vue.toDisplayString($setup.drawColor == "#00ff00" ? "√" : ""),
-          1
-          /* TEXT */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[9] || (_cache[9] = ($event) => $setup.changeColor("#0055ff")),
-            class: "colorButton",
-            style: { "background-color": "#0055ff" }
-          },
-          vue.toDisplayString($setup.drawColor == "#0055ff" ? "√" : ""),
-          1
-          /* TEXT */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[10] || (_cache[10] = ($event) => $setup.changeColor("#ffff00")),
-            class: "colorButton",
-            style: { "background-color": "#ffff00" }
-          },
-          vue.toDisplayString($setup.drawColor == "#ffff00" ? "√" : ""),
-          1
-          /* TEXT */
-        ),
-        vue.createElementVNode(
-          "button",
-          {
-            onClick: _cache[11] || (_cache[11] = ($event) => $setup.changeColor("#000000")),
-            class: "colorButton",
-            style: { "background-color": "#000000" }
-          },
-          vue.toDisplayString($setup.drawColor == "#000000" ? "√" : ""),
-          1
-          /* TEXT */
-        )
-      ]),
-      vue.createElementVNode(
-        "canvas",
-        {
-          style: vue.normalizeStyle($setup.canvasStyle),
-          "canvas-id": "myCanvas",
-          id: "myCanvas",
-          class: "canvas",
-          "disable-scroll": "true"
-        },
-        null,
-        4
-        /* STYLE */
-      ),
-      vue.createElementVNode(
-        "canvas",
-        {
-          style: vue.normalizeStyle($setup.canvasStyle),
-          "canvas-id": "transparentCanvas",
-          id: "transparentCanvas",
-          class: "canvas",
-          "disable-scroll": "true",
-          onTouchstart: $setup.touchStart,
-          onTouchmove: $setup.touchMove,
-          onTouchend: $setup.touchEnd
-        },
-        null,
-        36
-        /* STYLE, NEED_HYDRATION */
-      ),
-      vue.createCommentVNode(' <image :src="canvasImagePath" mode="widthFix" class="imgShow"></image> ')
-    ]);
+            4
+            /* STYLE */
+          ),
+          vue.createElementVNode(
+            "canvas",
+            {
+              style: vue.normalizeStyle($setup.canvasStyle),
+              "canvas-id": "transparentCanvas",
+              id: "transparentCanvas",
+              class: "canvas",
+              "disable-scroll": "true",
+              onTouchstart: $setup.touchStart,
+              onTouchmove: $setup.touchMove,
+              onTouchend: $setup.touchEnd
+            },
+            null,
+            36
+            /* STYLE, NEED_HYDRATION */
+          ),
+          vue.createCommentVNode(' <image :src="canvasImagePath" mode="widthFix" class="imgShow"></image> ')
+        ])
+      ],
+      64
+      /* STABLE_FRAGMENT */
+    );
   }
-  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
-  const _sfc_main$2 = {};
-  function _sfc_render$1(_ctx, _cache) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "" });
-  }
-  const PagesInitDataTestInitDataTest = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/init_data_test/init_data_test.vue"]]);
+  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
   const _imports_0 = "/static/image/user1.png";
-  const _sfc_main$1 = {};
-  function _sfc_render(_ctx, _cache) {
+  const _sfc_main$1 = {
+    __name: "SystemSetting",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const userInfo = userStore();
+      const passwordPopup = vue.ref(null);
+      const oldPassword = vue.ref("");
+      const newPassword = vue.ref("");
+      const confirmPassword = vue.ref("");
+      const openPasswordModal = () => {
+        oldPassword.value = "";
+        newPassword.value = "";
+        confirmPassword.value = "";
+        passwordPopup.value.open();
+      };
+      const closePasswordModal = () => {
+        passwordPopup.value.close();
+      };
+      const handleLogout = async () => {
+        var _a;
+        try {
+          uni.showLoading({
+            title: "退出中..."
+          });
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          if (!responseLogin.data || !responseLogin.data.token) {
+            uni.hideLoading();
+            uni.reLaunch({
+              url: "/pages/LoginPage/LoginPage"
+            });
+            return;
+          }
+          const token = responseLogin.data.token;
+          const response = await uni.request({
+            url: "http://60.205.13.156:8090/api/user/logOut",
+            method: "POST",
+            header: {
+              "Content-Type": "application/json",
+              "Authorization": `${token}`
+            }
+          });
+          uni.hideLoading();
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:155", "退出登录响应:", response.data);
+          if (response.data && response.data.code === 0) {
+            uni.showToast({
+              title: "已退出登录",
+              icon: "success",
+              duration: 1500,
+              success: () => {
+                setTimeout(() => {
+                  uni.reLaunch({
+                    url: "/pages/LoginPage/LoginPage"
+                  });
+                }, 1500);
+              }
+            });
+          } else {
+            uni.showToast({
+              title: ((_a = response.data) == null ? void 0 : _a.msg) || "退出登录失败",
+              icon: "none",
+              duration: 1500
+            });
+          }
+        } catch (error) {
+          uni.hideLoading();
+          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:184", "退出登录出错:", error);
+          uni.showToast({
+            title: "退出登录中出现错误",
+            icon: "none",
+            duration: 1500,
+            success: () => {
+              setTimeout(() => {
+                uni.reLaunch({
+                  url: "/pages/LoginPage/LoginPage"
+                });
+              }, 1500);
+            }
+          });
+        }
+      };
+      const changePassword = async () => {
+        var _a;
+        if (!oldPassword.value) {
+          uni.showToast({
+            title: "请输入旧密码",
+            icon: "none"
+          });
+          return;
+        }
+        if (!newPassword.value) {
+          uni.showToast({
+            title: "请输入新密码",
+            icon: "none"
+          });
+          return;
+        }
+        if (newPassword.value !== confirmPassword.value) {
+          uni.showToast({
+            title: "两次输入的新密码不一致",
+            icon: "none"
+          });
+          return;
+        }
+        uni.showLoading({
+          title: "修改中..."
+        });
+        try {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${oldPassword.value}`,
+            method: "POST"
+          });
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:239", "登录响应:", responseLogin.data);
+          if (!responseLogin.data || !responseLogin.data.token) {
+            uni.hideLoading();
+            uni.showToast({
+              title: "旧密码验证失败",
+              icon: "none"
+            });
+            return;
+          }
+          const token = responseLogin.data.token;
+          const response = await uni.request({
+            url: `http://60.205.13.156:8090/api/user/resetPassword?oldPassword=${oldPassword.value}&newPassword=${newPassword.value}`,
+            method: "POST",
+            header: {
+              "Content-Type": "application/json",
+              "Authorization": `${token}`
+            }
+          });
+          uni.hideLoading();
+          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:266", "修改密码响应:", response.data);
+          if (response.data && response.data.code === 0) {
+            passwordPopup.value.close();
+            uni.showToast({
+              title: "密码修改成功，请重新登录",
+              icon: "success",
+              duration: 2e3,
+              success: () => {
+                setTimeout(() => {
+                  uni.reLaunch({
+                    url: "/pages/LoginPage/LoginPage"
+                  });
+                }, 2e3);
+              }
+            });
+          } else {
+            uni.showToast({
+              title: ((_a = response.data) == null ? void 0 : _a.msg) || "修改密码失败",
+              icon: "none"
+            });
+          }
+        } catch (error) {
+          uni.hideLoading();
+          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:298", "修改密码出错:", error);
+          uni.showToast({
+            title: "网络错误，请稍后重试",
+            icon: "none"
+          });
+        }
+      };
+      const __returned__ = { userInfo, passwordPopup, oldPassword, newPassword, confirmPassword, openPasswordModal, closePasswordModal, handleLogout, changePassword, ref: vue.ref, get userStore() {
+        return userStore;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "System" }, [
       vue.createElementVNode("view", { class: "main" }, [
         vue.createElementVNode("view", { class: "titleBar" }, [
@@ -17151,16 +19330,16 @@ ${i3}
             vue.createElementVNode("button", {
               size: "default",
               type: "default",
-              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx" },
               "hover-class": "is-hover",
-              onClick: _cache[0] || (_cache[0] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+              onClick: $setup.openPasswordModal
             }, "修改密码"),
             vue.createElementVNode("button", {
               size: "default",
               type: "default",
-              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx" },
               "hover-class": "is-hover",
-              onClick: _cache[1] || (_cache[1] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+              onClick: $setup.handleLogout
             }, "退出登录")
           ])
         ])
@@ -17186,9 +19365,9 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px" },
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
           "hover-class": "is-hover",
-          onClick: _cache[2] || (_cache[2] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+          onClick: _cache[0] || (_cache[0] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
         }, "数据导入")
       ]),
       vue.createElementVNode("view", { class: "divider" }),
@@ -17197,9 +19376,9 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px", "margin-right": "0" },
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
           "hover-class": "is-hover",
-          onClick: _cache[3] || (_cache[3] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+          onClick: _cache[1] || (_cache[1] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
         }, "数据导出")
       ]),
       vue.createElementVNode("view", { class: "divider" }),
@@ -17209,28 +19388,103 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "38px", "line-height": "38px", "margin-right": "0" },
+          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
           "hover-class": "is-hover",
-          onClick: _cache[4] || (_cache[4] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
+          onClick: _cache[2] || (_cache[2] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
         }, "版本更新")
-      ])
+      ]),
+      vue.createCommentVNode(" 添加修改密码弹窗 "),
+      vue.createVNode(
+        _component_uni_popup,
+        {
+          ref: "passwordPopup",
+          type: "center"
+        },
+        {
+          default: vue.withCtx(() => [
+            vue.createElementVNode("view", { class: "password-popup-content" }, [
+              vue.createElementVNode("view", { class: "popup-title" }, "修改密码"),
+              vue.createElementVNode("view", { class: "password-form" }, [
+                vue.createElementVNode("view", { class: "password-row" }, [
+                  vue.createElementVNode("text", { class: "password-label" }, "旧密码"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "input",
+                    {
+                      type: "password",
+                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.oldPassword = $event),
+                      placeholder: "请输入旧密码",
+                      class: "password-input"
+                    },
+                    null,
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vModelText, $setup.oldPassword]
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "password-row" }, [
+                  vue.createElementVNode("text", { class: "password-label" }, "新密码"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "input",
+                    {
+                      type: "password",
+                      "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.newPassword = $event),
+                      placeholder: "请输入新密码",
+                      class: "password-input"
+                    },
+                    null,
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vModelText, $setup.newPassword]
+                  ])
+                ]),
+                vue.createElementVNode("view", { class: "password-row" }, [
+                  vue.createElementVNode("text", { class: "password-label" }, "确认新密码"),
+                  vue.withDirectives(vue.createElementVNode(
+                    "input",
+                    {
+                      type: "password",
+                      "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => $setup.confirmPassword = $event),
+                      placeholder: "请再次输入新密码",
+                      class: "password-input"
+                    },
+                    null,
+                    512
+                    /* NEED_PATCH */
+                  ), [
+                    [vue.vModelText, $setup.confirmPassword]
+                  ])
+                ])
+              ]),
+              vue.createElementVNode("view", { class: "popup-buttons" }, [
+                vue.createElementVNode("button", {
+                  class: "popup-btn cancel-btn",
+                  onClick: $setup.closePasswordModal
+                }, "取消"),
+                vue.createElementVNode("button", {
+                  class: "popup-btn confirm-btn",
+                  onClick: $setup.changePassword
+                }, "确定")
+              ])
+            ])
+          ]),
+          _: 1
+          /* STABLE */
+        },
+        512
+        /* NEED_PATCH */
+      )
     ]);
   }
   const PagesSystemSettingSystemSetting = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-524e171a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/SystemSetting/SystemSetting.vue"]]);
   __definePage("pages/LoginPage/LoginPage", PagesLoginPageLoginPage);
-  __definePage("pages/login/login", PagesLoginLogin);
   __definePage("pages/home/home", PagesHomeHome);
-  __definePage("pages/message/message", PagesMessageMessage);
-  __definePage("pages/userinfo/userinfo", PagesUserinfoUserinfo);
-  __definePage("pages/setting/setting", PagesSettingSetting);
-  __definePage("pages/versionInfo/versionInfo", PagesVersionInfoVersionInfo);
-  __definePage("pages/testWrite/testWrite", PagesTestWriteTestWrite);
   __definePage("pages/bridge/bridge", PagesBridgeBridge);
   __definePage("pages/List/List", PagesListList);
   __definePage("pages/bridge-disease/bridge-disease", PagesBridgeDiseaseBridgeDisease);
   __definePage("pages/add-disease/add-disease", PagesAddDiseaseAddDisease);
   __definePage("pages/canvas/canvas", PagesCanvasCanvas);
-  __definePage("pages/init_data_test/init_data_test", PagesInitDataTestInitDataTest);
   __definePage("pages/SystemSetting/SystemSetting", PagesSystemSettingSystemSetting);
   const _sfc_main = {
     onLaunch: function() {
@@ -17246,6 +19500,8 @@ ${i3}
   const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/App.vue"]]);
   function createApp() {
     const app = vue.createVueApp(App);
+    const pinia = createPinia();
+    app.use(pinia);
     return {
       app
     };

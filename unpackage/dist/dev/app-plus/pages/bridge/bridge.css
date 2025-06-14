@@ -23,10 +23,6 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
-@font-face {
-  font-family: "uniicons";
-  src: url("../../static/fonts/uniicons.ttf") format("truetype");
-}
 .container {
   min-height: 100vh;
   background-color: #fff;
@@ -129,9 +125,9 @@
   align-items: center;
   padding: 15px;
   background-color: #fff;
-  margin-bottom: 1px;
-  border: 1px solid #0f4687;
-  border-radius: 4px;
+  margin-bottom: 0px;
+  border: 1px solid #d0d0d0;
+  border-radius: 0px;
 }
 .bridge-list .bridge-item .bridge-info {
   flex: 1;
@@ -185,4 +181,10 @@
   height: 200px;
   color: #666;
   font-size: 16px;
+}
+.appTitle {
+  font-size: 0.625rem;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.2;
 }

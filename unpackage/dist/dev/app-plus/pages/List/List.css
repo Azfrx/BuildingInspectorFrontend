@@ -23,10 +23,6 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
-@font-face {
-  font-family: "uniicons";
-  src: url("../../static/fonts/uniicons.ttf") format("truetype");
-}
 .container {
   min-height: 100vh;
   background-color: #f1f0ff;
@@ -77,6 +73,13 @@
 }
 .info-card .info-row uni-text {
   line-height: 1.4;
+}
+@font-face {
+  font-family: "uniicons";
+  src: url("../../static/fonts/uniicons.ttf") format("truetype");
+}
+.uniicons {
+  font-family: "uniicons";
 }
 .search-box {
   margin: 0;

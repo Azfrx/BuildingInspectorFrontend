@@ -1,0 +1,417 @@
+{
+    "msg": "查询成功",
+    "code": 0,
+    "data": {
+        "userId": 1,
+        "projects": [
+            {
+                "createBy": "admin",
+                "createTime": "2025-04-21 16:25:36",
+                "updateBy": "crh@znjc",
+                "updateTime": "2025-05-01 22:54:51",
+                "id": 2,
+                "name": "2023宜昌项目定检（5.12）",
+                "year": 2023,
+                "status": "0",
+                "delFlag": "0",
+                "ownerDept": {
+                    "deptId": 111,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投宜昌高速公路运营管理有限公司",
+                    "orderNum": 3,
+                    "status": "0",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "ownerDeptId": 111,
+                "code": "YHJC-1",
+                "startDate": "2025-04-01",
+                "endDate": "2025-05-31",
+                "contractAmount": 100.5,
+                "inspectors": [
+                    {
+                        "remark": "管理员",
+                        "userId": 1,
+                        "deptId": 103,
+                        "loginName": "admin",
+                        "userName": "管理员",
+                        "userType": "00",
+                        "email": "15888888888@163.com",
+                        "phonenumber": "15888888888",
+                        "sex": "0",
+                        "avatar": "/profile/avatar/2021/08/09/46d9d9e9-0480-465b-b20c-eb6f5483e461.png",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 103,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "研发部门",
+                            "orderNum": 1,
+                            "leader": "若依",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 1,
+                                "roleName": "超级管理员",
+                                "roleKey": "admin",
+                                "roleSort": "1",
+                                "dataScope": "1",
+                                "status": "0",
+                                "flag": false,
+                                "admin": true
+                            }
+                        ],
+                        "admin": true
+                    },
+                    {
+                        "userId": 4,
+                        "deptId": 105,
+                        "loginName": "guest",
+                        "userName": "guest",
+                        "userType": "00",
+                        "phonenumber": "13971362661",
+                        "sex": "0",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 105,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "测试部门",
+                            "orderNum": 3,
+                            "leader": "若依",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 5,
+                                "roleName": "游客",
+                                "roleKey": "bm_role_guest",
+                                "roleSort": "3",
+                                "dataScope": "1",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    },
+                    {
+                        "userId": 5,
+                        "deptId": 103,
+                        "loginName": "gz",
+                        "userName": "gz",
+                        "userType": "00",
+                        "sex": "0",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 103,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "研发部门",
+                            "orderNum": 1,
+                            "leader": "若依",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 4,
+                                "roleName": "系统管理员",
+                                "roleKey": "system_admin",
+                                "roleSort": "4",
+                                "dataScope": "1",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    },
+                    {
+                        "userId": 19,
+                        "deptId": 105,
+                        "loginName": "znjc_staff_1",
+                        "userName": "znjc_staff_1",
+                        "userType": "00",
+                        "sex": "0",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 105,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "测试部门",
+                            "orderNum": 3,
+                            "leader": "若依",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 6,
+                                "roleName": "部门业务管理员",
+                                "roleKey": "department_business_admin",
+                                "roleSort": "5",
+                                "dataScope": "4",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    },
+                    {
+                        "userId": 22,
+                        "deptId": 105,
+                        "loginName": "inspector1@znjc",
+                        "userName": "inspector1@znjc",
+                        "userType": "00",
+                        "sex": "0",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 105,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "测试部门",
+                            "orderNum": 3,
+                            "leader": "若依",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 7,
+                                "roleName": "部门职员",
+                                "roleKey": "department_staff",
+                                "roleSort": "7",
+                                "dataScope": "5",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    }
+                ],
+                "dept": {
+                    "deptId": 101,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投智能检测股份有限公司",
+                    "orderNum": 1,
+                    "leader": "若依",
+                    "phone": "15888888888",
+                    "email": "ry@qq.com",
+                    "status": "0",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "deptId": 101
+            },
+            {
+                "createBy": "project_manager_02",
+                "createTime": "2025-05-10 08:45:00",
+                "updateBy": "ls@znjc",
+                "updateTime": "2025-05-20 15:30:12",
+                "id": 3,
+                "name": "2024黄冈桥梁结构安全检测（9.20）",
+                "year": 2024,
+                "status": "1",
+                "delFlag": "0",
+                "ownerDept": {
+                    "deptId": 112,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投黄冈交通基础设施养护中心",
+                    "orderNum": 5,
+                    "status": "1",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "ownerDeptId": 112,
+                "code": "HGJG-2",
+                "startDate": "2025-05-25",
+                "endDate": "2025-07-10",
+                "contractAmount": 180.3,
+                "inspectors": [
+                    {
+                        "userId": 6,
+                        "deptId": 104,
+                        "loginName": "engineer_li",
+                        "userName": "李工",
+                        "userType": "00",
+                        "phonenumber": "13807123456",
+                        "sex": "1",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 104,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "检测三部",
+                            "orderNum": 2,
+                            "leader": "王经理",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 8,
+                                "roleName": "高级检测工程师",
+                                "roleKey": "senior_inspector",
+                                "roleSort": "2",
+                                "dataScope": "2",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    },
+                    {
+                        "userId": 7,
+                        "deptId": 104,
+                        "loginName": "inspector_zhang",
+                        "userName": "张检测员",
+                        "userType": "00",
+                        "phonenumber": "13597654321",
+                        "sex": "1",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 104,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "检测三部",
+                            "orderNum": 2,
+                            "leader": "王经理",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 9,
+                                "roleName": "现场检测员",
+                                "roleKey": "field_inspector",
+                                "roleSort": "9",
+                                "dataScope": "3",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    }
+                ],
+                "dept": {
+                    "deptId": 102,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投智能检测股份有限公司第二分公司",
+                    "orderNum": 2,
+                    "leader": "陈总",
+                    "phone": "13995556666",
+                    "email": "chenz@znjc.com",
+                    "status": "1",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "deptId": 102
+            },
+            {
+                "createBy": "admin",
+                "createTime": "2025-05-15 11:20:00",
+                "updateBy": "ww@znjc",
+                "updateTime": "2025-06-01 09:10:30",
+                "id": 4,
+                "name": "2025恩施隧道应急检测（6.5）",
+                "year": 2025,
+                "status": "1",
+                "delFlag": "0",
+                "ownerDept": {
+                    "deptId": 113,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投恩施公路应急保障中心",
+                    "orderNum": 6,
+                    "status": "0",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "ownerDeptId": 113,
+                "code": "ESYJ-3",
+                "startDate": "2025-05-28",
+                "endDate": "2025-05-30",
+                "contractAmount": 50.8,
+                "inspectors": [
+                    {
+                        "userId": 8,
+                        "deptId": 106,
+                        "loginName": "wang_ying",
+                        "userName": "王颖",
+                        "userType": "00",
+                        "phonenumber": "18672228888",
+                        "sex": "2",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 106,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "应急检测小组",
+                            "orderNum": 4,
+                            "leader": "赵主任",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 10,
+                                "roleName": "应急检测负责人",
+                                "roleKey": "emergency_inspector_head",
+                                "roleSort": "6",
+                                "dataScope": "6",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    },
+                    {
+                        "userId": 9,
+                        "deptId": 106,
+                        "loginName": "li_jun",
+                        "userName": "李俊",
+                        "userType": "00",
+                        "phonenumber": "18971112222",
+                        "sex": "1",
+                        "status": "0",
+                        "dept": {
+                            "deptId": 106,
+                            "parentId": 101,
+                            "ancestors": "0,100,101",
+                            "deptName": "应急检测小组",
+                            "orderNum": 4,
+                            "leader": "赵主任",
+                            "status": "0"
+                        },
+                        "roles": [
+                            {
+                                "roleId": 11,
+                                "roleName": "应急检测员",
+                                "roleKey": "emergency_inspector",
+                                "roleSort": "8",
+                                "dataScope": "7",
+                                "status": "0",
+                                "flag": false,
+                                "admin": false
+                            }
+                        ],
+                        "admin": false
+                    }
+                ],
+                "dept": {
+                    "deptId": 101,
+                    "parentId": 100,
+                    "ancestors": "0,100",
+                    "deptName": "湖北交投智能检测股份有限公司",
+                    "orderNum": 1,
+                    "leader": "若依",
+                    "phone": "15888888888",
+                    "email": "ry@qq.com",
+                    "status": "0",
+                    "parentName": "桥梁现场检测与报告编制平台"
+                },
+                "deptId": 101
+            }
+        ]
+    }
+}

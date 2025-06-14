@@ -1,0 +1,8 @@
+{
+    "msg": "登录成功,请妥善保管您的token信息",
+    "code": 0,
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJleHAiOjE3NDkxMTI3NzMsInVzZXJuYW1lIjoiYWRtaW4ifQ.zu0mUj0grOqlcOJRVijSxXVYW7Te6vdO2LCSUejyByY",
+	"userId":"1",
+	"userName":"张三",
+	"userDept":"武汉交投公司"
+}

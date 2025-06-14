@@ -198,7 +198,7 @@ const init = async () => {
         structureData.value = response.data;
 		resultData.value = response.data.data
 		//将数据存在本地 提交前初始化数据
-		setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
+		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
 		console.log('structureData:',structureData.value)
 		console.log('resultData:',resultData.value)
 		// 打印第一层结构数据，检查是否完整

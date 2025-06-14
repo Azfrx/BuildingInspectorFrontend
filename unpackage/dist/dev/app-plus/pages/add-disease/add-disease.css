@@ -1447,7 +1447,6 @@
 		align-items: center;
 		/* 垂直居中按钮 */
 		padding: 0.3125rem 0;
-		border-bottom: 1px solid #0F4687;
 }
 .button-delete[data-v-79f8b97c] {
 		height: 1.125rem;
@@ -1484,7 +1483,6 @@
 		align-items: center;
 		/* 垂直居中按钮 */
 		padding: 0.3125rem 0;
-		border-bottom: 1px solid #0F4687;
 }
 .button-next-add[data-v-79f8b97c] {
 		height: 1.125rem;
@@ -1562,171 +1560,8 @@
 		align-items: center;
 		width: 100%;
 }
-.part-titleandcontent[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-}
-.part-title[data-v-79f8b97c] {
-		font-size: 17px;
-}
-.part-content[data-v-79f8b97c] {
-		font-size: 20px;
-		margin-top: 0.3125rem;
-}
-.part-icon[data-v-79f8b97c] {
-		font-size: 20px;
-		color: #CCCCCC;
-}
-
-	/* 输入框 */
-.input-content[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		padding: 0.375rem 0.5rem;
-		width: 100%;
-}
-.input-text[data-v-79f8b97c] {
-		margin-top: 0.3125rem;
-		font-size: 20px;
-}
 
 
-	/* 部件类型和构件编号 */
-.part-typeandnumber[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.picker-type[data-v-79f8b97c] {
-		width: 50%;
-		padding: 0.375rem 0.5rem;
-}
-.picker-number[data-v-79f8b97c] {
-		width: 50%;
-		padding: 0.375rem 0.5rem;
-}
-
-
-	/* 缺损类型 */
-.part-Typeofdefect[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.picker-Typeofdefect[data-v-79f8b97c] {
-		width: 100%;
-		padding: 0.375rem 0.5rem;
-}
-
-	/* 缺损位置 */
-.part-Positionofdefect[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-
-	/* 缺损数量和数据记载方式 */
-.part-NumAndWayofDefect[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.part-NumofDefect[data-v-79f8b97c] {
-		padding: 0.375rem 0.5rem;
-		width: 50%;
-}
-.NumofDefect[data-v-79f8b97c] {
-		margin-top: 0.25rem;
-		margin-left: 3.125rem;
-}
-.part-WayofDefect[data-v-79f8b97c] {
-		width: 50%;
-		padding: 0.375rem 0.5rem;
-}
-
-	/* 长度与宽度 */
-.part-LengthAndWidth[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.part-Length[data-v-79f8b97c] {
-		width: 50%;
-}
-.part-Width[data-v-79f8b97c] {
-		width: 50%;
-}
-
-	/* 缝宽、高度与面积 */
-.part-SeamWidth-height-area[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.part-SeamWidth[data-v-79f8b97c] {
-		width: 33.4%;
-}
-.part-height[data-v-79f8b97c] {
-		width: 33.3%;
-}
-.part-area[data-v-79f8b97c] {
-		width: 33.3%;
-}
-
-	/* 病害描述 */
-.part-descriptionofDefect[data-v-79f8b97c] {
-		height: 2.5rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-
-	/* 标度与评定 */
-.part-ScalesandRatings[data-v-79f8b97c] {
-		height: 3.59375rem;
-		display: flex;
-		flex-direction: row;
-		border-bottom: 1px solid #EEEEEE;
-}
-.part-Scales[data-v-79f8b97c] {
-		width: 55%;
-		padding: 0.375rem 0.5rem;
-}
-.radio-title[data-v-79f8b97c] {
-		font-size: 0.53125rem;
-}
-.radio-group[data-v-79f8b97c] {
-		display: flex;
-}
-.part-prompt[data-v-79f8b97c] {
-		font-size: 0.46875rem;
-		margin-top: 0.25rem;
-		color: #999999;
-}
-.radio-group-label[data-v-79f8b97c] {
-		display: flex;
-		margin-top: 0.25rem;
-		align-items: center;
-		/* 垂直居中对齐 */
-}
-.radio-item-name[data-v-79f8b97c] {
-		font-size: 0.5625rem;
-		margin-left: 0.125rem;
-		margin-right: 0.625rem;
-}
-.part-Ratings[data-v-79f8b97c] {
-		width: 45%;
-		padding: 0.375rem 0.5rem;
-}
 
 	/* 上传图片 */
 .part-UploadImage[data-v-79f8b97c] {
@@ -1734,7 +1569,10 @@
 		flex-direction: column;
 		border-bottom: 1px solid #EEEEEE;
 		padding: 0.375rem 0.5rem;
-		height: 5.625rem;
+		height: 6.25rem;
+}
+.part-title[data-v-79f8b97c] {
+		font-size: 0.625rem;
 }
 .upload-view[data-v-79f8b97c] {
 		width: 100%;
@@ -1756,15 +1594,19 @@
 		flex-wrap: wrap;
 }
 .img-wrapper[data-v-79f8b97c] {
+		width: 4.375rem;
+		height: 4.375rem;
 		position: relative;
 		display: inline-block;
-		margin: 0.3125rem;
+		margin: 0 0.3125rem;
 		border: 1px solid #EEEEEE;
 		border-radius: 0.15625rem;
 }
 .ADImage[data-v-79f8b97c] {
 		height: 4.375rem;
 		width: 4.375rem;
+		object-fit: cover;
+		/* 保持比例裁剪填充 */
 		border-radius: 0.25rem;
 }
 
@@ -1806,23 +1648,23 @@
 		overflow: auto;
 }
 .template-row[data-v-79f8b97c] {
-		height: 9.375rem;
 		width: 100%;
 		border-bottom: 1px solid #eeeeee;
 }
 .template-type[data-v-79f8b97c] {
-		height: 10%;
 		font-size: 0.5625rem;
-		padding: 0.3125rem;
+		padding: 0.5rem;
 		box-sizing: border-box;
 }
 .template-image[data-v-79f8b97c] {
-		height: 90%;
 		width: 100%;
-		padding: 0 0.625rem;
+		padding: 0.625rem;
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
+		flex-wrap: wrap;
+		row-gap: 0.3125rem;
+		border-bottom: 1px solid #eeeeee;
 		gap: 0.625rem;
 }
 .template-image-card[data-v-79f8b97c] {
@@ -1831,7 +1673,6 @@
 }
 .head[data-v-79f8b97c] {
 		background-color: #BDCBE0;
-		border-top: 1px solid #0F4687;
 }
 .head-text[data-v-79f8b97c] {
 		padding: 0.125rem 0.3125rem;
@@ -1875,132 +1716,6 @@
 		color: #FF0000;
 }
 
-	/* 横屏适配 */
-@media screen and (orientation: landscape) {
-
-		/* 顶部按钮栏 */
-.button-group-edit[data-v-79f8b97c],
-		.button-group-add[data-v-79f8b97c] {
-			padding: 0.46875rem 0.625rem;
-}
-.button-before[data-v-79f8b97c],
-		.button-next[data-v-79f8b97c],
-		.button-next-add[data-v-79f8b97c],
-		.button-savetonext[data-v-79f8b97c],
-		.button-save[data-v-79f8b97c],
-		.button-cancle[data-v-79f8b97c],
-		.button-delete[data-v-79f8b97c],
-		.button-edit[data-v-79f8b97c] {
-			height: 1.875rem;
-			padding: 0 0.625rem;
-			font-size: 18px;
-}
-
-		/* 调整表单项布局成两列 */
-uni-view[data-v-79f8b97c] {
-			box-sizing: border-box;
-}
-
-		/* 表单布局容器 */
-.form-container[data-v-79f8b97c] {
-			display: flex;
-			flex-wrap: wrap;
-			flex-direction: row;
-}
-
-		/* 分成两列布局 */
-.part-typeandnumber[data-v-79f8b97c],
-		.part-Typeofdefect[data-v-79f8b97c],
-		.part-Positionofdefect[data-v-79f8b97c],
-		.part-NumAndWayofDefect[data-v-79f8b97c] {
-			padding: 0.25rem 0.25rem;
-			width: 50%;
-			height: auto;
-			min-height: 3.125rem;
-			border-bottom: 1px solid #EEEEEE;
-			border-right: 1px solid #EEEEEE;
-}
-.part-LengthAndWidth[data-v-79f8b97c] {
-			padding: 0.25rem 0.25rem;
-			width: 100%;
-			height: auto;
-			min-height: 3.125rem;
-			border-bottom: 1px solid #EEEEEE;
-			border-right: 1px solid #EEEEEE;
-}
-.part-SeamWidth-height-area[data-v-79f8b97c] {
-			padding: 0.25rem 0.25rem;
-			width: 100%;
-			height: auto;
-			min-height: 3.125rem;
-}
-.part-descriptionofDefect[data-v-79f8b97c] {
-			padding: 0.25rem 0.25rem;
-			width: 100%;
-			height: auto;
-			min-height: 3.125rem;
-}
-
-		/* 调整标度与评定区域 */
-.part-ScalesandRatings[data-v-79f8b97c] {
-			padding: 0.25rem 0.25rem;
-			width: 100%;
-			height: auto;
-			min-height: 4.6875rem;
-}
-
-		/* 图片上传区域调整 */
-.part-UploadImage[data-v-79f8b97c] {
-			width: 100%;
-			height: auto;
-			min-height: 6.875rem;
-}
-
-		/* 确保各类输入框在横屏时的宽度适当 */
-.picker-type[data-v-79f8b97c],
-		.picker-number[data-v-79f8b97c] {
-			width: 50%;
-}
-.picker-Typeofdefect[data-v-79f8b97c],
-		.input-content[data-v-79f8b97c],
-		.part-NumofDefect[data-v-79f8b97c],
-		.part-WayofDefect[data-v-79f8b97c] {
-			width: 100%;
-}
-
-		/* 调整字体大小 */
-.part-title[data-v-79f8b97c] {
-			font-size: 18px;
-}
-.part-content[data-v-79f8b97c] {
-			font-size: 22px;
-}
-.input-text[data-v-79f8b97c] {
-			font-size: 22px;
-}
-
-		/* 调整单选按钮组 */
-.radio-group-label[data-v-79f8b97c] {
-			margin-top: 0.375rem;
-}
-.radio-title[data-v-79f8b97c] {
-			font-size: 18px;
-}
-.part-prompt[data-v-79f8b97c] {
-			font-size: 16px;
-}
-.radio-item-name[data-v-79f8b97c] {
-			font-size: 20px;
-			margin-right: 0.9375rem;
-}
-
-		/* 确保按钮在横屏下也有足够的大小 */
-.button-group-edit uni-button[data-v-79f8b97c],
-		.button-group-add uni-button[data-v-79f8b97c] {
-			padding: 0 0.9375rem;
-			margin: 0 0.46875rem;
-}
-}
 
 	/* 病害位置弹窗样式 */
 .position-popup-content[data-v-79f8b97c] {
@@ -2043,7 +1758,7 @@ uni-view[data-v-79f8b97c] {
 		color: #fff;
 }
 .location-description[data-v-79f8b97c] {
-		font-size: 0.5625rem;
+		font-size: 0.625rem;
 		padding: 0.375rem 0.5rem;
 		display: flex;
 		flex-direction: row;
@@ -2051,7 +1766,10 @@ uni-view[data-v-79f8b97c] {
 		align-items: center;
 		border-bottom: 0.03125rem solid #eee;
 }
-.location-description-left[data-v-79f8b97c] {}
+.location-description-left[data-v-79f8b97c] {
+		color: #666666;
+		font-size: 0.625rem;
+}
 .location-description-right[data-v-79f8b97c] {
 		display: flex;
 		flex-direction: row;
@@ -2066,7 +1784,18 @@ uni-view[data-v-79f8b97c] {
 		border: 0.03125rem solid #EEEEEE;
 		padding: 0.125rem 0.125rem;
 }
-.location-description-right-distance[data-v-79f8b97c] {
+.reference-start[data-v-79f8b97c] {
+		width: 3.125rem;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		margin-left: 0.625rem;
+		border: 0.03125rem solid #EEEEEE;
+		padding: 0.125rem 0.125rem;
+}
+.reference-end[data-v-79f8b97c] {
+		width: 3.125rem;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
@@ -2084,12 +1813,19 @@ uni-view[data-v-79f8b97c] {
 }
 .quantitative-data[data-v-79f8b97c] {
 		font-size: 0.5625rem;
-		padding: 0.375rem 0.5rem;
+		padding: 0.375rem 0.4375rem;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
 		border-bottom: 0.03125rem solid #eee;
+}
+.quantitative-data-left[data-v-79f8b97c] {
+		font-size: 0.625rem;
+		color: #666666;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
 }
 .quantitative-data-right[data-v-79f8b97c] {
 		display: flex;
@@ -2107,16 +1843,13 @@ uni-view[data-v-79f8b97c] {
 		width: 3.125rem;
 }
 .quantitative-data-right-unit[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		border: 0.03125rem solid #EEEEEE;
+		width: 1.09375rem;
 		margin-left: 0.625rem;
 		padding: 0.125rem 0.125rem;
 }
 .quantitative-data-right-unit-input[data-v-79f8b97c] {
+		font-size: 0.625rem;
 		color: #333333;
-		width: 1.5625rem;
 }
 .quantitative-data-right-unit-fixed[data-v-79f8b97c] {
 		display: flex;
@@ -2131,6 +1864,10 @@ uni-view[data-v-79f8b97c] {
 }
 .input-area-title[data-v-79f8b97c] {
 		font-size: 0.5625rem;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		color: #666666;
 }
 .input-area-content[data-v-79f8b97c] {
 		margin-top: 0.3125rem;
@@ -2139,20 +1876,42 @@ uni-view[data-v-79f8b97c] {
 }
 .line-select[data-v-79f8b97c] {
 		font-size: 0.5625rem;
-		padding: 0.25rem 0.5rem;
+		padding: 0.25rem 0.4375rem;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
 		border-bottom: 0.03125rem solid #eee;
 }
-.line-select-right[data-v-79f8b97c] {}
-[data-v-79f8b97c] .uni-data-checklist .checklist-box,[data-v-79f8b97c] .uni-data-checklist .checklist-box span {
-		min-height: 0.625rem;
-		min-width: 1.875rem;
+.line-select-left[data-v-79f8b97c] {
 		display: flex;
+		flex-direction: row;
 		align-items: center;
-		justify-content: center;
+		font-size: 0.625rem;
+		color: #666666;
+}
+.line-select-right[data-v-79f8b97c] {}
+
+
+
+	/* 深度穿透组件样式 */
+[data-v-79f8b97c] .uni-data-checklist .checklist-box {
+		min-height: 0.625rem !important;
+		min-width: 1.875rem !important;
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+}
+
+	/* 单独处理文本容器 */
+[data-v-79f8b97c] .uni-data-checklist .checklist-box .checklist-content {
+		line-height: 1 !important;
+		/* 重置行高 */
+		display: flex !important;
+		align-items: center !important;
+		justify-content: center !important;
+		width: 100% !important;
+		/* 确保文本容器占满父级 */
 }
 .form-container[data-v-79f8b97c] {
 		height: calc(100vh - 2.5rem);
@@ -2167,85 +1926,7 @@ uni-view[data-v-79f8b97c] {
 		box-sizing: border-box;
 }
 
-	/* 构件编号选择弹窗样式 */
-.component-popup-content[data-v-79f8b97c] {
-		background-color: #fff;
-		width: 18.75rem;
-		height: 15.625rem;
-		/* 增加高度 */
-		border-radius: 0.25rem;
-		padding: 0.625rem 0.9375rem;
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-}
-.component-popup-title[data-v-79f8b97c] {
-		text-align: center;
-		font-size: 0.75rem;
-		/* 从30rpx减小到24rpx */
-		font-weight: bold;
-		margin-bottom: 0.625rem;
-}
-.component-search-box[data-v-79f8b97c] {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 0.625rem;
-		border: 0.03125rem solid #ddd;
-		border-radius: 0.1875rem;
-		padding: 0 0.3125rem;
-}
-.component-search-input[data-v-79f8b97c] {
-		flex: 1;
-		height: 1.25rem;
-		padding: 0.125rem;
-		font-size: 0.6875rem;
-		/* 从26rpx减小到22rpx */
-}
-.component-search-clear[data-v-79f8b97c] {
-		font-size: 0.75rem;
-		/* 从30rpx减小到26rpx */
-		color: #999;
-		padding: 0 0.3125rem;
-}
-.component-code-list[data-v-79f8b97c] {
-		flex: 1;
-		overflow-y: auto;
-		margin-bottom: 0.625rem;
-}
-.component-code-item[data-v-79f8b97c] {
-		padding: 0.375rem 0.3125rem;
-		/* 从14rpx减小到12rpx */
-		border-bottom: 0.03125rem solid #eee;
-		font-size: 0.6875rem;
-		/* 从26rpx减小到22rpx */
-}
-.component-code-item-active[data-v-79f8b97c] {
-		background-color: #f0f0f0;
-}
-.component-popup-buttons[data-v-79f8b97c] {
-		display: flex;
-		justify-content: space-around;
-		margin-top: 0.3125rem;
-}
-.component-popup-button[data-v-79f8b97c] {
-		width: 30%;
-		height: 1.875rem;
-		line-height: 1.875rem;
-		text-align: center;
-		border-radius: 0.1875rem;
-		font-size: 0.75rem;
-		/* 从28rpx减小到24rpx */
-		padding: 0;
-}
-.component-popup-button.cancel[data-v-79f8b97c] {
-		border: 0.03125rem solid #ddd;
-		color: #666;
-}
-.component-popup-button.confirm[data-v-79f8b97c] {
-		background-color: #0F4687;
-		color: #fff;
-}
+
 
 	/*位置描述弹窗*/
 	/*位置描述中位置弹窗样式*/
@@ -2272,19 +1953,6 @@ uni-view[data-v-79f8b97c] {
 		flex: 1;
 		margin-right: 0.3125rem;
 }
-.location-description-position-popup-input2[data-v-79f8b97c] {
-		margin-top: 0.3125rem;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		width: 100%;
-		justify-content: space-between;
-}
-.location-description-position-popup-input2-text[data-v-79f8b97c] {
-		font-size: 0.5rem;
-		margin-right: 0.3125rem;
-		white-space: nowrap;
-}
 .location-description-popup-button[data-v-79f8b97c] {
 		background-color: #0F4687;
 		color: white;
@@ -2301,13 +1969,6 @@ uni-view[data-v-79f8b97c] {
 		flex-shrink: 0;
 		/* 防止按钮被压缩 */
 }
-.location-description-position-popup-input2-right[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		flex-shrink: 0;
-		/* 防止这部分被压缩 */
-}
 .location-description-position-popup-input3[data-v-79f8b97c] {
 		margin-top: 0.3125rem;
 		font-size: 0.625rem;
@@ -2317,54 +1978,37 @@ uni-view[data-v-79f8b97c] {
 }
 
 
-	/*位置描述中距离弹窗样式*/
-.location-description-distance-popup-content[data-v-79f8b97c] {
-		background-color: #fff;
-		width: 18.75rem;
-		height: 9.375rem;
-		border-radius: 0.25rem;
-		padding: 0.625rem 0.9375rem;
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-}
-.location-description-distance-popup-input1[data-v-79f8b97c] {
-		margin-top: 0.3125rem;
+	/* 构件编号输入框样式 */
+.input-right[data-v-79f8b97c] {
 		display: flex;
 		flex-direction: row;
 		align-items: center;
-		width: 100%;
-		justify-content: space-between;
+		width: 5.625rem;
+		border: 0.03125rem solid #eee;
+		padding: 0.125rem 0.125rem;
 }
-.location-description-distance-popup-input1-right[data-v-79f8b97c] {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		flex-shrink: 0;
-		/* 防止这部分被压缩 */
-}
-.location-description-distance-popup-input1-text[data-v-79f8b97c] {
-		font-size: 0.5rem;
-		margin-right: 0.3125rem;
-		white-space: nowrap;
-}
-.location-description-distance-popup-input2[data-v-79f8b97c] {
-		margin-top: 0.3125rem;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		flex-shrink: 0;
-		/* 防止这部分被压缩 */
-}
-.location-description-distance-popup-input2-mid[data-v-79f8b97c] {
-		font-size: 0.5rem;
-		margin-right: 0.3125rem;
-		white-space: nowrap;
-}
-.location-description-distance-popup-input3[data-v-79f8b97c] {
-		margin-top: 0.3125rem;
+.component-code-input[data-v-79f8b97c] {
 		font-size: 0.625rem;
+		text-align: right;
+		padding-right: 0.3125rem;
 }
-.location-description-distance-popup-input3-item[data-v-79f8b97c] {
-		margin-bottom: 0.3125rem;
+.disease-index-title[data-v-79f8b97c] {
+		padding: 0.25rem 0.5rem;
+		font-size: 0.625rem;
+		color: #333333;
+		background-color: #f5f5f5;
+		text-align: center;
+}
+
+	/* 范围输入相关样式 */
+.quantitative-data-right-range[data-v-79f8b97c] {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+}
+.range-separator[data-v-79f8b97c] {
+		margin: 0 0.15625rem;
+		color: #333333;
+		font-size: 0.625rem;
+		font-weight: bold;
 }
