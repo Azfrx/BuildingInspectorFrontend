@@ -25,6 +25,7 @@
 			"style": {
 				"navigationBarTitleText": "湖北交投桥梁定检现场检测",
 				"navigationBarBackgroundColor": "#0F4687",
+				"navigationStyle": "custom",
 				"app-plus": {
 					"titleNView": {
 					}

@@ -4,20 +4,17 @@
 			<view class="titleBar">
 				<image src="/static/image/user1.png" class="avatar"></image>
 				<view class="textContainer">
-					<view class="code">zs@znjc</view>
-					<view class="name">张三</view>
+					<view class="code">{{userAccount}}</view>
+					<view class="name">{{name}}</view>
 				</view>
 				<view class="button">
-					<button size="default" type="default"
-						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx"
-						hover-class="is-hover" @click="openPasswordModal">修改密码</button>
-					<button size="default" type="default"
-						style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx"
-						hover-class="is-hover" @click="handleLogout">退出登录</button>
+					<button size="default" type="default" hover-class="is-hover"
+						@click="openPasswordModal">修改密码</button>
+					<button size="default" type="default" hover-class="is-hover" @click="handleLogout">退出登录</button>
 				</view>
 			</view>
 		</view>
-		<view class="model">
+		<!-- <view class="model">
 			<view class="modelTitle">运行模式</view>
 			<view class="switchContainer">
 				<view class="title">离线</view>
@@ -26,7 +23,7 @@
 				</view>
 				<view class="title">在线</view>
 			</view>
-		</view>
+		</view> -->
 		<view class="divider"></view>
 		<view class="versionData">
 			<view class="versionTitle">当前数据包版本</view>
@@ -35,23 +32,20 @@
 		<view class="divider"></view>
 		<view class="inData">
 			<view class="inDataTitle">本地数据导入</view>
-			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
-				hover-class="is-hover" @click="handleLogin">数据导入</button>
+			<button size="default" type="default" class="functionButton" hover-class="is-hover"
+				@click="handleLogin">数据导入</button>
 		</view>
 		<view class="divider"></view>
 		<view class="outData">
 			<view class="outDataTitle">本地数据导出</view>
-			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
+			<button size="default" type="default" class="functionButton"
 				hover-class="is-hover" @click="handleLogin">数据导出</button>
 		</view>
 		<view class="divider"></view>
 		<view class="versionApp">
 			<view class="appTitle">当前应用版本</view>
 			<view>{{versionNumber}}</view>
-			<button size="default" type="default"
-				style="color:#ffffff;backgroundColor:#1677ff;borderColor:#1AAD19;height:40rpx;font-size: 15rpx;margin-right: 0"
+			<button size="default" type="default" class="functionButton"
 				hover-class="is-hover" @click="checkUpdate">版本更新</button>
 		</view>
 
@@ -91,6 +85,12 @@
 	import {
 		userStore
 	} from '@/store/index.js';
+	import {
+		onLoad
+	} from '@dcloudio/uni-app'
+	import {
+		async
+	} from 'rxjs';
 
 	// 获取用户信息
 	const userInfo = userStore();
@@ -100,10 +100,10 @@
 	const oldPassword = ref('');
 	const newPassword = ref('');
 	const confirmPassword = ref('');
-
+	const name = ref('未知用户');
+	const userAccount = ref('unknownAccount')
 	//版本号
 	const versionNumber = ref('v1')
-
 	// 打开修改密码弹窗
 	const openPasswordModal = () => {
 		// 清空输入框
@@ -141,7 +141,6 @@
 				});
 				return;
 			}
-
 			const token = responseLogin.data.token;
 
 			// 向后端发送退出登录请求
@@ -391,6 +390,7 @@
 	}
 
 	onMounted(() => {
+		userAccount.value = userInfo.username
 		// 获取版本号
 		if (typeof plus !== 'undefined') {
 			plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
@@ -399,6 +399,17 @@
 		} else {
 			// H5 调试时可能没有 plus
 			versionNumber.value = '开发模式';
+		}
+	})
+	onMounted(async () => {
+		try {
+			const responseLogin = await uni.request({
+				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				method: 'POST'
+			});
+			name.value = responseLogin.data.userName;
+		} catch (error) {
+			console.error('用户数据请求失败');
 		}
 	})
 </script>
@@ -444,12 +455,12 @@
 	}
 
 	.code {
-		font-size: 14px;
+		font-size: 16rpx;
 		color: #333333;
 	}
 
 	.name {
-		font-size: 14px;
+		font-size: 14rpx;
 		color: #999999;
 	}
 
@@ -460,7 +471,16 @@
 	}
 
 	.button button {
-		padding: 0 15px;
+		height: 32rpx;
+		width: 84rpx;
+		padding: 4rpx 12rpx;
+		padding-top: 5rpx;
+		color: #ffffff;
+		background-color: var(--primary-color);
+		font-size: 15rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 	}
 
 	.model {
@@ -541,11 +561,13 @@
 	}
 
 	.inData {
+		width: 100%;
 		display: flex;
 		align-items: center;
-		margin-left: 10px;
-		margin-right: 10px;
+		justify-content: space-between;
+		padding: 0 10rpx;
 		height: 48px;
+		box-sizing: border-box;
 	}
 
 	.inDataTitle {
@@ -553,9 +575,18 @@
 		color: #666666;
 	}
 
-	.inData button {
-		margin-left: auto !important;
-		margin-right: 0;
+	.functionButton {
+		color: #ffffff;
+		background-color: #1677ff;
+		height: 32rpx;
+		width: 84rpx;
+		padding: 4rpx 12rpx;
+		padding-top: 5rpx;
+		font-size: 15rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
 	}
 
 	.outData {

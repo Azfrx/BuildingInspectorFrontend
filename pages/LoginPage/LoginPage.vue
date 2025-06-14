@@ -63,7 +63,7 @@
 	const username = ref('');
 	const password = ref('');
 	const userInfo = userStore()
-	const rememberPassword = ref(false);
+	const rememberPassword = ref(true);
 	const showPassword = ref(false);
 	const loading = ref(false);
 	const idInfo = idStore();
