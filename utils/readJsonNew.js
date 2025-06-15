@@ -26,7 +26,8 @@ const FILE_NAMING = {
     // 新增用户信息路径规则
     user: userName => `${getUserDir(userName)}/user.json`,
     historyYear: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/disease`,
-    AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`
+    AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`,
+    frontPhoto:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/frontPhoto.json`,
 };
 
 // 核心文件读取方法
@@ -199,4 +200,10 @@ export function getAllFirstLevelDirs() {
             });
         }, reject);
     });
+}
+
+export function getFrontPhoto(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
+    trackPath(path);
+    return getJsonData(path);
 }

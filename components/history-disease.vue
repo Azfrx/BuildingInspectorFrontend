@@ -345,6 +345,7 @@ const copyDisease = () => {
   // 一次性添加所有选中的病害
   Promise.all(copiedDiseases.map(disease => {
     return new Promise((resolve) => {
+      disease.nature =  '旧害';
       // 发送添加新病害事件给current-disease组件
       console.log('发送添加新病害事件给current-disease组件:', disease);
       uni.$emit('addNewDisease', disease);

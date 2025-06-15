@@ -573,7 +573,7 @@
         <view class="line-select" v-show="typePicker !== '其他'">
 					<view class="line-select-left">
 						<text style="color: red;">*</text>
-						<view>参与评定）</view>
+						<view>参与评定</view>
 					</view>
 					<view class="line-select-right">
 						<uni-data-checkbox mode="tag" v-model="participateAssessindex"

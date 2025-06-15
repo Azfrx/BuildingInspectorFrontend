@@ -29,6 +29,7 @@ const FILE_NAMING = {
         `${getUserDir(userName)}/building/${buildingId}/disease/images`,
     bridgeImages:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/images`,
     targetBridgeZip:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}`,
+    frontPhoto:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/frontPhoto.json`,
 };
 
 // 核心文件写入方法（保持不变）
@@ -306,5 +307,10 @@ export function saveBridgeZip(userName, buildingId){
                 reject(error);
         });
     });
+}
+
+export function setFrontPhoto(userName, buildingId, data) {
+    const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
+    return setJsonData(path,  data);
 }
 
