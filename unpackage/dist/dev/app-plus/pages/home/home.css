@@ -23,6 +23,18 @@
 /* 垂直间距 */
 /* 透明度 */
 /* 文章场景相关 */
+.navbar[data-v-07e72d3c] {
+  width: 100vw;
+  height: 6.5vh;
+  background-color: #0F4687;
+  color: #FFFFFF;
+  font-size: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3vh;
+  box-sizing: border-box;
+}
 .content[data-v-07e72d3c] {
   display: flex;
   width: 100%;

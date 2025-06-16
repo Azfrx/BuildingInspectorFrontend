@@ -8,17 +8,16 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
-	{
-		"path" : "pages/LoginPage/LoginPage",
-		"style" : 
 		{
-			"navigationBarTitleText" : "湖北交投桥梁定检现场检测",
-			"navigationBarBackgroundColor": "#0F4687",
-			"app-plus": {
-				"titleNView": {}
+			"path": "pages/LoginPage/LoginPage",
+			"style": {
+				"navigationBarTitleText": "湖北交投桥梁定检现场检测",
+				"navigationBarBackgroundColor": "#0F4687",
+				"app-plus": {
+					"titleNView": {}
+				}
 			}
-		}
-	},
+		},
 
 		{
 			"path": "pages/home/home",
@@ -27,22 +26,20 @@
 				"navigationBarBackgroundColor": "#0F4687",
 				"navigationStyle": "custom",
 				"app-plus": {
-					"titleNView": {
-					}
+					"titleNView": {}
 				}
 			}
 		},
 		{
 			"path": "pages/bridge/bridge",
-			"style" :
-			{
-				"navigationBarTitleText" : "湖北交投桥梁定检现场检测",
+			"style": {
+				"navigationBarTitleText": "湖北交投桥梁定检现场检测",
 				"navigationBarBackgroundColor": "#0F4687",
 				"app-plus": {
 					"titleNView": {}
 				}
 			}
-			
+
 		},
 		{
 			"path": "pages/List/List",
@@ -74,21 +71,36 @@
 			"style": {
 				"navigationBarTitleText": "",
 				"navigationBarBackgroundColor": "#0F4687",
-				"navigationStyle": "custom" ,// ⬅️ 关闭原生导航栏
+				"navigationStyle": "custom", // ⬅️ 关闭原生导航栏
 				"screenOrientation": "landscape"
 				// "navigationBarLeftButtons": []
 			}
 		},
 		{
-			"path" : "pages/SystemSetting/SystemSetting",
-			"style" : 
-					{
-						"navigationBarTitleText" : "系统设置",
-						"navigationBarBackgroundColor": "#0F4687",
-						"app-plus": {
-							"titleNView": {}
-						}
-					}
+			"path": "pages/SystemSetting/SystemSetting",
+			"style": {
+				"navigationBarTitleText": "系统设置",
+				"navigationBarBackgroundColor": "#0F4687",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path": "uni_modules/uni-upgrade-center-app/pages/upgrade-popup",
+			"style": {
+				"disableScroll": true,
+				"app-plus": {
+					"backgroundColorTop": "transparent",
+					"background": "transparent",
+					"titleNView": false,
+					"scrollIndicator": false,
+					"popGesture": "none",
+					"animationType": "fade-in",
+					"animationDuration": 200
+
+				}
+			}
 		}
 	],
 	"globalStyle": {

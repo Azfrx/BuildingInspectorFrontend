@@ -7,8 +7,8 @@
   "id": "__UNI__B200628",
   "name": "BuildingInspectorFrontend",
   "version": {
-    "name": "v25-05-20",
-    "code": "250520"
+    "name": "v25-05-15",
+    "code": "250515"
   },
   "description": "",
   "developer": {
@@ -79,7 +79,7 @@
     "uni-app": {
       "control": "uni-v3",
       "vueVersion": "3",
-      "compilerVersion": "4.57",
+      "compilerVersion": "4.56",
       "nvueCompiler": "uni-app",
       "renderer": "auto",
       "nvue": {

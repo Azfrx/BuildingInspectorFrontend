@@ -69,7 +69,8 @@ if (uni.restoreGlobal) {
     AllUserInfo: (userName) => `${getUserDir$1(userName)}/AllUserInfo.json`,
     diseaseImages: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/disease/images`,
     bridgeImages: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/images`,
-    targetBridgeZip: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}`
+    targetBridgeZip: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}`,
+    frontPhoto: (userName, buildingId) => `${getUserDir$1(userName)}/building/${buildingId}/frontPhoto.json`
   };
   async function setJsonData(path, data) {
     return new Promise((resolve, reject) => {
@@ -120,57 +121,57 @@ if (uni.restoreGlobal) {
     return setJsonData(path, data);
   }
   function saveDiseaseImages(userName, buildingId, tempImagePaths) {
-    formatAppLog("log", "at utils/writeNew.js:93", "保存的图片tempImagePaths:", tempImagePaths);
+    formatAppLog("log", "at utils/writeNew.js:94", "保存的图片tempImagePaths:", tempImagePaths);
     return new Promise((resolve, reject) => {
       const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.diseaseImages(userName, buildingId);
       plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
         fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
           const savePromises = tempImagePaths.map((tempPath, index) => {
-            formatAppLog("log", "at utils/writeNew.js:104", "准备保存图片:", tempPath);
+            formatAppLog("log", "at utils/writeNew.js:105", "准备保存图片:", tempPath);
             return new Promise((resolveFile, rejectFile) => {
               const fileName = `disease_${Date.now()}_${index}.jpg`;
               const targetPath = `${targetDirPath}/${fileName}`;
               if (tempPath.startsWith("http://") || tempPath.startsWith("https://")) {
-                formatAppLog("log", "at utils/writeNew.js:113", `开始下载网络图片: ${tempPath}`);
-                const downloadTask = plus.downloader.createDownload(tempPath, {
+                formatAppLog("log", "at utils/writeNew.js:114", `开始下载网络图片: ${tempPath}`);
+                const downloadTask2 = plus.downloader.createDownload(tempPath, {
                   filename: targetPath
                 }, (d2, status) => {
                   if (status === 200) {
-                    formatAppLog("log", "at utils/writeNew.js:118", `网络图片 ${index + 1} 下载成功:`, d2.filename);
+                    formatAppLog("log", "at utils/writeNew.js:119", `网络图片 ${index + 1} 下载成功:`, d2.filename);
                     const relativePath = `${buildingId}/disease/images/${fileName}`;
                     resolveFile(relativePath);
                   } else {
-                    formatAppLog("error", "at utils/writeNew.js:122", `网络图片 ${index + 1} 下载失败:`, status);
+                    formatAppLog("error", "at utils/writeNew.js:123", `网络图片 ${index + 1} 下载失败:`, status);
                     rejectFile(new Error(`下载失败，状态码: ${status}`));
                   }
                 });
-                downloadTask.start();
+                downloadTask2.start();
               } else {
                 plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
                   fileEntry.copyTo(dirEntry, fileName, (newFile) => {
-                    formatAppLog("log", "at utils/writeNew.js:132", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                    formatAppLog("log", "at utils/writeNew.js:133", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
                     const relativePath = `${buildingId}/disease/images/${fileName}`;
                     resolveFile(relativePath);
                   }, (error) => {
-                    formatAppLog("error", "at utils/writeNew.js:136", `图片 ${index + 1} 保存失败:`, error);
+                    formatAppLog("error", "at utils/writeNew.js:137", `图片 ${index + 1} 保存失败:`, error);
                     rejectFile(error);
                   });
                 }, (error) => {
-                  formatAppLog("error", "at utils/writeNew.js:140", `无法访问临时文件 ${tempPath}:`, error);
+                  formatAppLog("error", "at utils/writeNew.js:141", `无法访问临时文件 ${tempPath}:`, error);
                   rejectFile(error);
                 });
               }
             });
           });
-          formatAppLog("log", "at utils/writeNew.js:148", `开始等待 ${savePromises.length} 个图片保存完成`);
+          formatAppLog("log", "at utils/writeNew.js:149", `开始等待 ${savePromises.length} 个图片保存完成`);
           Promise.all(savePromises).then((savedPaths) => {
-            formatAppLog("log", "at utils/writeNew.js:151", "Promise.all 已完成，所有图片保存成功:", savedPaths);
+            formatAppLog("log", "at utils/writeNew.js:152", "Promise.all 已完成，所有图片保存成功:", savedPaths);
             if (typeof wait !== "undefined" && wait && wait.close) {
               wait.close();
             }
             resolve(savedPaths);
           }).catch((error) => {
-            formatAppLog("error", "at utils/writeNew.js:158", "Promise.all 出错，图片保存失败:", error);
+            formatAppLog("error", "at utils/writeNew.js:159", "Promise.all 出错，图片保存失败:", error);
             if (typeof wait !== "undefined" && wait && wait.close) {
               wait.close();
             }
@@ -181,7 +182,7 @@ if (uni.restoreGlobal) {
           if (typeof wait !== "undefined" && wait && wait.close) {
             wait.close();
           }
-          formatAppLog("error", "at utils/writeNew.js:169", "创建目录失败:", error);
+          formatAppLog("error", "at utils/writeNew.js:170", "创建目录失败:", error);
           plus.nativeUI.toast("创建图片目录失败");
           reject(error);
         });
@@ -189,64 +190,64 @@ if (uni.restoreGlobal) {
         if (typeof wait !== "undefined" && wait && wait.close) {
           wait.close();
         }
-        formatAppLog("error", "at utils/writeNew.js:177", "文件系统访问失败:", error);
+        formatAppLog("error", "at utils/writeNew.js:178", "文件系统访问失败:", error);
         plus.nativeUI.toast("文件系统访问失败");
         reject(error);
       });
     });
   }
   function saveBridgeImages(userName, buildingId, tempImagePaths) {
-    formatAppLog("log", "at utils/writeNew.js:185", "保存的图片tempImagePaths:", tempImagePaths);
+    formatAppLog("log", "at utils/writeNew.js:186", "保存的图片tempImagePaths:", tempImagePaths);
     return new Promise((resolve, reject) => {
       const targetDirPath = DOC_BASE_PATH$1 + FILE_NAMING$1.bridgeImages(userName, buildingId);
       plus.io.requestFileSystem(plus.io.PRIVATE_DOC, (fs2) => {
         fs2.root.getDirectory(targetDirPath, { create: true }, (dirEntry) => {
           const savePromises = tempImagePaths.map((tempPath, index) => {
-            formatAppLog("log", "at utils/writeNew.js:197", "准备保存图片:", tempPath);
+            formatAppLog("log", "at utils/writeNew.js:198", "准备保存图片:", tempPath);
             return new Promise((resolveFile, rejectFile) => {
               const fileName = `bridge_${Date.now()}_${index}.jpg`;
               const targetPath = `${targetDirPath}/${fileName}`;
               if (tempPath.startsWith("http://") || tempPath.startsWith("https://")) {
-                formatAppLog("log", "at utils/writeNew.js:206", `开始下载网络图片: ${tempPath}`);
-                const downloadTask = plus.downloader.createDownload(tempPath, {
+                formatAppLog("log", "at utils/writeNew.js:207", `开始下载网络图片: ${tempPath}`);
+                const downloadTask2 = plus.downloader.createDownload(tempPath, {
                   filename: targetPath
                 }, (d2, status) => {
                   if (status === 200) {
-                    formatAppLog("log", "at utils/writeNew.js:211", `网络图片 ${index + 1} 下载成功:`, d2.filename);
+                    formatAppLog("log", "at utils/writeNew.js:212", `网络图片 ${index + 1} 下载成功:`, d2.filename);
                     const relativePath = `${buildingId}/images/${fileName}`;
                     resolveFile(relativePath);
                   } else {
-                    formatAppLog("error", "at utils/writeNew.js:215", `网络图片 ${index + 1} 下载失败:`, status);
+                    formatAppLog("error", "at utils/writeNew.js:216", `网络图片 ${index + 1} 下载失败:`, status);
                     rejectFile(new Error(`下载失败，状态码: ${status}`));
                   }
                 });
-                downloadTask.start();
+                downloadTask2.start();
               } else {
                 plus.io.resolveLocalFileSystemURL(tempPath, (fileEntry) => {
                   fileEntry.copyTo(dirEntry, fileName, (newFile) => {
-                    formatAppLog("log", "at utils/writeNew.js:225", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
+                    formatAppLog("log", "at utils/writeNew.js:226", `图片 ${index + 1} 保存成功:`, newFile.fullPath);
                     const relativePath = `${buildingId}/images/${fileName}`;
                     resolveFile(relativePath);
                   }, (error) => {
-                    formatAppLog("error", "at utils/writeNew.js:229", `图片 ${index + 1} 保存失败:`, error);
+                    formatAppLog("error", "at utils/writeNew.js:230", `图片 ${index + 1} 保存失败:`, error);
                     rejectFile(error);
                   });
                 }, (error) => {
-                  formatAppLog("error", "at utils/writeNew.js:233", `无法访问临时文件 ${tempPath}:`, error);
+                  formatAppLog("error", "at utils/writeNew.js:234", `无法访问临时文件 ${tempPath}:`, error);
                   rejectFile(error);
                 });
               }
             });
           });
-          formatAppLog("log", "at utils/writeNew.js:241", `开始等待 ${savePromises.length} 个图片保存完成`);
+          formatAppLog("log", "at utils/writeNew.js:242", `开始等待 ${savePromises.length} 个图片保存完成`);
           Promise.all(savePromises).then((savedPaths) => {
-            formatAppLog("log", "at utils/writeNew.js:244", "Promise.all 已完成，所有图片保存成功:", savedPaths);
+            formatAppLog("log", "at utils/writeNew.js:245", "Promise.all 已完成，所有图片保存成功:", savedPaths);
             if (typeof wait !== "undefined" && wait && wait.close) {
               wait.close();
             }
             resolve(savedPaths);
           }).catch((error) => {
-            formatAppLog("error", "at utils/writeNew.js:251", "Promise.all 出错，图片保存失败:", error);
+            formatAppLog("error", "at utils/writeNew.js:252", "Promise.all 出错，图片保存失败:", error);
             if (typeof wait !== "undefined" && wait && wait.close) {
               wait.close();
             }
@@ -257,7 +258,7 @@ if (uni.restoreGlobal) {
           if (typeof wait !== "undefined" && wait && wait.close) {
             wait.close();
           }
-          formatAppLog("error", "at utils/writeNew.js:262", "创建目录失败:", error);
+          formatAppLog("error", "at utils/writeNew.js:263", "创建目录失败:", error);
           plus.nativeUI.toast("创建图片目录失败");
           reject(error);
         });
@@ -265,29 +266,47 @@ if (uni.restoreGlobal) {
         if (typeof wait !== "undefined" && wait && wait.close) {
           wait.close();
         }
-        formatAppLog("error", "at utils/writeNew.js:270", "文件系统访问失败:", error);
+        formatAppLog("error", "at utils/writeNew.js:271", "文件系统访问失败:", error);
         plus.nativeUI.toast("文件系统访问失败");
         reject(error);
       });
     });
   }
   function saveBridgeImage(userName, buildingId, tempImagePath) {
-    return saveBridgeImages(userName, buildingId, [tempImagePath])[0];
+    return new Promise(async (resolve, reject) => {
+      try {
+        const imageUrls = await saveBridgeImages(userName, buildingId, [tempImagePath]);
+        if (imageUrls && imageUrls.length > 0) {
+          resolve(imageUrls[0]);
+        } else {
+          reject(new Error("未能保存图片"));
+        }
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
   function saveBridgeZip(userName, buildingId) {
-    const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + FILE_NAMING$1.targetBridgeZip(userName, buildingId));
-    const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + userName + "/building/" + buildingId);
-    plus.zip.compress(
-      src,
-      zipfile,
-      function() {
-        formatAppLog("log", "at utils/writeNew.js:287", "Compress success!");
-      },
-      function(error) {
-        formatAppLog("log", "at utils/writeNew.js:289", "Compress error!");
-      }
-    );
-    return zipfile + ".zip";
+    return new Promise((resolve, reject) => {
+      const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + FILE_NAMING$1.targetBridgeZip(userName, buildingId));
+      const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH$1 + getUserDir$1(userName) + "/building/" + buildingId);
+      plus.zip.compress(
+        src,
+        zipfile,
+        function() {
+          formatAppLog("log", "at utils/writeNew.js:302", "Compress success!");
+          resolve(zipfile + ".zip");
+        },
+        function(error) {
+          formatAppLog("log", "at utils/writeNew.js:306", "Compress error:", error);
+          reject(error);
+        }
+      );
+    });
+  }
+  function setFrontPhoto(userName, buildingId, data) {
+    const path = DOC_BASE_PATH$1 + FILE_NAMING$1.frontPhoto(userName, buildingId);
+    return setJsonData(path, data);
   }
   var isVue2 = false;
   function set(target, key, val) {
@@ -479,12 +498,12 @@ if (uni.restoreGlobal) {
     }
     return blob;
   }
-  function download(url, name, opts) {
+  function download(url, name2, opts) {
     const xhr = new XMLHttpRequest();
     xhr.open("GET", url);
     xhr.responseType = "blob";
     xhr.onload = function() {
-      saveAs(xhr.response, name, opts);
+      saveAs(xhr.response, name2, opts);
     };
     xhr.onerror = function() {
       console.error("could not download file");
@@ -522,15 +541,15 @@ if (uni.restoreGlobal) {
       )
     )
   );
-  function downloadSaveAs(blob, name = "download", opts) {
+  function downloadSaveAs(blob, name2 = "download", opts) {
     const a2 = document.createElement("a");
-    a2.download = name;
+    a2.download = name2;
     a2.rel = "noopener";
     if (typeof blob === "string") {
       a2.href = blob;
       if (a2.origin !== location.origin) {
         if (corsEnabled(a2.href)) {
-          download(blob, name, opts);
+          download(blob, name2, opts);
         } else {
           a2.target = "_blank";
           click(a2);
@@ -548,10 +567,10 @@ if (uni.restoreGlobal) {
       }, 0);
     }
   }
-  function msSaveAs(blob, name = "download", opts) {
+  function msSaveAs(blob, name2 = "download", opts) {
     if (typeof blob === "string") {
       if (corsEnabled(blob)) {
-        download(blob, name, opts);
+        download(blob, name2, opts);
       } else {
         const a2 = document.createElement("a");
         a2.href = blob;
@@ -561,16 +580,16 @@ if (uni.restoreGlobal) {
         });
       }
     } else {
-      navigator.msSaveOrOpenBlob(bom(blob, opts), name);
+      navigator.msSaveOrOpenBlob(bom(blob, opts), name2);
     }
   }
-  function fileSaverSaveAs(blob, name, opts, popup) {
+  function fileSaverSaveAs(blob, name2, opts, popup) {
     popup = popup || open("", "_blank");
     if (popup) {
       popup.document.title = popup.document.body.innerText = "downloading...";
     }
     if (typeof blob === "string")
-      return download(blob, name, opts);
+      return download(blob, name2, opts);
     const force = blob.type === "application/octet-stream";
     const isSafari = /constructor/i.test(String(_global.HTMLElement)) || "safari" in _global;
     const isChromeIOS = /CriOS\/[\d]+/.test(navigator.userAgent);
@@ -1029,17 +1048,17 @@ Only state can be modified.`);
       }
     }, (api) => {
       const now2 = typeof api.now === "function" ? api.now.bind(api) : Date.now;
-      store.$onAction(({ after, onError, name, args }) => {
+      store.$onAction(({ after, onError, name: name2, args }) => {
         const groupId = runningActionId++;
         api.addTimelineEvent({
           layerId: MUTATIONS_LAYER_ID,
           event: {
             time: now2(),
-            title: "🛫 " + name,
+            title: "🛫 " + name2,
             subtitle: "start",
             data: {
               store: formatDisplay(store.$id),
-              action: formatDisplay(name),
+              action: formatDisplay(name2),
               args
             },
             groupId
@@ -1051,11 +1070,11 @@ Only state can be modified.`);
             layerId: MUTATIONS_LAYER_ID,
             event: {
               time: now2(),
-              title: "🛬 " + name,
+              title: "🛬 " + name2,
               subtitle: "end",
               data: {
                 store: formatDisplay(store.$id),
-                action: formatDisplay(name),
+                action: formatDisplay(name2),
                 args,
                 result
               },
@@ -1070,11 +1089,11 @@ Only state can be modified.`);
             event: {
               time: now2(),
               logType: "error",
-              title: "💥 " + name,
+              title: "💥 " + name2,
               subtitle: "end",
               data: {
                 store: formatDisplay(store.$id),
-                action: formatDisplay(name),
+                action: formatDisplay(name2),
                 args,
                 error
               },
@@ -1083,8 +1102,8 @@ Only state can be modified.`);
           });
         });
       }, true);
-      store._customProperties.forEach((name) => {
-        vue.watch(() => vue.unref(store[name]), (newValue, oldValue) => {
+      store._customProperties.forEach((name2) => {
+        vue.watch(() => vue.unref(store[name2]), (newValue, oldValue) => {
           api.notifyComponentUpdate();
           api.sendInspectorState(INSPECTOR_ID);
           if (isTimelineActive) {
@@ -1093,7 +1112,7 @@ Only state can be modified.`);
               event: {
                 time: now2(),
                 title: "Change",
-                subtitle: name,
+                subtitle: name2,
                 data: {
                   newValue,
                   oldValue
@@ -1335,14 +1354,14 @@ Only state can be modified.`);
         // use ref() to unwrap refs inside state TODO: check if this is still necessary
         vue.toRefs(vue.ref(state ? state() : {}).value)
       ) : vue.toRefs(pinia.state.value[id]);
-      return assign(localState, actions, Object.keys(getters || {}).reduce((computedGetters, name) => {
-        if (name in localState) {
-          console.warn(`[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name}" in store "${id}".`);
+      return assign(localState, actions, Object.keys(getters || {}).reduce((computedGetters, name2) => {
+        if (name2 in localState) {
+          console.warn(`[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name2}" in store "${id}".`);
         }
-        computedGetters[name] = vue.markRaw(vue.computed(() => {
+        computedGetters[name2] = vue.markRaw(vue.computed(() => {
           setActivePinia(pinia);
           const store2 = pinia._s.get(id);
-          return getters[name].call(store2, store2);
+          return getters[name2].call(store2, store2);
         }));
         return computedGetters;
       }, {}));
@@ -1435,7 +1454,7 @@ Only state can be modified.`);
       actionSubscriptions = [];
       pinia._s.delete($id);
     }
-    function wrapAction(name, action) {
+    function wrapAction(name2, action) {
       return function() {
         setActivePinia(pinia);
         const args = Array.from(arguments);
@@ -1449,7 +1468,7 @@ Only state can be modified.`);
         }
         triggerSubscriptions(actionSubscriptions, {
           args,
-          name,
+          name: name2,
           store,
           after,
           onError
@@ -1776,7 +1795,7 @@ This will fail in production.`);
       setDir
     };
   });
-  const _imports_0$6 = "/static/image/loginLogo.jpg";
+  const _imports_0$7 = "/static/image/loginLogo.jpg";
   const _export_sfc = (sfc, props) => {
     const target = sfc.__vccOpts || sfc;
     for (const [key, val] of props) {
@@ -1784,14 +1803,14 @@ This will fail in production.`);
     }
     return target;
   };
-  const _sfc_main$A = {
+  const _sfc_main$B = {
     __name: "LoginPage",
     setup(__props, { expose: __expose }) {
       __expose();
       const username = vue.ref("");
       const password = vue.ref("");
       const userInfo = userStore();
-      const rememberPassword2 = vue.ref(false);
+      const rememberPassword2 = vue.ref(true);
       const showPassword = vue.ref(false);
       const loading = vue.ref(false);
       const idInfo = idStore();
@@ -1907,12 +1926,12 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "loginPage" }, [
       vue.createElementVNode("view", { class: "logo" }, [
         vue.createElementVNode("view", { class: "logo-container" }, [
           vue.createElementVNode("image", {
-            src: _imports_0$6,
+            src: _imports_0$7,
             mode: "widthFix",
             style: { "width": "100%", "background-color": "#ffffff" }
           })
@@ -1986,11 +2005,11 @@ This will fail in production.`);
       ])
     ]);
   }
-  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
-  const _imports_0$5 = "/static/image/loginLogo.png";
-  const _imports_1$2 = "/static/image/bridgeTrue.png";
+  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
+  const _imports_0$6 = "/static/image/loginLogo.png";
+  const _imports_1$3 = "/static/image/bridgeTrue.png";
   const _imports_2$2 = "/static/image/settingTrue.png";
-  const _sfc_main$z = {
+  const _sfc_main$A = {
     __name: "home",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2012,64 +2031,76 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { id: "homePage" }, [
-      vue.createElementVNode("view", { class: "logo" }, [
-        vue.createElementVNode("image", {
-          src: _imports_0$5,
-          mode: "widthFix",
-          style: { "width": "100%" }
-        })
-      ]),
-      vue.createElementVNode("view", { class: "container" }, [
-        vue.createElementVNode("view", { class: "content" }, [
-          vue.createElementVNode(
-            "view",
-            {
-              class: vue.normalizeClass(["section", { "active": $setup.activeSection === "bridge" }]),
-              onClick: _cache[0] || (_cache[0] = ($event) => $setup.handleClick("bridge"))
-            },
-            [
-              vue.createElementVNode("view", { class: "icon-item" }, [
-                vue.createElementVNode("view", { class: "icon-box" }, [
-                  vue.createElementVNode("image", {
-                    src: _imports_1$2,
-                    mode: "widthFix",
-                    class: "home-icon"
-                  })
-                ]),
-                vue.createElementVNode("text", { class: "leftText" }, "桥梁定检")
-              ])
-            ],
-            2
-            /* CLASS */
-          ),
-          vue.createElementVNode(
-            "view",
-            {
-              class: vue.normalizeClass(["section", { "active": $setup.activeSection === "setting" }]),
-              onClick: _cache[1] || (_cache[1] = ($event) => $setup.handleClick("setting"))
-            },
-            [
-              vue.createElementVNode("view", { class: "icon-item" }, [
-                vue.createElementVNode("view", { class: "icon-box" }, [
-                  vue.createElementVNode("image", {
-                    src: _imports_2$2,
-                    mode: "widthFix",
-                    class: "home-icon"
-                  })
-                ]),
-                vue.createElementVNode("text", { class: "leftText" }, "系统设置")
-              ])
-            ],
-            2
-            /* CLASS */
-          )
+  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock(
+      vue.Fragment,
+      null,
+      [
+        vue.createElementVNode("view", { class: "navbar" }, "湖北交投桥梁定检现场检测"),
+        vue.createElementVNode("view", {
+          id: "homePage",
+          class: "homePage"
+        }, [
+          vue.createElementVNode("view", { class: "logo" }, [
+            vue.createElementVNode("image", {
+              src: _imports_0$6,
+              mode: "widthFix",
+              style: { "width": "100%" }
+            })
+          ]),
+          vue.createElementVNode("view", { class: "container" }, [
+            vue.createElementVNode("view", { class: "content" }, [
+              vue.createElementVNode(
+                "view",
+                {
+                  class: vue.normalizeClass(["section", { "active": $setup.activeSection === "bridge" }]),
+                  onClick: _cache[0] || (_cache[0] = ($event) => $setup.handleClick("bridge"))
+                },
+                [
+                  vue.createElementVNode("view", { class: "icon-item" }, [
+                    vue.createElementVNode("view", { class: "icon-box" }, [
+                      vue.createElementVNode("image", {
+                        src: _imports_1$3,
+                        mode: "widthFix",
+                        class: "home-icon"
+                      })
+                    ]),
+                    vue.createElementVNode("text", { class: "leftText" }, "桥梁定检")
+                  ])
+                ],
+                2
+                /* CLASS */
+              ),
+              vue.createElementVNode(
+                "view",
+                {
+                  class: vue.normalizeClass(["section", { "active": $setup.activeSection === "setting" }]),
+                  onClick: _cache[1] || (_cache[1] = ($event) => $setup.handleClick("setting"))
+                },
+                [
+                  vue.createElementVNode("view", { class: "icon-item" }, [
+                    vue.createElementVNode("view", { class: "icon-box" }, [
+                      vue.createElementVNode("image", {
+                        src: _imports_2$2,
+                        mode: "widthFix",
+                        class: "home-icon"
+                      })
+                    ]),
+                    vue.createElementVNode("text", { class: "leftText" }, "系统设置")
+                  ])
+                ],
+                2
+                /* CLASS */
+              )
+            ])
+          ])
         ])
-      ])
-    ]);
+      ],
+      64
+      /* STABLE_FRAGMENT */
+    );
   }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/home/home.vue"]]);
   const DOC_BASE_PATH = "_doc/";
   function getCurrentDateStr() {
     const now2 = /* @__PURE__ */ new Date();
@@ -2090,7 +2121,8 @@ This will fail in production.`);
     // 新增用户信息路径规则
     user: (userName) => `${getUserDir(userName)}/user.json`,
     historyYear: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/disease`,
-    AllUserInfo: (userName) => `${getUserDir(userName)}/AllUserInfo.json`
+    AllUserInfo: (userName) => `${getUserDir(userName)}/AllUserInfo.json`,
+    frontPhoto: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/frontPhoto.json`
   };
   async function getJsonData(path) {
     return new Promise((resolve, reject) => {
@@ -2144,7 +2176,7 @@ This will fail in production.`);
   }
   async function getHistoryYear(userName, buildingId) {
     const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
-    formatAppLog("log", "at utils/readJsonNew.js:95", `历史病害目标目录: ${dirPath}`);
+    formatAppLog("log", "at utils/readJsonNew.js:96", `历史病害目标目录: ${dirPath}`);
     const files = await listDirectoryFiles(dirPath);
     const yearFiles = files.filter(
       (file) => file.name && /^\d{4}\.json$/.test(file.name)
@@ -2157,7 +2189,7 @@ This will fail in production.`);
     const filteredYears = years.filter((year) => year !== currentYear).sort((a2, b2) => {
       return Number(b2) - Number(a2);
     });
-    formatAppLog("log", "at utils/readJsonNew.js:121", `找到历史年份: ${filteredYears.join(",")}`);
+    formatAppLog("log", "at utils/readJsonNew.js:122", `找到历史年份: ${filteredYears.join(",")}`);
     return filteredYears;
   }
   function listDirectoryFiles(path) {
@@ -2219,6 +2251,11 @@ This will fail in production.`);
         });
       }, reject);
     });
+  }
+  function getFrontPhoto(userName, buildingId) {
+    const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
+    trackPath(path);
+    return getJsonData(path);
   }
   var extendStatics = function(d2, b2) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d3, b3) {
@@ -2974,8 +3011,8 @@ This will fail in production.`);
     }
     return timer(period, period, scheduler);
   }
-  const _imports_0$4 = "/static/image/RightOutline.svg";
-  const _sfc_main$y = {
+  const _imports_0$5 = "/static/image/RightOutline.svg";
+  const _sfc_main$z = {
     __name: "bridge",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2998,7 +3035,6 @@ This will fail in production.`);
         }
         return "";
       }
-      const years = vue.ref([2025, 2024, 2023, 2022, 2021, 2020]);
       const currentYear = vue.ref((/* @__PURE__ */ new Date()).getFullYear());
       const initData = vue.ref(null);
       const infoData = vue.ref({});
@@ -3006,18 +3042,20 @@ This will fail in production.`);
       const idInfo = idStore();
       const dir = vue.ref("");
       const selectedYearIndex = vue.ref(0);
+      const years = vue.ref([]);
+      const tasksNumber = vue.ref(0);
       const init = async () => {
         try {
           const responseLogin = await uni.request({
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at pages/bridge/bridge.vue:118", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at pages/bridge/bridge.vue:132", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           infoData.value = responseLogin.data;
           if (userInfo.username) {
             dir.value = getUserDir2(userInfo.username);
-            formatAppLog("log", "at pages/bridge/bridge.vue:126", "当前用户目录:", dir.value);
+            formatAppLog("log", "at pages/bridge/bridge.vue:140", "当前用户目录:", dir.value);
             idInfo.setDir(dir.value);
           }
           if (token) {
@@ -3030,15 +3068,21 @@ This will fail in production.`);
                     "Authorization": `${token}`
                   }
                 });
-                formatAppLog("log", "at pages/bridge/bridge.vue:140", "获取到的项目数据:", projectResponse.data);
+                formatAppLog("log", "at pages/bridge/bridge.vue:154", "获取到的项目数据:", projectResponse.data);
                 if (projectResponse.data.code === 0) {
+                  await getProjectsTasks(projectResponse.data.data.projects, token);
+                  const repeatYears = projectResponse.data.data.projects.map((item) => {
+                    return item.year;
+                  });
+                  years.value = [...new Set(repeatYears)].sort((a2, b2) => b2 - a2);
+                  formatAppLog("log", "at pages/bridge/bridge.vue:162", years.value);
                   initData.value = projectResponse.data;
                   const fileArray = await getAllFirstLevelDirs();
                   let userDirExists = false;
                   for (let i2 = 0; i2 < fileArray.length; i2++) {
                     const dir2 = fileArray[i2];
-                    const name = extractUserNameFromDir(dir2);
-                    if (name === userInfo.username) {
+                    const name2 = extractUserNameFromDir(dir2);
+                    if (name2 === userInfo.username) {
                       userDirExists = true;
                       break;
                     }
@@ -3046,10 +3090,10 @@ This will fail in production.`);
                   if (!userDirExists) {
                     await setProject(userInfo.username, initData.value);
                   } else {
-                    formatAppLog("log", "at pages/bridge/bridge.vue:162", "用户目录已存在，跳过创建");
+                    formatAppLog("log", "at pages/bridge/bridge.vue:183", "用户目录已存在，跳过创建");
                   }
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:166", "API返回错误:", projectResponse.data.msg);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:187", "API返回错误:", projectResponse.data.msg);
                   uni.showToast({
                     title: projectResponse.data.msg || "获取数据失败",
                     icon: "none"
@@ -3057,13 +3101,13 @@ This will fail in production.`);
                 }
               } catch (error) {
                 if (error.errMsg && (error.errMsg.includes("request:fail") || error.errMsg.includes("timeout"))) {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:175", "网络请求失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:197", "网络请求失败:", error);
                   uni.showToast({
                     title: "网络连接失败，请检查网络",
                     icon: "none"
                   });
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:181", "获取项目数据失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:203", "获取项目数据失败:", error);
                   if (!initData.value || !initData.value.data) {
                     uni.showToast({
                       title: "获取数据失败，请稍后重试",
@@ -3075,14 +3119,14 @@ This will fail in production.`);
             };
             await getData();
           } else {
-            formatAppLog("error", "at pages/bridge/bridge.vue:195", "未获取到有效token");
+            formatAppLog("error", "at pages/bridge/bridge.vue:217", "未获取到有效token");
             uni.showToast({
               title: "登录信息无效，请重新登录",
               icon: "none"
             });
           }
         } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:202", "初始化数据失败:", error);
+          formatAppLog("error", "at pages/bridge/bridge.vue:224", "初始化数据失败:", error);
         }
       };
       const filteredProjects = vue.computed(() => {
@@ -3093,19 +3137,40 @@ This will fail in production.`);
           return project.year == currentYear.value;
         });
       });
+      const filteredProjectsTasks = vue.ref([]);
       const changeYear = (e2) => {
         selectedYearIndex.value = e2.detail.value;
         currentYear.value = years.value[selectedYearIndex.value];
-        formatAppLog("log", "at pages/bridge/bridge.vue:220", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
+        formatAppLog("log", "at pages/bridge/bridge.vue:250", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
       };
       const back = () => {
         uni.navigateBack();
       };
       const goToList = (item) => {
-        idInfo.setProjectId({ value: item.id });
+        idInfo.setProjectId({
+          value: item.id
+        });
         uni.navigateTo({
           url: `/pages/List/List?projectId=${item.id}`
         });
+      };
+      const getProjectsTasks = async (projects, token) => {
+        for (const item of projects) {
+          const response = await uni.request({
+            url: `http://60.205.13.156:8090/api/project/${item.id}/task`,
+            method: "GET",
+            header: {
+              "Authorization": `${token}`
+            }
+          });
+          filteredProjectsTasks.value.push({
+            projectId: item.id,
+            tastsNumber: response.data.data.tasks.length
+          });
+        }
+      };
+      const getTasksNumber = (id) => {
+        return filteredProjectsTasks.value.find((item) => item.projectId === id).tastsNumber;
       };
       const getStatusText = (status) => {
         switch (status) {
@@ -3137,7 +3202,7 @@ This will fail in production.`);
           rememberPassword.value = false;
         }
       };
-      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, extractUserNameFromDir, years, currentYear, initData, infoData, userInfo, idInfo, dir, selectedYearIndex, init, filteredProjects, changeYear, back, goToList, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
+      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, extractUserNameFromDir, currentYear, initData, infoData, userInfo, idInfo, dir, selectedYearIndex, years, tasksNumber, init, filteredProjects, filteredProjectsTasks, changeYear, back, goToList, getProjectsTasks, getTasksNumber, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
         return getAllUserInfo;
       }, get getProject() {
         return getProject;
@@ -3156,7 +3221,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -3203,7 +3268,7 @@ This will fail in production.`);
                       /* TEXT */
                     ),
                     vue.createElementVNode("image", {
-                      src: _imports_0$4,
+                      src: _imports_0$5,
                       mode: "scaleToFill"
                     })
                   ])
@@ -3259,13 +3324,13 @@ This will fail in production.`);
                       vue.createElementVNode(
                         "text",
                         { class: "bridge-progress" },
-                        vue.toDisplayString(item.number || "0/0"),
+                        vue.toDisplayString(`0/${$setup.getTasksNumber(item.id)}` || "0/0"),
                         1
                         /* TEXT */
                       )
                     ]),
                     vue.createElementVNode("image", {
-                      src: _imports_0$4,
+                      src: _imports_0$5,
                       mode: "scaleToFill"
                     })
                   ])
@@ -3281,8 +3346,8 @@ This will fail in production.`);
       /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
     );
   }
-  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
-  const _sfc_main$x = {
+  const PagesBridgeBridge = /* @__PURE__ */ _export_sfc(_sfc_main$z, [["render", _sfc_render$y], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/bridge/bridge.vue"]]);
+  const _sfc_main$y = {
     __name: "List",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -3414,7 +3479,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$x(_ctx, _cache, $props, $setup, $data, $options) {
     var _a, _b, _c, _d, _e2;
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
       vue.createCommentVNode(" 顶部信息卡片 "),
@@ -3571,7 +3636,7 @@ This will fail in production.`);
                     /* TEXT */
                   )
                 ]),
-                vue.createElementVNode("image", { src: _imports_0$4 })
+                vue.createElementVNode("image", { src: _imports_0$5 })
               ])
             ], 8, ["onClick"]);
           }),
@@ -3588,7 +3653,7 @@ This will fail in production.`);
       ])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/List/List.vue"]]);
+  const PagesListList = /* @__PURE__ */ _export_sfc(_sfc_main$y, [["render", _sfc_render$x], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/List/List.vue"]]);
   const fontData = [
     {
       "font_class": "arrow-down",
@@ -4239,7 +4304,7 @@ This will fail in production.`);
     const reg = /^[0-9]*$/g;
     return typeof val === "number" || reg.test(val) ? val + "px" : val;
   };
-  const _sfc_main$w = {
+  const _sfc_main$x = {
     name: "UniIcons",
     emits: ["click"],
     props: {
@@ -4293,7 +4358,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$w(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "text",
       {
@@ -4308,7 +4373,7 @@ This will fail in production.`);
       /* CLASS, STYLE */
     );
   }
-  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
+  const __easycom_0$7 = /* @__PURE__ */ _export_sfc(_sfc_main$x, [["render", _sfc_render$w], ["__scopeId", "data-v-d31e1c47"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/uni_modules/uni-icons/components/uni-icons/uni-icons.vue"]]);
   const isObject = (val) => val !== null && typeof val === "object";
   const defaultDelimiters = ["{", "}"];
   class BaseFormatter {
@@ -4615,7 +4680,7 @@ This will fail in production.`);
   const {
     t: t$2
   } = initVueI18n(messages$1);
-  const _sfc_main$v = {
+  const _sfc_main$w = {
     name: "UniSearchBar",
     emits: ["input", "update:modelValue", "clear", "cancel", "confirm", "blur", "focus"],
     props: {
@@ -4757,7 +4822,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$v(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-searchbar" }, [
       vue.createElementVNode(
@@ -4833,7 +4898,7 @@ This will fail in production.`);
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
+  const __easycom_0$6 = /* @__PURE__ */ _export_sfc(_sfc_main$w, [["render", _sfc_render$v], ["__scopeId", "data-v-a149a6be"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-search-bar/uni-search-bar.vue"]]);
   let mpMixins = {};
   mpMixins = {
     data() {
@@ -4905,7 +4970,7 @@ This will fail in production.`);
     (Comp.$renderjs || (Comp.$renderjs = [])).push("renderswipe");
     (Comp.$renderjsModules || (Comp.$renderjsModules = {}))["renderswipe"] = "74bb5072";
   };
-  const _sfc_main$u = {
+  const _sfc_main$v = {
     mixins: [mpwxs, bindIngXMixins, otherMixins],
     emits: ["click", "change"],
     props: {
@@ -4962,10 +5027,10 @@ This will fail in production.`);
       /**
        * 获取父元素实例
        */
-      getSwipeAction(name = "uniSwipeAction") {
+      getSwipeAction(name2 = "uniSwipeAction") {
         let parent = this.$parent;
         let parentName = parent.$options.name;
-        while (parentName !== name) {
+        while (parentName !== name2) {
           parent = parent.$parent;
           if (!parent)
             return false;
@@ -4975,7 +5040,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$u(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -5072,11 +5137,11 @@ This will fail in production.`);
     );
   }
   if (typeof block0 === "function")
-    block0(_sfc_main$u);
+    block0(_sfc_main$v);
   if (typeof block1 === "function")
-    block1(_sfc_main$u);
-  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
-  const _sfc_main$t = {
+    block1(_sfc_main$v);
+  const __easycom_0$5 = /* @__PURE__ */ _export_sfc(_sfc_main$v, [["render", _sfc_render$u], ["__scopeId", "data-v-82a5303b"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action-item/uni-swipe-action-item.vue"]]);
+  const _sfc_main$u = {
     name: "uniSwipeAction",
     data() {
       return {};
@@ -5102,14 +5167,14 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$t(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.renderSlot(_ctx.$slots, "default")
     ]);
   }
-  const __easycom_1$4 = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
-  const _imports_0$3 = "/static/image/disease.png";
-  const _sfc_main$s = {
+  const __easycom_1$4 = /* @__PURE__ */ _export_sfc(_sfc_main$u, [["render", _sfc_render$t], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-swipe-action/uni-swipe-action.vue"]]);
+  const _imports_0$4 = "/static/image/disease.png";
+  const _sfc_main$t = {
     __name: "disease-item",
     props: {
       item: {
@@ -5165,6 +5230,10 @@ This will fail in production.`);
       selected: {
         type: Boolean,
         default: false
+      },
+      editMode: {
+        type: String,
+        default: "history"
       }
     },
     emits: ["delete", "select", "swipe-opened"],
@@ -5203,7 +5272,7 @@ This will fail in production.`);
       const editDisease = () => {
         const itemData = encodeURIComponent(JSON.stringify(props.item));
         uni.navigateTo({
-          url: `/pages/add-disease/add-disease?mode=edit&id=${props.item.id}&data=${itemData}`
+          url: `/pages/add-disease/add-disease?mode=${props.editMode}&id=${props.item.id}&data=${itemData}`
         });
       };
       const handleSwipeClick = (e2) => {
@@ -5226,7 +5295,7 @@ This will fail in production.`);
                   id: props.item.id,
                   isDelete: true
                 };
-                formatAppLog("log", "at components/disease-item/disease-item.vue:178", "准备发送deleteDisease事件，ID:", props.item.id);
+                formatAppLog("log", "at components/disease-item/disease-item.vue:222", "准备发送deleteDisease事件，ID:", props.item.id);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -5262,12 +5331,13 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$s(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_swipe_action_item = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action-item"), __easycom_0$5);
     const _component_uni_swipe_action = resolveEasycom(vue.resolveDynamicComponent("uni-swipe-action"), __easycom_1$4);
-    return vue.openBlock(), vue.createBlock(
+    return $props.editMode !== "history" ? (vue.openBlock(), vue.createBlock(
       _component_uni_swipe_action,
       {
+        key: 0,
         ref: (el) => $setup.swipeAction = el
       },
       {
@@ -5304,7 +5374,7 @@ This will fail in production.`);
                 ])) : vue.createCommentVNode("v-if", true),
                 vue.createElementVNode("view", {
                   class: "disease-content",
-                  onClick: $setup.editDisease
+                  onClick: _cache[0] || (_cache[0] = ($event) => $props.selectMode ? null : $setup.editDisease())
                 }, [
                   vue.createElementVNode("view", { class: "item-header" }, [
                     vue.createElementVNode(
@@ -5363,7 +5433,7 @@ This will fail in production.`);
                   ]),
                   vue.createElementVNode("image", {
                     class: "image-icon",
-                    src: _imports_0$3,
+                    src: _imports_0$4,
                     mode: "aspectFit"
                   })
                 ])
@@ -5378,10 +5448,108 @@ This will fail in production.`);
       },
       512
       /* NEED_PATCH */
-    );
+    )) : (vue.openBlock(), vue.createElementBlock(
+      vue.Fragment,
+      { key: 1 },
+      [
+        vue.createCommentVNode(" 历史病害模式下不可滑动的版本 "),
+        vue.createElementVNode("view", {
+          class: "disease-item",
+          onClick: $setup.handleItemClick
+        }, [
+          vue.createCommentVNode(" 选择框区域 "),
+          $props.selectMode ? (vue.openBlock(), vue.createElementBlock("view", {
+            key: 0,
+            class: "select-area"
+          }, [
+            vue.createElementVNode(
+              "view",
+              {
+                class: vue.normalizeClass(["select-circle", $setup.isSelected ? "selected" : ""])
+              },
+              [
+                $setup.isSelected ? (vue.openBlock(), vue.createElementBlock("view", {
+                  key: 0,
+                  class: "select-inner"
+                })) : vue.createCommentVNode("v-if", true)
+              ],
+              2
+              /* CLASS */
+            )
+          ])) : vue.createCommentVNode("v-if", true),
+          vue.createElementVNode("view", {
+            class: "disease-content",
+            onClick: _cache[1] || (_cache[1] = ($event) => $props.selectMode ? null : $setup.editDisease())
+          }, [
+            vue.createElementVNode("view", { class: "item-header" }, [
+              vue.createElementVNode(
+                "text",
+                { class: "title" },
+                vue.toDisplayString($props.item.component.name) + "/" + vue.toDisplayString($props.item.type),
+                1
+                /* TEXT */
+              )
+            ]),
+            vue.createElementVNode("view", { class: "content-container" }, [
+              vue.createElementVNode("view", { class: "left-column" }, [
+                vue.createElementVNode("view", { class: "info-row" }, [
+                  vue.createElementVNode("text", { class: "label" }, "病害描述："),
+                  vue.createElementVNode(
+                    "text",
+                    { class: "description-text" },
+                    vue.toDisplayString($props.item.description),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "info-row" }, [
+                  vue.createElementVNode("text", { class: "label" }, "采集时间："),
+                  vue.createElementVNode(
+                    "text",
+                    null,
+                    vue.toDisplayString($props.item.createTime),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ]),
+              vue.createElementVNode("view", { class: "right-column" }, [
+                vue.createElementVNode("view", { class: "info-row" }, [
+                  vue.createElementVNode("text", { class: "label" }, "缺损数量："),
+                  vue.createElementVNode(
+                    "text",
+                    null,
+                    vue.toDisplayString($props.item.quantity),
+                    1
+                    /* TEXT */
+                  )
+                ]),
+                vue.createElementVNode("view", { class: "info-row" }, [
+                  vue.createElementVNode("text", { class: "label" }, "评定标度/参考评定："),
+                  vue.createElementVNode(
+                    "text",
+                    null,
+                    vue.toDisplayString($props.item.participateAssess === "1" ? "是" : "否") + "/" + vue.toDisplayString($props.item.participateAssess === "1" ? $props.item.level : "-"),
+                    1
+                    /* TEXT */
+                  )
+                ])
+              ])
+            ]),
+            vue.createElementVNode("image", {
+              class: "image-icon",
+              src: _imports_0$4,
+              mode: "aspectFit"
+            })
+          ])
+        ])
+      ],
+      2112
+      /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
+    ));
   }
-  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
-  const _sfc_main$r = {
+  const __easycom_1$3 = /* @__PURE__ */ _export_sfc(_sfc_main$t, [["render", _sfc_render$s], ["__scopeId", "data-v-e8b45b33"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/disease-item/disease-item.vue"]]);
+  const _sfc_main$s = {
     __name: "current-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -5416,16 +5584,16 @@ This will fail in production.`);
         try {
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const yearData = await getDisease(userInfo.username, buildingId.value, currentYear);
-          formatAppLog("log", "at components/current-disease.vue:101", `获取到${currentYear}年病害数据:`, yearData);
+          formatAppLog("log", "at components/current-disease.vue:102", `获取到${currentYear}年病害数据:`, yearData);
           if (yearData && yearData.diseases && yearData.diseases.length > 0) {
             diseaseList.value = yearData.diseases;
           } else {
             diseaseList.value = [];
           }
-          formatAppLog("log", "at components/current-disease.vue:110", "病害数据加载完成:", diseaseList.value);
+          formatAppLog("log", "at components/current-disease.vue:111", "病害数据加载完成:", diseaseList.value);
         } catch (error) {
           isJson.value = 0;
-          formatAppLog("error", "at components/current-disease.vue:113", "读取当前病害数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:114", "读取当前病害数据失败:", error);
         }
       };
       const loadCurrentYearDiseaseData = async () => {
@@ -5438,11 +5606,11 @@ This will fail in production.`);
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at components/current-disease.vue:128", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at components/current-disease.vue:129", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const getData = async () => {
-            formatAppLog("log", "at components/current-disease.vue:132", "开始从后端获取当前病害数据...........");
+            formatAppLog("log", "at components/current-disease.vue:133", "开始从后端获取当前病害数据...........");
             try {
               const response = await uni.request({
                 //桥梁id改为全局
@@ -5453,9 +5621,9 @@ This will fail in production.`);
                 }
               });
               if (response.data.code === 0) {
-                formatAppLog("log", "at components/current-disease.vue:143", "后端接口返回当前病害数据:", response.data.data);
+                formatAppLog("log", "at components/current-disease.vue:144", "后端接口返回当前病害数据:", response.data.data);
                 const saveData = response.data.data[0];
-                formatAppLog("log", "at components/current-disease.vue:151", "准备保存的当前病害数据:", saveData);
+                formatAppLog("log", "at components/current-disease.vue:152", "准备保存的当前病害数据:", saveData);
                 for (const disease of saveData.diseases) {
                   if (disease.images && Array.isArray(disease.images)) {
                     disease.images = await saveDiseaseImages(userInfo.username, buildingId.value, disease.images);
@@ -5472,7 +5640,7 @@ This will fail in production.`);
                 });
               }
             } catch (error) {
-              formatAppLog("error", "at components/current-disease.vue:174", "获取当前病害数据失败:", error);
+              formatAppLog("error", "at components/current-disease.vue:175", "获取当前病害数据失败:", error);
               uni.showToast({
                 title: "获取数据失败，请稍后重试",
                 icon: "none"
@@ -5485,7 +5653,7 @@ This will fail in production.`);
       };
       const addNewDiseaseData = async (newDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:189", "接收到新增病害数据:", newDisease);
+          formatAppLog("log", "at components/current-disease.vue:190", "接收到新增病害数据:", newDisease);
           diseaseList.value.push(newDisease);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
@@ -5493,15 +5661,15 @@ This will fail in production.`);
             buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:203", "准备保存的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:204", "准备保存的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:208", "新增病害数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:209", "新增病害数据保存成功");
           uni.showToast({
             title: "保存成功",
             icon: "success"
           });
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:214", "保存新增病害数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:215", "保存新增病害数据失败:", error);
           uni.showToast({
             title: "保存失败",
             icon: "none"
@@ -5510,29 +5678,29 @@ This will fail in production.`);
       };
       const handleDeleteDisease = async (deleteData) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:225", "接收到删除病害事件:", deleteData);
+          formatAppLog("log", "at components/current-disease.vue:226", "接收到删除病害事件:", deleteData);
           if (!deleteData || !deleteData.id) {
-            formatAppLog("error", "at components/current-disease.vue:228", "删除数据无效");
+            formatAppLog("error", "at components/current-disease.vue:229", "删除数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == deleteData.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:235", "未找到要删除的病害数据:", deleteData.id);
+            formatAppLog("error", "at components/current-disease.vue:236", "未找到要删除的病害数据:", deleteData.id);
             return;
           }
           diseaseList.value.splice(index, 1);
-          formatAppLog("log", "at components/current-disease.vue:241", `病害ID:${deleteData.id}已删除`);
+          formatAppLog("log", "at components/current-disease.vue:242", `病害ID:${deleteData.id}已删除`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
             year: parseInt(currentYear),
             buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:253", "准备保存删除后的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:254", "准备保存删除后的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:258", "删除保存成功");
+          formatAppLog("log", "at components/current-disease.vue:259", "删除保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:260", "保存删除失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:261", "保存删除失败:", error);
           uni.showToast({
             title: "删除失败",
             icon: "none"
@@ -5541,29 +5709,29 @@ This will fail in production.`);
       };
       const handleUpdateDisease = async (updatedDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:271", "接收到更新病害事件:", updatedDisease);
+          formatAppLog("log", "at components/current-disease.vue:272", "接收到更新病害事件:", updatedDisease);
           if (!updatedDisease || !updatedDisease.id) {
-            formatAppLog("error", "at components/current-disease.vue:274", "更新数据无效");
+            formatAppLog("error", "at components/current-disease.vue:275", "更新数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == updatedDisease.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:281", "未找到要更新的病害数据:", updatedDisease.id);
+            formatAppLog("error", "at components/current-disease.vue:282", "未找到要更新的病害数据:", updatedDisease.id);
             return;
           }
           diseaseList.value[index] = updatedDisease;
-          formatAppLog("log", "at components/current-disease.vue:287", `病害ID:${updatedDisease.id}已更新`);
+          formatAppLog("log", "at components/current-disease.vue:288", `病害ID:${updatedDisease.id}已更新`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
             year: parseInt(currentYear),
             buildingId: parseInt(buildingId),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:299", "准备保存更新后的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:300", "准备保存更新后的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:304", "更新数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:305", "更新数据保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:306", "保存更新数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:307", "保存更新数据失败:", error);
           uni.showToast({
             title: "更新失败",
             icon: "none"
@@ -5585,7 +5753,7 @@ This will fail in production.`);
       });
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/current-disease.vue:338", "搜索内容:", e2);
+        formatAppLog("log", "at components/current-disease.vue:339", "搜索内容:", e2);
       };
       const changeTab = (index) => {
         activeTab.value = index;
@@ -5624,7 +5792,7 @@ This will fail in production.`);
                     icon: "success"
                   });
                 }).catch((error) => {
-                  formatAppLog("error", "at components/current-disease.vue:391", "保存删除失败:", error);
+                  formatAppLog("error", "at components/current-disease.vue:392", "保存删除失败:", error);
                   uni.showToast({
                     title: "删除失败",
                     icon: "none"
@@ -5636,15 +5804,24 @@ This will fail in production.`);
         });
       };
       const submitZip = async () => {
-        var _a;
-        formatAppLog("log", "at components/current-disease.vue:404", "提交压缩文件,buildingId", buildingId.value);
-        const zipFilePath = saveBridgeZip(userInfo.username, buildingId.value);
+        formatAppLog("log", "at components/current-disease.vue:405", "提交压缩文件,buildingId", buildingId.value);
         try {
+          uni.showLoading({
+            title: "正在提交",
+            mask: true
+          });
+          const zipFilePath = await saveBridgeZip(userInfo.username, buildingId.value);
+          formatAppLog("log", "at components/current-disease.vue:415", "压缩完成，文件路径:", zipFilePath);
+          uni.showLoading({
+            title: "正在提交",
+            mask: true
+          });
           const responseLogin = await uni.request({
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
           if (!responseLogin.data || !responseLogin.data.token) {
+            uni.hideLoading();
             uni.showToast({
               title: "获取授权失败",
               icon: "none"
@@ -5652,7 +5829,11 @@ This will fail in production.`);
             return;
           }
           const token = responseLogin.data.token;
-          formatAppLog("log", "at components/current-disease.vue:422", "授权成功，开始上传文件", zipFilePath);
+          formatAppLog("log", "at components/current-disease.vue:438", "授权成功，开始上传文件", zipFilePath);
+          uni.showLoading({
+            title: "正在提交",
+            mask: true
+          });
           const response = await uni.uploadFile({
             url: `http://60.205.13.156:8090/api/upload/bridgeData`,
             filePath: zipFilePath,
@@ -5662,20 +5843,29 @@ This will fail in production.`);
               "Authorization": token
             }
           });
-          formatAppLog("log", "at components/current-disease.vue:434", "后端响应:", response.data);
-          if (response.data && response.data.code === 0) {
+          uni.hideLoading();
+          formatAppLog("log", "at components/current-disease.vue:459", "后端响应:", response.data);
+          let responseData;
+          try {
+            responseData = JSON.parse(response.data);
+          } catch (e2) {
+            responseData = response.data;
+          }
+          if (responseData && responseData.code === 0) {
             uni.showToast({
-              title: "构件信息提交成功",
-              icon: "success"
+              title: "提交成功",
+              icon: "success",
+              duration: 2e3
             });
           } else {
             uni.showToast({
-              title: ((_a = response.data) == null ? void 0 : _a.msg) || "提交失败",
+              title: (responseData == null ? void 0 : responseData.msg) || "提交失败",
               icon: "none"
             });
           }
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:449", "提交数据错误:", error);
+          uni.hideLoading();
+          formatAppLog("error", "at components/current-disease.vue:486", "提交数据错误:", error);
           uni.showToast({
             title: "提交数据出错，请稍后重试",
             icon: "none"
@@ -5683,14 +5873,14 @@ This will fail in production.`);
         }
       };
       vue.onMounted(() => {
-        formatAppLog("log", "at components/current-disease.vue:459", "current-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/current-disease.vue:496", "current-disease组件挂载，准备加载数据");
         loadCurrentYearDiseaseData();
         uni.$on("addNewDisease", addNewDiseaseData);
         uni.$on("deleteDisease", handleDeleteDisease);
         uni.$on("updateDisease", handleUpdateDisease);
         uni.$on("getDiseasesOfType", (data) => {
           if (!data || !data.type || !data.callback) {
-            formatAppLog("error", "at components/current-disease.vue:475", "获取同类型病害列表参数不完整");
+            formatAppLog("error", "at components/current-disease.vue:512", "获取同类型病害列表参数不完整");
             return;
           }
           const filteredList = diseaseList.value.filter(
@@ -5699,7 +5889,7 @@ This will fail in production.`);
               return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === data.type;
             }
           );
-          formatAppLog("log", "at components/current-disease.vue:484", `获取${data.type}类型的病害列表，共${filteredList.length}条`);
+          formatAppLog("log", "at components/current-disease.vue:521", `获取${data.type}类型的病害列表，共${filteredList.length}条`);
           data.callback(filteredList);
         });
       });
@@ -5728,7 +5918,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$r(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$6);
     const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$3);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
@@ -5794,6 +5984,7 @@ This will fail in production.`);
               return vue.openBlock(), vue.createBlock(_component_disease_item, {
                 key: index,
                 item,
+                editMode: "edit",
                 onDelete: $setup.deleteDisease
               }, null, 8, ["item"]);
             }),
@@ -5808,8 +5999,8 @@ This will fail in production.`);
       ])
     ]);
   }
-  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/current-disease.vue"]]);
-  const _sfc_main$q = /* @__PURE__ */ Object.assign({
+  const currentDisease = /* @__PURE__ */ _export_sfc(_sfc_main$s, [["render", _sfc_render$r], ["__scopeId", "data-v-0ae3eae8"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/current-disease.vue"]]);
+  const _sfc_main$r = /* @__PURE__ */ Object.assign({
     name: "history-disease"
   }, {
     __name: "history-disease",
@@ -5854,19 +6045,19 @@ This will fail in production.`);
           for (const year of years) {
             try {
               const yearData = await getDisease(userInfo.username, buildingId.value, year);
-              formatAppLog("log", "at components/history-disease.vue:143", `获取到${year}年病害数据:`, yearData);
+              formatAppLog("log", "at components/history-disease.vue:144", `获取到${year}年病害数据:`, yearData);
               if (yearData && yearData.diseases && yearData.diseases.length > 0) {
                 diseaseMap.value[yearData.year] = yearData.diseases;
               } else {
                 diseaseMap.value[year] = [];
               }
             } catch (yearError) {
-              formatAppLog("warn", "at components/history-disease.vue:152", `获取${year}年数据失败:`, yearError);
+              formatAppLog("warn", "at components/history-disease.vue:153", `获取${year}年数据失败:`, yearError);
               diseaseMap.value[year] = [];
             }
           }
         } catch (error) {
-          formatAppLog("error", "at components/history-disease.vue:158", "读取病害数据失败:", error);
+          formatAppLog("error", "at components/history-disease.vue:159", "读取病害数据失败:", error);
           isJson.value = 0;
         }
       };
@@ -5882,7 +6073,7 @@ This will fail in production.`);
           });
           const token = responseLogin.data.token;
           const getData = async () => {
-            formatAppLog("log", "at components/history-disease.vue:177", "开始从后端获取历史病害数据...........");
+            formatAppLog("log", "at components/history-disease.vue:178", "开始从后端获取历史病害数据...........");
             try {
               const response = await uni.request({
                 //桥梁id改为全局
@@ -5892,7 +6083,7 @@ This will fail in production.`);
                   "Authorization": `${token}`
                 }
               });
-              formatAppLog("log", "at components/history-disease.vue:187", "从后端接口获取到的历史病害数据:", response.data.data);
+              formatAppLog("log", "at components/history-disease.vue:188", "从后端接口获取到的历史病害数据:", response.data.data);
               if (response.data.code === 0) {
                 for (const yearDisease of response.data.data) {
                   const year = yearDisease.year;
@@ -5913,13 +6104,13 @@ This will fail in production.`);
                 });
               }
             } catch (error) {
-              formatAppLog("error", "at components/history-disease.vue:214", "获取历史病害数据失败:", error);
+              formatAppLog("error", "at components/history-disease.vue:215", "获取历史病害数据失败:", error);
             }
           };
           await getData();
           await readHistoryDiseaseData();
         }
-        formatAppLog("log", "at components/history-disease.vue:221", "历史病害数据", diseaseMap.value);
+        formatAppLog("log", "at components/history-disease.vue:222", "历史病害数据", diseaseMap.value);
       };
       const expandedTypes = vue.reactive({
         "上部结构": true,
@@ -5980,11 +6171,9 @@ This will fail in production.`);
             selectedItems.value.splice(index, 1);
           }
         }
-        formatAppLog("log", "at components/history-disease.vue:302", "当前选中项:", selectedItems.value);
+        formatAppLog("log", "at components/history-disease.vue:303", "当前选中项:", selectedItems.value);
       };
       const copyDisease = () => {
-        const selectedYear = tabItems.value[activeTab.value];
-        const list = diseaseMap.value[selectedYear] || [];
         if (selectedItems.value.length === 0) {
           uni.showToast({
             title: "请先选择要复制的病害",
@@ -5992,7 +6181,12 @@ This will fail in production.`);
           });
           return;
         }
-        const selectedDiseases = list.filter((item) => selectedItems.value.includes(item.id));
+        const selectedDiseases = [];
+        Object.keys(diseaseMap.value).forEach((year) => {
+          const yearDiseases = diseaseMap.value[year] || [];
+          const selected = yearDiseases.filter((item) => selectedItems.value.includes(item.id));
+          selectedDiseases.push(...selected);
+        });
         if (selectedDiseases.length === 0) {
           uni.showToast({
             title: "获取选中病害数据失败",
@@ -6013,7 +6207,8 @@ This will fail in production.`);
         });
         Promise.all(copiedDiseases.map((disease) => {
           return new Promise((resolve) => {
-            formatAppLog("log", "at components/history-disease.vue:345", "发送添加新病害事件给current-disease组件:", disease);
+            disease.nature = "旧害";
+            formatAppLog("log", "at components/history-disease.vue:350", "发送添加新病害事件给current-disease组件:", disease);
             uni.$emit("addNewDisease", disease);
             resolve();
           });
@@ -6024,7 +6219,7 @@ This will fail in production.`);
           });
           toggleSelectMode();
         }).catch((error) => {
-          formatAppLog("error", "at components/history-disease.vue:360", "复制病害失败:", error);
+          formatAppLog("error", "at components/history-disease.vue:365", "复制病害失败:", error);
           uni.showToast({
             title: "复制失败，请重试",
             icon: "none"
@@ -6042,7 +6237,7 @@ This will fail in production.`);
       };
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/history-disease.vue:383", "搜索内容:", e2);
+        formatAppLog("log", "at components/history-disease.vue:388", "搜索内容:", e2);
         closeAllSwipeActions();
         expandAllTypes();
       };
@@ -6100,7 +6295,7 @@ This will fail in production.`);
         });
       };
       vue.onMounted(() => {
-        formatAppLog("log", "at components/history-disease.vue:461", "history-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/history-disease.vue:466", "history-disease组件挂载，准备加载数据");
         loadDiseaseData();
         expandAllTypes();
       });
@@ -6121,7 +6316,7 @@ This will fail in production.`);
       return __returned__;
     }
   });
-  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$q(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_search_bar = resolveEasycom(vue.resolveDynamicComponent("uni-search-bar"), __easycom_0$6);
     const _component_disease_item = resolveEasycom(vue.resolveDynamicComponent("disease-item"), __easycom_1$3);
     return vue.openBlock(), vue.createElementBlock("view", { class: "disease-container" }, [
@@ -6234,6 +6429,7 @@ This will fail in production.`);
                             return vue.openBlock(), vue.createBlock(_component_disease_item, {
                               key: itemIndex,
                               item,
+                              editMode: "history",
                               selectMode: $setup.isSelectMode,
                               selected: $setup.selectedItems.includes(item.id),
                               onSelect: $setup.handleItemSelect,
@@ -6269,8 +6465,8 @@ This will fail in production.`);
       ])
     ]);
   }
-  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/history-disease.vue"]]);
-  const _sfc_main$p = {
+  const historyDisease = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["render", _sfc_render$q], ["__scopeId", "data-v-5a6538ca"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/history-disease.vue"]]);
+  const _sfc_main$q = {
     __name: "administrative-identification-data",
     props: {
       data: {
@@ -6286,7 +6482,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$p(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -6317,8 +6513,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
-  const _sfc_main$o = {
+  const __easycom_0$4 = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["render", _sfc_render$p], ["__scopeId", "data-v-33f748f2"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/administrative-identification-data/administrative-identification-data.vue"]]);
+  const _sfc_main$p = {
     __name: "bridge-tech",
     props: {
       data: {
@@ -6334,7 +6530,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$o(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -6399,8 +6595,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
-  const _sfc_main$n = {
+  const __easycom_1$2 = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["render", _sfc_render$o], ["__scopeId", "data-v-43eb6c80"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/bridge-tech/bridge-tech.vue"]]);
+  const _sfc_main$o = {
     __name: "bridge-structure",
     props: {
       data: {
@@ -6442,7 +6638,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$n(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 保持桥梁分孔和结构体系单独显示 "),
       $setup.structureData && $setup.structureData.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
@@ -6611,8 +6807,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
-  const _sfc_main$m = {
+  const __easycom_2 = /* @__PURE__ */ _export_sfc(_sfc_main$o, [["render", _sfc_render$n], ["__scopeId", "data-v-7725a9a4"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/bridge-structure/bridge-structure.vue"]]);
+  const _sfc_main$n = {
     __name: "bridge-files",
     props: {
       data: {
@@ -6628,7 +6824,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$m(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -6659,8 +6855,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_3$1 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
-  const _sfc_main$l = {
+  const __easycom_3$1 = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["render", _sfc_render$m], ["__scopeId", "data-v-a88cecdd"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/bridge-files/bridge-files.vue"]]);
+  const _sfc_main$m = {
     __name: "bridge-inspection-history",
     props: {
       data: {
@@ -6688,7 +6884,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$l(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -6753,8 +6949,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__scopeId", "data-v-23cde231"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
-  const _sfc_main$k = {
+  const __easycom_4 = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["render", _sfc_render$l], ["__scopeId", "data-v-23cde231"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/bridge-inspection-history/bridge-inspection-history.vue"]]);
+  const _sfc_main$l = {
     __name: "maintenance-records",
     props: {
       data: {
@@ -6784,7 +6980,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$k(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -6849,8 +7045,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
-  const _sfc_main$j = {
+  const __easycom_5 = /* @__PURE__ */ _export_sfc(_sfc_main$l, [["render", _sfc_render$k], ["__scopeId", "data-v-277d9f90"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/maintenance-records/maintenance-records.vue"]]);
+  const _sfc_main$k = {
     __name: "notes",
     props: {
       data: {
@@ -6866,7 +7062,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$j(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createElementVNode("view", { class: "part-area" }, [
         vue.createElementVNode("view", { class: "part-area-title" }, "需要说明的事项(含桥梁管养单位的变更情况)"),
@@ -6880,8 +7076,8 @@ This will fail in production.`);
       ])
     ]);
   }
-  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/notes/notes.vue"]]);
-  const _sfc_main$i = {
+  const __easycom_6 = /* @__PURE__ */ _export_sfc(_sfc_main$k, [["render", _sfc_render$j], ["__scopeId", "data-v-429be1cf"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/notes/notes.vue"]]);
+  const _sfc_main$j = {
     __name: "other-info",
     props: {
       data: {
@@ -6891,6 +7087,8 @@ This will fail in production.`);
     },
     setup(__props, { expose: __expose }) {
       __expose();
+      const userInfo = userStore();
+      const idStorageInfo = idStore();
       const props = __props;
       const dataArray = vue.computed(() => {
         if (Array.isArray(props.data)) {
@@ -6912,10 +7110,11 @@ This will fail in production.`);
         );
       });
       const getImageUrl = (value) => {
+        formatAppLog("log", "at components/other-info/other-info.vue:75", "图片value", value);
         if (!value || value === "/") {
           return "/static/image/disease.png";
         }
-        return value;
+        return readBridgeImage(userInfo.username, idStorageInfo.buildingId, value);
       };
       const clickImg = (item) => {
         const url = getImageUrl(item.value);
@@ -6924,12 +7123,18 @@ This will fail in production.`);
           current: 0
         });
       };
-      const __returned__ = { props, dataArray, imageItems, textItems, getImageUrl, clickImg, ref: vue.ref, computed: vue.computed };
+      const __returned__ = { userInfo, idStorageInfo, props, dataArray, imageItems, textItems, getImageUrl, clickImg, ref: vue.ref, computed: vue.computed, get readBridgeImage() {
+        return readBridgeImage;
+      }, get userStore() {
+        return userStore;
+      }, get idStore() {
+        return idStore;
+      } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$i(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 照片区域，每行两张照片 "),
       vue.createElementVNode("view", { class: "image-container" }, [
@@ -6992,8 +7197,8 @@ This will fail in production.`);
       ))
     ]);
   }
-  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
-  const _sfc_main$h = {
+  const __easycom_7 = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["render", _sfc_render$i], ["__scopeId", "data-v-2aa7c852"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/other-info/other-info.vue"]]);
+  const _sfc_main$i = {
     __name: "bridge-archive",
     emits: ["dataLoaded"],
     setup(__props, { expose: __expose, emit: __emit }) {
@@ -7069,11 +7274,30 @@ This will fail in production.`);
                 bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
                 bridgedata.images.front = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
                 if (bridgedata.property.children[7].children[0].value !== "/") {
-                  bridgedata.property.children[7].children[0].value = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
+                  try {
+                    const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
+                    if (savedImageUrl) {
+                      bridgedata.property.children[7].children[0].value = savedImageUrl;
+                    } else {
+                      formatAppLog("error", "at components/bridge-archive.vue:155", "保存图片1失败: 返回的URL为空");
+                    }
+                  } catch (error) {
+                    formatAppLog("error", "at components/bridge-archive.vue:158", "保存图片1出错:", error);
+                  }
                 }
                 if (bridgedata.property.children[7].children[1].value !== "/") {
-                  bridgedata.property.children[7].children[1].value = await saveBridgeImage(userInfo.username, buildingId.value, property.children[7].children[1].value);
+                  try {
+                    const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[1].value);
+                    if (savedImageUrl) {
+                      bridgedata.property.children[7].children[1].value = savedImageUrl;
+                    } else {
+                      formatAppLog("error", "at components/bridge-archive.vue:168", "保存图片2失败: 返回的URL为空");
+                    }
+                  } catch (error) {
+                    formatAppLog("error", "at components/bridge-archive.vue:171", "保存图片2出错:", error);
+                  }
                 }
+                formatAppLog("log", "at components/bridge-archive.vue:176", "保存后的桥梁卡片数据:", bridgedata);
                 await setProperty(userInfo.username, buildingId.value, bridgedata);
               } else {
                 uni.showToast({
@@ -7082,7 +7306,7 @@ This will fail in production.`);
                 });
               }
             } catch (error) {
-              formatAppLog("error", "at components/bridge-archive.vue:165", "获取桥梁卡片数据失败:", error);
+              formatAppLog("error", "at components/bridge-archive.vue:186", "获取桥梁卡片数据失败:", error);
               uni.showToast({
                 title: "获取数据失败，请稍后重试",
                 icon: "none"
@@ -7093,7 +7317,7 @@ This will fail in production.`);
           await readPropetryDataByJson();
         }
         dataLoaded.value = true;
-        formatAppLog("log", "at components/bridge-archive.vue:180", "桥梁卡片数据加载完成，发送dataLoaded事件");
+        formatAppLog("log", "at components/bridge-archive.vue:201", "桥梁卡片数据加载完成，发送dataLoaded事件");
         emit("dataLoaded", true);
       };
       vue.onMounted(async () => {
@@ -7123,7 +7347,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$h(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_administrative_identification_data = resolveEasycom(vue.resolveDynamicComponent("administrative-identification-data"), __easycom_0$4);
     const _component_bridge_tech = resolveEasycom(vue.resolveDynamicComponent("bridge-tech"), __easycom_1$2);
     const _component_bridge_structure = resolveEasycom(vue.resolveDynamicComponent("bridge-structure"), __easycom_2);
@@ -7247,7 +7471,7 @@ This will fail in production.`);
       ])
     ]);
   }
-  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
+  const bridgeArchive = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["render", _sfc_render$h], ["__scopeId", "data-v-8bcf311a"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/bridge-archive.vue"]]);
   class MPAnimation {
     constructor(options, _this) {
       this.options = options;
@@ -7360,7 +7584,7 @@ This will fail in production.`);
     clearTimeout(_this.timer);
     return new MPAnimation(option, _this);
   }
-  const _sfc_main$g = {
+  const _sfc_main$h = {
     name: "uniTransition",
     emits: ["click", "change"],
     props: {
@@ -7606,12 +7830,12 @@ This will fail in production.`);
         };
       },
       // 驼峰转中横线
-      toLine(name) {
-        return name.replace(/([A-Z])/g, "-$1").toLowerCase();
+      toLine(name2) {
+        return name2.replace(/([A-Z])/g, "-$1").toLowerCase();
       }
     }
   };
-  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$g(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.withDirectives((vue.openBlock(), vue.createElementBlock("view", {
       ref: "ani",
       animation: $data.animationData,
@@ -7624,8 +7848,8 @@ This will fail in production.`);
       [vue.vShow, $data.isShow]
     ]);
   }
-  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
-  const _sfc_main$f = {
+  const __easycom_0$3 = /* @__PURE__ */ _export_sfc(_sfc_main$h, [["render", _sfc_render$g], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/uni_modules/uni-transition/components/uni-transition/uni-transition.vue"]]);
+  const _sfc_main$g = {
     name: "uniPopup",
     components: {},
     emits: ["change", "maskClick"],
@@ -7978,7 +8202,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$f(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_transition = resolveEasycom(vue.resolveDynamicComponent("uni-transition"), __easycom_0$3);
     return $data.showPopup ? (vue.openBlock(), vue.createElementBlock(
       "view",
@@ -8038,7 +8262,7 @@ This will fail in production.`);
       /* CLASS */
     )) : vue.createCommentVNode("v-if", true);
   }
-  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
+  const __easycom_0$2 = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["render", _sfc_render$f], ["__scopeId", "data-v-4dd3c44b"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/uni_modules/uni-popup/components/uni-popup/uni-popup.vue"]]);
   function obj2strClass(obj) {
     let classess = "";
     for (let key in obj) {
@@ -8057,7 +8281,7 @@ This will fail in production.`);
     }
     return style;
   }
-  const _sfc_main$e = {
+  const _sfc_main$f = {
     name: "uni-easyinput",
     emits: [
       "click",
@@ -8414,7 +8638,7 @@ This will fail in production.`);
       }
     }
   };
-  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$e(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock(
       "view",
@@ -8539,8 +8763,8 @@ This will fail in production.`);
       /* CLASS, STYLE */
     );
   }
-  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-f7a14e66"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-easyinput/uni-easyinput.vue"]]);
-  const _sfc_main$d = {
+  const __easycom_1$1 = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["render", _sfc_render$e], ["__scopeId", "data-v-f7a14e66"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-easyinput/uni-easyinput.vue"]]);
+  const _sfc_main$e = {
     __name: "CustomSwitch",
     props: {
       modelValue: {
@@ -8570,7 +8794,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$d(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       "view",
       {
@@ -8604,8 +8828,8 @@ This will fail in production.`);
       /* CLASS */
     );
   }
-  const CustomSwitch = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-1fd8a634"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/CustomSwitch.vue"]]);
-  const _sfc_main$c = {
+  const CustomSwitch = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["render", _sfc_render$d], ["__scopeId", "data-v-1fd8a634"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/CustomSwitch.vue"]]);
+  const _sfc_main$d = {
     __name: "structure-info",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -8617,6 +8841,9 @@ This will fail in production.`);
       const selectedThirdIndex = vue.ref(-1);
       const editPopup = vue.ref(null);
       const currentEditItem = vue.ref(null);
+      const currentEditItemBoolean = vue.computed(() => {
+        return currentEditItem.value.status === "0" ? true : false;
+      });
       const TaskBridgeId = vue.ref(0);
       const resultData = vue.ref(null);
       const userInfo = userStore();
@@ -8635,7 +8862,7 @@ This will fail in production.`);
       vue.watch(bridgeIdFromURL, (newVal) => {
         if (newVal) {
           TaskBridgeId.value = newVal;
-          formatAppLog("log", "at components/structure-info.vue:170", "接收到的桥梁ID:", TaskBridgeId.value);
+          formatAppLog("log", "at components/structure-info.vue:172", "接收到的桥梁ID:", TaskBridgeId.value);
         }
       });
       const init = async () => {
@@ -8646,7 +8873,7 @@ This will fail in production.`);
           url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
           method: "POST"
         });
-        formatAppLog("log", "at components/structure-info.vue:184", "用户信息:", responseLogin.data);
+        formatAppLog("log", "at components/structure-info.vue:186", "用户信息:", responseLogin.data);
         const token = responseLogin.data.token;
         const getData = async () => {
           try {
@@ -8658,17 +8885,17 @@ This will fail in production.`);
                 "Authorization": `${token}`
               }
             });
-            formatAppLog("log", "at components/structure-info.vue:196", "获取到的桥梁构件数据:", response.data);
+            formatAppLog("log", "at components/structure-info.vue:198", "获取到的桥梁构件数据:", response.data);
             if (response.data.code === 0) {
               structureData.value = response.data;
               resultData.value = response.data.data;
               setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-              formatAppLog("log", "at components/structure-info.vue:202", "structureData:", structureData.value);
-              formatAppLog("log", "at components/structure-info.vue:203", "resultData:", resultData.value);
-              formatAppLog("log", "at components/structure-info.vue:205", "第一层结构数据:", structureData.value.children);
+              formatAppLog("log", "at components/structure-info.vue:204", "structureData:", structureData.value);
+              formatAppLog("log", "at components/structure-info.vue:205", "resultData:", resultData.value);
+              formatAppLog("log", "at components/structure-info.vue:207", "第一层结构数据:", structureData.value.children);
               if (structureData.value.children) {
                 structureData.value.children.forEach((item, index) => {
-                  formatAppLog("log", "at components/structure-info.vue:208", `第一层结构 ${index + 1}:`, item.name);
+                  formatAppLog("log", "at components/structure-info.vue:210", `第一层结构 ${index + 1}:`, item.name);
                 });
               }
               normalizeStatusFields(resultData.value);
@@ -8679,7 +8906,7 @@ This will fail in production.`);
               });
             }
           } catch (error) {
-            formatAppLog("error", "at components/structure-info.vue:223", "获取桥梁构件数据失败:", error);
+            formatAppLog("error", "at components/structure-info.vue:225", "获取桥梁构件数据失败:", error);
             uni.showToast({
               title: "获取数据失败，请稍后重试",
               icon: "none"
@@ -8703,10 +8930,11 @@ This will fail in production.`);
         return secondLevelItems.value[selectedSecondIndex.value].children;
       });
       const confirmStructure = () => {
-        formatAppLog("log", "at components/structure-info.vue:252", "准备提交的数据:", resultData.value);
+        formatAppLog("log", "at components/structure-info.vue:254", "准备提交的数据:", resultData.value);
         confirmPopup.value.open();
       };
       const confirmConfirm = () => {
+        saveEdit();
         calculateAndUpdateCounts();
         storeDataLocally();
         confirmPopup.value.close();
@@ -8718,7 +8946,7 @@ This will fail in production.`);
       };
       const calculateAndUpdateCounts = () => {
         if (!resultData.value || !resultData.value.children) {
-          formatAppLog("warn", "at components/structure-info.vue:282", "resultData结构不完整，无法计算count总和");
+          formatAppLog("warn", "at components/structure-info.vue:287", "resultData结构不完整，无法计算count总和");
           return;
         }
         resultData.value.children.forEach((firstLevel) => {
@@ -8734,22 +8962,22 @@ This will fail in production.`);
                 return;
               const count = Number(thirdLevel.count || 0);
               secondLevelTotal += count;
-              formatAppLog("log", "at components/structure-info.vue:306", `第三层节点 ${thirdLevel.name || "未命名"} 的count: ${count}`);
+              formatAppLog("log", "at components/structure-info.vue:311", `第三层节点 ${thirdLevel.name || "未命名"} 的count: ${count}`);
             });
             secondLevel.count = secondLevelTotal;
             firstLevelTotal += secondLevelTotal;
-            formatAppLog("log", "at components/structure-info.vue:313", `第二层节点 ${secondLevel.name || "未命名"} 的count总和: ${secondLevelTotal}`);
+            formatAppLog("log", "at components/structure-info.vue:318", `第二层节点 ${secondLevel.name || "未命名"} 的count总和: ${secondLevelTotal}`);
           });
           firstLevel.count = firstLevelTotal;
-          formatAppLog("log", "at components/structure-info.vue:319", `第一层节点 ${firstLevel.name || "未命名"} 的count总和: ${firstLevelTotal}`);
+          formatAppLog("log", "at components/structure-info.vue:324", `第一层节点 ${firstLevel.name || "未命名"} 的count总和: ${firstLevelTotal}`);
         });
         let totalCount = 0;
         resultData.value.children.forEach((firstLevel) => {
           totalCount += Number(firstLevel.count || 0);
         });
         resultData.value.count = totalCount;
-        formatAppLog("log", "at components/structure-info.vue:331", `所有节点的count总和: ${totalCount}`);
-        formatAppLog("log", "at components/structure-info.vue:332", "更新后的resultData:", resultData.value);
+        formatAppLog("log", "at components/structure-info.vue:336", `所有节点的count总和: ${totalCount}`);
+        formatAppLog("log", "at components/structure-info.vue:337", "更新后的resultData:", resultData.value);
       };
       const closeConfirmPopup = () => {
         confirmPopup.value.close();
@@ -8761,9 +8989,9 @@ This will fail in production.`);
         selectedThirdIndex.value = -1;
         const firstLevelItem = (_c = (_b = (_a = structureData.value) == null ? void 0 : _a.data) == null ? void 0 : _b.children) == null ? void 0 : _c[index];
         if (firstLevelItem) {
-          formatAppLog("log", "at components/structure-info.vue:347", "选中的第一层结构:", firstLevelItem.name);
+          formatAppLog("log", "at components/structure-info.vue:352", "选中的第一层结构:", firstLevelItem.name);
         } else {
-          formatAppLog("log", "at components/structure-info.vue:349", "选中的第一层结构不存在或数据结构有问题");
+          formatAppLog("log", "at components/structure-info.vue:354", "选中的第一层结构不存在或数据结构有问题");
         }
       };
       const changeSecondTab = (index) => {
@@ -8772,12 +9000,12 @@ This will fail in production.`);
         selectedThirdIndex.value = -1;
         const secondLevelItem = (_a = secondLevelItems.value) == null ? void 0 : _a[index];
         if (secondLevelItem) {
-          formatAppLog("log", "at components/structure-info.vue:360", "选中的第二层结构:", secondLevelItem.name);
+          formatAppLog("log", "at components/structure-info.vue:365", "选中的第二层结构:", secondLevelItem.name);
           if (!secondLevelItem.children || secondLevelItem.children.length === 0) {
-            formatAppLog("log", "at components/structure-info.vue:363", "该第二层结构没有第三层数据");
+            formatAppLog("log", "at components/structure-info.vue:368", "该第二层结构没有第三层数据");
           }
         } else {
-          formatAppLog("log", "at components/structure-info.vue:366", "选中的第二层结构不存在或数据结构有问题");
+          formatAppLog("log", "at components/structure-info.vue:371", "选中的第二层结构不存在或数据结构有问题");
         }
       };
       const changeThirdTab = (index) => {
@@ -8786,7 +9014,7 @@ This will fail in production.`);
         } else {
           selectedThirdIndex.value = index;
         }
-        formatAppLog("log", "at components/structure-info.vue:377", "选中的第三层结构:", thirdLevelItems.value[index]);
+        formatAppLog("log", "at components/structure-info.vue:382", "选中的第三层结构:", thirdLevelItems.value[index]);
       };
       const handleCancel = () => {
         selectedThirdIndex.value = -1;
@@ -8804,27 +9032,29 @@ This will fail in production.`);
         editPopup.value.open();
       };
       const handleDisable = (index) => {
-        formatAppLog("log", "at components/structure-info.vue:399", "切换状态前:", thirdLevelItems.value[index].status);
+        formatAppLog("log", "at components/structure-info.vue:404", "切换状态前:", thirdLevelItems.value[index].status);
         const currentStatus = thirdLevelItems.value[index].status;
         thirdLevelItems.value[index].status = currentStatus === "0" ? "1" : "0";
-        formatAppLog("log", "at components/structure-info.vue:404", "切换状态后:", thirdLevelItems.value[index].status);
+        formatAppLog("log", "at components/structure-info.vue:409", "切换状态后:", thirdLevelItems.value[index].status);
         const item = thirdLevelItems.value[index];
         item.count = item.status === "0" ? Number(item.quantity || 0) : 0;
-        formatAppLog("log", "at components/structure-info.vue:411", `已更新${item.name}的count为${item.count}, status为${item.status}`);
+        formatAppLog("log", "at components/structure-info.vue:416", `已更新${item.name}的count为${item.count}, status为${item.status}`);
         updateResultData(item);
-        formatAppLog("log", "at components/structure-info.vue:417", "所有第三层构件信息:");
+        formatAppLog("log", "at components/structure-info.vue:422", "所有第三层构件信息:");
         thirdLevelItems.value.forEach((item2) => {
-          formatAppLog("log", "at components/structure-info.vue:419", `构件名称: ${item2.name}, 构件数量: ${item2.count || 0}, 状态标志: ${item2.status || "0"}`);
+          formatAppLog("log", "at components/structure-info.vue:424", `构件名称: ${item2.name}, 构件数量: ${item2.count || 0}, 状态标志: ${item2.status || "0"}`);
         });
         selectedThirdIndex.value = -1;
+        formatAppLog("log", "at components/structure-info.vue:429", "最终存的resultData.value", resultData.value);
+        setObject(userInfo.username, TaskBridgeId.value, resultData.value);
       };
       const setStatus = (e2) => {
         if (currentEditItem.value) {
-          currentEditItem.value.status = e2.detail.value ? "0" : "1";
-          formatAppLog("log", "at components/structure-info.vue:430", "Switch toggled, new status:", currentEditItem.value.status);
+          currentEditItem.value.status = e2 ? "0" : "1";
+          formatAppLog("log", "at components/structure-info.vue:438", "Switch toggled, new status:", currentEditItem.value.status);
           if (currentEditItem.value.status === "1") {
             currentEditItem.value.quantity = 0;
-            formatAppLog("log", "at components/structure-info.vue:435", "状态改为停用，数量自动置为0");
+            formatAppLog("log", "at components/structure-info.vue:443", "状态改为停用，数量自动置为0");
           }
         }
       };
@@ -8838,11 +9068,11 @@ This will fail in production.`);
             originalItem.quantity = Number(currentEditItem.value.quantity);
           }
           originalItem.count = originalItem.status === "0" ? originalItem.quantity : 0;
-          formatAppLog("log", "at components/structure-info.vue:454", `已更新${originalItem.name}的count为${originalItem.count}`);
+          formatAppLog("log", "at components/structure-info.vue:462", `已更新${originalItem.name}的count为${originalItem.count}`);
           updateResultData(originalItem);
-          formatAppLog("log", "at components/structure-info.vue:460", "所有第三层构件信息:");
+          formatAppLog("log", "at components/structure-info.vue:468", "所有第三层构件信息:");
           thirdLevelItems.value.forEach((item) => {
-            formatAppLog("log", "at components/structure-info.vue:462", `构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || "0"}`);
+            formatAppLog("log", "at components/structure-info.vue:470", `构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || "0"}`);
           });
         }
         closeEditPopup();
@@ -8853,7 +9083,7 @@ This will fail in production.`);
       };
       const updateResultData = (updatedItem) => {
         if (!resultData.value || !resultData.value.children) {
-          formatAppLog("error", "at components/structure-info.vue:477", "resultData未正确初始化");
+          formatAppLog("error", "at components/structure-info.vue:485", "resultData未正确初始化");
           return;
         }
         const firstLevelIndex = selectedIndex.value;
@@ -8871,17 +9101,17 @@ This will fail in production.`);
                 quantity: updatedItem.quantity
               };
               Object.assign(targetItem, updateData);
-              formatAppLog("log", "at components/structure-info.vue:511", `已更新resultData中${itemName}的count为${updatedItem.count}, status为${targetItem.status}`);
+              formatAppLog("log", "at components/structure-info.vue:518", `已更新resultData中${itemName}的count为${updatedItem.count}, status为${targetItem.status}`);
             } else {
-              formatAppLog("warn", "at components/structure-info.vue:513", `未在resultData中找到名称为${itemName}的项`);
+              formatAppLog("warn", "at components/structure-info.vue:520", `未在resultData中找到名称为${itemName}的项`);
             }
           } else {
-            formatAppLog("warn", "at components/structure-info.vue:516", "resultData中没有第三层数据");
+            formatAppLog("warn", "at components/structure-info.vue:523", "resultData中没有第三层数据");
           }
         } else {
-          formatAppLog("warn", "at components/structure-info.vue:519", "resultData中的层级结构不完整");
+          formatAppLog("warn", "at components/structure-info.vue:526", "resultData中的层级结构不完整");
         }
-        formatAppLog("log", "at components/structure-info.vue:523", "更新后的resultData:", resultData.value);
+        formatAppLog("log", "at components/structure-info.vue:530", "更新后的resultData:", resultData.value);
       };
       const storeDataLocally = async () => {
         try {
@@ -8896,10 +9126,10 @@ This will fail in production.`);
             });
             return;
           }
-          setObject(responseLogin.data.userName, TaskBridgeId.value, resultData.value);
-          formatAppLog("log", "at components/structure-info.vue:544", "已将数据存储到本地:", resultData.value);
+          setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+          formatAppLog("log", "at components/structure-info.vue:551", "已将数据存储到本地:", resultData.value);
         } catch (error) {
-          formatAppLog("error", "at components/structure-info.vue:547", "存储数据错误:", error);
+          formatAppLog("error", "at components/structure-info.vue:554", "存储数据错误:", error);
           uni.showToast({
             title: "存储数据出错，请稍后重试",
             icon: "none"
@@ -8934,16 +9164,16 @@ This will fail in production.`);
             });
           }
         });
-        formatAppLog("log", "at components/structure-info.vue:593", '已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
+        formatAppLog("log", "at components/structure-info.vue:602", '已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
       };
       vue.onMounted(async () => {
-        formatAppLog("log", "at components/structure-info.vue:597", "初始bridgeId:", bridgeIdFromURL.value);
+        formatAppLog("log", "at components/structure-info.vue:606", "初始bridgeId:", bridgeIdFromURL.value);
         if (bridgeIdFromURL.value) {
           TaskBridgeId.value = bridgeIdFromURL.value;
         }
         await init();
       });
-      const __returned__ = { confirmed, confirmPopup, structureData, selectedIndex, selectedSecondIndex, selectedThirdIndex, editPopup, currentEditItem, TaskBridgeId, resultData, userInfo, bridgeIdFromURL, init, secondLevelItems, thirdLevelItems, confirmStructure, confirmConfirm, calculateAndUpdateCounts, closeConfirmPopup, changeTab, changeSecondTab, changeThirdTab, handleCancel, handleEdit, handleDisable, setStatus, saveEdit, closeEditPopup, updateResultData, storeDataLocally, normalizeStatusFields, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, CustomSwitch, get setObject() {
+      const __returned__ = { confirmed, confirmPopup, structureData, selectedIndex, selectedSecondIndex, selectedThirdIndex, editPopup, currentEditItem, currentEditItemBoolean, TaskBridgeId, resultData, userInfo, bridgeIdFromURL, init, secondLevelItems, thirdLevelItems, confirmStructure, confirmConfirm, calculateAndUpdateCounts, closeConfirmPopup, changeTab, changeSecondTab, changeThirdTab, handleCancel, handleEdit, handleDisable, setStatus, saveEdit, closeEditPopup, updateResultData, storeDataLocally, normalizeStatusFields, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, CustomSwitch, get setObject() {
         return setObject;
       }, get userStore() {
         return userStore;
@@ -8952,31 +9182,19 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$c(_ctx, _cache, $props, $setup, $data, $options) {
     var _a;
     const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
     const _component_uni_easyinput = resolveEasycom(vue.resolveDynamicComponent("uni-easyinput"), __easycom_1$1);
     return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createElementVNode("view", { class: "confirm-row" }, [
-        vue.createElementVNode("span", { class: "confirm-text" }, "结构信息状态："),
-        vue.createElementVNode(
-          "span",
-          {
-            class: "confirm-status",
-            style: vue.normalizeStyle({ color: $setup.confirmed ? "#00dd00" : "#f56c6c" })
-          },
-          vue.toDisplayString($setup.confirmed ? "已确认" : "未确认"),
-          5
-          /* TEXT, STYLE */
-        ),
-        vue.createElementVNode("view", { class: "confirm-button-container" }, [
-          vue.createElementVNode("button", {
-            onClick: $setup.confirmStructure,
-            class: "confirm-button",
-            disabled: $setup.confirmed
-          }, "保存构件信息", 8, ["disabled"])
-        ])
-      ]),
+      vue.createCommentVNode(` <view class="confirm-row">\r
+			<span class="confirm-text">结构信息状态：</span>\r
+			<span class="confirm-status"\r
+				:style="{color: confirmed ? '#00dd00': '#f56c6c'}">{{ confirmed ? '已确认': '未确认'}}</span>\r
+			<view class="confirm-button-container">\r
+				<button @click="confirmStructure" class="confirm-button" :disabled="confirmed">保存构件信息</button>\r
+			</view>\r
+		</view> `),
       vue.createVNode(
         _component_uni_popup,
         {
@@ -9100,7 +9318,7 @@ This will fail in production.`);
                       class: "disabled-button"
                     }, "已停用")),
                     vue.createElementVNode("image", {
-                      src: _imports_0$4,
+                      src: _imports_0$5,
                       class: "rightarrow"
                     })
                   ])
@@ -9166,8 +9384,8 @@ This will fail in production.`);
                   vue.createElementVNode("view", { class: "status-toggle" }, [
                     vue.createElementVNode("text", { class: "status-text" }, "停用"),
                     vue.createVNode($setup["CustomSwitch"], {
-                      modelValue: $setup.currentEditItem.status,
-                      "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.currentEditItem.status = $event),
+                      modelValue: $setup.currentEditItemBoolean,
+                      "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.currentEditItemBoolean = $event),
                       onChange: $setup.setStatus,
                       "active-color": "#409EFF",
                       "inactive-color": "#ff3141"
@@ -9193,9 +9411,10 @@ This will fail in production.`);
                     class: "popup-btn cancel-btn",
                     onClick: $setup.closeEditPopup
                   }, "取消"),
+                  vue.createCommentVNode(' <button class="popup-btn confirm-btn" @click="saveEdit">确定</button> '),
                   vue.createElementVNode("button", {
                     class: "popup-btn confirm-btn",
-                    onClick: $setup.saveEdit
+                    onClick: $setup.confirmConfirm
                   }, "确定")
                 ])
               ])
@@ -9209,341 +9428,7 @@ This will fail in production.`);
       )
     ]);
   }
-  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-8f2488a5"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/structure-info.vue"]]);
-  const _sfc_main$b = {
-    __name: "front-photo",
-    props: {
-      isDataLoaded: {
-        type: Boolean,
-        default: false
-      }
-    },
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const props = __props;
-      const side = vue.ref([]);
-      const front = vue.ref([]);
-      const userId = vue.ref(20);
-      const buildingId = vue.ref(0);
-      const isJson = vue.ref(1);
-      const idStorageInfo = idStore();
-      const userInfo = userStore();
-      const bridgeIdFromURL = vue.computed(() => {
-        var _a;
-        const pages2 = getCurrentPages();
-        if (pages2.length > 0) {
-          const currentPage = pages2[pages2.length - 1];
-          const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
-          if (options && options.bridgeId) {
-            return options.bridgeId;
-          }
-        }
-        return 0;
-      });
-      vue.watch(bridgeIdFromURL, (newVal) => {
-        if (newVal) {
-          buildingId.value = newVal;
-        }
-      });
-      vue.watch(() => props.isDataLoaded, (newVal) => {
-        formatAppLog("log", "at components/front-photo.vue:85", "front-photo组件检测到isDataLoaded变化:", newVal);
-        if (newVal === true) {
-          readBridgeImageByJson();
-        }
-      }, { immediate: true });
-      const readBridgeImageByJson = async () => {
-        if (!props.isDataLoaded) {
-          formatAppLog("log", "at components/front-photo.vue:93", "数据未加载完成，不读取图片数据");
-          return;
-        }
-        if (bridgeIdFromURL.value) {
-          buildingId.value = bridgeIdFromURL.value;
-        }
-        try {
-          const data = await getProperty(userInfo.username, buildingId.value);
-          formatAppLog("log", "at components/front-photo.vue:103", "获取到桥梁正立面照数据:", data.images);
-          if (data.images && data.images.side) {
-            side.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.side);
-          }
-          if (data.images && data.images.front) {
-            front.value = await readBridgeImage(userInfo.username, buildingId.value, data.images.front);
-          }
-        } catch (error) {
-          formatAppLog("error", "at components/front-photo.vue:113", "本地json获取桥梁档案数据失败:", error);
-          isJson.value = 0;
-        }
-      };
-      const previewImage = (url, index, type) => {
-        const urls = type === "front" ? front.value : side.value;
-        uni.previewImage({
-          current: index,
-          urls,
-          indicator: "number",
-          loop: true
-        });
-      };
-      vue.onMounted(async () => {
-        formatAppLog("log", "at components/front-photo.vue:131", "front-photo组件挂载.......isDataLoaded:", props.isDataLoaded);
-        if (props.isDataLoaded) {
-          await readBridgeImageByJson();
-        }
-      });
-      const __returned__ = { props, side, front, userId, buildingId, isJson, idStorageInfo, userInfo, bridgeIdFromURL, readBridgeImageByJson, previewImage, ref: vue.ref, onMounted: vue.onMounted, watch: vue.watch, computed: vue.computed, get getProperty() {
-        return getProperty;
-      }, get readBridgeImage() {
-        return readBridgeImage;
-      }, get idStore() {
-        return idStore;
-      }, get userStore() {
-        return userStore;
-      } };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
-    return $props.isDataLoaded ? (vue.openBlock(), vue.createElementBlock("view", {
-      key: 0,
-      class: "photo-container"
-    }, [
-      vue.createElementVNode("view", { class: "section" }, [
-        vue.createElementVNode("view", { class: "title" }, "桥梁正面立照"),
-        vue.createElementVNode("view", { class: "photos-list" }, [
-          $setup.front && $setup.front.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 0,
-            class: "photo-grid"
-          }, [
-            (vue.openBlock(true), vue.createElementBlock(
-              vue.Fragment,
-              null,
-              vue.renderList($setup.front, (url, index) => {
-                return vue.openBlock(), vue.createElementBlock("view", {
-                  key: index,
-                  class: "photo-item"
-                }, [
-                  vue.createElementVNode("image", {
-                    src: url,
-                    mode: "aspectFill",
-                    onClick: ($event) => $setup.previewImage(url, index, "front")
-                  }, null, 8, ["src", "onClick"])
-                ]);
-              }),
-              128
-              /* KEYED_FRAGMENT */
-            ))
-          ])) : (vue.openBlock(), vue.createElementBlock("view", {
-            key: 1,
-            class: "empty-data"
-          }, " 暂无桥梁正面立照数据 "))
-        ])
-      ]),
-      vue.createElementVNode("view", { class: "section" }, [
-        vue.createElementVNode("view", { class: "title" }, "桥梁侧面立照"),
-        vue.createElementVNode("view", { class: "photos-list" }, [
-          $setup.side && $setup.side.length > 0 ? (vue.openBlock(), vue.createElementBlock("view", {
-            key: 0,
-            class: "photo-grid"
-          }, [
-            (vue.openBlock(true), vue.createElementBlock(
-              vue.Fragment,
-              null,
-              vue.renderList($setup.side, (url, index) => {
-                return vue.openBlock(), vue.createElementBlock("view", {
-                  key: index,
-                  class: "photo-item"
-                }, [
-                  vue.createElementVNode("image", {
-                    src: url,
-                    mode: "aspectFill",
-                    onClick: ($event) => $setup.previewImage(url, index, "side")
-                  }, null, 8, ["src", "onClick"])
-                ]);
-              }),
-              128
-              /* KEYED_FRAGMENT */
-            ))
-          ])) : (vue.openBlock(), vue.createElementBlock("view", {
-            key: 1,
-            class: "empty-data"
-          }, " 暂无桥梁侧面立照数据 "))
-        ])
-      ])
-    ])) : (vue.openBlock(), vue.createElementBlock("view", {
-      key: 1,
-      class: "loading-container"
-    }, [
-      vue.createElementVNode("text", { class: "loading-text" }, "正在加载桥梁数据...")
-    ]));
-  }
-  const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-95007593"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/components/front-photo.vue"]]);
-  const _sfc_main$a = {
-    __name: "bridge-disease",
-    setup(__props, { expose: __expose }) {
-      __expose();
-      const tabs = vue.ref([
-        {
-          name: "当前病害"
-        },
-        {
-          name: "历史病害"
-        },
-        {
-          name: "桥梁卡片"
-        },
-        {
-          name: "正立面照"
-        },
-        {
-          name: "结构信息"
-        }
-      ]);
-      const activeTab = vue.ref(0);
-      const bridgeDataLoaded = vue.ref(false);
-      const bridgeArchiveRef = vue.ref(null);
-      const switchTab = (index) => {
-        activeTab.value = index;
-      };
-      const handleDataLoaded = (loaded) => {
-        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:86", "接收到桥梁卡片数据加载完成事件:", loaded);
-        bridgeDataLoaded.value = loaded;
-      };
-      const indicatorStyle = vue.computed(() => {
-        const width = 100 / tabs.value.length;
-        return {
-          width: "50rpx",
-          // 固定指示器宽度
-          left: `calc(${width * activeTab.value}% + ${width / 2}% - 25px)`,
-          // 将指示器居中
-          transform: "none"
-          // 移除transform
-        };
-      });
-      vue.onMounted(() => {
-        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:102", "bridge-disease页面挂载");
-        if (activeTab.value === 3) {
-          activeTab.value = 2;
-          setTimeout(() => {
-            activeTab.value = 3;
-          }, 100);
-        }
-      });
-      const __returned__ = { tabs, activeTab, bridgeDataLoaded, bridgeArchiveRef, switchTab, handleDataLoaded, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted };
-      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
-      return __returned__;
-    }
-  };
-  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
-      vue.createCommentVNode(" 顶部导航栏 "),
-      vue.createElementVNode("view", { class: "tabs" }, [
-        (vue.openBlock(true), vue.createElementBlock(
-          vue.Fragment,
-          null,
-          vue.renderList($setup.tabs, (tab, index) => {
-            return vue.openBlock(), vue.createElementBlock("view", {
-              key: index,
-              class: vue.normalizeClass(["tab-item", $setup.activeTab === index ? "active" : ""]),
-              onClick: ($event) => $setup.switchTab(index)
-            }, [
-              vue.createElementVNode(
-                "view",
-                { class: "tab-item-text" },
-                vue.toDisplayString(tab.name),
-                1
-                /* TEXT */
-              )
-            ], 10, ["onClick"]);
-          }),
-          128
-          /* KEYED_FRAGMENT */
-        )),
-        vue.createCommentVNode(" 滑动指示器 "),
-        vue.createElementVNode(
-          "view",
-          {
-            class: "tab-indicator",
-            style: vue.normalizeStyle($setup.indicatorStyle)
-          },
-          null,
-          4
-          /* STYLE */
-        )
-      ]),
-      vue.createCommentVNode(" 内容区域 "),
-      vue.createElementVNode("view", { class: "content" }, [
-        vue.withDirectives(vue.createElementVNode(
-          "view",
-          null,
-          [
-            vue.createCommentVNode(" 当前病害内容 "),
-            vue.createVNode($setup["currentDisease"])
-          ],
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vShow, $setup.activeTab === 0]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "view",
-          null,
-          [
-            vue.createCommentVNode(" 历史病害内容 "),
-            vue.createVNode($setup["historyDisease"])
-          ],
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vShow, $setup.activeTab === 1]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "view",
-          null,
-          [
-            vue.createCommentVNode(" 桥梁卡片内容 "),
-            vue.createVNode(
-              $setup["bridgeArchive"],
-              {
-                ref: "bridgeArchiveRef",
-                onDataLoaded: $setup.handleDataLoaded
-              },
-              null,
-              512
-              /* NEED_PATCH */
-            )
-          ],
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vShow, $setup.activeTab === 2]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "view",
-          null,
-          [
-            vue.createCommentVNode(" 正面立照内容 "),
-            vue.createVNode($setup["frontPhoto"], { isDataLoaded: $setup.bridgeDataLoaded }, null, 8, ["isDataLoaded"])
-          ],
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vShow, $setup.activeTab === 3]
-        ]),
-        vue.withDirectives(vue.createElementVNode(
-          "view",
-          null,
-          [
-            vue.createCommentVNode(" 结构信息内容 "),
-            vue.createVNode($setup["structureInfo"])
-          ],
-          512
-          /* NEED_PATCH */
-        ), [
-          [vue.vShow, $setup.activeTab === 4]
-        ])
-      ])
-    ]);
-  }
-  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
+  const structureInfo = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["render", _sfc_render$c], ["__scopeId", "data-v-8f2488a5"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/structure-info.vue"]]);
   const easycom = {
     autoscan: true,
     custom: {
@@ -9566,6 +9451,7 @@ This will fail in production.`);
       style: {
         navigationBarTitleText: "湖北交投桥梁定检现场检测",
         navigationBarBackgroundColor: "#0F4687",
+        navigationStyle: "custom",
         "app-plus": {
           titleNView: {}
         }
@@ -9621,6 +9507,21 @@ This will fail in production.`);
         navigationBarBackgroundColor: "#0F4687",
         "app-plus": {
           titleNView: {}
+        }
+      }
+    },
+    {
+      path: "uni_modules/uni-upgrade-center-app/pages/upgrade-popup",
+      style: {
+        disableScroll: true,
+        "app-plus": {
+          backgroundColorTop: "transparent",
+          background: "transparent",
+          titleNView: false,
+          scrollIndicator: false,
+          popGesture: "none",
+          animationType: "fade-in",
+          animationDuration: 200
         }
       }
     }
@@ -9932,7 +9833,7 @@ This will fail in production.`);
   function I(e2) {
     return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
   }
-  const S = true, b = "app", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I(""), C = I("[]") || [];
+  const S = true, b = "app", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","26.243.31.100","10.151.1.229"],"servePort":7000,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","D:/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"buildinginspector","spaceId":"mp-99a7ba6b-a4dc-412a-a997-03ccd938029d","clientSecret":"M2m1FnUVcpvOqJ4cqRRURA==","endpoint":"https://api.next.bspapp.com"}]') || [];
   let O = "";
   try {
     O = "__UNI__B200628";
@@ -12493,748 +12394,6 @@ ${i3}
     }
   })();
   var nr = tr;
-  const en = {
-    "uni-load-more.contentdown": "Pull up to show more",
-    "uni-load-more.contentrefresh": "loading...",
-    "uni-load-more.contentnomore": "No more data"
-  };
-  const zhHans = {
-    "uni-load-more.contentdown": "上拉显示更多",
-    "uni-load-more.contentrefresh": "正在加载...",
-    "uni-load-more.contentnomore": "没有更多数据了"
-  };
-  const zhHant = {
-    "uni-load-more.contentdown": "上拉顯示更多",
-    "uni-load-more.contentrefresh": "正在加載...",
-    "uni-load-more.contentnomore": "沒有更多數據了"
-  };
-  const messages = {
-    en,
-    "zh-Hans": zhHans,
-    "zh-Hant": zhHant
-  };
-  let platform;
-  setTimeout(() => {
-    platform = uni.getSystemInfoSync().platform;
-  }, 16);
-  const {
-    t
-  } = initVueI18n(messages);
-  const _sfc_main$9 = {
-    name: "UniLoadMore",
-    emits: ["clickLoadMore"],
-    props: {
-      status: {
-        // 上拉的状态：more-loading前；loading-loading中；noMore-没有更多了
-        type: String,
-        default: "more"
-      },
-      showIcon: {
-        type: Boolean,
-        default: true
-      },
-      iconType: {
-        type: String,
-        default: "auto"
-      },
-      iconSize: {
-        type: Number,
-        default: 24
-      },
-      color: {
-        type: String,
-        default: "#777777"
-      },
-      contentText: {
-        type: Object,
-        default() {
-          return {
-            contentdown: "",
-            contentrefresh: "",
-            contentnomore: ""
-          };
-        }
-      },
-      showText: {
-        type: Boolean,
-        default: true
-      }
-    },
-    data() {
-      return {
-        webviewHide: false,
-        platform,
-        imgBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzlBMzU3OTlEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzlBMzU3OUFEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDOUEzNTc5N0Q5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDOUEzNTc5OEQ5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pt+ALSwAAA6CSURBVHja1FsLkFZVHb98LM+F5bHL8khA1iSeiyQBCRM+YGqKUnnJTDLGI0BGZlKDIU2MMglUiDApEZvSsZnQtBRJtKwQNKQMFYeRDR10WOLd8ljYXdh+v8v5fR3Od+797t1dnOnO/Ofce77z+J//+b/P+ZqtXbs2sJ9MJhNUV1cHJ06cCJo3bx7EPc2aNcvpy7pWrVoF+/fvDyoqKoI2bdoE9fX1F7TjN8a+EXBn/fkfvw942Tf+wYMHg9mzZwfjxo0LDhw4EPa1x2MbFw/fOGfPng1qa2tzcCkILsLDydq2bRsunpOTMM7TD/W/tZDZhPdeKD+yGxHhdu3aBV27dg3OnDlzMVANMheLAO3btw8KCwuDmpoaX5OxbgUIMEq7K8IcPnw4KCsrC/r37x8cP378/4cAXAB3vqSkJMuiDhTkw+XcuXNhOWbMmKBly5YhUT8xArhyFvP0BfwRsAuwxJZJsm/nzp2DTp06he/OU+cZ64K6o0ePBkOHDg2GDx8e6gEbJ5Q/NHNuAJQ1hgBeHUDlR7nVTkY8rQAvAi4z34vR/mPs1FoRsaCgIJThI0eOBC1atEiFGGV+5MiRoS45efJkqFjJFXV1dQuA012m2WcwTw98fy6CqBdsaiIO4CScrGPHjvk4odhavPquRtFWXEC25VgkREKOCh/qDSq+vn37htzD/mZTOmOc5U7zKzBPEedygWshcDyWvs30igAbU+6oyMgJBCFhwQE0fccxN60Ay9iebbjoDh06hMowjQxT4fXq1SskArmHZpkArvixp/kWzHdMeArExSJEaiXIjjRjRJ4DaAGWpibLzXN3Fm1vA5teBgh3j1Rv3bp1YgKwPdmf2p9zcyNYYgPKMfY0T5f5nNYdw158nJ8QawW4CLKwiOBSEgO/hok2eBydR+3dYH+PLxA5J8Vv0KBBwenTp0P2JWAx6+yFEBfs8lMY+y0SWMBNI9E4ThKi58VKTg3FQZS1RQF1cz27eC0QHMu+3E0SkUowjhVt5VdaWhp07949ZHv2Qd1EjDXM2cla1M0nl3GxAs3J9yREzyTdFVKVFOaE9qRA8GM0WebRuo9JGZKA7Mv2SeS/Z8+eoQ9BArMfFrLGo6jvxbhHbJZnKX2Rzz1O7QhJJ9Cs2ZMaWIyq/zhdeqPNfIoHd58clIQD+JSXl4dKlyIAuBdVXZwFVWKspSSoxE++h8x4k3uCnEhE4I5KwRiFWGOU0QWKiCYLbdoRMRKAu2kQ9vkfLU6dOhX06NEjlH+yMRZSinnuyWnYosVcji8CEA/6Cg2JF+IIUBqnGKUTCNwtwBN4f89RiK1R96DEgO2o0NDmtEdvVFdVVYV+P3UAPUEs6GFwV3PHmXkD4vh74iDFJysVI/MlaQhwKeBNTLYX5VuA8T4/gZxA4MRGFxDB6R7OmYPfyykGRJbyie+XnGYnQIC/coH9+vULiYrxrkL9ZA9+0ykaHIfEpM7ge8TiJ2CsHYwyMfafAF1yCGBHYIbCVDjDjKt7BeB51D+LgQa6OkG7IDYEEtvQ7lnXLKLtLdLuJBpE4gPUXcW2+PkZwOex+4cGDhwYDBkyRL7/HFcEwUGPo/8uWRUpYnfxGHco8HkewLHLyYmAawAPuIFZxhOpDfJQ8gbUv41yORAptMWBNr6oqMhWird5+u+iHmBb2nhjDV7HWBNQTgK8y11l5NetWzc5ULscAtSj7nbNI0skhWeUZCc0W4nyH/jO4Vz0u1IeYhbk4AiwM6tjxIWByHsoZ9qcIBPJd/y+DwPfBESOmCa/QF3WiZHucLlEDpNxcNhmheEOPgdQNx6/VZFQzFZ5TN08AHXQt2Ii3EdyFuUsPtTcGPhW5iMiCNELvz+Gdn9huG4HUJaW/w3g0wxV0XaG7arG2WeKiUWYM4Y7GO5ezshTARbbWGw/DvXkpp/ivVvE0JVoMxN4rpGzJMhE5Pl+xlATsDIqikP9F9D2z3h9nOksEUFhK+qO4rcPkoalMQ/HqJLIyb3F3JdjrCcw1yZ8joyJLR5gCo54etlag7qIoeNh1N1BRYj3DTFJ0elotxPlVzkGuYAmL0VSJVGAJA41c4Z6A3BzTLfn0HYwYKEI6CUAMzZEWvLsIcQOo1AmmyyM72nHJCfYsogflGV6jEk9vyQZXSuq6w4c16NsGcGZbwOPr+H1RkOk2LEzjNepxQkihHSCQ4ynAYNRx2zMKV92CQMWqj8J0BRE8EShxRFN6YrfCRhC0x3r/Zm4IbQCcmJoV0kMamllccR6FjHqUC5F2R/wS2dcymOlfAKOS4KmzQb5cpNC2MC7JhVn5wjXoJ44rYhLh8n0eXOCorJxa7POjbSlCGVczr34/RsAmrcvo9s+wGp3tzVhntxiXiJ4nvEYb4FJkf0O8HocAePmLvCxnL0AORraVekJk6TYjDabRVXfRE2lCN1h6ZQRN1+InUbsCpKwoBZHh0dODN9JBCUffItXxEavTQkUtnfTVAplCWL3JISz29h4NjotnuSsQKJCk8dF+kJR6RARjrqFVmfPnj3ZbK8cIJ0msd6jgHPGtfVTQ8VLmlvh4mct9sobRmPic0DyDQQnx/NlfYUgyz59+oScsH379pAwXABD32nTpoUHIToESeI5mnbE/UqDdyLcafEBf2MCqgC7NwxIbMREJQ0g4D4sfJwnD+AmRrII05cfMWJE+L1169bQr+fip06dGp4oJ83lmYd5wj/EmMa4TaHivo4EeCguYZBnkB5g2aWA69OIEnUHOaGysjIYMGBAMGnSpODYsWPZwCpFmm4lNq+4gSLQA7jcX8DwtjEyRC8wjabnXEx9kfWnTJkSJkAo90xpJVV+FmcVNeYAF5zWngS4C4O91MBxmAv8blLEpbjI5sz9MTdAhcgkCT1RO8mZkAjfiYpTEvStAS53Uw1vAiUGgZ3GpuQEYvoiBqlIan7kSDHnTwJQFNiPu0+5VxCVYhcZIjNrdXUDdp+Eq5AZ3Gkg8QAyVZRZIk4Tl4QAbF9cXJxNYZMAtAokgs4BrNxEpCtteXg7DDTMDKYNSuQdKsnJBek7HxewvxaosWxLYXtw+cJp18217wql4aKCfBNoEu0O5VU+PhctJ0YeXD4C6JQpyrlpSLTojpGGGN5YwNziChdIZLk4lvLcFJ9jMX3QdiImY9bmGQU+TRUL5CHITTRlgF8D9ouD1MfmLoEPl5xokIumZ2cfgMpHt47IW9N64Hsh7wQYYjyIugWuF5fCqYncXRd5vPMWyizzvhi/32+nvG0dZc9vR6fZOu0md5e+uC408FvKSIOZwXlGvxPv95izA2Vtvg1xKFWARI+vMX66HUhpQQb643uW1bSjuTWyw2SBvDrBvjFic1eGGlz5esq3ko9uSIlBRqPuFcCv8F4WIcN12nVaBd0SaYwI6PDDImR11JkqgHcPmQssjxIn6bUshygDFJUTxPMpHk+jfjPgupgdnYV2R/g7xSjtpah8RJBewhwf0gGK6XI92u4wXFEU40afJ4DN4h5LcAd+40HI3JgJecuT0c062W0i2hQJUTcxan3/CMW1PF2K6bbA+Daz4xRs1D3Br1Cm0OihKCqizW78/nXAF/G5TXrEcVzaNMH6CyMswqsAHqDyDLEyou8lwOXnKF8DjI6KjV3KzMBiXkDH8ij/H214J5A596ekrZ3F0zXlWeL7+P5eUrNo3/QwC15uxthuzidy7DzKRwEDaAViiDgKbTbz7CJnzo0bN7pIfIiid8SuPwn25o3QCmpnyjlZkyxPP8EomCJzrGb7GJMx7tNsq4MT2xMUYaiErZOluTzKsnz3gwCeCZyVRZJfYplNEokEjwrPtxlxjeYAk+F1F74VAzPxQRNYYdtpOUvWs8J1sGhBJMNsb7igN8plJs1eSmLIhLKE4rvaCX27gOhLpLOsIzJ7qn/i+wZzcvSOZ23/du8TZjwV8zHIXoP4R3ifBxiFz1dcVpa3aPntPE+c6TmIWE9EtcMmAcPdWAhYhAXxcLOQi9L1WhD1Sc8p1d2oL7XGiRKp8F4A2i8K/nfI+y/gsTDJ/YC/8+AD5Uh04KHiGl+cIFPnBDDrPMjwRGkLXyxO4VGbfQWnDH2v0bVWE3C9QOXlepbgjEfIJQI6XDG3z5ahD9cw2pS78ipB85wyScNTvsVzlzzhL8/jRrnmVjfFJK/m3m4nj9vbgQTguT8XZTjsm672R5uJKEaQmBI/c58gyus8ZDagLpEVSJBIyHp4jn++xqPV71OgQgJYEWOtZ/haxRtKmWOBu8xdBLftWltsY84zE6WIEy/eIOWL+BaayMx+KHtL7EAkqdNDLiEXmEMUHniedtJqg9HmZtfvt26vNi0BdG3Ft3g8ZOf7PAu59TxtzivLNIekyi+wD1i8CuUiD9FXAa8C+/xS3JPmZnomyc7H+fb4/Se0bk41Fel621r4cgVxbq91V4jVqwB7HTe2M7jgB+QWHavZkDRPmZcASoZEmBx6i75bGjPcMdL4/VKGFAGWZkGzPG0XAbdL9A81G5LOmUnC9hHKJeO7dcUMjblSl12867ElFTtaGl20xvvLGPdVz/8TVuU7y0x1PG7vtNg24oz9Uo/Z412++VFWI7Fcog9tu9Lm6gvRmIPv9x1xmQAu6RDkXtbOtlGEmpgD5Nvnyc0dcv0EE6cfdi1HmhMf9wDF3k3gtRvEedhxjpgfqPb9PU9iEJHnyOUA7bQUXh6kq/D7l2iTjWv7XOD530BDr8jIrus+srXjt4MzumJMHuTsBa63YKE1+RR5lBjEikCCnWKWiHdzOgKO+nRIBAF88za/IFmJ3eMZov4CYxGBabcpGL8EYx+SeMXJeRwHNsV/h+vdxeuhEpN3ZyNY78Gm2fknJxVGhyjixPiQvVkNzT1elD9Py/aTAL64Hb9vcYmC9zfdXdT/C1LeGbg4rnBaAihDFJH12W5ulfNCNe/xTsP3bp8ikzJs5BF+5PNfAQYAPaseTdsEcaYAAAAASUVORK5CYII="
-      };
-    },
-    computed: {
-      iconSnowWidth() {
-        return (Math.floor(this.iconSize / 24) || 1) * 2;
-      },
-      contentdownText() {
-        return this.contentText.contentdown || t("uni-load-more.contentdown");
-      },
-      contentrefreshText() {
-        return this.contentText.contentrefresh || t("uni-load-more.contentrefresh");
-      },
-      contentnomoreText() {
-        return this.contentText.contentnomore || t("uni-load-more.contentnomore");
-      }
-    },
-    mounted() {
-      var pages2 = getCurrentPages();
-      var page = pages2[pages2.length - 1];
-      var currentWebview = page.$getAppWebview();
-      currentWebview.addEventListener("hide", () => {
-        this.webviewHide = true;
-      });
-      currentWebview.addEventListener("show", () => {
-        this.webviewHide = false;
-      });
-    },
-    methods: {
-      onClick() {
-        this.$emit("clickLoadMore", {
-          detail: {
-            status: this.status
-          }
-        });
-      }
-    }
-  };
-  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
-    return vue.openBlock(), vue.createElementBlock("view", {
-      class: "uni-load-more",
-      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
-    }, [
-      !$data.webviewHide && ($props.iconType === "circle" || $props.iconType === "auto" && $data.platform === "android") && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
-        "view",
-        {
-          key: 0,
-          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
-          class: "uni-load-more__img uni-load-more__img--android-MP"
-        },
-        [
-          vue.createElementVNode(
-            "view",
-            {
-              class: "uni-load-more__img-icon",
-              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
-            },
-            null,
-            4
-            /* STYLE */
-          ),
-          vue.createElementVNode(
-            "view",
-            {
-              class: "uni-load-more__img-icon",
-              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
-            },
-            null,
-            4
-            /* STYLE */
-          ),
-          vue.createElementVNode(
-            "view",
-            {
-              class: "uni-load-more__img-icon",
-              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
-            },
-            null,
-            4
-            /* STYLE */
-          )
-        ],
-        4
-        /* STYLE */
-      )) : !$data.webviewHide && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
-        "view",
-        {
-          key: 1,
-          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
-          class: "uni-load-more__img uni-load-more__img--ios-H5"
-        },
-        [
-          vue.createElementVNode("image", {
-            src: $data.imgBase64,
-            mode: "widthFix"
-          }, null, 8, ["src"])
-        ],
-        4
-        /* STYLE */
-      )) : vue.createCommentVNode("v-if", true),
-      $props.showText ? (vue.openBlock(), vue.createElementBlock(
-        "text",
-        {
-          key: 2,
-          class: "uni-load-more__text",
-          style: vue.normalizeStyle({ color: $props.color })
-        },
-        vue.toDisplayString($props.status === "more" ? $options.contentdownText : $props.status === "loading" ? $options.contentrefreshText : $options.contentnomoreText),
-        5
-        /* TEXT, STYLE */
-      )) : vue.createCommentVNode("v-if", true)
-    ]);
-  }
-  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-9245e42c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/uni_modules/uni-load-more/components/uni-load-more/uni-load-more.vue"]]);
-  const _sfc_main$8 = {
-    name: "uniDataChecklist",
-    mixins: [nr.mixinDatacom || {}],
-    emits: ["input", "update:modelValue", "change"],
-    props: {
-      mode: {
-        type: String,
-        default: "default"
-      },
-      multiple: {
-        type: Boolean,
-        default: false
-      },
-      value: {
-        type: [Array, String, Number],
-        default() {
-          return "";
-        }
-      },
-      // TODO vue3
-      modelValue: {
-        type: [Array, String, Number],
-        default() {
-          return "";
-        }
-      },
-      localdata: {
-        type: Array,
-        default() {
-          return [];
-        }
-      },
-      min: {
-        type: [Number, String],
-        default: ""
-      },
-      max: {
-        type: [Number, String],
-        default: ""
-      },
-      wrap: {
-        type: Boolean,
-        default: false
-      },
-      icon: {
-        type: String,
-        default: "left"
-      },
-      selectedColor: {
-        type: String,
-        default: ""
-      },
-      selectedTextColor: {
-        type: String,
-        default: ""
-      },
-      emptyText: {
-        type: String,
-        default: "暂无数据"
-      },
-      disabled: {
-        type: Boolean,
-        default: false
-      },
-      map: {
-        type: Object,
-        default() {
-          return {
-            text: "text",
-            value: "value"
-          };
-        }
-      }
-    },
-    watch: {
-      localdata: {
-        handler(newVal) {
-          this.range = newVal;
-          this.dataList = this.getDataList(this.getSelectedValue(newVal));
-        },
-        deep: true
-      },
-      mixinDatacomResData(newVal) {
-        this.range = newVal;
-        this.dataList = this.getDataList(this.getSelectedValue(newVal));
-      },
-      value(newVal) {
-        this.dataList = this.getDataList(newVal);
-      },
-      modelValue(newVal) {
-        this.dataList = this.getDataList(newVal);
-      }
-    },
-    data() {
-      return {
-        dataList: [],
-        range: [],
-        contentText: {
-          contentdown: "查看更多",
-          contentrefresh: "加载中",
-          contentnomore: "没有更多"
-        },
-        isLocal: true,
-        styles: {
-          selectedColor: "#2979ff",
-          selectedTextColor: "#666"
-        },
-        isTop: 0
-      };
-    },
-    computed: {
-      dataValue() {
-        if (this.value === "")
-          return this.modelValue;
-        if (this.modelValue === "")
-          return this.value;
-        return this.value;
-      }
-    },
-    created() {
-      if (this.localdata && this.localdata.length !== 0) {
-        this.isLocal = true;
-        this.range = this.localdata;
-        this.dataList = this.getDataList(this.getSelectedValue(this.range));
-      } else {
-        if (this.collection) {
-          this.isLocal = false;
-          this.loadData();
-        }
-      }
-    },
-    methods: {
-      loadData() {
-        this.mixinDatacomGet().then((res) => {
-          this.mixinDatacomResData = res.result.data;
-          if (this.mixinDatacomResData.length === 0) {
-            this.isLocal = false;
-            this.mixinDatacomErrorMessage = this.emptyText;
-          } else {
-            this.isLocal = true;
-          }
-        }).catch((err) => {
-          this.mixinDatacomErrorMessage = err.message;
-        });
-      },
-      /**
-       * 获取父元素实例
-       */
-      getForm(name = "uniForms") {
-        let parent = this.$parent;
-        let parentName = parent.$options.name;
-        while (parentName !== name) {
-          parent = parent.$parent;
-          if (!parent)
-            return false;
-          parentName = parent.$options.name;
-        }
-        return parent;
-      },
-      change(e2) {
-        const values = e2.detail.value;
-        let detail = {
-          value: [],
-          data: []
-        };
-        if (this.multiple) {
-          this.range.forEach((item) => {
-            if (values.includes(item[this.map.value] + "")) {
-              detail.value.push(item[this.map.value]);
-              detail.data.push(item);
-            }
-          });
-        } else {
-          const range = this.range.find((item) => item[this.map.value] + "" === values);
-          if (range) {
-            detail = {
-              value: range[this.map.value],
-              data: range
-            };
-          }
-        }
-        this.$emit("input", detail.value);
-        this.$emit("update:modelValue", detail.value);
-        this.$emit("change", {
-          detail
-        });
-        if (this.multiple) {
-          this.dataList = this.getDataList(detail.value, true);
-        } else {
-          this.dataList = this.getDataList(detail.value);
-        }
-      },
-      /**
-       * 获取渲染的新数组
-       * @param {Object} value 选中内容
-       */
-      getDataList(value) {
-        let dataList = JSON.parse(JSON.stringify(this.range));
-        let list = [];
-        if (this.multiple) {
-          if (!Array.isArray(value)) {
-            value = [];
-          }
-        }
-        dataList.forEach((item, index) => {
-          item.disabled = item.disable || item.disabled || false;
-          if (this.multiple) {
-            if (value.length > 0) {
-              let have = value.find((val) => val === item[this.map.value]);
-              item.selected = have !== void 0;
-            } else {
-              item.selected = false;
-            }
-          } else {
-            item.selected = value === item[this.map.value];
-          }
-          list.push(item);
-        });
-        return this.setRange(list);
-      },
-      /**
-       * 处理最大最小值
-       * @param {Object} list
-       */
-      setRange(list) {
-        let selectList = list.filter((item) => item.selected);
-        let min = Number(this.min) || 0;
-        let max = Number(this.max) || "";
-        list.forEach((item, index) => {
-          if (this.multiple) {
-            if (selectList.length <= min) {
-              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
-              if (have !== void 0) {
-                item.disabled = true;
-              }
-            }
-            if (selectList.length >= max && max !== "") {
-              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
-              if (have === void 0) {
-                item.disabled = true;
-              }
-            }
-          }
-          this.setStyles(item, index);
-          list[index] = item;
-        });
-        return list;
-      },
-      /**
-       * 设置 class
-       * @param {Object} item
-       * @param {Object} index
-       */
-      setStyles(item, index) {
-        item.styleBackgroud = this.setStyleBackgroud(item);
-        item.styleIcon = this.setStyleIcon(item);
-        item.styleIconText = this.setStyleIconText(item);
-        item.styleRightIcon = this.setStyleRightIcon(item);
-      },
-      /**
-       * 获取选中值
-       * @param {Object} range
-       */
-      getSelectedValue(range) {
-        if (!this.multiple)
-          return this.dataValue;
-        let selectedArr = [];
-        range.forEach((item) => {
-          if (item.selected) {
-            selectedArr.push(item[this.map.value]);
-          }
-        });
-        return this.dataValue.length > 0 ? this.dataValue : selectedArr;
-      },
-      /**
-       * 设置背景样式
-       */
-      setStyleBackgroud(item) {
-        let styles = {};
-        let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
-        if (this.selectedColor) {
-          if (this.mode !== "list") {
-            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
-          }
-          if (this.mode === "tag") {
-            styles["background-color"] = item.selected ? selectedColor : "#f5f5f5";
-          }
-        }
-        let classles = "";
-        for (let i2 in styles) {
-          classles += `${i2}:${styles[i2]};`;
-        }
-        return classles;
-      },
-      setStyleIcon(item) {
-        let styles = {};
-        let classles = "";
-        if (this.selectedColor) {
-          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
-          styles["background-color"] = item.selected ? selectedColor : "#fff";
-          styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
-          if (!item.selected && item.disabled) {
-            styles["background-color"] = "#F2F6FC";
-            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
-          }
-        }
-        for (let i2 in styles) {
-          classles += `${i2}:${styles[i2]};`;
-        }
-        return classles;
-      },
-      setStyleIconText(item) {
-        let styles = {};
-        let classles = "";
-        if (this.selectedColor) {
-          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
-          if (this.mode === "tag") {
-            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : "#fff" : "#666";
-          } else {
-            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : selectedColor : "#666";
-          }
-          if (!item.selected && item.disabled) {
-            styles.color = "#999";
-          }
-        }
-        for (let i2 in styles) {
-          classles += `${i2}:${styles[i2]};`;
-        }
-        return classles;
-      },
-      setStyleRightIcon(item) {
-        let styles = {};
-        let classles = "";
-        if (this.mode === "list") {
-          styles["border-color"] = item.selected ? this.styles.selectedColor : "#DCDFE6";
-        }
-        for (let i2 in styles) {
-          classles += `${i2}:${styles[i2]};`;
-        }
-        return classles;
-      }
-    }
-  };
-  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
-    const _component_uni_load_more = resolveEasycom(vue.resolveDynamicComponent("uni-load-more"), __easycom_0$1);
-    return vue.openBlock(), vue.createElementBlock(
-      "view",
-      {
-        class: "uni-data-checklist",
-        style: vue.normalizeStyle({ "margin-top": $data.isTop + "px" })
-      },
-      [
-        !$data.isLocal ? (vue.openBlock(), vue.createElementBlock("view", {
-          key: 0,
-          class: "uni-data-loading"
-        }, [
-          !_ctx.mixinDatacomErrorMessage ? (vue.openBlock(), vue.createBlock(_component_uni_load_more, {
-            key: 0,
-            status: "loading",
-            iconType: "snow",
-            iconSize: 18,
-            "content-text": $data.contentText
-          }, null, 8, ["content-text"])) : (vue.openBlock(), vue.createElementBlock(
-            "text",
-            { key: 1 },
-            vue.toDisplayString(_ctx.mixinDatacomErrorMessage),
-            1
-            /* TEXT */
-          ))
-        ])) : (vue.openBlock(), vue.createElementBlock(
-          vue.Fragment,
-          { key: 1 },
-          [
-            $props.multiple ? (vue.openBlock(), vue.createElementBlock(
-              "checkbox-group",
-              {
-                key: 0,
-                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list" || $props.wrap }]),
-                onChange: _cache[0] || (_cache[0] = (...args) => $options.change && $options.change(...args))
-              },
-              [
-                (vue.openBlock(true), vue.createElementBlock(
-                  vue.Fragment,
-                  null,
-                  vue.renderList($data.dataList, (item, index) => {
-                    return vue.openBlock(), vue.createElementBlock(
-                      "label",
-                      {
-                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
-                        style: vue.normalizeStyle(item.styleBackgroud),
-                        key: index
-                      },
-                      [
-                        vue.createElementVNode("checkbox", {
-                          class: "hidden",
-                          hidden: "",
-                          disabled: $props.disabled || !!item.disabled,
-                          value: item[$props.map.value] + "",
-                          checked: item.selected
-                        }, null, 8, ["disabled", "value", "checked"]),
-                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
-                          "view",
-                          {
-                            key: 0,
-                            class: "checkbox__inner",
-                            style: vue.normalizeStyle(item.styleIcon)
-                          },
-                          [
-                            vue.createElementVNode("view", { class: "checkbox__inner-icon" })
-                          ],
-                          4
-                          /* STYLE */
-                        )) : vue.createCommentVNode("v-if", true),
-                        vue.createElementVNode(
-                          "view",
-                          {
-                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
-                          },
-                          [
-                            vue.createElementVNode(
-                              "text",
-                              {
-                                class: "checklist-text",
-                                style: vue.normalizeStyle(item.styleIconText)
-                              },
-                              vue.toDisplayString(item[$props.map.text]),
-                              5
-                              /* TEXT, STYLE */
-                            ),
-                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
-                              "view",
-                              {
-                                key: 0,
-                                class: "checkobx__list",
-                                style: vue.normalizeStyle(item.styleBackgroud)
-                              },
-                              null,
-                              4
-                              /* STYLE */
-                            )) : vue.createCommentVNode("v-if", true)
-                          ],
-                          2
-                          /* CLASS */
-                        )
-                      ],
-                      6
-                      /* CLASS, STYLE */
-                    );
-                  }),
-                  128
-                  /* KEYED_FRAGMENT */
-                ))
-              ],
-              34
-              /* CLASS, NEED_HYDRATION */
-            )) : (vue.openBlock(), vue.createElementBlock(
-              "radio-group",
-              {
-                key: 1,
-                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list", "is-wrap": $props.wrap }]),
-                onChange: _cache[1] || (_cache[1] = (...args) => $options.change && $options.change(...args))
-              },
-              [
-                (vue.openBlock(true), vue.createElementBlock(
-                  vue.Fragment,
-                  null,
-                  vue.renderList($data.dataList, (item, index) => {
-                    return vue.openBlock(), vue.createElementBlock(
-                      "label",
-                      {
-                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
-                        style: vue.normalizeStyle(item.styleBackgroud),
-                        key: index
-                      },
-                      [
-                        vue.createElementVNode("radio", {
-                          class: "hidden",
-                          hidden: "",
-                          disabled: $props.disabled || item.disabled,
-                          value: item[$props.map.value] + "",
-                          checked: item.selected
-                        }, null, 8, ["disabled", "value", "checked"]),
-                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
-                          "view",
-                          {
-                            key: 0,
-                            class: "radio__inner",
-                            style: vue.normalizeStyle(item.styleBackgroud)
-                          },
-                          [
-                            vue.createElementVNode(
-                              "view",
-                              {
-                                class: "radio__inner-icon",
-                                style: vue.normalizeStyle(item.styleIcon)
-                              },
-                              null,
-                              4
-                              /* STYLE */
-                            )
-                          ],
-                          4
-                          /* STYLE */
-                        )) : vue.createCommentVNode("v-if", true),
-                        vue.createElementVNode(
-                          "view",
-                          {
-                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
-                          },
-                          [
-                            vue.createElementVNode(
-                              "text",
-                              {
-                                class: "checklist-text",
-                                style: vue.normalizeStyle(item.styleIconText)
-                              },
-                              vue.toDisplayString(item[$props.map.text]),
-                              5
-                              /* TEXT, STYLE */
-                            ),
-                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
-                              "view",
-                              {
-                                key: 0,
-                                style: vue.normalizeStyle(item.styleRightIcon),
-                                class: "checkobx__list"
-                              },
-                              null,
-                              4
-                              /* STYLE */
-                            )) : vue.createCommentVNode("v-if", true)
-                          ],
-                          2
-                          /* CLASS */
-                        )
-                      ],
-                      6
-                      /* CLASS, STYLE */
-                    );
-                  }),
-                  128
-                  /* KEYED_FRAGMENT */
-                ))
-              ],
-              34
-              /* CLASS, NEED_HYDRATION */
-            ))
-          ],
-          64
-          /* STABLE_FRAGMENT */
-        ))
-      ],
-      4
-      /* STYLE */
-    );
-  }
-  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__scopeId", "data-v-149d584b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-data-checkbox/uni-data-checkbox.vue"]]);
   const ERR_MSG_OK = "chooseAndUploadFile:ok";
   const ERR_MSG_FAIL = "chooseAndUploadFile:fail";
   function chooseImage(opts) {
@@ -13430,12 +12589,12 @@ ${i3}
     }
     return uploadFiles(chooseAll(opts), opts);
   }
-  const get_file_ext = (name) => {
-    const last_len = name.lastIndexOf(".");
-    const len = name.length;
+  const get_file_ext = (name2) => {
+    const last_len = name2.lastIndexOf(".");
+    const len = name2.length;
     return {
-      name: name.substring(0, last_len),
-      ext: name.substring(last_len + 1, len)
+      name: name2.substring(0, last_len),
+      ext: name2.substring(last_len + 1, len)
     };
   };
   const get_extname = (fileExtname) => {
@@ -13516,7 +12675,7 @@ ${i3}
     }
     return filedata;
   };
-  const _sfc_main$7 = {
+  const _sfc_main$c = {
     name: "uploadImage",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -13663,7 +12822,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$b(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__container" }, [
       (vue.openBlock(true), vue.createElementBlock(
         vue.Fragment,
@@ -13756,8 +12915,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
-  const _sfc_main$6 = {
+  const uploadImage = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["render", _sfc_render$b], ["__scopeId", "data-v-6f3c6077"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-image.vue"]]);
+  const _sfc_main$b = {
     name: "uploadFile",
     emits: ["uploadFiles", "choose", "delFile"],
     props: {
@@ -13893,7 +13052,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$a(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker__files" }, [
       !$props.readonly ? (vue.openBlock(), vue.createElementBlock("view", {
         key: 0,
@@ -13975,8 +13134,8 @@ ${i3}
       )) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
-  const _sfc_main$5 = {
+  const uploadFile = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["render", _sfc_render$a], ["__scopeId", "data-v-86fc2bba"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/upload-file.vue"]]);
+  const _sfc_main$a = {
     name: "uniFilePicker",
     components: {
       uploadImage,
@@ -14411,12 +13570,12 @@ ${i3}
        * 获取文件名和后缀
        * @param {Object} name
        */
-      getFileExt(name) {
-        const last_len = name.lastIndexOf(".");
-        const len = name.length;
+      getFileExt(name2) {
+        const last_len = name2.lastIndexOf(".");
+        const len = name2.length;
         return {
-          name: name.substring(0, last_len),
-          ext: name.substring(last_len + 1, len)
+          name: name2.substring(0, last_len),
+          ext: name2.substring(last_len + 1, len)
         };
       },
       /**
@@ -14470,10 +13629,10 @@ ${i3}
       /**
        * 获取父元素实例
        */
-      getForm(name = "uniForms") {
+      getForm(name2 = "uniForms") {
         let parent = this.$parent;
         let parentName = parent.$options.name;
-        while (parentName !== name) {
+        while (parentName !== name2) {
           parent = parent.$parent;
           if (!parent)
             return false;
@@ -14483,7 +13642,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$9(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_upload_image = vue.resolveComponent("upload-image");
     const _component_upload_file = vue.resolveComponent("upload-file");
     return vue.openBlock(), vue.createElementBlock("view", { class: "uni-file-picker" }, [
@@ -14553,8 +13712,1220 @@ ${i3}
       }, 8, ["readonly", "list-styles", "files-list", "showType", "delIcon", "onUploadFiles", "onChoose", "onDelFile"])) : vue.createCommentVNode("v-if", true)
     ]);
   }
-  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
-  const _sfc_main$4 = {
+  const __easycom_1 = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["render", _sfc_render$9], ["__scopeId", "data-v-418f48eb"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-file-picker/uni-file-picker.vue"]]);
+  const _sfc_main$9 = {
+    __name: "front-photo",
+    props: {
+      isDataLoaded: {
+        type: Boolean,
+        default: false
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const props = __props;
+      const isJson = vue.ref(1);
+      const isSubmit = vue.ref(false);
+      const frontLeft = vue.ref([]);
+      const frontRight = vue.ref([]);
+      const sideLeft = vue.ref([]);
+      const sideRight = vue.ref([]);
+      const originalFrontLeft = vue.ref([]);
+      const originalFrontRight = vue.ref([]);
+      const originalSideLeft = vue.ref([]);
+      const originalSideRight = vue.ref([]);
+      const idStorageInfo = idStore();
+      const userInfo = userStore();
+      const imageStyles = vue.reactive({
+        width: "200rpx",
+        height: "200rpx"
+      });
+      vue.watch(() => props.isDataLoaded, (newVal) => {
+        formatAppLog("log", "at components/front-photo.vue:115", "front-photo组件检测到isDataLoaded变化:", newVal);
+        if (newVal === true) {
+          readBridgeImageByJson();
+        }
+      }, { immediate: true });
+      const frontLeftSelect = (e2) => {
+        if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
+          formatAppLog("log", "at components/front-photo.vue:123", "选择的文件数量:", e2.tempFiles.length);
+          frontLeft.value = e2.tempFiles.map((file) => {
+            return {
+              name: file.name,
+              url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
+              extname: file.extname || "jpg"
+            };
+          });
+        }
+      };
+      const frontRightSelect = (e2) => {
+        if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
+          formatAppLog("log", "at components/front-photo.vue:137", "选择的文件数量:", e2.tempFiles.length);
+          frontRight.value = e2.tempFiles.map((file) => {
+            return {
+              name: file.name,
+              url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
+              extname: file.extname || "jpg"
+            };
+          });
+        }
+      };
+      const sideLeftSelect = (e2) => {
+        if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
+          formatAppLog("log", "at components/front-photo.vue:151", "选择的文件数量:", e2.tempFiles.length);
+          sideLeft.value = e2.tempFiles.map((file) => {
+            return {
+              name: file.name,
+              url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
+              extname: file.extname || "jpg"
+            };
+          });
+        }
+      };
+      const sideRightSelect = (e2) => {
+        if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
+          formatAppLog("log", "at components/front-photo.vue:165", "选择的文件数量:", e2.tempFiles.length);
+          sideRight.value = e2.tempFiles.map((file) => {
+            return {
+              name: file.name,
+              url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
+              extname: file.extname || "jpg"
+            };
+          });
+        }
+      };
+      const createPhotoDate = async () => {
+        const result = {
+          frontLeft: [],
+          frontRight: [],
+          sideLeft: [],
+          sideRight: []
+        };
+        if (hasImageChanged(frontLeft.value, originalFrontLeft.value)) {
+          result.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft.value.map((img) => img.url));
+        } else {
+          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+          result.frontLeft = data.frontLeft || [];
+        }
+        if (hasImageChanged(frontRight.value, originalFrontRight.value)) {
+          result.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight.value.map((img) => img.url));
+        } else {
+          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+          result.frontRight = data.frontRight || [];
+        }
+        if (hasImageChanged(sideLeft.value, originalSideLeft.value)) {
+          result.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft.value.map((img) => img.url));
+        } else {
+          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+          result.sideLeft = data.sideLeft || [];
+        }
+        if (hasImageChanged(sideRight.value, originalSideRight.value)) {
+          result.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight.value.map((img) => img.url));
+        } else {
+          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+          result.sideRight = data.sideRight || [];
+        }
+        return result;
+      };
+      const hasImageChanged = (currentImages, originalImages) => {
+        if (currentImages.length !== originalImages.length) {
+          return true;
+        }
+        for (let i2 = 0; i2 < currentImages.length; i2++) {
+          if (currentImages[i2].url !== originalImages[i2].url) {
+            return true;
+          }
+        }
+        return false;
+      };
+      const savePhoto = async () => {
+        const savePhotoData = await createPhotoDate();
+        formatAppLog("log", "at components/front-photo.vue:245", "保存的图片json数据:", savePhotoData);
+        await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
+        uni.showToast({
+          title: "保存成功",
+          icon: "success"
+        });
+        isSubmit.value = true;
+      };
+      const readBridgeImageByJson = async () => {
+        try {
+          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+          formatAppLog("log", "at components/front-photo.vue:257", "获取正立面照数据成功:", data);
+          if (data.frontLeft && Array.isArray(data.frontLeft)) {
+            const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
+            frontLeft.value = imagesPaths.map((url, index) => ({
+              name: `图片${index + 1}`,
+              url,
+              extname: "jpg"
+            }));
+            originalFrontLeft.value = JSON.parse(JSON.stringify(frontLeft.value));
+          }
+          if (data.frontRight && Array.isArray(data.frontRight)) {
+            const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
+            frontRight.value = imagesPaths.map((url, index) => ({
+              name: `图片${index + 1}`,
+              url,
+              extname: "jpg"
+            }));
+            originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
+          }
+          if (data.sideLeft && Array.isArray(data.sideLeft)) {
+            const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
+            sideLeft.value = imagesPaths.map((url, index) => ({
+              name: `图片${index + 1}`,
+              url,
+              extname: "jpg"
+            }));
+            originalSideLeft.value = JSON.parse(JSON.stringify(sideLeft.value));
+          }
+          if (data.sideRight && Array.isArray(data.sideRight)) {
+            const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
+            sideRight.value = imagesPaths.map((url, index) => ({
+              name: `图片${index + 1}`,
+              url,
+              extname: "jpg"
+            }));
+            originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
+          }
+        } catch (error) {
+          formatAppLog("error", "at components/front-photo.vue:301", "读取正立面照失败:", error);
+        }
+      };
+      vue.onMounted(async () => {
+        if (props.isDataLoaded) {
+          await readBridgeImageByJson();
+        }
+      });
+      const __returned__ = { props, isJson, isSubmit, frontLeft, frontRight, sideLeft, sideRight, originalFrontLeft, originalFrontRight, originalSideLeft, originalSideRight, idStorageInfo, userInfo, imageStyles, frontLeftSelect, frontRightSelect, sideLeftSelect, sideRightSelect, createPhotoDate, hasImageChanged, savePhoto, readBridgeImageByJson, computed: vue.computed, onMounted: vue.onMounted, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get getFrontPhoto() {
+        return getFrontPhoto;
+      }, get getProperty() {
+        return getProperty;
+      }, get readBridgeImage() {
+        return readBridgeImage;
+      }, get idStore() {
+        return idStore;
+      }, get userStore() {
+        return userStore;
+      }, get saveBridgeImages() {
+        return saveBridgeImages;
+      }, get setFrontPhoto() {
+        return setFrontPhoto;
+      } };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$8(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_file_picker = resolveEasycom(vue.resolveDynamicComponent("uni-file-picker"), __easycom_1);
+    return vue.openBlock(), vue.createElementBlock("view", null, [
+      $props.isDataLoaded ? (vue.openBlock(), vue.createElementBlock("view", { key: 0 }, [
+        vue.createElementVNode("view", { class: "title" }, [
+          vue.createElementVNode("view", { class: "status-text" }, [
+            vue.createTextVNode(" 正立面照状态: "),
+            vue.createElementVNode(
+              "text",
+              {
+                class: vue.normalizeClass({ "not-submitted": !$setup.isSubmit })
+              },
+              vue.toDisplayString($setup.isSubmit ? "已提交" : "未提交"),
+              3
+              /* TEXT, CLASS */
+            )
+          ]),
+          vue.createElementVNode("button", {
+            class: "save",
+            onClick: $setup.savePhoto
+          }, "保存")
+        ]),
+        vue.createElementVNode("view", { class: "photo-container" }, [
+          vue.createElementVNode("view", { class: "photo-item" }, [
+            vue.createElementVNode("view", { class: "head" }, [
+              vue.createElementVNode("view", { class: "head-text" }, " 左正面照 ")
+            ]),
+            vue.createVNode(_component_uni_file_picker, {
+              class: "file-picker",
+              limit: "1",
+              "image-styles": $setup.imageStyles,
+              modelValue: $setup.frontLeft,
+              "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => $setup.frontLeft = $event),
+              "file-mediatype": "image",
+              mode: "grid",
+              onSelect: $setup.frontLeftSelect,
+              "auto-upload": false
+            }, null, 8, ["image-styles", "modelValue"])
+          ]),
+          vue.createElementVNode("view", { class: "photo-item" }, [
+            vue.createElementVNode("view", { class: "head" }, [
+              vue.createElementVNode("view", { class: "head-text" }, " 右正面照 ")
+            ]),
+            vue.createVNode(_component_uni_file_picker, {
+              class: "file-picker",
+              limit: "1",
+              "image-styles": $setup.imageStyles,
+              modelValue: $setup.frontRight,
+              "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.frontRight = $event),
+              "file-mediatype": "image",
+              mode: "grid",
+              onSelect: $setup.frontRightSelect,
+              "auto-upload": false
+            }, null, 8, ["image-styles", "modelValue"])
+          ])
+        ]),
+        vue.createElementVNode("view", { class: "photo-container" }, [
+          vue.createElementVNode("view", { class: "photo-item" }, [
+            vue.createElementVNode("view", { class: "head" }, [
+              vue.createElementVNode("view", { class: "head-text" }, " 左侧面照 ")
+            ]),
+            vue.createVNode(_component_uni_file_picker, {
+              class: "file-picker",
+              limit: "1",
+              "image-styles": $setup.imageStyles,
+              modelValue: $setup.sideLeft,
+              "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.sideLeft = $event),
+              "file-mediatype": "image",
+              mode: "grid",
+              onSelect: $setup.sideLeftSelect,
+              "auto-upload": false
+            }, null, 8, ["image-styles", "modelValue"])
+          ]),
+          vue.createElementVNode("view", { class: "photo-item" }, [
+            vue.createElementVNode("view", { class: "head" }, [
+              vue.createElementVNode("view", { class: "head-text" }, " 右侧面照 ")
+            ]),
+            vue.createVNode(_component_uni_file_picker, {
+              class: "file-picker",
+              limit: "1",
+              "image-styles": $setup.imageStyles,
+              modelValue: $setup.sideRight,
+              "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.sideRight = $event),
+              "file-mediatype": "image",
+              mode: "grid",
+              onSelect: $setup.sideRightSelect,
+              "auto-upload": false
+            }, null, 8, ["image-styles", "modelValue"])
+          ])
+        ])
+      ])) : (vue.openBlock(), vue.createElementBlock("view", {
+        key: 1,
+        class: "loading-container"
+      }, [
+        vue.createElementVNode("text", { class: "loading-text" }, "正在加载桥梁数据...")
+      ]))
+    ]);
+  }
+  const frontPhoto = /* @__PURE__ */ _export_sfc(_sfc_main$9, [["render", _sfc_render$8], ["__scopeId", "data-v-95007593"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/front-photo.vue"]]);
+  const _sfc_main$8 = {
+    __name: "bridge-disease",
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const tabs = vue.ref([
+        {
+          name: "当前病害"
+        },
+        {
+          name: "历史病害"
+        },
+        {
+          name: "桥梁卡片"
+        },
+        {
+          name: "正立面照"
+        },
+        {
+          name: "结构信息"
+        }
+      ]);
+      const activeTab = vue.ref(0);
+      const bridgeDataLoaded = vue.ref(false);
+      const bridgeArchiveRef = vue.ref(null);
+      const switchTab = (index) => {
+        activeTab.value = index;
+      };
+      const handleDataLoaded = (loaded) => {
+        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:86", "接收到桥梁卡片数据加载完成事件:", loaded);
+        bridgeDataLoaded.value = loaded;
+      };
+      const indicatorStyle = vue.computed(() => {
+        const width = 100 / tabs.value.length;
+        return {
+          width: "50rpx",
+          // 固定指示器宽度
+          left: `calc(${width * activeTab.value}% + ${width / 2}% - 25px)`,
+          // 将指示器居中
+          transform: "none"
+          // 移除transform
+        };
+      });
+      vue.onMounted(() => {
+        formatAppLog("log", "at pages/bridge-disease/bridge-disease.vue:102", "bridge-disease页面挂载");
+        if (activeTab.value === 3) {
+          activeTab.value = 2;
+          setTimeout(() => {
+            activeTab.value = 3;
+          }, 100);
+        }
+      });
+      const __returned__ = { tabs, activeTab, bridgeDataLoaded, bridgeArchiveRef, switchTab, handleDataLoaded, indicatorStyle, currentDisease, historyDisease, bridgeArchive, structureInfo, frontPhoto, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted };
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$7(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "container" }, [
+      vue.createCommentVNode(" 顶部导航栏 "),
+      vue.createElementVNode("view", { class: "tabs" }, [
+        (vue.openBlock(true), vue.createElementBlock(
+          vue.Fragment,
+          null,
+          vue.renderList($setup.tabs, (tab, index) => {
+            return vue.openBlock(), vue.createElementBlock("view", {
+              key: index,
+              class: vue.normalizeClass(["tab-item", $setup.activeTab === index ? "active" : ""]),
+              onClick: ($event) => $setup.switchTab(index)
+            }, [
+              vue.createElementVNode(
+                "view",
+                { class: "tab-item-text" },
+                vue.toDisplayString(tab.name),
+                1
+                /* TEXT */
+              )
+            ], 10, ["onClick"]);
+          }),
+          128
+          /* KEYED_FRAGMENT */
+        )),
+        vue.createCommentVNode(" 滑动指示器 "),
+        vue.createElementVNode(
+          "view",
+          {
+            class: "tab-indicator",
+            style: vue.normalizeStyle($setup.indicatorStyle)
+          },
+          null,
+          4
+          /* STYLE */
+        )
+      ]),
+      vue.createCommentVNode(" 内容区域 "),
+      vue.createElementVNode("view", { class: "content" }, [
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 当前病害内容 "),
+            vue.createVNode($setup["currentDisease"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 0]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 历史病害内容 "),
+            vue.createVNode($setup["historyDisease"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 1]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 桥梁卡片内容 "),
+            vue.createVNode(
+              $setup["bridgeArchive"],
+              {
+                ref: "bridgeArchiveRef",
+                onDataLoaded: $setup.handleDataLoaded
+              },
+              null,
+              512
+              /* NEED_PATCH */
+            )
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 2]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 正面立照内容 "),
+            vue.createVNode($setup["frontPhoto"], { isDataLoaded: $setup.bridgeDataLoaded }, null, 8, ["isDataLoaded"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 3]
+        ]),
+        vue.withDirectives(vue.createElementVNode(
+          "view",
+          null,
+          [
+            vue.createCommentVNode(" 结构信息内容 "),
+            vue.createVNode($setup["structureInfo"])
+          ],
+          512
+          /* NEED_PATCH */
+        ), [
+          [vue.vShow, $setup.activeTab === 4]
+        ])
+      ])
+    ]);
+  }
+  const PagesBridgeDiseaseBridgeDisease = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["render", _sfc_render$7], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/bridge-disease/bridge-disease.vue"]]);
+  const en = {
+    "uni-load-more.contentdown": "Pull up to show more",
+    "uni-load-more.contentrefresh": "loading...",
+    "uni-load-more.contentnomore": "No more data"
+  };
+  const zhHans = {
+    "uni-load-more.contentdown": "上拉显示更多",
+    "uni-load-more.contentrefresh": "正在加载...",
+    "uni-load-more.contentnomore": "没有更多数据了"
+  };
+  const zhHant = {
+    "uni-load-more.contentdown": "上拉顯示更多",
+    "uni-load-more.contentrefresh": "正在加載...",
+    "uni-load-more.contentnomore": "沒有更多數據了"
+  };
+  const messages = {
+    en,
+    "zh-Hans": zhHans,
+    "zh-Hant": zhHant
+  };
+  let platform;
+  setTimeout(() => {
+    platform = uni.getSystemInfoSync().platform;
+  }, 16);
+  const {
+    t
+  } = initVueI18n(messages);
+  const _sfc_main$7 = {
+    name: "UniLoadMore",
+    emits: ["clickLoadMore"],
+    props: {
+      status: {
+        // 上拉的状态：more-loading前；loading-loading中；noMore-没有更多了
+        type: String,
+        default: "more"
+      },
+      showIcon: {
+        type: Boolean,
+        default: true
+      },
+      iconType: {
+        type: String,
+        default: "auto"
+      },
+      iconSize: {
+        type: Number,
+        default: 24
+      },
+      color: {
+        type: String,
+        default: "#777777"
+      },
+      contentText: {
+        type: Object,
+        default() {
+          return {
+            contentdown: "",
+            contentrefresh: "",
+            contentnomore: ""
+          };
+        }
+      },
+      showText: {
+        type: Boolean,
+        default: true
+      }
+    },
+    data() {
+      return {
+        webviewHide: false,
+        platform,
+        imgBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMy1jMDExIDY2LjE0NTY2MSwgMjAxMi8wMi8wNi0xNDo1NjoyNyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNiAoV2luZG93cykiIHhtcE1NOkluc3RhbmNlSUQ9InhtcC5paWQ6QzlBMzU3OTlEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiIHhtcE1NOkRvY3VtZW50SUQ9InhtcC5kaWQ6QzlBMzU3OUFEOUM0MTFFOUI0NTZDNERBQURBQzI4RkUiPiA8eG1wTU06RGVyaXZlZEZyb20gc3RSZWY6aW5zdGFuY2VJRD0ieG1wLmlpZDpDOUEzNTc5N0Q5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIgc3RSZWY6ZG9jdW1lbnRJRD0ieG1wLmRpZDpDOUEzNTc5OEQ5QzQxMUU5QjQ1NkM0REFBREFDMjhGRSIvPiA8L3JkZjpEZXNjcmlwdGlvbj4gPC9yZGY6UkRGPiA8L3g6eG1wbWV0YT4gPD94cGFja2V0IGVuZD0iciI/Pt+ALSwAAA6CSURBVHja1FsLkFZVHb98LM+F5bHL8khA1iSeiyQBCRM+YGqKUnnJTDLGI0BGZlKDIU2MMglUiDApEZvSsZnQtBRJtKwQNKQMFYeRDR10WOLd8ljYXdh+v8v5fR3Od+797t1dnOnO/Ofce77z+J//+b/P+ZqtXbs2sJ9MJhNUV1cHJ06cCJo3bx7EPc2aNcvpy7pWrVoF+/fvDyoqKoI2bdoE9fX1F7TjN8a+EXBn/fkfvw942Tf+wYMHg9mzZwfjxo0LDhw4EPa1x2MbFw/fOGfPng1qa2tzcCkILsLDydq2bRsunpOTMM7TD/W/tZDZhPdeKD+yGxHhdu3aBV27dg3OnDlzMVANMheLAO3btw8KCwuDmpoaX5OxbgUIMEq7K8IcPnw4KCsrC/r37x8cP378/4cAXAB3vqSkJMuiDhTkw+XcuXNhOWbMmKBly5YhUT8xArhyFvP0BfwRsAuwxJZJsm/nzp2DTp06he/OU+cZ64K6o0ePBkOHDg2GDx8e6gEbJ5Q/NHNuAJQ1hgBeHUDlR7nVTkY8rQAvAi4z34vR/mPs1FoRsaCgIJThI0eOBC1atEiFGGV+5MiRoS45efJkqFjJFXV1dQuA012m2WcwTw98fy6CqBdsaiIO4CScrGPHjvk4odhavPquRtFWXEC25VgkREKOCh/qDSq+vn37htzD/mZTOmOc5U7zKzBPEedygWshcDyWvs30igAbU+6oyMgJBCFhwQE0fccxN60Ay9iebbjoDh06hMowjQxT4fXq1SskArmHZpkArvixp/kWzHdMeArExSJEaiXIjjRjRJ4DaAGWpibLzXN3Fm1vA5teBgh3j1Rv3bp1YgKwPdmf2p9zcyNYYgPKMfY0T5f5nNYdw158nJ8QawW4CLKwiOBSEgO/hok2eBydR+3dYH+PLxA5J8Vv0KBBwenTp0P2JWAx6+yFEBfs8lMY+y0SWMBNI9E4ThKi58VKTg3FQZS1RQF1cz27eC0QHMu+3E0SkUowjhVt5VdaWhp07949ZHv2Qd1EjDXM2cla1M0nl3GxAs3J9yREzyTdFVKVFOaE9qRA8GM0WebRuo9JGZKA7Mv2SeS/Z8+eoQ9BArMfFrLGo6jvxbhHbJZnKX2Rzz1O7QhJJ9Cs2ZMaWIyq/zhdeqPNfIoHd58clIQD+JSXl4dKlyIAuBdVXZwFVWKspSSoxE++h8x4k3uCnEhE4I5KwRiFWGOU0QWKiCYLbdoRMRKAu2kQ9vkfLU6dOhX06NEjlH+yMRZSinnuyWnYosVcji8CEA/6Cg2JF+IIUBqnGKUTCNwtwBN4f89RiK1R96DEgO2o0NDmtEdvVFdVVYV+P3UAPUEs6GFwV3PHmXkD4vh74iDFJysVI/MlaQhwKeBNTLYX5VuA8T4/gZxA4MRGFxDB6R7OmYPfyykGRJbyie+XnGYnQIC/coH9+vULiYrxrkL9ZA9+0ykaHIfEpM7ge8TiJ2CsHYwyMfafAF1yCGBHYIbCVDjDjKt7BeB51D+LgQa6OkG7IDYEEtvQ7lnXLKLtLdLuJBpE4gPUXcW2+PkZwOex+4cGDhwYDBkyRL7/HFcEwUGPo/8uWRUpYnfxGHco8HkewLHLyYmAawAPuIFZxhOpDfJQ8gbUv41yORAptMWBNr6oqMhWird5+u+iHmBb2nhjDV7HWBNQTgK8y11l5NetWzc5ULscAtSj7nbNI0skhWeUZCc0W4nyH/jO4Vz0u1IeYhbk4AiwM6tjxIWByHsoZ9qcIBPJd/y+DwPfBESOmCa/QF3WiZHucLlEDpNxcNhmheEOPgdQNx6/VZFQzFZ5TN08AHXQt2Ii3EdyFuUsPtTcGPhW5iMiCNELvz+Gdn9huG4HUJaW/w3g0wxV0XaG7arG2WeKiUWYM4Y7GO5ezshTARbbWGw/DvXkpp/ivVvE0JVoMxN4rpGzJMhE5Pl+xlATsDIqikP9F9D2z3h9nOksEUFhK+qO4rcPkoalMQ/HqJLIyb3F3JdjrCcw1yZ8joyJLR5gCo54etlag7qIoeNh1N1BRYj3DTFJ0elotxPlVzkGuYAmL0VSJVGAJA41c4Z6A3BzTLfn0HYwYKEI6CUAMzZEWvLsIcQOo1AmmyyM72nHJCfYsogflGV6jEk9vyQZXSuq6w4c16NsGcGZbwOPr+H1RkOk2LEzjNepxQkihHSCQ4ynAYNRx2zMKV92CQMWqj8J0BRE8EShxRFN6YrfCRhC0x3r/Zm4IbQCcmJoV0kMamllccR6FjHqUC5F2R/wS2dcymOlfAKOS4KmzQb5cpNC2MC7JhVn5wjXoJ44rYhLh8n0eXOCorJxa7POjbSlCGVczr34/RsAmrcvo9s+wGp3tzVhntxiXiJ4nvEYb4FJkf0O8HocAePmLvCxnL0AORraVekJk6TYjDabRVXfRE2lCN1h6ZQRN1+InUbsCpKwoBZHh0dODN9JBCUffItXxEavTQkUtnfTVAplCWL3JISz29h4NjotnuSsQKJCk8dF+kJR6RARjrqFVmfPnj3ZbK8cIJ0msd6jgHPGtfVTQ8VLmlvh4mct9sobRmPic0DyDQQnx/NlfYUgyz59+oScsH379pAwXABD32nTpoUHIToESeI5mnbE/UqDdyLcafEBf2MCqgC7NwxIbMREJQ0g4D4sfJwnD+AmRrII05cfMWJE+L1169bQr+fip06dGp4oJ83lmYd5wj/EmMa4TaHivo4EeCguYZBnkB5g2aWA69OIEnUHOaGysjIYMGBAMGnSpODYsWPZwCpFmm4lNq+4gSLQA7jcX8DwtjEyRC8wjabnXEx9kfWnTJkSJkAo90xpJVV+FmcVNeYAF5zWngS4C4O91MBxmAv8blLEpbjI5sz9MTdAhcgkCT1RO8mZkAjfiYpTEvStAS53Uw1vAiUGgZ3GpuQEYvoiBqlIan7kSDHnTwJQFNiPu0+5VxCVYhcZIjNrdXUDdp+Eq5AZ3Gkg8QAyVZRZIk4Tl4QAbF9cXJxNYZMAtAokgs4BrNxEpCtteXg7DDTMDKYNSuQdKsnJBek7HxewvxaosWxLYXtw+cJp18217wql4aKCfBNoEu0O5VU+PhctJ0YeXD4C6JQpyrlpSLTojpGGGN5YwNziChdIZLk4lvLcFJ9jMX3QdiImY9bmGQU+TRUL5CHITTRlgF8D9ouD1MfmLoEPl5xokIumZ2cfgMpHt47IW9N64Hsh7wQYYjyIugWuF5fCqYncXRd5vPMWyizzvhi/32+nvG0dZc9vR6fZOu0md5e+uC408FvKSIOZwXlGvxPv95izA2Vtvg1xKFWARI+vMX66HUhpQQb643uW1bSjuTWyw2SBvDrBvjFic1eGGlz5esq3ko9uSIlBRqPuFcCv8F4WIcN12nVaBd0SaYwI6PDDImR11JkqgHcPmQssjxIn6bUshygDFJUTxPMpHk+jfjPgupgdnYV2R/g7xSjtpah8RJBewhwf0gGK6XI92u4wXFEU40afJ4DN4h5LcAd+40HI3JgJecuT0c062W0i2hQJUTcxan3/CMW1PF2K6bbA+Daz4xRs1D3Br1Cm0OihKCqizW78/nXAF/G5TXrEcVzaNMH6CyMswqsAHqDyDLEyou8lwOXnKF8DjI6KjV3KzMBiXkDH8ij/H214J5A596ekrZ3F0zXlWeL7+P5eUrNo3/QwC15uxthuzidy7DzKRwEDaAViiDgKbTbz7CJnzo0bN7pIfIiid8SuPwn25o3QCmpnyjlZkyxPP8EomCJzrGb7GJMx7tNsq4MT2xMUYaiErZOluTzKsnz3gwCeCZyVRZJfYplNEokEjwrPtxlxjeYAk+F1F74VAzPxQRNYYdtpOUvWs8J1sGhBJMNsb7igN8plJs1eSmLIhLKE4rvaCX27gOhLpLOsIzJ7qn/i+wZzcvSOZ23/du8TZjwV8zHIXoP4R3ifBxiFz1dcVpa3aPntPE+c6TmIWE9EtcMmAcPdWAhYhAXxcLOQi9L1WhD1Sc8p1d2oL7XGiRKp8F4A2i8K/nfI+y/gsTDJ/YC/8+AD5Uh04KHiGl+cIFPnBDDrPMjwRGkLXyxO4VGbfQWnDH2v0bVWE3C9QOXlepbgjEfIJQI6XDG3z5ahD9cw2pS78ipB85wyScNTvsVzlzzhL8/jRrnmVjfFJK/m3m4nj9vbgQTguT8XZTjsm672R5uJKEaQmBI/c58gyus8ZDagLpEVSJBIyHp4jn++xqPV71OgQgJYEWOtZ/haxRtKmWOBu8xdBLftWltsY84zE6WIEy/eIOWL+BaayMx+KHtL7EAkqdNDLiEXmEMUHniedtJqg9HmZtfvt26vNi0BdG3Ft3g8ZOf7PAu59TxtzivLNIekyi+wD1i8CuUiD9FXAa8C+/xS3JPmZnomyc7H+fb4/Se0bk41Fel621r4cgVxbq91V4jVqwB7HTe2M7jgB+QWHavZkDRPmZcASoZEmBx6i75bGjPcMdL4/VKGFAGWZkGzPG0XAbdL9A81G5LOmUnC9hHKJeO7dcUMjblSl12867ElFTtaGl20xvvLGPdVz/8TVuU7y0x1PG7vtNg24oz9Uo/Z412++VFWI7Fcog9tu9Lm6gvRmIPv9x1xmQAu6RDkXtbOtlGEmpgD5Nvnyc0dcv0EE6cfdi1HmhMf9wDF3k3gtRvEedhxjpgfqPb9PU9iEJHnyOUA7bQUXh6kq/D7l2iTjWv7XOD530BDr8jIrus+srXjt4MzumJMHuTsBa63YKE1+RR5lBjEikCCnWKWiHdzOgKO+nRIBAF88za/IFmJ3eMZov4CYxGBabcpGL8EYx+SeMXJeRwHNsV/h+vdxeuhEpN3ZyNY78Gm2fknJxVGhyjixPiQvVkNzT1elD9Py/aTAL64Hb9vcYmC9zfdXdT/C1LeGbg4rnBaAihDFJH12W5ulfNCNe/xTsP3bp8ikzJs5BF+5PNfAQYAPaseTdsEcaYAAAAASUVORK5CYII="
+      };
+    },
+    computed: {
+      iconSnowWidth() {
+        return (Math.floor(this.iconSize / 24) || 1) * 2;
+      },
+      contentdownText() {
+        return this.contentText.contentdown || t("uni-load-more.contentdown");
+      },
+      contentrefreshText() {
+        return this.contentText.contentrefresh || t("uni-load-more.contentrefresh");
+      },
+      contentnomoreText() {
+        return this.contentText.contentnomore || t("uni-load-more.contentnomore");
+      }
+    },
+    mounted() {
+      var pages2 = getCurrentPages();
+      var page = pages2[pages2.length - 1];
+      var currentWebview = page.$getAppWebview();
+      currentWebview.addEventListener("hide", () => {
+        this.webviewHide = true;
+      });
+      currentWebview.addEventListener("show", () => {
+        this.webviewHide = false;
+      });
+    },
+    methods: {
+      onClick() {
+        this.$emit("clickLoadMore", {
+          detail: {
+            status: this.status
+          }
+        });
+      }
+    }
+  };
+  function _sfc_render$6(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", {
+      class: "uni-load-more",
+      onClick: _cache[0] || (_cache[0] = (...args) => $options.onClick && $options.onClick(...args))
+    }, [
+      !$data.webviewHide && ($props.iconType === "circle" || $props.iconType === "auto" && $data.platform === "android") && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
+        "view",
+        {
+          key: 0,
+          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
+          class: "uni-load-more__img uni-load-more__img--android-MP"
+        },
+        [
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          ),
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          ),
+          vue.createElementVNode(
+            "view",
+            {
+              class: "uni-load-more__img-icon",
+              style: vue.normalizeStyle({ borderTopColor: $props.color, borderTopWidth: $props.iconSize / 12 })
+            },
+            null,
+            4
+            /* STYLE */
+          )
+        ],
+        4
+        /* STYLE */
+      )) : !$data.webviewHide && $props.status === "loading" && $props.showIcon ? (vue.openBlock(), vue.createElementBlock(
+        "view",
+        {
+          key: 1,
+          style: vue.normalizeStyle({ width: $props.iconSize + "px", height: $props.iconSize + "px" }),
+          class: "uni-load-more__img uni-load-more__img--ios-H5"
+        },
+        [
+          vue.createElementVNode("image", {
+            src: $data.imgBase64,
+            mode: "widthFix"
+          }, null, 8, ["src"])
+        ],
+        4
+        /* STYLE */
+      )) : vue.createCommentVNode("v-if", true),
+      $props.showText ? (vue.openBlock(), vue.createElementBlock(
+        "text",
+        {
+          key: 2,
+          class: "uni-load-more__text",
+          style: vue.normalizeStyle({ color: $props.color })
+        },
+        vue.toDisplayString($props.status === "more" ? $options.contentdownText : $props.status === "loading" ? $options.contentrefreshText : $options.contentnomoreText),
+        5
+        /* TEXT, STYLE */
+      )) : vue.createCommentVNode("v-if", true)
+    ]);
+  }
+  const __easycom_0$1 = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["render", _sfc_render$6], ["__scopeId", "data-v-9245e42c"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/uni_modules/uni-load-more/components/uni-load-more/uni-load-more.vue"]]);
+  const _sfc_main$6 = {
+    name: "uniDataChecklist",
+    mixins: [nr.mixinDatacom || {}],
+    emits: ["input", "update:modelValue", "change"],
+    props: {
+      mode: {
+        type: String,
+        default: "default"
+      },
+      multiple: {
+        type: Boolean,
+        default: false
+      },
+      value: {
+        type: [Array, String, Number],
+        default() {
+          return "";
+        }
+      },
+      // TODO vue3
+      modelValue: {
+        type: [Array, String, Number],
+        default() {
+          return "";
+        }
+      },
+      localdata: {
+        type: Array,
+        default() {
+          return [];
+        }
+      },
+      min: {
+        type: [Number, String],
+        default: ""
+      },
+      max: {
+        type: [Number, String],
+        default: ""
+      },
+      wrap: {
+        type: Boolean,
+        default: false
+      },
+      icon: {
+        type: String,
+        default: "left"
+      },
+      selectedColor: {
+        type: String,
+        default: ""
+      },
+      selectedTextColor: {
+        type: String,
+        default: ""
+      },
+      emptyText: {
+        type: String,
+        default: "暂无数据"
+      },
+      disabled: {
+        type: Boolean,
+        default: false
+      },
+      map: {
+        type: Object,
+        default() {
+          return {
+            text: "text",
+            value: "value"
+          };
+        }
+      }
+    },
+    watch: {
+      localdata: {
+        handler(newVal) {
+          this.range = newVal;
+          this.dataList = this.getDataList(this.getSelectedValue(newVal));
+        },
+        deep: true
+      },
+      mixinDatacomResData(newVal) {
+        this.range = newVal;
+        this.dataList = this.getDataList(this.getSelectedValue(newVal));
+      },
+      value(newVal) {
+        this.dataList = this.getDataList(newVal);
+      },
+      modelValue(newVal) {
+        this.dataList = this.getDataList(newVal);
+      }
+    },
+    data() {
+      return {
+        dataList: [],
+        range: [],
+        contentText: {
+          contentdown: "查看更多",
+          contentrefresh: "加载中",
+          contentnomore: "没有更多"
+        },
+        isLocal: true,
+        styles: {
+          selectedColor: "#2979ff",
+          selectedTextColor: "#666"
+        },
+        isTop: 0
+      };
+    },
+    computed: {
+      dataValue() {
+        if (this.value === "")
+          return this.modelValue;
+        if (this.modelValue === "")
+          return this.value;
+        return this.value;
+      }
+    },
+    created() {
+      if (this.localdata && this.localdata.length !== 0) {
+        this.isLocal = true;
+        this.range = this.localdata;
+        this.dataList = this.getDataList(this.getSelectedValue(this.range));
+      } else {
+        if (this.collection) {
+          this.isLocal = false;
+          this.loadData();
+        }
+      }
+    },
+    methods: {
+      loadData() {
+        this.mixinDatacomGet().then((res) => {
+          this.mixinDatacomResData = res.result.data;
+          if (this.mixinDatacomResData.length === 0) {
+            this.isLocal = false;
+            this.mixinDatacomErrorMessage = this.emptyText;
+          } else {
+            this.isLocal = true;
+          }
+        }).catch((err) => {
+          this.mixinDatacomErrorMessage = err.message;
+        });
+      },
+      /**
+       * 获取父元素实例
+       */
+      getForm(name2 = "uniForms") {
+        let parent = this.$parent;
+        let parentName = parent.$options.name;
+        while (parentName !== name2) {
+          parent = parent.$parent;
+          if (!parent)
+            return false;
+          parentName = parent.$options.name;
+        }
+        return parent;
+      },
+      change(e2) {
+        const values = e2.detail.value;
+        let detail = {
+          value: [],
+          data: []
+        };
+        if (this.multiple) {
+          this.range.forEach((item) => {
+            if (values.includes(item[this.map.value] + "")) {
+              detail.value.push(item[this.map.value]);
+              detail.data.push(item);
+            }
+          });
+        } else {
+          const range = this.range.find((item) => item[this.map.value] + "" === values);
+          if (range) {
+            detail = {
+              value: range[this.map.value],
+              data: range
+            };
+          }
+        }
+        this.$emit("input", detail.value);
+        this.$emit("update:modelValue", detail.value);
+        this.$emit("change", {
+          detail
+        });
+        if (this.multiple) {
+          this.dataList = this.getDataList(detail.value, true);
+        } else {
+          this.dataList = this.getDataList(detail.value);
+        }
+      },
+      /**
+       * 获取渲染的新数组
+       * @param {Object} value 选中内容
+       */
+      getDataList(value) {
+        let dataList = JSON.parse(JSON.stringify(this.range));
+        let list = [];
+        if (this.multiple) {
+          if (!Array.isArray(value)) {
+            value = [];
+          }
+        }
+        dataList.forEach((item, index) => {
+          item.disabled = item.disable || item.disabled || false;
+          if (this.multiple) {
+            if (value.length > 0) {
+              let have = value.find((val) => val === item[this.map.value]);
+              item.selected = have !== void 0;
+            } else {
+              item.selected = false;
+            }
+          } else {
+            item.selected = value === item[this.map.value];
+          }
+          list.push(item);
+        });
+        return this.setRange(list);
+      },
+      /**
+       * 处理最大最小值
+       * @param {Object} list
+       */
+      setRange(list) {
+        let selectList = list.filter((item) => item.selected);
+        let min = Number(this.min) || 0;
+        let max = Number(this.max) || "";
+        list.forEach((item, index) => {
+          if (this.multiple) {
+            if (selectList.length <= min) {
+              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
+              if (have !== void 0) {
+                item.disabled = true;
+              }
+            }
+            if (selectList.length >= max && max !== "") {
+              let have = selectList.find((val) => val[this.map.value] === item[this.map.value]);
+              if (have === void 0) {
+                item.disabled = true;
+              }
+            }
+          }
+          this.setStyles(item, index);
+          list[index] = item;
+        });
+        return list;
+      },
+      /**
+       * 设置 class
+       * @param {Object} item
+       * @param {Object} index
+       */
+      setStyles(item, index) {
+        item.styleBackgroud = this.setStyleBackgroud(item);
+        item.styleIcon = this.setStyleIcon(item);
+        item.styleIconText = this.setStyleIconText(item);
+        item.styleRightIcon = this.setStyleRightIcon(item);
+      },
+      /**
+       * 获取选中值
+       * @param {Object} range
+       */
+      getSelectedValue(range) {
+        if (!this.multiple)
+          return this.dataValue;
+        let selectedArr = [];
+        range.forEach((item) => {
+          if (item.selected) {
+            selectedArr.push(item[this.map.value]);
+          }
+        });
+        return this.dataValue.length > 0 ? this.dataValue : selectedArr;
+      },
+      /**
+       * 设置背景样式
+       */
+      setStyleBackgroud(item) {
+        let styles = {};
+        let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+        if (this.selectedColor) {
+          if (this.mode !== "list") {
+            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          }
+          if (this.mode === "tag") {
+            styles["background-color"] = item.selected ? selectedColor : "#f5f5f5";
+          }
+        }
+        let classles = "";
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleIcon(item) {
+        let styles = {};
+        let classles = "";
+        if (this.selectedColor) {
+          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+          styles["background-color"] = item.selected ? selectedColor : "#fff";
+          styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          if (!item.selected && item.disabled) {
+            styles["background-color"] = "#F2F6FC";
+            styles["border-color"] = item.selected ? selectedColor : "#DCDFE6";
+          }
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleIconText(item) {
+        let styles = {};
+        let classles = "";
+        if (this.selectedColor) {
+          let selectedColor = this.selectedColor ? this.selectedColor : "#2979ff";
+          if (this.mode === "tag") {
+            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : "#fff" : "#666";
+          } else {
+            styles.color = item.selected ? this.selectedTextColor ? this.selectedTextColor : selectedColor : "#666";
+          }
+          if (!item.selected && item.disabled) {
+            styles.color = "#999";
+          }
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      },
+      setStyleRightIcon(item) {
+        let styles = {};
+        let classles = "";
+        if (this.mode === "list") {
+          styles["border-color"] = item.selected ? this.styles.selectedColor : "#DCDFE6";
+        }
+        for (let i2 in styles) {
+          classles += `${i2}:${styles[i2]};`;
+        }
+        return classles;
+      }
+    }
+  };
+  function _sfc_render$5(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_uni_load_more = resolveEasycom(vue.resolveDynamicComponent("uni-load-more"), __easycom_0$1);
+    return vue.openBlock(), vue.createElementBlock(
+      "view",
+      {
+        class: "uni-data-checklist",
+        style: vue.normalizeStyle({ "margin-top": $data.isTop + "px" })
+      },
+      [
+        !$data.isLocal ? (vue.openBlock(), vue.createElementBlock("view", {
+          key: 0,
+          class: "uni-data-loading"
+        }, [
+          !_ctx.mixinDatacomErrorMessage ? (vue.openBlock(), vue.createBlock(_component_uni_load_more, {
+            key: 0,
+            status: "loading",
+            iconType: "snow",
+            iconSize: 18,
+            "content-text": $data.contentText
+          }, null, 8, ["content-text"])) : (vue.openBlock(), vue.createElementBlock(
+            "text",
+            { key: 1 },
+            vue.toDisplayString(_ctx.mixinDatacomErrorMessage),
+            1
+            /* TEXT */
+          ))
+        ])) : (vue.openBlock(), vue.createElementBlock(
+          vue.Fragment,
+          { key: 1 },
+          [
+            $props.multiple ? (vue.openBlock(), vue.createElementBlock(
+              "checkbox-group",
+              {
+                key: 0,
+                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list" || $props.wrap }]),
+                onChange: _cache[0] || (_cache[0] = (...args) => $options.change && $options.change(...args))
+              },
+              [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($data.dataList, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock(
+                      "label",
+                      {
+                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
+                        style: vue.normalizeStyle(item.styleBackgroud),
+                        key: index
+                      },
+                      [
+                        vue.createElementVNode("checkbox", {
+                          class: "hidden",
+                          hidden: "",
+                          disabled: $props.disabled || !!item.disabled,
+                          value: item[$props.map.value] + "",
+                          checked: item.selected
+                        }, null, 8, ["disabled", "value", "checked"]),
+                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
+                          "view",
+                          {
+                            key: 0,
+                            class: "checkbox__inner",
+                            style: vue.normalizeStyle(item.styleIcon)
+                          },
+                          [
+                            vue.createElementVNode("view", { class: "checkbox__inner-icon" })
+                          ],
+                          4
+                          /* STYLE */
+                        )) : vue.createCommentVNode("v-if", true),
+                        vue.createElementVNode(
+                          "view",
+                          {
+                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
+                          },
+                          [
+                            vue.createElementVNode(
+                              "text",
+                              {
+                                class: "checklist-text",
+                                style: vue.normalizeStyle(item.styleIconText)
+                              },
+                              vue.toDisplayString(item[$props.map.text]),
+                              5
+                              /* TEXT, STYLE */
+                            ),
+                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
+                              "view",
+                              {
+                                key: 0,
+                                class: "checkobx__list",
+                                style: vue.normalizeStyle(item.styleBackgroud)
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )) : vue.createCommentVNode("v-if", true)
+                          ],
+                          2
+                          /* CLASS */
+                        )
+                      ],
+                      6
+                      /* CLASS, STYLE */
+                    );
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ],
+              34
+              /* CLASS, NEED_HYDRATION */
+            )) : (vue.openBlock(), vue.createElementBlock(
+              "radio-group",
+              {
+                key: 1,
+                class: vue.normalizeClass(["checklist-group", { "is-list": $props.mode === "list", "is-wrap": $props.wrap }]),
+                onChange: _cache[1] || (_cache[1] = (...args) => $options.change && $options.change(...args))
+              },
+              [
+                (vue.openBlock(true), vue.createElementBlock(
+                  vue.Fragment,
+                  null,
+                  vue.renderList($data.dataList, (item, index) => {
+                    return vue.openBlock(), vue.createElementBlock(
+                      "label",
+                      {
+                        class: vue.normalizeClass(["checklist-box", ["is--" + $props.mode, item.selected ? "is-checked" : "", $props.disabled || !!item.disabled ? "is-disable" : "", index !== 0 && $props.mode === "list" ? "is-list-border" : ""]]),
+                        style: vue.normalizeStyle(item.styleBackgroud),
+                        key: index
+                      },
+                      [
+                        vue.createElementVNode("radio", {
+                          class: "hidden",
+                          hidden: "",
+                          disabled: $props.disabled || item.disabled,
+                          value: item[$props.map.value] + "",
+                          checked: item.selected
+                        }, null, 8, ["disabled", "value", "checked"]),
+                        $props.mode !== "tag" && $props.mode !== "list" || $props.mode === "list" && $props.icon === "left" ? (vue.openBlock(), vue.createElementBlock(
+                          "view",
+                          {
+                            key: 0,
+                            class: "radio__inner",
+                            style: vue.normalizeStyle(item.styleBackgroud)
+                          },
+                          [
+                            vue.createElementVNode(
+                              "view",
+                              {
+                                class: "radio__inner-icon",
+                                style: vue.normalizeStyle(item.styleIcon)
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )
+                          ],
+                          4
+                          /* STYLE */
+                        )) : vue.createCommentVNode("v-if", true),
+                        vue.createElementVNode(
+                          "view",
+                          {
+                            class: vue.normalizeClass(["checklist-content", { "list-content": $props.mode === "list" && $props.icon === "left" }])
+                          },
+                          [
+                            vue.createElementVNode(
+                              "text",
+                              {
+                                class: "checklist-text",
+                                style: vue.normalizeStyle(item.styleIconText)
+                              },
+                              vue.toDisplayString(item[$props.map.text]),
+                              5
+                              /* TEXT, STYLE */
+                            ),
+                            $props.mode === "list" && $props.icon === "right" ? (vue.openBlock(), vue.createElementBlock(
+                              "view",
+                              {
+                                key: 0,
+                                style: vue.normalizeStyle(item.styleRightIcon),
+                                class: "checkobx__list"
+                              },
+                              null,
+                              4
+                              /* STYLE */
+                            )) : vue.createCommentVNode("v-if", true)
+                          ],
+                          2
+                          /* CLASS */
+                        )
+                      ],
+                      6
+                      /* CLASS, STYLE */
+                    );
+                  }),
+                  128
+                  /* KEYED_FRAGMENT */
+                ))
+              ],
+              34
+              /* CLASS, NEED_HYDRATION */
+            ))
+          ],
+          64
+          /* STABLE_FRAGMENT */
+        ))
+      ],
+      4
+      /* STYLE */
+    );
+  }
+  const __easycom_0 = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["render", _sfc_render$5], ["__scopeId", "data-v-149d584b"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-data-checkbox/uni-data-checkbox.vue"]]);
+  const _sfc_main$5 = {
     name: "uniCombox",
     emits: ["input", "update:modelValue"],
     props: {
@@ -14653,7 +15024,7 @@ ${i3}
       }
     }
   };
-  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$4(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_icons = resolveEasycom(vue.resolveDynamicComponent("uni-icons"), __easycom_0$7);
     return vue.openBlock(), vue.createElementBlock(
       "view",
@@ -14757,9 +15128,64 @@ ${i3}
       /* CLASS */
     );
   }
-  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-a8e6b638"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-combox/uni-combox.vue"]]);
-  const _imports_0$2 = "/static/image/AD.svg";
-  const _imports_1$1 = "/static/image/template_kxb1.png";
+  const __easycom_3 = /* @__PURE__ */ _export_sfc(_sfc_main$5, [["render", _sfc_render$4], ["__scopeId", "data-v-a8e6b638"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/node_modules/@dcloudio/uni-ui/lib/uni-combox/uni-combox.vue"]]);
+  function generateDiseaseDescription(data) {
+    const {
+      componentName,
+      // 构件名称
+      diseaseType,
+      // 病害类型
+      diseasePosition,
+      // 病害位置
+      crackFeature = [],
+      // 裂缝特征（可选）
+      defects = [],
+      // 缺损数据数组
+      counts = 0
+      // 病害数量（可选）
+    } = data;
+    const count = defects.length;
+    if (count === 0)
+      return "还未填写病害数据";
+    let description = `${componentName}${diseasePosition}${diseaseType}`;
+    if (counts < 10) {
+      const details = defects.map((item) => {
+        item.reference1LocationStart;
+        item.reference2LocationStart;
+        const length = item.length;
+        const width = item.width;
+        (length * width).toFixed(2);
+        return `${crackFeature[item.crackTypeIndex].text}裂缝，距${item.reference1Location} ${item.reference1LocationStart}m， 距${item.reference1Location} ${item.reference2LocationStart}m， L=${item.length}m， W=${item.width}m， S=${item.length}×${item.width}m²`;
+      }).join("；");
+      return `${description}, ${details}`;
+    } else {
+      const lengths = defects.map((d2) => d2.length);
+      const widths = defects.map((d2) => d2.width);
+      Math.min(...lengths);
+      Math.max(...lengths);
+      Math.min(...widths);
+      Math.max(...widths);
+      const reference1Location = defects[0].reference1Location;
+      const reference2Location = defects[0].reference2Location;
+      const distanceToRef1 = defects[0].reference1LocationStart;
+      const distanceToRef2 = defects[0].reference2LocationStart;
+      const lengthRangeStart = defects[0].lengthRangeStart;
+      const lengthRangeEnd = defects[0].lengthRangeEnd;
+      const widthRangeStart = defects[0].widthRangeStart;
+      const widthRangeEnd = defects[0].widthRangeEnd;
+      defects[0].heightDepthRangeStart;
+      defects[0].heightDepthRangeEnd;
+      defects[0].crackWidthRangeStart;
+      defects[0].crackWidthRangeEnd;
+      defects[0].areaRangeStart;
+      defects[0].areaRangeEnd;
+      defects[0].volumeRangeStart;
+      defects[0].volumeRangeEnd;
+      return `${description}，${crackFeature[defects[0].crackTypeIndex].text}裂缝${counts}条，距${reference1Location} ${distanceToRef1}m，距${reference2Location} ${distanceToRef2}m，L=${lengthRangeStart}m~${lengthRangeEnd}m，W=${widthRangeStart}m~${widthRangeEnd}m，S=${lengthRangeStart}×${widthRangeStart}m²~${lengthRangeEnd}×${widthRangeEnd}m²`;
+    }
+  }
+  const _imports_0$3 = "/static/image/AD.svg";
+  const _imports_1$2 = "/static/image/template_kxb1.png";
   const _imports_2$1 = "/static/image/template_kxb2.png";
   const _imports_3$1 = "/static/image/template_kxb3.png";
   const _imports_4$1 = "/static/image/template_kxb4.png";
@@ -14778,7 +15204,7 @@ ${i3}
   const _imports_17 = "/static/image/template_yq1.png";
   const _imports_18 = "/static/image/template_gl1.png";
   const _imports_19 = "/static/image/template_yzd1.png";
-  const _sfc_main$3 = {
+  const _sfc_main$4 = {
     __name: "add-disease",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -14803,6 +15229,7 @@ ${i3}
           buildingId.value = newVal;
         }
       });
+      const openMode = vue.ref("history");
       const popup = vue.ref(null);
       const ADImgs = vue.ref([]);
       const isEdit = vue.ref(false);
@@ -14837,14 +15264,32 @@ ${i3}
           updateDiseaseDataList(numValue);
         }
       });
+      const createDescription = () => {
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:888", "diseaseDataList.value", diseaseDataList.value);
+        const createDescription2 = generateDiseaseDescription({
+          componentName: getComponentName(),
+          // 构件名称
+          diseaseType: type.value,
+          // 病害类型
+          diseasePosition: position.value,
+          // 病害位置
+          crackFeature: crackType.value,
+          // 裂缝特征数组
+          defects: diseaseDataList.value,
+          // 病害定量数据数组
+          counts: quantity.value
+          // 病害数量
+        });
+        description.value = createDescription2;
+      };
       const updateDiseaseDataList = (count) => {
         const existingData = [...diseaseDataList.value];
         const newList = [];
         const useRangeMode = count >= 10;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:882", `数量: ${count}, 使用范围模式: ${useRangeMode}`);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:910", `数量: ${count}, 使用范围模式: ${useRangeMode}`);
         if (useRangeMode) {
           const firstItem = existingData.length > 0 ? existingData[0] : null;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:888", "范围模式，使用第一条记录作为基础:", firstItem ? firstItem : "null");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:916", "范围模式，使用第一条记录作为基础:", firstItem ? firstItem : "null");
           newList.push({
             reference1Location: (firstItem == null ? void 0 : firstItem.reference1Location) || "",
             reference1LocationStart: (firstItem == null ? void 0 : firstItem.reference1LocationStart) || "",
@@ -14882,7 +15327,7 @@ ${i3}
             developmentTrendIndex: (firstItem == null ? void 0 : firstItem.developmentTrendIndex) || 0,
             useRangeMode: true
           });
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:928", "更新后的范围模式数据:", newList[0]);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:956", "更新后的范围模式数据:", newList[0]);
         } else {
           for (let i2 = 0; i2 < count; i2++) {
             if (i2 < existingData.length) {
@@ -14980,6 +15425,9 @@ ${i3}
       }, {
         text: "4",
         value: 4
+      }, {
+        text: "5",
+        value: 5
       }]);
       const levelindex = vue.ref(1);
       const crackTypeIndex = vue.ref(0);
@@ -15045,12 +15493,12 @@ ${i3}
             }
             updateThirdColumn();
           } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1157", "未找到对应的结构部分或其子项");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1188", "未找到对应的结构部分或其子项");
             typeMultiArray.value[1] = [];
             typeMultiArray.value[2] = [];
           }
         } else {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1162", "结构数据尚未加载完成");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1193", "结构数据尚未加载完成");
         }
       };
       const updateThirdColumn = () => {
@@ -15111,6 +15559,10 @@ ${i3}
         }
         updateDiseaseTypeOptions();
         updateDiseasePositionOptions();
+        typePicker.value = "";
+        positionPicker.value = "";
+        typeInput.value = "";
+        positionInput.value = "";
       };
       vue.watch(grandObjectName, (newVal) => {
         const index = structureTypes.value.findIndex((item) => item === newVal);
@@ -15131,29 +15583,47 @@ ${i3}
         initMultiPickerColumns();
         if (options && options.mode === "edit") {
           isEdit.value = true;
+          openMode.value = "edit";
           if (options.data) {
             try {
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1304", "接收到的编辑数据:", diseaseData);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1340", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1309", "解析编辑数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1345", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
               });
             }
           }
+        } else if (options && options.mode === "history") {
+          openMode.value = "history";
+          if (options.data) {
+            try {
+              const diseaseData = JSON.parse(decodeURIComponent(options.data));
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1358", "接收到的编辑数据:", diseaseData);
+              fillFormWithData(diseaseData);
+            } catch (error) {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1363", "解析编辑数据失败:", error);
+              uni.showToast({
+                title: "加载编辑数据失败",
+                icon: "none"
+              });
+            }
+          }
+        } else {
+          openMode.value = "create";
         }
         filteredComponentCodes.value = [...componentCode.value];
         updateDiseaseDataList(quantity.value);
       });
       const fillFormWithData = (data) => {
         var _a, _b, _c, _d, _e2, _f;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1330", "开始填充表单数据:", data);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1385", "开始填充表单数据:", data);
         if ((_a = data.component) == null ? void 0 : _a.grandObjectName) {
           grandObjectName.value = data.component.grandObjectName;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1335", "设置病害所属大类:", grandObjectName.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1390", "设置病害所属大类:", grandObjectName.value);
           const parentIndex = structureTypes.value.findIndex((item) => item === grandObjectName.value);
           if (parentIndex !== -1) {
             typeMultiIndex.value[0] = parentIndex;
@@ -15161,9 +15631,9 @@ ${i3}
             if (typeMultiArray.value[1] && typeMultiArray.value[1].length > 0) {
               if ((_b = data.component) == null ? void 0 : _b.parentObjectName) {
                 parentObjectName.value = data.component.parentObjectName;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1350", "设置部件父级名称:", parentObjectName.value);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1405", "设置部件父级名称:", parentObjectName.value);
                 const secondLevelIndex = typeMultiArray.value[1].findIndex((item) => item === parentObjectName.value);
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1355", "第二级索引:", secondLevelIndex);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1410", "第二级索引:", secondLevelIndex);
                 if (secondLevelIndex !== -1) {
                   typeMultiIndex.value[1] = secondLevelIndex;
                   updateThirdColumn();
@@ -15174,45 +15644,45 @@ ${i3}
                       const thirdLevelIndex = typeMultiArray.value[2].findIndex((item) => item === componentNamePicker.value);
                       if (thirdLevelIndex !== -1 && componentNamePicker.value !== "其他") {
                         typeMultiIndex.value[2] = thirdLevelIndex;
-                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1375", "成功设置构件名称(第三级):", componentNamePicker.value);
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1430", "成功设置构件名称(第三级):", componentNamePicker.value);
                         if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
                           biObjectindex.value = typeMultiIndex.value[1];
-                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1381", "成功设置biObjectindex:", biObjectindex.value);
+                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1436", "成功设置biObjectindex:", biObjectindex.value);
                         }
                       } else if (componentNamePicker.value === "其他") {
                         componentNameInput.value = componentName;
-                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1386", "设置自定义构件名称:", componentName);
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1441", "设置自定义构件名称:", componentName);
                       }
                     } else {
                       componentNameInput.value = componentName;
-                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1391", "第三级列表为空，设置自定义构件名称:", componentName);
+                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1446", "第三级列表为空，设置自定义构件名称:", componentName);
                     }
                   }
                 } else {
                   if ((_c = data.component) == null ? void 0 : _c.name) {
                     componentNamePicker.value = data.component.name;
                     componentNameInput.value = data.component.name;
-                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1400", "设置自定义构件名称:", data.component.name);
+                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1455", "设置自定义构件名称:", data.component.name);
                   }
                 }
               } else if ((_d = data.component) == null ? void 0 : _d.name) {
                 componentNamePicker.value = data.component.name;
                 componentNameInput.value = data.component.name;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1407", "设置自定义构件名称:", data.component.name);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1462", "设置自定义构件名称:", data.component.name);
               }
             } else {
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1410", "第二维数据初始化失败，无法设置构件名称");
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1465", "第二维数据初始化失败，无法设置构件名称");
               if ((_e2 = data.component) == null ? void 0 : _e2.name) {
                 componentNamePicker.value = data.component.name;
                 componentNameInput.value = data.component.name;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1415", "设置自定义构件名称:", data.component.name);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1470", "设置自定义构件名称:", data.component.name);
               }
             }
           }
         }
         if ((_f = data.component) == null ? void 0 : _f.code) {
           componentCodeInput.value = data.component.code;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1424", "成功设置构件编号:", data.component.code);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1479", "成功设置构件编号:", data.component.code);
         }
         if (data.type) {
           updateDiseaseTypeOptions();
@@ -15224,22 +15694,22 @@ ${i3}
             typePicker.value = "其他";
             typeInput.value = data.type;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1442", "成功设置病害类型:", data.type);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1497", "成功设置病害类型:", data.type);
         }
         if (data.position) {
           updateDiseasePositionOptions();
           position.value = data.position;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1450", "预设选项:", diseasePosition.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1505", "预设选项:", diseasePosition.value);
           if (diseasePosition.value.includes(data.position)) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1453", "在预设选项中:", data.position);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1508", "在预设选项中:", data.position);
             positionPicker.value = data.position;
             positionInput.value = "";
           } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1457", "不在预设选项中:", data.position);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1512", "不在预设选项中:", data.position);
             positionPicker.value = "其他";
             positionInput.value = data.position;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1462", "成功设置病害位置:", data.position);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1517", "成功设置病害位置:", data.position);
         }
         if (data.quantity) {
           quantity.value = parseInt(data.quantity) || 1;
@@ -15267,7 +15737,7 @@ ${i3}
             }
             level.value = newLevelOptions;
             levelindex.value = Math.max(minScale, Math.min(maxScale, levelVal));
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1506", "根据病害类型设置评定标度范围:", minScale, "至", maxScale, "选中值:", levelindex.value);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1561", "根据病害类型设置评定标度范围:", minScale, "至", maxScale, "选中值:", levelindex.value);
           } else {
             levelindex.value = levelVal;
           }
@@ -15278,7 +15748,7 @@ ${i3}
         if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
           const quantity2 = parseInt(data.quantity) || 0;
           const isRangeMode = quantity2 >= 10;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1524", "根据quantity判断范围模式:", quantity2, isRangeMode);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1579", "根据quantity判断范围模式:", quantity2, isRangeMode);
           if (isRangeMode) {
             const detail = data.diseaseDetails[0];
             const rangeData = {
@@ -15338,7 +15808,7 @@ ${i3}
             });
             diseaseDataList.value = newList;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1602", "成功设置diseaseDetails数据, 条目数量:", diseaseDataList.value.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1657", "成功设置diseaseDetails数据, 条目数量:", diseaseDataList.value.length);
         } else {
           const defaultData = {
             useRangeMode: false,
@@ -15360,12 +15830,12 @@ ${i3}
             developmentTrendIndex: findIndexByText(developmentTrend.value, data.developmentTrend) || 0
           };
           diseaseDataList.value = [defaultData];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1627", "使用老格式数据创建默认记录");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1682", "使用老格式数据创建默认记录");
         }
         if (data.images && Array.isArray(data.images)) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1632", "开始处理图片数据......:", data.images);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1687", "开始处理图片数据......:", data.images);
           const imagesPaths = readDiseaseImages(userInfo.username, buildingId.value, data.images);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1634", "处理后的图片路径:", imagesPaths);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1689", "处理后的图片路径:", imagesPaths);
           fileList.value = imagesPaths.map((url, index) => ({
             name: `图片${index + 1}`,
             url,
@@ -15379,7 +15849,7 @@ ${i3}
             src
           }));
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1651", "表单数据填充完成");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1706", "表单数据填充完成");
       };
       const findIndexByText = (optionsArray, targetText) => {
         if (!optionsArray || !Array.isArray(optionsArray) || !targetText)
@@ -15395,7 +15865,7 @@ ${i3}
       });
       const beforedisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1672", "上一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1727", "上一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -15437,7 +15907,7 @@ ${i3}
       };
       const nextdisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1725", "下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1780", "下一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -15489,10 +15959,10 @@ ${i3}
         uni.redirectTo({
           url: `/pages/add-disease/add-disease?mode=edit&id=${disease.id}&data=${diseaseData}`,
           success: () => {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1794", "成功导航到病害:", disease.id);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1849", "成功导航到病害:", disease.id);
           },
           fail: (error) => {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:1797", "导航失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:1852", "导航失败:", error);
             uni.showToast({
               title: "切换失败，请重试",
               icon: "none"
@@ -15502,7 +15972,7 @@ ${i3}
       };
       const savetonextdisease = () => {
         var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1807", "保存并复制到下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1862", "保存并复制到下一条");
         const diseaseData = createDiseaseData();
         if (diseaseData) {
           saveWithoutNavigateBack(diseaseData);
@@ -15514,17 +15984,17 @@ ${i3}
         let diseaseTypeObj = null;
         if (typePicker.value && allDiseaseTypes.length > 0) {
           diseaseTypeObj = allDiseaseTypes.find((item) => item.name === typePicker.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1823", "找到的病害类型对象:", diseaseTypeObj ? diseaseTypeObj.name : "未找到");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1878", "找到的病害类型对象:", diseaseTypeObj ? diseaseTypeObj.name : "未找到");
         }
         let biObjectObj = null;
         if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
           biObjectObj = biObjectNameOptions.value[biObjectindex.value];
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1832", "选中的第二级构件对象:", biObjectObj);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1887", "选中的第二级构件对象:", biObjectObj);
         let diseaseDetails = [];
         const numValue = parseInt(quantity.value);
         const isRangeMode = numValue >= 10;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1838", "保存时使用的模式:", isRangeMode ? "范围模式" : "普通模式", "缺损数量:", numValue);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1893", "保存时使用的模式:", isRangeMode ? "范围模式" : "普通模式", "缺损数量:", numValue);
         if (isRangeMode) {
           const rangeData = diseaseDataList.value[0];
           diseaseDetails.push({
@@ -15564,7 +16034,7 @@ ${i3}
             reference2LocationStart: rangeData.reference2LocationStart || "",
             reference2LocationEnd: rangeData.reference2LocationEnd || ""
           });
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1886", "保存时生成的范围模式数据结构:", JSON.stringify(diseaseDetails[0]));
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1941", "保存时生成的范围模式数据结构:", JSON.stringify(diseaseDetails[0]));
         } else {
           diseaseDataList.value.forEach((item) => {
             var _a2, _b2;
@@ -15634,7 +16104,6 @@ ${i3}
           // 直接使用type.value而不是通过索引获取
           nature: nature.value[natureindex.value].text,
           participateAssess: participateAssessindex.value.toString(),
-          deductPoints: 35,
           biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
           projectId: idStorageInfo.projectId,
           biObjectName: componentName,
@@ -15673,7 +16142,7 @@ ${i3}
         };
       };
       const saveWithoutNavigateBack = (diseaseData) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1995", "保存但不返回");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2049", "保存但不返回");
         uni.showLoading({
           title: "保存中..."
         });
@@ -15685,7 +16154,7 @@ ${i3}
           });
           setTimeout(() => {
             fileList.value = [];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2015", "已清空图片列表，保留其他表单数据");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2069", "已清空图片列表，保留其他表单数据");
             uni.showToast({
               title: "已保存，可继续添加下一条",
               icon: "none",
@@ -15693,7 +16162,7 @@ ${i3}
             });
           }, 500);
         }).catch((error) => {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2026", "保存失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2080", "保存失败:", error);
           uni.hideLoading();
           uni.showToast({
             title: "保存失败，请重试",
@@ -15714,7 +16183,7 @@ ${i3}
             originalImages = originalData.images || [];
             originalADImages = originalData.ADImgs || [];
           } catch (error) {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:2051", "解析原始数据失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:2105", "解析原始数据失败:", error);
           }
         }
         const currentImageUrls = fileList.value.map((img) => img.url);
@@ -15741,12 +16210,12 @@ ${i3}
           imagesToDelete.forEach((imgPath) => {
             plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
               fileEntry.remove(() => {
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2088", "删除原有图片成功:", imgPath);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2142", "删除原有图片成功:", imgPath);
               }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:2090", "删除原有图片失败:", error);
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:2144", "删除原有图片失败:", error);
               });
             }, (error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:2093", "无法访问原有图片:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2147", "无法访问原有图片:", error);
             });
           });
         }
@@ -15754,12 +16223,12 @@ ${i3}
           ADImagesToDelete.forEach((imgPath) => {
             plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
               fileEntry.remove(() => {
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2101", "删除原有AD图片成功:", imgPath);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2155", "删除原有AD图片成功:", imgPath);
               }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:2103", "删除原有AD图片失败:", error);
+                formatAppLog("error", "at pages/add-disease/add-disease.vue:2157", "删除原有AD图片失败:", error);
               });
             }, (error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:2106", "无法访问原有AD图片:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2160", "无法访问原有AD图片:", error);
             });
           });
         }
@@ -15767,25 +16236,25 @@ ${i3}
           if (newImages.length > 0) {
             const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
             diseaseData.images = [...imagesToKeep, ...savedPaths];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2117", "已保存病害图片，合并保存的图片列表:", diseaseData.images);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2171", "已保存病害图片，合并保存的图片列表:", diseaseData.images);
           } else {
             diseaseData.images = imagesToKeep;
           }
           if (newADImages.length > 0) {
             const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
             diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2128", "已保存AD图片，合并保存的图片列表:", diseaseData.ADImgs);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2182", "已保存AD图片，合并保存的图片列表:", diseaseData.ADImgs);
           } else {
             diseaseData.ADImgs = ADImagesToKeep;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2134", "已保存病害图片，更新病害数据...:", diseaseData);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2188", "已保存病害图片，更新病害数据...:", diseaseData);
           if (isEditMode) {
             uni.$emit("updateDisease", diseaseData);
           } else {
             uni.$emit("addNewDisease", diseaseData);
           }
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2142", "保存图片过程中发生错误:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2196", "保存图片过程中发生错误:", error);
           plus.nativeUI.toast("保存图片失败");
         }
       };
@@ -15801,10 +16270,10 @@ ${i3}
         return componentName;
       };
       const savedisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2163", "保存按钮点击");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2217", "保存按钮点击");
         const diseaseData = createDiseaseData();
         if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2170", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2224", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -15860,7 +16329,7 @@ ${i3}
                   id: currentId,
                   isDelete: true
                 };
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2242", "准备发送deleteDisease事件，标记删除ID:", currentId);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2296", "准备发送deleteDisease事件，标记删除ID:", currentId);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -15880,7 +16349,7 @@ ${i3}
         });
       };
       const copyAndAddDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2267", "复制并新增");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2321", "复制并新增");
         fileList.value = [];
         ADImgs.value = [];
         isEdit.value = false;
@@ -15891,10 +16360,10 @@ ${i3}
         });
       };
       const editDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2287", "编辑");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2341", "编辑");
         const diseaseData = createDiseaseData();
         if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2294", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2348", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -15923,9 +16392,9 @@ ${i3}
         });
       };
       const handleFileSelect = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2332", "文件选择事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2386", "文件选择事件", e2);
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2335", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2389", "选择的文件数量:", e2.tempFiles.length);
           const newFiles = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -15945,29 +16414,29 @@ ${i3}
             }
           });
           fileList.value = [...fileList.value];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2371", "更新后的fileList:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2425", "更新后的fileList:", fileList.value);
           const paths = getImagePaths(fileList.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2375", "当前有效路径数:", paths.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2429", "当前有效路径数:", paths.length);
         }
       };
       const handleFileDelete = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2380", "文件删除事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2434", "文件删除事件", e2);
         if (e2 && e2.tempFile && e2.tempFile.name) {
           const fileName = e2.tempFile.name;
           fileList.value = fileList.value.filter((file) => file.name !== fileName);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2389", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2443", "删除后的文件列表:", fileList.value);
         } else if (e2 && e2.index !== void 0 && e2.index >= 0) {
           fileList.value.splice(e2.index, 1);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2393", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2447", "删除后的文件列表:", fileList.value);
         }
       };
       const getImagePaths = (fileListData) => {
         const paths = [];
         if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2402", "文件列表为空");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2456", "文件列表为空");
           return paths;
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2406", "处理文件列表:", fileListData);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2460", "处理文件列表:", fileListData);
         fileListData.forEach((file, index) => {
           let path = "";
           if (file.url) {
@@ -15982,10 +16451,10 @@ ${i3}
             path = file.image.location;
           }
           if (path) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2426", `文件[${index}]有效路径:`, path);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2480", `文件[${index}]有效路径:`, path);
             paths.push(path);
           } else {
-            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2429", `文件[${index}]没有有效路径:`, file);
+            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2483", `文件[${index}]没有有效路径:`, file);
           }
         });
         return paths;
@@ -16019,11 +16488,11 @@ ${i3}
       const fetchStructureData = async () => {
         try {
           const data = await getObject(userInfo.username, buildingId.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2475", "结构数据获取成功:", data);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2529", "结构数据获取成功:", data);
           structureData.value = data;
           return Promise.resolve(data);
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2481", "获取结构数据失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2535", "获取结构数据失败:", error);
           uni.showToast({
             title: "获取结构数据失败",
             icon: "none"
@@ -16033,25 +16502,25 @@ ${i3}
       };
       const updateDiseaseTypeOptions = () => {
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2496", "无效的部件类型选择");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2550", "无效的部件类型选择");
           diseaseTypeOptions.value = [];
           return;
         }
         if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2503", "部件类型选择超出范围");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2557", "部件类型选择超出范围");
           diseaseTypeOptions.value = [];
           return;
         }
         const selectedBiObject = biObjectNameOptions.value[typeMultiIndex.value[1]];
         if (!selectedBiObject) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2511", "选中的部件类型不存在");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2565", "选中的部件类型不存在");
           diseaseTypeOptions.value = [];
           return;
         }
         allDiseaseTypes = [];
         if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
           allDiseaseTypes = [...selectedBiObject.diseaseTypes];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2522", "第二级病害类型:", allDiseaseTypes);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2576", "第二级病害类型:", allDiseaseTypes);
         }
         if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children && Array.isArray(selectedBiObject.children) && typeMultiIndex.value[2] < selectedBiObject.children.length) {
           const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
@@ -16061,21 +16530,21 @@ ${i3}
                 allDiseaseTypes.push(item);
               }
             });
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2539", "添加第三级后的病害类型:", allDiseaseTypes);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2593", "添加第三级后的病害类型:", allDiseaseTypes);
           }
         }
         diseaseTypeOptions.value = allDiseaseTypes.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2546", "最终缺损类型选项更新为:", diseaseTypeOptions.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2600", "最终缺损类型选项更新为:", diseaseTypeOptions.value);
         if (type.value) {
           const index = diseaseTypeOptions.value.findIndex((item) => item === type.value);
           if (index !== -1) {
             typeindex.value = index;
             typePicker.value = type.value;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2554", "成功设置病害类型索引:", index);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2608", "成功设置病害类型索引:", index);
           } else {
             typePicker.value = "其他";
             typeInput.value = type.value;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2559", "当前病害类型不在选项中，设为自定义输入:", type.value);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2613", "当前病害类型不在选项中，设为自定义输入:", type.value);
           }
         }
       };
@@ -16085,7 +16554,7 @@ ${i3}
       const componentNameInput = vue.ref("");
       const componentCodeInput = vue.ref("");
       const updateDiseasePositionOptions = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2577", "开始更新病害位置选项");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2631", "开始更新病害位置选项");
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
           diseasePosition.value = [];
           return;
@@ -16100,13 +16569,13 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
               diseasePosition.value = selectedThirdLevel.children.map((item) => item.name);
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2603", "更新病害位置选项为第三级子组件:", diseasePosition.value);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2657", "更新病害位置选项为第三级子组件:", diseasePosition.value);
               return;
             }
           }
         }
         diseasePosition.value = [];
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2611", "使用默认病害位置选项");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2665", "使用默认病害位置选项");
       };
       const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
         currentReferenceSurface.value = surfaceNumber;
@@ -16130,18 +16599,18 @@ ${i3}
           const matchingChild = selectedComponent.children.find((child) => child.name === position.value);
           if (matchingChild && matchingChild.props) {
             positionProps = matchingChild.props;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2668", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2722", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
           }
         }
         if (!positionProps && selectedComponent && selectedComponent.props) {
           positionProps = selectedComponent.props;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2675", "使用当前选中组件的props:", positionProps);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2729", "使用当前选中组件的props:", positionProps);
         }
         if (positionProps) {
           const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
           if (options && options.length > 0) {
             referenceSurfaceOptions.value = options;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2683", `解析到参考面${surfaceNumber}选项:`, options);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2737", `解析到参考面${surfaceNumber}选项:`, options);
           } else {
             setDefaultReferenceSurfaceOptions(surfaceNumber);
           }
@@ -16156,7 +16625,7 @@ ${i3}
         } else {
           referenceSurfaceOptions.value = [];
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2704", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2758", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
       };
       const parsePropsForRef = (propsString, refKey) => {
         if (!propsString)
@@ -16219,7 +16688,7 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.id) {
               thirdLevelComponentId = selectedThirdLevel.id;
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2792", "找到第三级组件ID:", thirdLevelComponentId);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2846", "找到第三级组件ID:", thirdLevelComponentId);
             }
           }
         }
@@ -16233,7 +16702,7 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.name) {
               thirdLevelComponentName = selectedThirdLevel.name;
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2810", "找到第三级组件Name:", thirdLevelComponentName);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2864", "找到第三级组件Name:", thirdLevelComponentName);
             }
           }
         }
@@ -16282,10 +16751,10 @@ ${i3}
               if (levelindex.value < minScale || levelindex.value > maxScale) {
                 levelindex.value = minScale;
               }
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2880", "更新评定标度范围:", minScale, "至", maxScale);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2934", "更新评定标度范围:", minScale, "至", maxScale);
             }
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2884", "病害类型选择变更为:", typePicker.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2938", "病害类型选择变更为:", typePicker.value);
         }
       };
       const onDiseasePositionChange = (e2) => {
@@ -16297,7 +16766,7 @@ ${i3}
           } else {
             position.value = positionPicker.value;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2902", "病害位置选择变更为:", positionPicker.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2956", "病害位置选择变更为:", positionPicker.value);
         }
       };
       vue.watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
@@ -16309,11 +16778,11 @@ ${i3}
       }, {
         deep: true
       });
-      const __returned__ = { userId, userInfo, idStorageInfo, buildingId, bridgeIdFromURL, popup, ADImgs, isEdit, structureData, parentObjectName, grandObjectName, biObjectNameOptions, diseaseTypeOptions, componentNamePicker, biObjectindex, componentCode, componentCodeindex, filteredComponentCodes, get allDiseaseTypes() {
+      const __returned__ = { userId, userInfo, idStorageInfo, buildingId, bridgeIdFromURL, openMode, popup, ADImgs, isEdit, structureData, parentObjectName, grandObjectName, biObjectNameOptions, diseaseTypeOptions, componentNamePicker, biObjectindex, componentCode, componentCodeindex, filteredComponentCodes, get allDiseaseTypes() {
         return allDiseaseTypes;
       }, set allDiseaseTypes(v2) {
         allDiseaseTypes = v2;
-      }, type, typeindex, typePicker, typeInput, position, positionPicker, positionInput, diseaseDataList, quantity, updateDiseaseDataList, length, width, crackWidth, heightDepth, area, description, fileList, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, crackTypeIndex, crackType, developmentTrend, developmentTrendindex, reference1Location, reference2Location, referenceSurfacePopup, currentReferenceSurface, referenceSurfaceInput, referenceSurfaceOptions, initMultiPickerColumns, updateThirdColumn, typeColumnChange, updateComponentNameValues, typeMultiPickerChange, fillFormWithData, findIndexByText, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, getComponentName, savedisease, canceldisease, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateDiseaseTypeOptions, clearQuantity, componentNameInput, componentCodeInput, updateDiseasePositionOptions, openReferenceSurfacePopup, setDefaultReferenceSurfaceOptions, parsePropsForRef, confirmreferenceSurfaceInput, selectReferenceSurfaceItem, clearReferenceSurfaceStart, clearReferenceSurfaceEnd, currentDiseaseIndex, getThirdLevelComponentId, getThirdLevelComponentName, isThirdLevelOther, onDiseaseTypeChange, onDiseasePositionChange, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, computed: vue.computed, get getObject() {
+      }, type, typeindex, typePicker, typeInput, position, positionPicker, positionInput, diseaseDataList, quantity, createDescription, updateDiseaseDataList, length, width, crackWidth, heightDepth, area, description, fileList, diseasePosition, diseasePositionPopup, selectedPosition, structureTypes, typeMultiArray, typeMultiIndex, natureindex, nature, participateAssess, participateAssessindex, level, levelindex, crackTypeIndex, crackType, developmentTrend, developmentTrendindex, reference1Location, reference2Location, referenceSurfacePopup, currentReferenceSurface, referenceSurfaceInput, referenceSurfaceOptions, initMultiPickerColumns, updateThirdColumn, typeColumnChange, updateComponentNameValues, typeMultiPickerChange, fillFormWithData, findIndexByText, imageStyles, beforedisease, nextdisease, navigateToEditDisease, savetonextdisease, createDiseaseData, saveWithoutNavigateBack, saveImagesAndUpdateDisease, getComponentName, savedisease, canceldisease, formatDateTime, deleteDisease, copyAndAddDisease, editDisease, handleFileSelect, handleFileDelete, getImagePaths, onClickTemplate, selectCanvasTemplate, removeImage, closeDiseasePositionPopup, confirmDiseasePosition, fetchStructureData, updateDiseaseTypeOptions, clearQuantity, componentNameInput, componentCodeInput, updateDiseasePositionOptions, openReferenceSurfacePopup, setDefaultReferenceSurfaceOptions, parsePropsForRef, confirmreferenceSurfaceInput, selectReferenceSurfaceItem, clearReferenceSurfaceStart, clearReferenceSurfaceEnd, currentDiseaseIndex, getThirdLevelComponentId, getThirdLevelComponentName, isThirdLevelOther, onDiseaseTypeChange, onDiseasePositionChange, ref: vue.ref, reactive: vue.reactive, onMounted: vue.onMounted, onUnmounted: vue.onUnmounted, watch: vue.watch, computed: vue.computed, get getObject() {
         return getObject;
       }, get readDiseaseImages() {
         return readDiseaseImages;
@@ -16323,19 +16792,21 @@ ${i3}
         return userStore;
       }, get idStore() {
         return idStore;
+      }, get generateDiseaseDescription() {
+        return generateDiseaseDescription;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$3(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_data_checkbox = resolveEasycom(vue.resolveDynamicComponent("uni-data-checkbox"), __easycom_0);
     const _component_uni_file_picker = resolveEasycom(vue.resolveDynamicComponent("uni-file-picker"), __easycom_1);
     const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
     const _component_uni_combox = resolveEasycom(vue.resolveDynamicComponent("uni-combox"), __easycom_3);
     return vue.openBlock(), vue.createElementBlock("view", null, [
       vue.createCommentVNode(" 新增病害时显示 "),
-      !$setup.isEdit ? (vue.openBlock(), vue.createElementBlock("view", {
+      $setup.openMode === "create" ? (vue.openBlock(), vue.createElementBlock("view", {
         key: 0,
         class: "button-group-add"
       }, [
@@ -16351,7 +16822,7 @@ ${i3}
           class: "button-cancle",
           onClick: $setup.canceldisease
         }, "取消")
-      ])) : (vue.openBlock(), vue.createElementBlock(
+      ])) : $setup.openMode === "edit" ? (vue.openBlock(), vue.createElementBlock(
         vue.Fragment,
         { key: 1 },
         [
@@ -16381,7 +16852,8 @@ ${i3}
         ],
         2112
         /* STABLE_FRAGMENT, DEV_ROOT_FRAGMENT */
-      )),
+      )) : vue.createCommentVNode("v-if", true),
+      vue.createCommentVNode(" 历史病害时不显示 "),
       vue.createCommentVNode(" 表单内容容器 - 添加form-container类以便横屏时调整布局 "),
       vue.createElementVNode("view", { class: "form-container" }, [
         vue.createElementVNode("view", null, [
@@ -17321,13 +17793,17 @@ ${i3}
           vue.createElementVNode("view", { class: "input-area" }, [
             vue.createElementVNode("view", { class: "input-area-title" }, [
               vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-              vue.createElementVNode("view", null, "病害描述")
+              vue.createElementVNode("view", null, "病害描述"),
+              vue.createElementVNode("view", {
+                class: "input-right-button",
+                onClick: _cache[12] || (_cache[12] = ($event) => $setup.createDescription())
+              }, "生成病害描述")
             ]),
             vue.withDirectives(vue.createElementVNode(
               "textarea",
               {
                 class: "input-area-content",
-                "onUpdate:modelValue": _cache[12] || (_cache[12] = ($event) => $setup.description = $event),
+                "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $setup.description = $event),
                 placeholder: "请填写病害信息",
                 "auto-height": ""
               },
@@ -17347,7 +17823,7 @@ ${i3}
               vue.createVNode(_component_uni_data_checkbox, {
                 mode: "tag",
                 modelValue: $setup.natureindex,
-                "onUpdate:modelValue": _cache[13] || (_cache[13] = ($event) => $setup.natureindex = $event),
+                "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => $setup.natureindex = $event),
                 localdata: $setup.nature
               }, null, 8, ["modelValue", "localdata"])
             ])
@@ -17358,13 +17834,13 @@ ${i3}
             [
               vue.createElementVNode("view", { class: "line-select-left" }, [
                 vue.createElementVNode("text", { style: { "color": "red" } }, "*"),
-                vue.createElementVNode("view", null, "参与评定（构件扣分25）")
+                vue.createElementVNode("view", null, "参与评定")
               ]),
               vue.createElementVNode("view", { class: "line-select-right" }, [
                 vue.createVNode(_component_uni_data_checkbox, {
                   mode: "tag",
                   modelValue: $setup.participateAssessindex,
-                  "onUpdate:modelValue": _cache[14] || (_cache[14] = ($event) => $setup.participateAssessindex = $event),
+                  "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $setup.participateAssessindex = $event),
                   localdata: $setup.participateAssess
                 }, null, 8, ["modelValue", "localdata"])
               ])
@@ -17372,7 +17848,7 @@ ${i3}
             512
             /* NEED_PATCH */
           ), [
-            [vue.vShow, $setup.componentNamePicker !== "其他"]
+            [vue.vShow, $setup.typePicker !== "其他"]
           ]),
           vue.withDirectives(vue.createElementVNode(
             "view",
@@ -17386,7 +17862,7 @@ ${i3}
                 vue.createVNode(_component_uni_data_checkbox, {
                   mode: "tag",
                   modelValue: $setup.levelindex,
-                  "onUpdate:modelValue": _cache[15] || (_cache[15] = ($event) => $setup.levelindex = $event),
+                  "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $setup.levelindex = $event),
                   localdata: $setup.level
                 }, null, 8, ["modelValue", "localdata"])
               ])
@@ -17394,7 +17870,7 @@ ${i3}
             512
             /* NEED_PATCH */
           ), [
-            [vue.vShow, $setup.componentNamePicker !== "其他"]
+            [vue.vShow, $setup.typePicker !== "其他"]
           ])
         ]),
         vue.createElementVNode("view", null, [
@@ -17402,14 +17878,14 @@ ${i3}
             vue.createElementVNode("view", { class: "head-text" }, " 病害附件信息 ")
           ]),
           vue.createElementVNode("view", { class: "part-UploadImage" }, [
-            vue.createElementVNode("view", { class: "part-title" }, "上传图片或视频"),
+            vue.createElementVNode("view", { class: "part-title" }, "上传图片"),
             vue.createElementVNode("view", { class: "upload-view" }, [
               vue.createVNode(_component_uni_file_picker, {
                 class: "file-picker",
                 limit: "9",
                 "image-styles": $setup.imageStyles,
                 modelValue: $setup.fileList,
-                "onUpdate:modelValue": _cache[16] || (_cache[16] = ($event) => $setup.fileList = $event),
+                "onUpdate:modelValue": _cache[17] || (_cache[17] = ($event) => $setup.fileList = $event),
                 "file-mediatype": "image",
                 mode: "grid",
                 onSelect: $setup.handleFileSelect,
@@ -17444,10 +17920,10 @@ ${i3}
               )),
               vue.createElementVNode("view", {
                 class: "ADImage-container",
-                onClick: _cache[17] || (_cache[17] = ($event) => $setup.selectCanvasTemplate())
+                onClick: _cache[18] || (_cache[18] = ($event) => $setup.selectCanvasTemplate())
               }, [
                 vue.createElementVNode("image", {
-                  src: _imports_0$2,
+                  src: _imports_0$3,
                   class: "ADImageButton"
                 })
               ])
@@ -17469,34 +17945,34 @@ ${i3}
                 vue.createElementVNode("view", { class: "template-type" }, " 空心板、实心板 "),
                 vue.createElementVNode("view", { class: "template-image" }, [
                   vue.createElementVNode("image", {
-                    src: _imports_1$1,
+                    src: _imports_1$2,
                     class: "template-image-card",
-                    onClick: _cache[18] || (_cache[18] = ($event) => $setup.onClickTemplate("kxb1"))
+                    onClick: _cache[19] || (_cache[19] = ($event) => $setup.onClickTemplate("kxb1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_2$1,
                     class: "template-image-card",
-                    onClick: _cache[19] || (_cache[19] = ($event) => $setup.onClickTemplate("kxb2"))
+                    onClick: _cache[20] || (_cache[20] = ($event) => $setup.onClickTemplate("kxb2"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_3$1,
                     class: "template-image-card",
-                    onClick: _cache[20] || (_cache[20] = ($event) => $setup.onClickTemplate("kxb3"))
+                    onClick: _cache[21] || (_cache[21] = ($event) => $setup.onClickTemplate("kxb3"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_4$1,
                     class: "template-image-card",
-                    onClick: _cache[21] || (_cache[21] = ($event) => $setup.onClickTemplate("kxb4"))
+                    onClick: _cache[22] || (_cache[22] = ($event) => $setup.onClickTemplate("kxb4"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_5$1,
                     class: "template-image-card",
-                    onClick: _cache[22] || (_cache[22] = ($event) => $setup.onClickTemplate("kxb5"))
+                    onClick: _cache[23] || (_cache[23] = ($event) => $setup.onClickTemplate("kxb5"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_6,
                     class: "template-image-card",
-                    onClick: _cache[23] || (_cache[23] = ($event) => $setup.onClickTemplate("kxb6"))
+                    onClick: _cache[24] || (_cache[24] = ($event) => $setup.onClickTemplate("kxb6"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " T梁 "),
@@ -17504,7 +17980,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_7,
                     class: "template-image-card",
-                    onClick: _cache[24] || (_cache[24] = ($event) => $setup.onClickTemplate("tl1"))
+                    onClick: _cache[25] || (_cache[25] = ($event) => $setup.onClickTemplate("tl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 箱梁 "),
@@ -17512,7 +17988,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_8,
                     class: "template-image-card",
-                    onClick: _cache[25] || (_cache[25] = ($event) => $setup.onClickTemplate("xl1"))
+                    onClick: _cache[26] || (_cache[26] = ($event) => $setup.onClickTemplate("xl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 变截面箱梁 "),
@@ -17520,22 +17996,22 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_9,
                     class: "template-image-card",
-                    onClick: _cache[26] || (_cache[26] = ($event) => $setup.onClickTemplate("blmxl1"))
+                    onClick: _cache[27] || (_cache[27] = ($event) => $setup.onClickTemplate("blmxl1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_10,
                     class: "template-image-card",
-                    onClick: _cache[27] || (_cache[27] = ($event) => $setup.onClickTemplate("blmxl2"))
+                    onClick: _cache[28] || (_cache[28] = ($event) => $setup.onClickTemplate("blmxl2"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_11,
                     class: "template-image-card",
-                    onClick: _cache[28] || (_cache[28] = ($event) => $setup.onClickTemplate("blmxl3"))
+                    onClick: _cache[29] || (_cache[29] = ($event) => $setup.onClickTemplate("blmxl3"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_12,
                     class: "template-image-card",
-                    onClick: _cache[29] || (_cache[29] = ($event) => $setup.onClickTemplate("blmxl4"))
+                    onClick: _cache[30] || (_cache[30] = ($event) => $setup.onClickTemplate("blmxl4"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 桥台、桥墩 "),
@@ -17543,12 +18019,12 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_13,
                     class: "template-image-card",
-                    onClick: _cache[30] || (_cache[30] = ($event) => $setup.onClickTemplate("qt1"))
+                    onClick: _cache[31] || (_cache[31] = ($event) => $setup.onClickTemplate("qt1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_14,
                     class: "template-image-card",
-                    onClick: _cache[31] || (_cache[31] = ($event) => $setup.onClickTemplate("qt2"))
+                    onClick: _cache[32] || (_cache[32] = ($event) => $setup.onClickTemplate("qt2"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 横隔板 "),
@@ -17556,12 +18032,12 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_15,
                     class: "template-image-card",
-                    onClick: _cache[32] || (_cache[32] = ($event) => $setup.onClickTemplate("hgb1"))
+                    onClick: _cache[33] || (_cache[33] = ($event) => $setup.onClickTemplate("hgb1"))
                   }),
                   vue.createElementVNode("image", {
                     src: _imports_16,
                     class: "template-image-card",
-                    onClick: _cache[33] || (_cache[33] = ($event) => $setup.onClickTemplate("hgb2"))
+                    onClick: _cache[34] || (_cache[34] = ($event) => $setup.onClickTemplate("hgb2"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 翼墙、耳墙 "),
@@ -17569,7 +18045,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_17,
                     class: "template-image-card",
-                    onClick: _cache[34] || (_cache[34] = ($event) => $setup.onClickTemplate("yq1"))
+                    onClick: _cache[35] || (_cache[35] = ($event) => $setup.onClickTemplate("yq1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 盖梁 "),
@@ -17577,7 +18053,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_18,
                     class: "template-image-card",
-                    onClick: _cache[35] || (_cache[35] = ($event) => $setup.onClickTemplate("gl1"))
+                    onClick: _cache[36] || (_cache[36] = ($event) => $setup.onClickTemplate("gl1"))
                   })
                 ]),
                 vue.createElementVNode("view", { class: "template-type" }, " 圆桩墩 "),
@@ -17585,7 +18061,7 @@ ${i3}
                   vue.createElementVNode("image", {
                     src: _imports_19,
                     class: "template-image-card",
-                    onClick: _cache[36] || (_cache[36] = ($event) => $setup.onClickTemplate("yzd1"))
+                    onClick: _cache[37] || (_cache[37] = ($event) => $setup.onClickTemplate("yzd1"))
                   })
                 ])
               ])
@@ -17612,7 +18088,7 @@ ${i3}
                 class: "position-combox",
                 candidates: $setup.diseasePosition,
                 modelValue: $setup.selectedPosition,
-                "onUpdate:modelValue": _cache[37] || (_cache[37] = ($event) => $setup.selectedPosition = $event),
+                "onUpdate:modelValue": _cache[38] || (_cache[38] = ($event) => $setup.selectedPosition = $event),
                 placeholder: "请选择病害位置"
               }, null, 8, ["candidates", "modelValue"]),
               vue.createElementVNode("view", { class: "position-popup-buttons" }, [
@@ -17650,7 +18126,7 @@ ${i3}
                     type: "text",
                     placeholder: "请填写",
                     class: "location-description-popup-input",
-                    "onUpdate:modelValue": _cache[38] || (_cache[38] = ($event) => $setup.referenceSurfaceInput = $event)
+                    "onUpdate:modelValue": _cache[39] || (_cache[39] = ($event) => $setup.referenceSurfaceInput = $event)
                   },
                   null,
                   512
@@ -17688,7 +18164,7 @@ ${i3}
       )
     ]);
   }
-  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
+  const PagesAddDiseaseAddDisease = /* @__PURE__ */ _export_sfc(_sfc_main$4, [["render", _sfc_render$3], ["__scopeId", "data-v-79f8b97c"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/add-disease/add-disease.vue"]]);
   function drawKxbTemplate1(ctx, {
     logicalWidth = 8,
     logicalHeight = 8,
@@ -18910,15 +19386,15 @@ ${i3}
     ctx.fillText(`${text}${unit}`, 0, 0);
     ctx.restore();
   };
-  const _imports_0$1 = "/static/image/hand.svg";
-  const _imports_1 = "/static/image/line.svg";
+  const _imports_0$2 = "/static/image/hand.svg";
+  const _imports_1$1 = "/static/image/line.svg";
   const _imports_2 = "/static/image/curve.svg";
   const _imports_3 = "/static/image/rect.svg";
   const _imports_4 = "/static/image/circle.svg";
   const _imports_5 = "/static/image/text.svg";
   const canvasId = "myCanvas";
   const transparentCanvasId = "transparentCanvas";
-  const _sfc_main$2 = {
+  const _sfc_main$3 = {
     __name: "canvas",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -20194,7 +20670,7 @@ ${i3}
       return __returned__;
     }
   };
-  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$2(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -20223,7 +20699,7 @@ ${i3}
                 },
                 [
                   vue.createElementVNode("image", {
-                    src: _imports_0$1,
+                    src: _imports_0$2,
                     class: "icon"
                   })
                 ],
@@ -20238,7 +20714,7 @@ ${i3}
                 },
                 [
                   vue.createElementVNode("image", {
-                    src: _imports_1,
+                    src: _imports_1$1,
                     class: "icon"
                   })
                 ],
@@ -20567,9 +21043,121 @@ ${i3}
       /* STABLE_FRAGMENT */
     );
   }
-  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
-  const _imports_0 = "/static/image/user1.png";
-  const _sfc_main$1 = {
+  const PagesCanvasCanvas = /* @__PURE__ */ _export_sfc(_sfc_main$3, [["render", _sfc_render$2], ["__scopeId", "data-v-3fb2435b"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/canvas/canvas.vue"]]);
+  function callCheckVersion() {
+    return new Promise((resolve, reject) => {
+      const systemInfo = uni.getSystemInfoSync();
+      const appId = systemInfo.appId;
+      const appVersion = systemInfo.appVersion;
+      if (typeof appId === "string" && typeof appVersion === "string" && appId.length > 0 && appVersion.length > 0) {
+        plus.runtime.getProperty(appId, function(widgetInfo) {
+          if (widgetInfo.version || true) {
+            let data = {
+              action: "checkVersion",
+              appid: appId,
+              appVersion: "100",
+              wgtVersion: "100"
+              // appVersion: appVersion,
+              // wgtVersion: widgetInfo.version
+            };
+            nr.callFunction({
+              name: "uni-upgrade-center",
+              data,
+              success: (e2) => {
+                resolve(e2.result);
+              },
+              fail: (error) => {
+                reject(error);
+              }
+            });
+          } else {
+            reject("widgetInfo.version is EMPTY");
+          }
+        });
+      } else {
+        reject("plus.runtime.appid is EMPTY");
+      }
+    });
+  }
+  const platform_iOS = "iOS";
+  const platform_Android = "Android";
+  const platform_Harmony = "Harmony";
+  function compare(v_1 = "0", v_2 = "0") {
+    const v1 = String(v_1).split(".");
+    const v2 = String(v_2).split(".");
+    const minVersionLens = Math.min(v1.length, v2.length);
+    let result = 0;
+    for (let i2 = 0; i2 < minVersionLens; i2++) {
+      const curV1 = Number(v1[i2]);
+      const curV2 = Number(v2[i2]);
+      if (curV1 > curV2) {
+        result = 1;
+        break;
+      } else if (curV1 < curV2) {
+        result = -1;
+        break;
+      }
+    }
+    if (result === 0 && v1.length !== v2.length) {
+      const v1BiggerThenv2 = v1.length > v2.length;
+      const maxLensVersion = v1BiggerThenv2 ? v1 : v2;
+      for (let i2 = minVersionLens; i2 < maxLensVersion.length; i2++) {
+        const curVersion = Number(maxLensVersion[i2]);
+        if (curVersion > 0) {
+          v1BiggerThenv2 ? result = 1 : result = -1;
+          break;
+        }
+      }
+    }
+    return result;
+  }
+  const PACKAGE_INFO_KEY = "__package_info__";
+  function checkUpdate() {
+    return new Promise((resolve, reject) => {
+      callCheckVersion().then(async (uniUpgradeCenterResult) => {
+        const code = uniUpgradeCenterResult.code;
+        const message = uniUpgradeCenterResult.message;
+        const url = uniUpgradeCenterResult.url;
+        if (code > 0) {
+          if (/^cloud:\/\//.test(url)) {
+            const tcbRes = await nr.getTempFileURL({ fileList: [url] });
+            if (typeof tcbRes.fileList[0].tempFileURL !== "undefined")
+              uniUpgradeCenterResult.url = tcbRes.fileList[0].tempFileURL;
+          }
+          if (uniUpgradeCenterResult.is_silently) {
+            uni.downloadFile({
+              url,
+              success: (res) => {
+                if (res.statusCode == 200) {
+                  plus.runtime.install(res.tempFilePath, {
+                    force: false
+                  });
+                }
+              }
+            });
+            return;
+          }
+          uni.setStorageSync(PACKAGE_INFO_KEY, uniUpgradeCenterResult);
+          uni.navigateTo({
+            url: `/uni_modules/uni-upgrade-center-app/pages/upgrade-popup?local_storage_key=${PACKAGE_INFO_KEY}`,
+            fail: (err) => {
+              formatAppLog("error", "at uni_modules/uni-upgrade-center-app/utils/check-update.ts:63", "更新弹框跳转失败", err);
+              uni.removeStorageSync(PACKAGE_INFO_KEY);
+            }
+          });
+          return resolve(uniUpgradeCenterResult);
+        } else if (code < 0) {
+          formatAppLog("error", "at uni_modules/uni-upgrade-center-app/utils/check-update.ts:93", message);
+          return reject(uniUpgradeCenterResult);
+        }
+        return resolve(uniUpgradeCenterResult);
+      }).catch((err) => {
+        reject(err);
+      });
+    });
+  }
+  const _imports_0$1 = "/static/image/user1.png";
+  const _sfc_main$2 = {
     __name: "SystemSetting",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -20578,6 +21166,8 @@ ${i3}
       const oldPassword = vue.ref("");
       const newPassword = vue.ref("");
       const confirmPassword = vue.ref("");
+      const name2 = vue.ref("未知用户");
+      const userAccount = vue.ref("unknownAccount");
       const versionNumber = vue.ref("v1");
       const openPasswordModal = () => {
         oldPassword.value = "";
@@ -20733,34 +21323,8 @@ ${i3}
           });
         }
       };
-      const checkUpdate = () => {
-        plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
-          const currentVersion = wgtinfo.version;
-          formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:314", "当前版本：" + currentVersion);
-          uni.request({
-            url: "",
-            // 接口
-            success: (res) => {
-              const data = res.data;
-              if (data.version && this.compareVersion(data.version, currentVersion) > 0) {
-                uni.showModal({
-                  title: "更新提示",
-                  content: data.desc || "有新版本可用，是否更新？",
-                  success: (modalRes) => {
-                    if (modalRes.confirm) {
-                      this.downloadAndInstall(data.url);
-                    }
-                  }
-                });
-              } else {
-                formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:333", "已经是最新版本");
-              }
-            },
-            fail: (err) => {
-              formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:337", "检查更新失败", err);
-            }
-          });
-        });
+      const onClickUpdate = () => {
+        checkUpdate();
       };
       const compareVersion = (v1, v2) => {
         v1 = v1.replace(/^v/, "");
@@ -20783,19 +21347,19 @@ ${i3}
         }, (d2, status) => {
           uni.hideLoading();
           if (status == 200) {
-            formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:371", "下载成功：" + d2.filename);
+            formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:372", "下载成功：" + d2.filename);
             plus.runtime.install(d2.filename, {}, () => {
-              formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:373", "安装成功");
+              formatAppLog("log", "at pages/SystemSetting/SystemSetting.vue:374", "安装成功");
               plus.runtime.restart();
             }, (e2) => {
-              formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:376", "安装失败：" + e2.message);
+              formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:377", "安装失败：" + e2.message);
               uni.showToast({
                 title: "安装失败",
                 icon: "none"
               });
             });
           } else {
-            formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:383", "下载失败：" + status);
+            formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:384", "下载失败：" + status);
             uni.showToast({
               title: "下载失败",
               icon: "none"
@@ -20805,6 +21369,7 @@ ${i3}
         dtask.start();
       };
       vue.onMounted(() => {
+        userAccount.value = userInfo.username;
         if (typeof plus !== "undefined") {
           plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
             versionNumber.value = wgtinfo.version;
@@ -20813,54 +21378,72 @@ ${i3}
           versionNumber.value = "开发模式";
         }
       });
-      const __returned__ = { userInfo, passwordPopup, oldPassword, newPassword, confirmPassword, versionNumber, openPasswordModal, closePasswordModal, handleLogout, changePassword, checkUpdate, compareVersion, downloadAndInstall, onMounted: vue.onMounted, ref: vue.ref, get userStore() {
+      vue.onMounted(async () => {
+        try {
+          const responseLogin = await uni.request({
+            url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+            method: "POST"
+          });
+          name2.value = responseLogin.data.userName;
+        } catch (error) {
+          formatAppLog("error", "at pages/SystemSetting/SystemSetting.vue:414", "用户数据请求失败");
+        }
+      });
+      const __returned__ = { userInfo, passwordPopup, oldPassword, newPassword, confirmPassword, name: name2, userAccount, versionNumber, openPasswordModal, closePasswordModal, handleLogout, changePassword, onClickUpdate, compareVersion, downloadAndInstall, onMounted: vue.onMounted, ref: vue.ref, get userStore() {
         return userStore;
+      }, get onLoad() {
+        return onLoad;
+      }, get async() {
+        return async;
+      }, get checkUpdate() {
+        return checkUpdate;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
     }
   };
-  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$1(_ctx, _cache, $props, $setup, $data, $options) {
     const _component_uni_popup = resolveEasycom(vue.resolveDynamicComponent("uni-popup"), __easycom_0$2);
     return vue.openBlock(), vue.createElementBlock("view", { class: "System" }, [
       vue.createElementVNode("view", { class: "main" }, [
         vue.createElementVNode("view", { class: "titleBar" }, [
           vue.createElementVNode("image", {
-            src: _imports_0,
+            src: _imports_0$1,
             class: "avatar"
           }),
           vue.createElementVNode("view", { class: "textContainer" }, [
-            vue.createElementVNode("view", { class: "code" }, "zs@znjc"),
-            vue.createElementVNode("view", { class: "name" }, "张三")
+            vue.createElementVNode(
+              "view",
+              { class: "code" },
+              vue.toDisplayString($setup.userAccount),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "view",
+              { class: "name" },
+              vue.toDisplayString($setup.name),
+              1
+              /* TEXT */
+            )
           ]),
           vue.createElementVNode("view", { class: "button" }, [
             vue.createElementVNode("button", {
               size: "default",
               type: "default",
-              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx" },
               "hover-class": "is-hover",
               onClick: $setup.openPasswordModal
             }, "修改密码"),
             vue.createElementVNode("button", {
               size: "default",
               type: "default",
-              style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx" },
               "hover-class": "is-hover",
               onClick: $setup.handleLogout
             }, "退出登录")
           ])
         ])
       ]),
-      vue.createElementVNode("view", { class: "model" }, [
-        vue.createElementVNode("view", { class: "modelTitle" }, "运行模式"),
-        vue.createElementVNode("view", { class: "switchContainer" }, [
-          vue.createElementVNode("view", { class: "title" }, "离线"),
-          vue.createElementVNode("view", null, [
-            vue.createElementVNode("switch", { name: "switch" })
-          ]),
-          vue.createElementVNode("view", { class: "title" }, "在线")
-        ])
-      ]),
+      vue.createCommentVNode(' <view class="model">\r\n			<view class="modelTitle">运行模式</view>\r\n			<view class="switchContainer">\r\n				<view class="title">离线</view>\r\n				<view>\r\n					<switch name="switch" />\r\n				</view>\r\n				<view class="title">在线</view>\r\n			</view>\r\n		</view> '),
       vue.createElementVNode("view", { class: "divider" }),
       vue.createElementVNode("view", { class: "versionData" }, [
         vue.createElementVNode("view", { class: "versionTitle" }, "当前数据包版本"),
@@ -20872,7 +21455,7 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
+          class: "functionButton",
           "hover-class": "is-hover",
           onClick: _cache[0] || (_cache[0] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
         }, "数据导入")
@@ -20883,7 +21466,7 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
+          class: "functionButton",
           "hover-class": "is-hover",
           onClick: _cache[1] || (_cache[1] = (...args) => _ctx.handleLogin && _ctx.handleLogin(...args))
         }, "数据导出")
@@ -20901,9 +21484,9 @@ ${i3}
         vue.createElementVNode("button", {
           size: "default",
           type: "default",
-          style: { "color": "#ffffff", "backgroundColor": "#1677ff", "borderColor": "#1AAD19", "height": "40rpx", "font-size": "15rpx", "margin-right": "0" },
+          class: "functionButton",
           "hover-class": "is-hover",
-          onClick: $setup.checkUpdate
+          onClick: $setup.onClickUpdate
         }, "版本更新")
       ]),
       vue.createCommentVNode(" 添加修改密码弹窗 "),
@@ -20990,7 +21573,523 @@ ${i3}
       )
     ]);
   }
-  const PagesSystemSettingSystemSetting = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__scopeId", "data-v-524e171a"], ["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/pages/SystemSetting/SystemSetting.vue"]]);
+  const PagesSystemSettingSystemSetting = /* @__PURE__ */ _export_sfc(_sfc_main$2, [["render", _sfc_render$1], ["__scopeId", "data-v-524e171a"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/SystemSetting/SystemSetting.vue"]]);
+  const { registerUTSInterface, initUTSProxyClass, initUTSProxyFunction, initUTSPackageName, initUTSIndexClassName, initUTSClassName } = uni;
+  const name = "utsProgressNotification";
+  const moduleName = "uts-progressNotification";
+  const moduleType = "";
+  const errMsg = ``;
+  const is_uni_modules = true;
+  const pkg = /* @__PURE__ */ initUTSPackageName(name, is_uni_modules);
+  const cls = /* @__PURE__ */ initUTSIndexClassName(name, is_uni_modules);
+  const createNotificationProgress = /* @__PURE__ */ initUTSProxyFunction(false, { moduleName, moduleType, errMsg, main: true, package: pkg, class: cls, name: "createNotificationProgressByJs", keepAlive: false, params: [{ "name": "options", "type": "UTSSDKModulesUtsProgressNotificationCreateNotificationProgressOptionsJSONObject" }], return: "" });
+  const cancelNotificationProgress = /* @__PURE__ */ initUTSProxyFunction(false, { moduleName, moduleType, errMsg, main: true, package: pkg, class: cls, name: "cancelNotificationProgressByJs", keepAlive: false, params: [], return: "" });
+  const finishNotificationProgress = /* @__PURE__ */ initUTSProxyFunction(false, { moduleName, moduleType, errMsg, main: true, package: pkg, class: cls, name: "finishNotificationProgressByJs", keepAlive: false, params: [{ "name": "options", "type": "UTSSDKModulesUtsProgressNotificationFinishNotificationProgressOptionsJSONObject" }], return: "" });
+  const _imports_0 = "/uni_modules/uni-upgrade-center-app/static/app/bg_top.png";
+  const _imports_1 = "/uni_modules/uni-upgrade-center-app/static/app/app_update_close.png";
+  const localFilePathKey = "UNI_ADMIN_UPGRADE_CENTER_LOCAL_FILE_PATH";
+  let downloadTask = null;
+  let openSchemePromise;
+  const _sfc_main$1 = {
+    emits: ["close", "show"],
+    data() {
+      return {
+        // 从之前下载安装
+        installForBeforeFilePath: "",
+        // 安装
+        installed: false,
+        installing: false,
+        // 下载
+        downloadSuccess: false,
+        downloading: false,
+        downLoadPercent: 0,
+        downloadedSize: 0,
+        packageFileSize: 0,
+        tempFilePath: "",
+        // 要安装的本地包地址
+        // 默认安装包信息
+        title: "更新日志",
+        contents: "",
+        version: "",
+        is_mandatory: false,
+        url: "",
+        platform: [],
+        store_list: null,
+        // 可自定义属性
+        subTitle: "发现新版本",
+        downLoadBtnTextiOS: "立即跳转更新",
+        downLoadBtnText: "立即下载更新",
+        downLoadingText: "安装包下载中，请稍后",
+        shown: true
+      };
+    },
+    onLoad({ local_storage_key }) {
+      if (!local_storage_key) {
+        formatAppLog("error", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:130", "local_storage_key为空，请检查后重试");
+        uni.navigateBack();
+        return;
+      }
+      const localPackageInfo = uni.getStorageSync(local_storage_key);
+      if (!localPackageInfo) {
+        formatAppLog("error", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:137", "安装包信息为空，请检查后重试");
+        uni.navigateBack();
+        return;
+      }
+      this.setLocalPackageInfo(localPackageInfo);
+    },
+    onBackPress() {
+      if (this.is_mandatory)
+        return true;
+      if (!this.needNotificationProgress)
+        downloadTask && downloadTask.abort();
+    },
+    onHide() {
+      openSchemePromise = null;
+    },
+    computed: {
+      isWGT() {
+        return this.type === "wgt";
+      },
+      isNativeApp() {
+        return this.type === "native_app";
+      },
+      isiOS() {
+        return this.platform.indexOf(platform_iOS) !== -1;
+      },
+      isAndroid() {
+        return this.platform.indexOf(platform_Android) !== -1;
+      },
+      isHarmony() {
+        return this.platform.indexOf(platform_Harmony) !== -1;
+      },
+      isApplicationStore() {
+        return !this.isWGT && this.isNativeApp && (this.isiOS || this.isHarmony);
+      },
+      needNotificationProgress() {
+        return this.platform.indexOf(platform_iOS) === -1 && !this.is_mandatory && !this.isHarmony;
+      }
+    },
+    methods: {
+      show(shown, localPackageInfo) {
+      },
+      setLocalPackageInfo(localPackageInfo) {
+        const requiredKey = ["version", "url", "type"];
+        for (let key in localPackageInfo) {
+          if (requiredKey.indexOf(key) !== -1 && !localPackageInfo[key]) {
+            formatAppLog("error", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:195", `参数 ${key} 必填，请检查后重试`);
+            uni.navigateBack();
+            return;
+          }
+        }
+        Object.assign(this, localPackageInfo);
+        this.checkLocalStoragePackage();
+      },
+      checkLocalStoragePackage() {
+        const localFilePathRecord = uni.getStorageSync(localFilePathKey);
+        if (localFilePathRecord) {
+          const { version, savedFilePath, installed } = localFilePathRecord;
+          if (!installed && compare(version, this.version) === 0) {
+            this.downloadSuccess = true;
+            this.installForBeforeFilePath = savedFilePath;
+            this.tempFilePath = savedFilePath;
+          } else {
+            this.deleteSavedFile(savedFilePath);
+          }
+        }
+      },
+      askAbortDownload() {
+        uni.showModal({
+          title: "是否取消下载？",
+          cancelText: "否",
+          confirmText: "是",
+          success: (res) => {
+            if (res.confirm) {
+              downloadTask && downloadTask.abort();
+              if (this.needNotificationProgress) {
+                cancelNotificationProgress();
+              }
+              uni.navigateBack();
+            }
+          }
+        });
+      },
+      async closeUpdate() {
+        if (this.downloading) {
+          if (this.is_mandatory) {
+            return uni.showToast({
+              title: "下载中，请稍后……",
+              icon: "none",
+              duration: 500
+            });
+          }
+          if (!this.needNotificationProgress) {
+            this.askAbortDownload();
+            return;
+          }
+        }
+        if (!this.needNotificationProgress && this.downloadSuccess && this.tempFilePath) {
+          await this.saveFile(this.tempFilePath, this.version);
+        }
+        uni.navigateBack();
+      },
+      updateApp() {
+        this.checkStoreScheme().catch(() => {
+          this.downloadPackage();
+        }).finally(() => {
+          openSchemePromise = null;
+        });
+      },
+      // 跳转应用商店
+      checkStoreScheme() {
+        const storeList = (this.store_list || []).filter((item) => item.enable);
+        if (storeList && storeList.length) {
+          storeList.sort((cur, next) => next.priority - cur.priority).map((item) => item.scheme).reduce((promise, cur, curIndex) => {
+            openSchemePromise = (promise || (promise = Promise.reject())).catch(() => {
+              return new Promise((resolve, reject) => {
+                plus.runtime.openURL(cur, (err) => {
+                  reject(err);
+                });
+              });
+            });
+            return openSchemePromise;
+          }, openSchemePromise);
+          return openSchemePromise;
+        }
+        return Promise.reject();
+      },
+      downloadPackage() {
+        this.downloading = true;
+        downloadTask = uni.downloadFile({
+          url: this.url,
+          success: (res) => {
+            if (res.statusCode == 200) {
+              if (this.isWGT && res.tempFilePath.split(".").slice(-1)[0] !== "wgt") {
+                const failCallback = (e2) => {
+                  formatAppLog("log", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:311", "[FILE RENAME FAIL]：", JSON.stringify(e2));
+                };
+                plus.io.resolveLocalFileSystemURL(
+                  res.tempFilePath,
+                  (entry) => {
+                    entry.getParent((parent) => {
+                      const newName = `new_wgt_${Date.now()}.wgt`;
+                      entry.copyTo(
+                        parent,
+                        newName,
+                        (res2) => {
+                          this.tempFilePath = res2.fullPath;
+                          this.downLoadComplete();
+                        },
+                        failCallback
+                      );
+                    }, failCallback);
+                  },
+                  failCallback
+                );
+              } else {
+                this.tempFilePath = res.tempFilePath;
+                this.downLoadComplete();
+              }
+            } else {
+              formatAppLog("log", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:341", "下载错误：" + JSON.stringify(res));
+              this.downloadFail();
+            }
+          },
+          fail: (err) => {
+            formatAppLog("log", "at uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue:346", "下载错误：" + JSON.stringify(err));
+            this.downloadFail();
+          }
+        });
+        downloadTask.onProgressUpdate((res) => {
+          this.downLoadPercent = res.progress;
+          this.downloadedSize = (res.totalBytesWritten / Math.pow(1024, 2)).toFixed(2);
+          this.packageFileSize = (res.totalBytesExpectedToWrite / Math.pow(1024, 2)).toFixed(2);
+          if (this.needNotificationProgress && !this.downloadSuccess) {
+            createNotificationProgress({
+              title: "升级中心正在下载安装包……",
+              content: `${this.downLoadPercent}%`,
+              progress: this.downLoadPercent,
+              onClick: () => {
+                this.askAbortDownload();
+              }
+            });
+          }
+        });
+        if (this.needNotificationProgress) {
+          uni.navigateBack();
+        }
+      },
+      downloadFail() {
+        const errMsg2 = "下载失败，请点击重试";
+        this.downloadSuccess = false;
+        this.downloading = false;
+        this.downLoadPercent = 0;
+        this.downloadedSize = 0;
+        this.packageFileSize = 0;
+        this.downLoadBtnText = errMsg2;
+        downloadTask = null;
+        if (this.needNotificationProgress) {
+          finishNotificationProgress({
+            title: "升级包下载失败",
+            content: "请重新检查更新"
+          });
+        }
+      },
+      downLoadComplete() {
+        this.downloadSuccess = true;
+        this.downloading = false;
+        this.downLoadPercent = 0;
+        this.downloadedSize = 0;
+        this.packageFileSize = 0;
+        downloadTask = null;
+        if (this.needNotificationProgress) {
+          finishNotificationProgress({
+            title: "安装升级包",
+            content: "下载完成"
+          });
+          this.installPackage();
+          return;
+        }
+        if (this.is_mandatory) {
+          this.installPackage();
+        }
+      },
+      installPackage() {
+        if (this.isWGT) {
+          this.installing = true;
+        }
+        plus.runtime.install(
+          this.tempFilePath,
+          {
+            force: false
+          },
+          async (res) => {
+            this.installing = false;
+            this.installed = true;
+            if (this.isWGT) {
+              if (this.is_mandatory) {
+                uni.showLoading({
+                  icon: "none",
+                  title: "安装成功，正在重启……"
+                });
+                setTimeout(() => {
+                  uni.hideLoading();
+                  this.restart();
+                }, 1e3);
+              }
+            } else {
+              const localFilePathRecord = uni.getStorageSync(localFilePathKey);
+              uni.setStorageSync(localFilePathKey, {
+                ...localFilePathRecord,
+                installed: true
+              });
+            }
+          },
+          async (err) => {
+            if (this.installForBeforeFilePath) {
+              await this.deleteSavedFile(this.installForBeforeFilePath);
+              this.installForBeforeFilePath = "";
+            }
+            this.installing = false;
+            this.installed = false;
+            uni.showModal({
+              title: "更新失败，请重新下载",
+              content: err.message,
+              showCancel: false
+            });
+          }
+        );
+        if (!this.isWGT && !this.is_mandatory) {
+          uni.navigateBack();
+        }
+      },
+      restart() {
+        this.installed = false;
+        plus.runtime.restart();
+      },
+      saveFile(tempFilePath, version) {
+        return new Promise((resolve, reject) => {
+          uni.saveFile({
+            tempFilePath,
+            success({ savedFilePath }) {
+              uni.setStorageSync(localFilePathKey, {
+                version,
+                savedFilePath
+              });
+            },
+            complete() {
+              resolve();
+            }
+          });
+        });
+      },
+      deleteSavedFile(filePath) {
+        uni.removeStorageSync(localFilePathKey);
+        return uni.removeSavedFile({
+          filePath
+        });
+      },
+      jumpToApplicationStore() {
+        plus.runtime.openURL(this.url);
+      }
+    }
+  };
+  function _sfc_render(_ctx, _cache, $props, $setup, $data, $options) {
+    return $data.shown ? (vue.openBlock(), vue.createElementBlock("view", {
+      key: 0,
+      class: "mask flex-center"
+    }, [
+      vue.createElementVNode("view", { class: "content botton-radius" }, [
+        vue.createElementVNode("view", { class: "content-top" }, [
+          vue.createElementVNode(
+            "text",
+            { class: "content-top-text" },
+            vue.toDisplayString($data.title),
+            1
+            /* TEXT */
+          ),
+          vue.createElementVNode("image", {
+            class: "content-top",
+            style: { "top": "0" },
+            width: "100%",
+            height: "100%",
+            src: _imports_0
+          })
+        ]),
+        vue.createElementVNode("view", { class: "content-header" }),
+        vue.createElementVNode("view", { class: "content-body" }, [
+          vue.createElementVNode("view", { class: "title" }, [
+            vue.createElementVNode(
+              "text",
+              null,
+              vue.toDisplayString($data.subTitle),
+              1
+              /* TEXT */
+            ),
+            vue.createElementVNode(
+              "text",
+              { class: "content-body-version" },
+              vue.toDisplayString($data.version),
+              1
+              /* TEXT */
+            )
+          ]),
+          vue.createElementVNode("view", { class: "body" }, [
+            vue.createElementVNode("scroll-view", {
+              class: "box-des-scroll",
+              "scroll-y": "true"
+            }, [
+              vue.createElementVNode(
+                "text",
+                { class: "box-des" },
+                vue.toDisplayString($data.contents),
+                1
+                /* TEXT */
+              )
+            ])
+          ]),
+          vue.createElementVNode("view", { class: "footer flex-center" }, [
+            $options.isApplicationStore ? (vue.openBlock(), vue.createElementBlock(
+              "button",
+              {
+                key: 0,
+                class: "content-button",
+                style: { "border": "none", "color": "#fff" },
+                plain: "",
+                onClick: _cache[0] || (_cache[0] = (...args) => $options.jumpToApplicationStore && $options.jumpToApplicationStore(...args))
+              },
+              vue.toDisplayString($data.downLoadBtnTextiOS),
+              1
+              /* TEXT */
+            )) : (vue.openBlock(), vue.createElementBlock(
+              vue.Fragment,
+              { key: 1 },
+              [
+                !$data.downloadSuccess ? (vue.openBlock(), vue.createElementBlock(
+                  vue.Fragment,
+                  { key: 0 },
+                  [
+                    $data.downloading ? (vue.openBlock(), vue.createElementBlock("view", {
+                      key: 0,
+                      class: "progress-box flex-column"
+                    }, [
+                      vue.createElementVNode("progress", {
+                        class: "progress",
+                        percent: $data.downLoadPercent,
+                        activeColor: "#3DA7FF",
+                        "show-info": "",
+                        "stroke-width": "10"
+                      }, null, 8, ["percent"]),
+                      vue.createElementVNode("view", { style: { "width": "100%", "font-size": "28rpx", "display": "flex", "justify-content": "space-around" } }, [
+                        vue.createElementVNode(
+                          "text",
+                          null,
+                          vue.toDisplayString($data.downLoadingText),
+                          1
+                          /* TEXT */
+                        ),
+                        vue.createElementVNode(
+                          "text",
+                          null,
+                          "(" + vue.toDisplayString($data.downloadedSize) + "/" + vue.toDisplayString($data.packageFileSize) + "M)",
+                          1
+                          /* TEXT */
+                        )
+                      ])
+                    ])) : (vue.openBlock(), vue.createElementBlock(
+                      "button",
+                      {
+                        key: 1,
+                        class: "content-button",
+                        style: { "border": "none", "color": "#fff" },
+                        plain: "",
+                        onClick: _cache[1] || (_cache[1] = (...args) => $options.updateApp && $options.updateApp(...args))
+                      },
+                      vue.toDisplayString($data.downLoadBtnText),
+                      1
+                      /* TEXT */
+                    ))
+                  ],
+                  64
+                  /* STABLE_FRAGMENT */
+                )) : $data.downloadSuccess && !$data.installed ? (vue.openBlock(), vue.createElementBlock("button", {
+                  key: 1,
+                  class: "content-button",
+                  style: { "border": "none", "color": "#fff" },
+                  plain: "",
+                  loading: $data.installing,
+                  disabled: $data.installing,
+                  onClick: _cache[2] || (_cache[2] = (...args) => $options.installPackage && $options.installPackage(...args))
+                }, vue.toDisplayString($data.installing ? "正在安装……" : "下载完成，立即安装"), 9, ["loading", "disabled"])) : $data.installed && !$options.isWGT ? (vue.openBlock(), vue.createElementBlock("button", {
+                  key: 2,
+                  class: "content-button",
+                  style: { "border": "none", "color": "#fff" },
+                  plain: "",
+                  loading: $data.installing,
+                  disabled: $data.installing,
+                  onClick: _cache[3] || (_cache[3] = (...args) => $options.installPackage && $options.installPackage(...args))
+                }, " 安装未完成，点击安装 ", 8, ["loading", "disabled"])) : $data.installed && $options.isWGT ? (vue.openBlock(), vue.createElementBlock("button", {
+                  key: 3,
+                  class: "content-button",
+                  style: { "border": "none", "color": "#fff" },
+                  plain: "",
+                  onClick: _cache[4] || (_cache[4] = (...args) => $options.restart && $options.restart(...args))
+                }, "安装完毕，点击重启")) : vue.createCommentVNode("v-if", true)
+              ],
+              64
+              /* STABLE_FRAGMENT */
+            ))
+          ])
+        ]),
+        !$data.is_mandatory ? (vue.openBlock(), vue.createElementBlock("image", {
+          key: 0,
+          class: "close-img",
+          src: _imports_1,
+          onClick: _cache[5] || (_cache[5] = vue.withModifiers((...args) => $options.closeUpdate && $options.closeUpdate(...args), ["stop"]))
+        })) : vue.createCommentVNode("v-if", true)
+      ])
+    ])) : vue.createCommentVNode("v-if", true);
+  }
+  const UniModulesUniUpgradeCenterAppPagesUpgradePopup = /* @__PURE__ */ _export_sfc(_sfc_main$1, [["render", _sfc_render], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/uni_modules/uni-upgrade-center-app/pages/upgrade-popup.vue"]]);
   __definePage("pages/LoginPage/LoginPage", PagesLoginPageLoginPage);
   __definePage("pages/home/home", PagesHomeHome);
   __definePage("pages/bridge/bridge", PagesBridgeBridge);
@@ -20999,6 +22098,7 @@ ${i3}
   __definePage("pages/add-disease/add-disease", PagesAddDiseaseAddDisease);
   __definePage("pages/canvas/canvas", PagesCanvasCanvas);
   __definePage("pages/SystemSetting/SystemSetting", PagesSystemSettingSystemSetting);
+  __definePage("uni_modules/uni-upgrade-center-app/pages/upgrade-popup", UniModulesUniUpgradeCenterAppPagesUpgradePopup);
   const _sfc_main = {
     onLaunch: function() {
       formatAppLog("log", "at App.vue:4", "App Launch");
@@ -21010,7 +22110,7 @@ ${i3}
       formatAppLog("log", "at App.vue:10", "App Hide");
     }
   };
-  const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__file", "D:/VUE_code/uniapp/BuildingInspectorFrontend/App.vue"]]);
+  const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/App.vue"]]);
   function createApp() {
     const app = vue.createVueApp(App);
     const pinia = createPinia();

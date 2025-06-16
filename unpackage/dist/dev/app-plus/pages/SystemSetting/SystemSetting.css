@@ -105,11 +105,11 @@
   gap: 5px;
 }
 .code[data-v-524e171a] {
-  font-size: 14px;
+  font-size: 0.5rem;
   color: #333333;
 }
 .name[data-v-524e171a] {
-  font-size: 14px;
+  font-size: 0.4375rem;
   color: #999999;
 }
 .button[data-v-524e171a] {
@@ -118,7 +118,16 @@
   margin-left: auto;
 }
 .button uni-button[data-v-524e171a] {
-  padding: 0 15px;
+  height: 1rem;
+  width: 2.625rem;
+  padding: 0.125rem 0.375rem;
+  padding-top: 0.15625rem;
+  color: #ffffff;
+  background-color: var(--primary-color);
+  font-size: 0.46875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .model[data-v-524e171a] {
   display: flex;
@@ -186,19 +195,30 @@
   margin-left: 0 !important;
 }
 .inData[data-v-524e171a] {
+  width: 100%;
   display: flex;
   align-items: center;
-  margin-left: 10px;
-  margin-right: 10px;
+  justify-content: space-between;
+  padding: 0 0.3125rem;
   height: 48px;
+  box-sizing: border-box;
 }
 .inDataTitle[data-v-524e171a] {
   font-size: 0.625rem;
   color: #666666;
 }
-.inData uni-button[data-v-524e171a] {
-  margin-left: auto !important;
-  margin-right: 0;
+.functionButton[data-v-524e171a] {
+  color: #ffffff;
+  background-color: #1677ff;
+  height: 1rem;
+  width: 2.625rem;
+  padding: 0.125rem 0.375rem;
+  padding-top: 0.15625rem;
+  font-size: 0.46875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
 }
 .outData[data-v-524e171a] {
   display: flex;

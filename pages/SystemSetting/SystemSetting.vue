@@ -38,15 +38,15 @@
 		<view class="divider"></view>
 		<view class="outData">
 			<view class="outDataTitle">本地数据导出</view>
-			<button size="default" type="default" class="functionButton"
-				hover-class="is-hover" @click="handleLogin">数据导出</button>
+			<button size="default" type="default" class="functionButton" hover-class="is-hover"
+				@click="handleLogin">数据导出</button>
 		</view>
 		<view class="divider"></view>
 		<view class="versionApp">
 			<view class="appTitle">当前应用版本</view>
 			<view>{{versionNumber}}</view>
-			<button size="default" type="default" class="functionButton"
-				hover-class="is-hover" @click="checkUpdate">版本更新</button>
+			<button size="default" type="default" class="functionButton" hover-class="is-hover"
+				@click="onClickUpdate">版本更新</button>
 		</view>
 
 		<!-- 添加修改密码弹窗 -->
@@ -91,6 +91,7 @@
 	import {
 		async
 	} from 'rxjs';
+	import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 
 	// 获取用户信息
 	const userInfo = userStore();
@@ -306,37 +307,38 @@
 		}
 	};
 
-	const checkUpdate = () => {
+	const onClickUpdate = () => {
+		checkUpdate();
 		// 获取当前版本
-		plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
-			const currentVersion = wgtinfo.version;
-			console.log('当前版本：' + currentVersion);
+		// plus.runtime.getProperty(plus.runtime.appid, (wgtinfo) => {
+		// 	const currentVersion = wgtinfo.version;
+		// 	console.log('当前版本：' + currentVersion);
 
-			// 请求服务器获取最新版本信息
-			uni.request({
-				url: '', // 接口
-				success: (res) => {
-					const data = res.data;
-					if (data.version && this.compareVersion(data.version, currentVersion) > 0) {
-						// 有新版本
-						uni.showModal({
-							title: '更新提示',
-							content: data.desc || '有新版本可用，是否更新？',
-							success: (modalRes) => {
-								if (modalRes.confirm) {
-									this.downloadAndInstall(data.url);
-								}
-							}
-						});
-					} else {
-						console.log('已经是最新版本');
-					}
-				},
-				fail: (err) => {
-					console.error('检查更新失败', err);
-				}
-			});
-		});
+		// 	// 请求服务器获取最新版本信息
+		// 	uni.request({
+		// 		url: '', // 接口
+		// 		success: (res) => {
+		// 			const data = res.data;
+		// 			if (data.version && this.compareVersion(data.version, currentVersion) > 0) {
+		// 				// 有新版本
+		// 				uni.showModal({
+		// 					title: '更新提示',
+		// 					content: data.desc || '有新版本可用，是否更新？',
+		// 					success: (modalRes) => {
+		// 						if (modalRes.confirm) {
+		// 							this.downloadAndInstall(data.url);
+		// 						}
+		// 					}
+		// 				});
+		// 			} else {
+		// 				console.log('已经是最新版本');
+		// 			}
+		// 		},
+		// 		fail: (err) => {
+		// 			console.error('检查更新失败', err);
+		// 		}
+		// 	});
+		// });
 	}
 
 	//版本比较函数

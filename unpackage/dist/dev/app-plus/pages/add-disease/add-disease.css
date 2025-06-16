@@ -1861,6 +1861,14 @@
 		font-size: 0.625rem;
 		width: 100%;
 }
+.input-right-button[data-v-79f8b97c] {
+		background-color: #2979FF;
+		border-radius: 0.15625rem;
+		color: #fff;
+		margin-left: auto;
+		padding: 0.25rem 0.4375rem;
+		font-size: 0.5rem;
+}
 .line-select[data-v-79f8b97c] {
 		font-size: 0.5625rem;
 		padding: 0.25rem 0.4375rem;

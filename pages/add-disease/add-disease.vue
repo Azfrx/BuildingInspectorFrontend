@@ -2,14 +2,14 @@
 <template>
 	<view>
 		<!-- 新增病害时显示 -->
-    <view class="button-group-add" v-if="openMode === 'create'">
+		<view class="button-group-add" v-if="openMode === 'create'">
 			<button class="button-savetonext" @click="savetonextdisease">保存并复制到下一条</button>
 			<button class="button-save" @click="savedisease">保存</button>
 			<button class="button-cancle" @click="canceldisease">取消</button>
 		</view>
 
 		<!-- 编辑病害时显示 -->
-    <view class="button-group-edit" v-else-if="openMode === 'edit'">
+		<view class="button-group-edit" v-else-if="openMode === 'edit'">
 			<button class="button-before" @click="beforedisease">上一条</button>
 			<button class="button-next" @click="nextdisease">下一条</button>
 			<button class="button-delete" @click="deleteDisease">删除</button>
@@ -17,7 +17,7 @@
 			<button class="button-edit" @click="editDisease">编辑</button>
 		</view>
 
-    <!-- 历史病害时不显示 -->
+		<!-- 历史病害时不显示 -->
 
 
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
@@ -556,6 +556,7 @@
 					<view class="input-area-title">
 						<text style="color: red;">*</text>
 						<view>病害描述</view>
+						<view class="input-right-button" @click="createDescription()">生成病害描述</view>
 					</view>
 					<textarea class="input-area-content" v-model="description" placeholder="请填写病害信息" auto-height="" />
 				</view>
@@ -570,7 +571,7 @@
 					</view>
 				</view>
 
-        <view class="line-select" v-show="typePicker !== '其他'">
+				<view class="line-select" v-show="typePicker !== '其他'">
 					<view class="line-select-left">
 						<text style="color: red;">*</text>
 						<view>参与评定</view>
@@ -581,7 +582,7 @@
 					</view>
 				</view>
 
-        <view class="line-select" v-show="typePicker !== '其他'">
+				<view class="line-select" v-show="typePicker !== '其他'">
 					<view class="line-select-left">
 						<text style="color: red;">*</text>
 						<view>评定标度</view>
@@ -759,55 +760,64 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  reactive,
-  onMounted,
-  onUnmounted,
-  watch, computed
-} from 'vue';
-  import {
-    getObject, readDiseaseImages
-  } from '../../utils/readJsonNew.js';
+	import {
+		ref,
+		reactive,
+		onMounted,
+		onUnmounted,
+		watch,
+		computed
+	} from 'vue';
+	import {
+		getObject,
+		readDiseaseImages
+	} from '../../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages
 	} from '../../utils/writeNew.js';
-import {userStore} from "@/store";
-import {idStore} from "@/store/idStorage";
+	import {
+		userStore
+	} from "@/store";
+	import {
+		idStore
+	} from "@/store/idStorage";
+	import {
+		generateDiseaseDescription
+	} from "@/utils/diseaseDescriptionCreate.js"
 
 
-  //用户id
-  const userId = ref(20);
+	//用户id
+	const userId = ref(20);
 
-  const userInfo = userStore()
+	const userInfo = userStore()
 
-  const idStorageInfo = idStore();
+	const idStorageInfo = idStore();
 
-  //桥梁id
-  const buildingId = ref(0);
+	//桥梁id
+	const buildingId = ref(0);
 
-  // 通过计算属性获取URL中的bridgeId参数
-  const bridgeIdFromURL = computed(() => {
-    const pages = getCurrentPages();
-    if (pages.length > 0) {
-      const currentPage = pages[pages.length - 2];
-      const options = currentPage.$page?.options;
+	// 通过计算属性获取URL中的bridgeId参数
+	const bridgeIdFromURL = computed(() => {
+		const pages = getCurrentPages();
+		if (pages.length > 0) {
+			const currentPage = pages[pages.length - 2];
+			const options = currentPage.$page?.options;
 
-      if (options && options.bridgeId) {
-        return options.bridgeId;
-      }
-    }
-    return 0; // 默认值
-  });
+			if (options && options.bridgeId) {
+				return options.bridgeId;
+			}
+		}
+		return 0; // 默认值
+	});
 
-  // 监听bridgeIdFromURL的变化
-  watch(bridgeIdFromURL, (newVal) => {
-    if (newVal) {
-      buildingId.value = newVal;
-    }
-  });
+	// 监听bridgeIdFromURL的变化
+	watch(bridgeIdFromURL, (newVal) => {
+		if (newVal) {
+			buildingId.value = newVal;
+		}
+	});
 
-  const openMode = ref('history');
+	const openMode = ref('history');
 
 	const popup = ref(null);
 	const ADImgs = ref([]);
@@ -873,6 +883,19 @@ import {idStore} from "@/store/idStorage";
 			updateDiseaseDataList(numValue);
 		}
 	});
+
+	const createDescription = () => {
+		console.log("diseaseDataList.value", diseaseDataList.value);
+		const createDescription = generateDiseaseDescription({
+			componentName: getComponentName(), // 构件名称
+			diseaseType: type.value, // 病害类型
+			diseasePosition: position.value, // 病害位置
+			crackFeature: crackType.value, // 裂缝特征数组
+			defects: diseaseDataList.value, // 病害定量数据数组
+			counts: quantity.value, // 病害数量
+		})
+		description.value = createDescription
+	}
 
 	// 更新缺损数据列表
 	const updateDiseaseDataList = (count) => {
@@ -1064,10 +1087,10 @@ import {idStore} from "@/store/idStorage";
 	}, {
 		text: '4',
 		value: 4
-	},{
-    text: '5',
-    value: 5
-  }]);
+	}, {
+		text: '5',
+		value: 5
+	}]);
 	const levelindex = ref(1);
 
 
@@ -1276,10 +1299,10 @@ import {idStore} from "@/store/idStorage";
 
 		// 更新病害位置选项 - 在确认选择后更新
 		updateDiseasePositionOptions();
-    typePicker.value = '';
-    positionPicker.value = '';
-    typeInput.value = '';
-    positionInput.value = '';
+		typePicker.value = '';
+		positionPicker.value = '';
+		typeInput.value = '';
+		positionInput.value = '';
 	}
 
 	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
@@ -1293,9 +1316,9 @@ import {idStore} from "@/store/idStorage";
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
-    if (bridgeIdFromURL.value) {
-      buildingId.value = bridgeIdFromURL.value;
-    }
+		if (bridgeIdFromURL.value) {
+			buildingId.value = bridgeIdFromURL.value;
+		}
 		// 获取结构数据（先执行，并等待完成）
 		await fetchStructureData();
 
@@ -1308,7 +1331,7 @@ import {idStore} from "@/store/idStorage";
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
 			isEdit.value = true;
-      openMode.value = 'edit';
+			openMode.value = 'edit';
 
 			// 如果传递了数据，则解析并填充表单
 			if (options.data) {
@@ -1326,29 +1349,29 @@ import {idStore} from "@/store/idStorage";
 					});
 				}
 			}
-		} else if(options && options.mode === 'history'){
-      openMode.value = 'history';
-      // 如果传递了数据，则解析并填充表单
-      if (options.data) {
-        try {
-          const diseaseData = JSON.parse(decodeURIComponent(options.data));
-          console.log('接收到的编辑数据:', diseaseData);
+		} else if (options && options.mode === 'history') {
+			openMode.value = 'history';
+			// 如果传递了数据，则解析并填充表单
+			if (options.data) {
+				try {
+					const diseaseData = JSON.parse(decodeURIComponent(options.data));
+					console.log('接收到的编辑数据:', diseaseData);
 
-          // 填充表单数据
-          fillFormWithData(diseaseData);
-        } catch (error) {
-          console.error('解析编辑数据失败:', error);
-          uni.showToast({
-            title: '加载编辑数据失败',
-            icon: 'none'
-          });
-        }
-      }
-      // 非编辑模式，初始化三级选择器
-      // initMultiPickerColumns();
-    }else{
-      openMode.value = 'create';
-    }
+					// 填充表单数据
+					fillFormWithData(diseaseData);
+				} catch (error) {
+					console.error('解析编辑数据失败:', error);
+					uni.showToast({
+						title: '加载编辑数据失败',
+						icon: 'none'
+					});
+				}
+			}
+			// 非编辑模式，初始化三级选择器
+			// initMultiPickerColumns();
+		} else {
+			openMode.value = 'create';
+		}
 
 		// 初始化过滤后的构件编号列表
 		filteredComponentCodes.value = [...componentCode.value];
@@ -1504,13 +1527,13 @@ import {idStore} from "@/store/idStorage";
 			participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
 		}
 
-    if(data.nature){
-        // 根据nature的值更新natureindex
-        const natureItem = nature.value.find(item => item.text === data.nature);
-        if (natureItem) {
-            natureindex.value = natureItem.value;
-        }
-    }
+		if (data.nature) {
+			// 根据nature的值更新natureindex
+			const natureItem = nature.value.find(item => item.text === data.nature);
+			if (natureItem) {
+				natureindex.value = natureItem.value;
+			}
+		}
 
 		// 设置评定标度（uni-data-checkbox格式）
 		if (data.level) {
@@ -1661,9 +1684,9 @@ import {idStore} from "@/store/idStorage";
 
 		// 处理图片数据
 		if (data.images && Array.isArray(data.images)) {
-      console.log('开始处理图片数据......:', data.images);
-      const imagesPaths =  readDiseaseImages(userInfo.username, buildingId.value, data.images);
-      console.log('处理后的图片路径:', imagesPaths);
+			console.log('开始处理图片数据......:', data.images);
+			const imagesPaths = readDiseaseImages(userInfo.username, buildingId.value, data.images);
+			console.log('处理后的图片路径:', imagesPaths);
 			fileList.value = imagesPaths.map((url, index) => ({
 				name: `图片${index + 1}`,
 				url: url,
@@ -1674,7 +1697,7 @@ import {idStore} from "@/store/idStorage";
 
 		// AD图片
 		if (data.ADImgs && Array.isArray(data.ADImgs)) {
-      const ADImgsPaths =  readDiseaseImages(userInfo.username, buildingId.value, data.ADImgs);
+			const ADImgsPaths = readDiseaseImages(userInfo.username, buildingId.value, data.ADImgs);
 			ADImgs.value = ADImgsPaths.map((src, index) => ({
 				src: src
 			}));
@@ -1734,7 +1757,7 @@ import {idStore} from "@/store/idStorage";
 
 				// 找到当前病害的索引
 				const currentIndex = validDiseases.findIndex(item => String(item.id) === String(
-				currentId));
+					currentId));
 				if (currentIndex === -1) {
 					uni.showToast({
 						title: '无法找到当前病害',
@@ -1787,7 +1810,7 @@ import {idStore} from "@/store/idStorage";
 
 				// 找到当前病害的索引
 				const currentIndex = validDiseases.findIndex(item => String(item.id) === String(
-				currentId));
+					currentId));
 				if (currentIndex === -1) {
 					uni.showToast({
 						title: '无法找到当前病害',
@@ -1991,7 +2014,7 @@ import {idStore} from "@/store/idStorage";
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
 			type: type.value, // 直接使用type.value而不是通过索引获取
-      nature:  nature.value[natureindex.value].text,
+			nature: nature.value[natureindex.value].text,
 			participateAssess: participateAssessindex.value.toString(),
 			biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
 			projectId: idStorageInfo.projectId,
@@ -2065,114 +2088,114 @@ import {idStore} from "@/store/idStorage";
 
 	// 保存图片的公共方法
 	const saveImagesAndUpdateDisease = async (diseaseData, isEditMode) => {
-			// 获取当前页面选项
-			const pages = getCurrentPages();
-			const currentPage = pages[pages.length - 1];
-			const options = currentPage.$page?.options;
+		// 获取当前页面选项
+		const pages = getCurrentPages();
+		const currentPage = pages[pages.length - 1];
+		const options = currentPage.$page?.options;
 
-			// 如果是编辑模式，获取原始数据中的图片和AD图片
-			let originalImages = [];
-			let originalADImages = [];
-			if (isEditMode && options && options.data) {
-				try {
-					const originalData = JSON.parse(decodeURIComponent(options.data));
-					originalImages = originalData.images || [];
-					originalADImages = originalData.ADImgs || [];
-				} catch (error) {
-					console.error('解析原始数据失败:', error);
-				}
-			}
-
-			// 获取当前文件列表中的图片URL
-			const currentImageUrls = fileList.value.map(img => img.url);
-			const currentADImages = ADImgs.value.map(img => img.src);
-
-			// 找出需要保留的原有图片（没有被删除的）
-			const ADImagesToKeep = originalADImages.filter(img =>
-				currentADImages.includes(img)
-			);
-			const imagesToKeep = originalImages.filter(img =>
-				currentImageUrls.includes(img)
-			);
-
-			// 找出需要删除的原有图片（被删除的）
-			const imagesToDelete = originalImages.filter(img =>
-				!currentImageUrls.includes(img)
-			);
-			const ADImagesToDelete = originalADImages.filter(img =>
-				!currentADImages.includes(img)
-			);
-
-			// 找出新增的图片（不在原有图片列表中的）
-			const newImages = currentImageUrls.filter(url =>
-				!originalImages.includes(url)
-			);
-			const newADImages = currentADImages.filter(src =>
-				!originalADImages.includes(src)
-			);
-
-			// 如果有需要删除的图片，删除它们
-			if (imagesToDelete.length > 0) {
-				imagesToDelete.forEach(imgPath => {
-					plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
-						fileEntry.remove(() => {
-							console.log('删除原有图片成功:', imgPath);
-						}, error => {
-							console.error('删除原有图片失败:', error);
-						});
-					}, error => {
-						console.error('无法访问原有图片:', error);
-					});
-				});
-			}
-			if (ADImagesToDelete.length > 0) {
-				ADImagesToDelete.forEach(imgPath => {
-					plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
-						fileEntry.remove(() => {
-							console.log('删除原有AD图片成功:', imgPath);
-						}, error => {
-							console.error('删除原有AD图片失败:', error);
-						});
-					}, error => {
-						console.error('无法访问原有AD图片:', error);
-					});
-				});
-			}
-
+		// 如果是编辑模式，获取原始数据中的图片和AD图片
+		let originalImages = [];
+		let originalADImages = [];
+		if (isEditMode && options && options.data) {
 			try {
-				// 处理常规图片
-				if (newImages.length > 0) {
-					const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
-					// 合并保留的原有图片和新保存的图片
-					diseaseData.images = [...imagesToKeep, ...savedPaths];
-					console.log('已保存病害图片，合并保存的图片列表:', diseaseData.images);
-				} else {
-					// 如果没有新增图片，直接使用保留的原有图片
-					diseaseData.images = imagesToKeep;
-				}
-
-				// 处理AD图片
-				if (newADImages.length > 0) {
-					const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
-					// 合并保留的原有图片和新保存的图片
-					diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
-					console.log('已保存AD图片，合并保存的图片列表:', diseaseData.ADImgs);
-				} else {
-					// 如果没有新增图片，直接使用保留的原有图片
-					diseaseData.ADImgs = ADImagesToKeep;
-				}
-
-				console.log('已保存病害图片，更新病害数据...:', diseaseData);
-				// 根据模式发送不同的事件
-				if (isEditMode) {
-					uni.$emit('updateDisease', diseaseData);
-				} else {
-					uni.$emit('addNewDisease', diseaseData);
-				}
+				const originalData = JSON.parse(decodeURIComponent(options.data));
+				originalImages = originalData.images || [];
+				originalADImages = originalData.ADImgs || [];
 			} catch (error) {
-				console.error('保存图片过程中发生错误:', error);
-				plus.nativeUI.toast('保存图片失败');
+				console.error('解析原始数据失败:', error);
 			}
+		}
+
+		// 获取当前文件列表中的图片URL
+		const currentImageUrls = fileList.value.map(img => img.url);
+		const currentADImages = ADImgs.value.map(img => img.src);
+
+		// 找出需要保留的原有图片（没有被删除的）
+		const ADImagesToKeep = originalADImages.filter(img =>
+			currentADImages.includes(img)
+		);
+		const imagesToKeep = originalImages.filter(img =>
+			currentImageUrls.includes(img)
+		);
+
+		// 找出需要删除的原有图片（被删除的）
+		const imagesToDelete = originalImages.filter(img =>
+			!currentImageUrls.includes(img)
+		);
+		const ADImagesToDelete = originalADImages.filter(img =>
+			!currentADImages.includes(img)
+		);
+
+		// 找出新增的图片（不在原有图片列表中的）
+		const newImages = currentImageUrls.filter(url =>
+			!originalImages.includes(url)
+		);
+		const newADImages = currentADImages.filter(src =>
+			!originalADImages.includes(src)
+		);
+
+		// 如果有需要删除的图片，删除它们
+		if (imagesToDelete.length > 0) {
+			imagesToDelete.forEach(imgPath => {
+				plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
+					fileEntry.remove(() => {
+						console.log('删除原有图片成功:', imgPath);
+					}, error => {
+						console.error('删除原有图片失败:', error);
+					});
+				}, error => {
+					console.error('无法访问原有图片:', error);
+				});
+			});
+		}
+		if (ADImagesToDelete.length > 0) {
+			ADImagesToDelete.forEach(imgPath => {
+				plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
+					fileEntry.remove(() => {
+						console.log('删除原有AD图片成功:', imgPath);
+					}, error => {
+						console.error('删除原有AD图片失败:', error);
+					});
+				}, error => {
+					console.error('无法访问原有AD图片:', error);
+				});
+			});
+		}
+
+		try {
+			// 处理常规图片
+			if (newImages.length > 0) {
+				const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
+				// 合并保留的原有图片和新保存的图片
+				diseaseData.images = [...imagesToKeep, ...savedPaths];
+				console.log('已保存病害图片，合并保存的图片列表:', diseaseData.images);
+			} else {
+				// 如果没有新增图片，直接使用保留的原有图片
+				diseaseData.images = imagesToKeep;
+			}
+
+			// 处理AD图片
+			if (newADImages.length > 0) {
+				const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
+				// 合并保留的原有图片和新保存的图片
+				diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
+				console.log('已保存AD图片，合并保存的图片列表:', diseaseData.ADImgs);
+			} else {
+				// 如果没有新增图片，直接使用保留的原有图片
+				diseaseData.ADImgs = ADImagesToKeep;
+			}
+
+			console.log('已保存病害图片，更新病害数据...:', diseaseData);
+			// 根据模式发送不同的事件
+			if (isEditMode) {
+				uni.$emit('updateDisease', diseaseData);
+			} else {
+				uni.$emit('addNewDisease', diseaseData);
+			}
+		} catch (error) {
+			console.error('保存图片过程中发生错误:', error);
+			plus.nativeUI.toast('保存图片失败');
+		}
 	};
 
 	// 添加一个函数来获取当前选择的构件名称,可能为picker中直接选取，也可能为其他时自行输入
@@ -2300,8 +2323,8 @@ import {idStore} from "@/store/idStorage";
 		// 清空图片列表
 		fileList.value = [];
 
-    // 清空AD图片列表
-    ADImgs.value = [];
+		// 清空AD图片列表
+		ADImgs.value = [];
 
 		// 将编辑模式切换为新增模式
 		isEdit.value = false;
@@ -3433,6 +3456,15 @@ import {idStore} from "@/store/idStorage";
 		margin-top: 10rpx;
 		font-size: 20rpx;
 		width: 100%;
+	}
+
+	.input-right-button {
+		background-color: #2979FF;
+		border-radius: 5rpx;
+		color: #fff;
+		margin-left: auto;
+		padding: 8rpx 14rpx;
+		font-size: 16rpx;
 	}
 
 	.line-select {
