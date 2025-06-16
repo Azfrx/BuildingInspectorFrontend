@@ -143,9 +143,8 @@ const loadDiseaseData = async () => {
 
         if (response.data.code === 0) {
           const bridgedata = response.data.data;
-          bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
-          bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
-
+          // bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
+          // bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
           if(bridgedata.property.children[7].children[0].value !== '/'){
             try {
               const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);

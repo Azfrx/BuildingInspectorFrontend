@@ -7,7 +7,7 @@
                             @confirm="search" />
       </view>
 
-      <button class="add-button" @click="submitZip"> 提交</button>
+      <button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交</button>
 			<button class="add-button" @click="addNewDisease">新增病害</button>
 		</view>
 
@@ -48,7 +48,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
-import { getDisease } from '../utils/readJsonNew.js';
+import { getDisease, readDiseaseCommit } from '../utils/readJsonNew.js';
 import {saveBridgeZip, saveDiseaseImages, setDisease, setObject} from '../utils/writeNew.js';
 import {userStore} from "@/store";
 import {idStore} from "@/store/idStorage";
@@ -61,6 +61,8 @@ const showAddPopup = ref(false);
 const diseaseList = ref([]);
 const isJson = ref(1);//1为有json数据，0为无json数据
 const userInfo = userStore();
+// 控制提交按钮是否可点击
+const submitButtonEnabled = ref(false);
 
 //用户id
 const userId = ref(20);
@@ -237,10 +239,10 @@ const handleDeleteDisease = async (deleteData) => {
       return;
     }
     
-    // 直接从数组中移除
-    diseaseList.value.splice(index, 1);
-    console.log(`病害ID:${deleteData.id}已删除`);
-    
+    // 将commit_type置为2表示已删除，而不是直接从数组中移除
+    diseaseList.value[index].commit_type = 2;
+    console.log(`病害ID:${deleteData.id}已标记为删除(commit_type=2)`);
+  
     // 准备要保存的数据
     const currentYear = new Date().getFullYear().toString();
     
@@ -251,12 +253,12 @@ const handleDeleteDisease = async (deleteData) => {
       diseases: diseaseList.value
     };
     
-    console.log('准备保存删除后的数据:', saveData);
+    console.log('准备保存更新后的数据:', saveData);
     
     // 调用setDisease方法保存数据
     await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
     
-    console.log('删除保存成功');
+    console.log('删除标记保存成功');
   } catch (error) {
     console.error('保存删除失败:', error);
     uni.showToast({
@@ -318,6 +320,10 @@ const filteredDiseases = computed(() => {
 	const selectedType = tabItems.value[activeTab.value];
 	
 	return diseaseList.value.filter(item => {
+		// 过滤掉已删除的数据（commit_type=2）
+		if (item.commit_type === 2) {
+			return false;
+		}
 		// 按类型过滤 - 使用component.grandObjectName
 		if (item.component?.grandObjectName !== selectedType) {
 			return false;
@@ -344,9 +350,9 @@ const changeTab = (index) => {
 };
 
 const getTpyeItemCount = (type) => {
-	// 根据type获取该类型的病害数量
+	// 根据type获取该类型的病害数量，排除已删除的数据(commit_type=2)
 	return diseaseList.value.filter(item => 
-    item.component?.grandObjectName === type
+    item.component?.grandObjectName === type && item.commit_type !== 2
   ).length;
 };
 
@@ -367,8 +373,8 @@ const deleteDisease = (itemId) => {
 				// 查找病害数据
 				const index = diseaseList.value.findIndex(item => item.id === itemId);
 				if (index !== -1) {
-					// 直接从数组中移除
-					diseaseList.value.splice(index, 1);
+					// 将commit_type置为2表示已删除，而不是直接从数组中移除
+					diseaseList.value[index].commit_type = 2;
 
 					const currentYear = new Date().getFullYear().toString();
 					
@@ -467,6 +473,37 @@ const submitZip = async () => {
     }
 
     if (responseData && responseData.code === 0) {
+      // 提交成功，将所有commit_type为1的病害记录更新为0
+      let hasChanges = false;
+      
+      // 遍历diseaseList，将commit_type为1的记录更新为0
+      diseaseList.value.forEach(disease => {
+        if (disease.commit_type === 1) {
+          disease.commit_type = 0;
+          hasChanges = true;
+        }
+      });
+      
+      // 如果有更改，保存更新后的数据
+      if (hasChanges) {
+        const currentYear = new Date().getFullYear().toString();
+        
+        // 构建要保存的数据对象
+        const saveData = {
+          year: parseInt(currentYear),
+          buildingId: parseInt(buildingId.value),
+          diseases: diseaseList.value
+        };
+        
+        try {
+          // 保存更新后的数据
+          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+          console.log('成功更新病害提交状态');
+        } catch (error) {
+          console.error('更新病害提交状态失败:', error);
+        }
+      }
+      
       uni.showToast({
         title: '提交成功',
         icon: 'success',
@@ -490,6 +527,25 @@ const submitZip = async () => {
     });
   }
 };
+
+// 检查是否有未提交的病害记录
+const checkUncommittedDiseases = async () => {
+  try {
+    const currentYear = new Date().getFullYear().toString();
+    const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, buildingId.value, currentYear);
+    console.log('检查未提交病害结果:', hasUncommittedDiseases);
+    submitButtonEnabled.value = hasUncommittedDiseases;
+  } catch (error) {
+    console.error('检查未提交病害出错:', error);
+    submitButtonEnabled.value = false;
+  }
+};
+
+// 监听diseaseList的变化
+watch(diseaseList, async () => {
+  console.log('diseaseList发生变化，检查未提交病害');
+  await checkUncommittedDiseases();
+}, { deep: true }); // 使用deep: true确保监听对象内部属性的变化
 
 // 组件挂载时
 onMounted(() => {
@@ -523,6 +579,9 @@ onMounted(() => {
     // 通过回调函数返回结果
     data.callback(filteredList);
   });
+  
+  // 初始检查未提交病害
+  checkUncommittedDiseases();
 });
 
 // 组件卸载时
@@ -570,9 +629,18 @@ onUnmounted(() => {
 	background-color: #0F4687;
 	color: white;
 	font-size: 15rpx;
-	height: 40rpx;
-	line-height: 30rpx;
+	height: 36rpx;
+	line-height: 26rpx;
 	padding: 5rpx 10rpx;
+}
+.submit-button {
+  margin-left:100rpx;
+  background-color: #0F4687;
+  color: white;
+  font-size: 15rpx;
+  height: 36rpx;
+  line-height: 26rpx;
+  padding: 5rpx 10rpx;
 }
 
 /* 内容布局 */

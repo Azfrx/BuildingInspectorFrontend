@@ -770,7 +770,8 @@
 	} from 'vue';
 	import {
 		getObject,
-		readDiseaseImages
+		readDiseaseImages,
+    removeDiseaseImage
 	} from '../../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages
@@ -1866,6 +1867,7 @@
 			saveWithoutNavigateBack(diseaseData);
 		}
 		diseaseData.id = getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime();
+    diseaseData.local_id = getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime();
 	}
 
 	// 创建病害数据对象的方法
@@ -2040,7 +2042,9 @@
 			componentId: null, // 组件ID也设为null
 			buildingId: buildingId.value,
 			images: [], // 初始化为空数组，等待图片保存后更新
-			ADImgs: [] // 添加AD图片字段
+			ADImgs: [], // 添加AD图片字段
+      commit_type: 1, //0为已提交 1为未提交 2为删除
+      local_id:getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime(),
 		};
 	}
 
@@ -2093,109 +2097,79 @@
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 
-		// 如果是编辑模式，获取原始数据中的图片和AD图片
-		let originalImages = [];
-		let originalADImages = [];
-		if (isEditMode && options && options.data) {
-			try {
-				const originalData = JSON.parse(decodeURIComponent(options.data));
-				originalImages = originalData.images || [];
-				originalADImages = originalData.ADImgs || [];
-			} catch (error) {
-				console.error('解析原始数据失败:', error);
+			// 如果是编辑模式，获取原始数据中的图片和AD图片
+			let originalImages = [];
+			let originalADImages = [];
+			if (isEditMode && options && options.data) {
+				try {
+					const originalData = JSON.parse(decodeURIComponent(options.data));
+					// 将相对路径转为绝对路径
+					originalImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.images) || [];
+					originalADImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.ADImgs) || [];
+				} catch (error) {
+					console.error('解析原始数据失败:', error);
+				}
 			}
-		}
 
 		// 获取当前文件列表中的图片URL
 		const currentImageUrls = fileList.value.map(img => img.url);
 		const currentADImages = ADImgs.value.map(img => img.src);
 
-		// 找出需要保留的原有图片（没有被删除的）
-		const ADImagesToKeep = originalADImages.filter(img =>
-			currentADImages.includes(img)
-		);
-		const imagesToKeep = originalImages.filter(img =>
-			currentImageUrls.includes(img)
-		);
+			try {
+				// 1. 先保存当前所有病害图片
+				let imageRelativePaths = [];
+				if (currentImageUrls.length > 0) {
+					imageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentImageUrls);
+					diseaseData.images = imageRelativePaths;
+					console.log('保存当前所有病害图片，相对路径:', imageRelativePaths);
+				} else {
+					diseaseData.images = [];
+				}
 
-		// 找出需要删除的原有图片（被删除的）
-		const imagesToDelete = originalImages.filter(img =>
-			!currentImageUrls.includes(img)
-		);
-		const ADImagesToDelete = originalADImages.filter(img =>
-			!currentADImages.includes(img)
-		);
+				// 2. 保存当前所有AD图片
+				let adImageRelativePaths = [];
+				if (currentADImages.length > 0) {
+					adImageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentADImages);
+					diseaseData.ADImgs = adImageRelativePaths;
+					console.log('保存当前所有AD图片，相对路径:', adImageRelativePaths);
+				} else {
+					diseaseData.ADImgs = [];
+				}
 
-		// 找出新增的图片（不在原有图片列表中的）
-		const newImages = currentImageUrls.filter(url =>
-			!originalImages.includes(url)
-		);
-		const newADImages = currentADImages.filter(src =>
-			!originalADImages.includes(src)
-		);
+				// 3. 删除所有原有病害图片
+				if (originalImages.length > 0) {
+					await removeDiseaseImage(originalImages)
+						.then(result => {
+							console.log('删除原有病害图片成功:', result);
+						})
+						.catch(error => {
+							console.error('删除原有病害图片失败:', error);
+						});
+				}
 
-		// 如果有需要删除的图片，删除它们
-		if (imagesToDelete.length > 0) {
-			imagesToDelete.forEach(imgPath => {
-				plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
-					fileEntry.remove(() => {
-						console.log('删除原有图片成功:', imgPath);
-					}, error => {
-						console.error('删除原有图片失败:', error);
-					});
-				}, error => {
-					console.error('无法访问原有图片:', error);
-				});
-			});
-		}
-		if (ADImagesToDelete.length > 0) {
-			ADImagesToDelete.forEach(imgPath => {
-				plus.io.resolveLocalFileSystemURL(imgPath, fileEntry => {
-					fileEntry.remove(() => {
-						console.log('删除原有AD图片成功:', imgPath);
-					}, error => {
-						console.error('删除原有AD图片失败:', error);
-					});
-				}, error => {
-					console.error('无法访问原有AD图片:', error);
-				});
-			});
-		}
+				// 4. 删除所有原有AD图片
+				if (originalADImages.length > 0) {
+					await removeDiseaseImage(originalADImages)
+						.then(result => {
+							console.log('删除原有AD图片成功:', result);
+						})
+						.catch(error => {
+							console.error('删除原有AD图片失败:', error);
+						});
+				}
 
-		try {
-			// 处理常规图片
-			if (newImages.length > 0) {
-				const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
-				// 合并保留的原有图片和新保存的图片
-				diseaseData.images = [...imagesToKeep, ...savedPaths];
-				console.log('已保存病害图片，合并保存的图片列表:', diseaseData.images);
-			} else {
-				// 如果没有新增图片，直接使用保留的原有图片
-				diseaseData.images = imagesToKeep;
+				console.log('已保存病害图片，更新病害数据...:', diseaseData);
+				// 根据模式发送不同的事件
+				if (isEditMode) {
+					uni.$emit('updateDisease', diseaseData);
+				} else {
+					uni.$emit('addNewDisease', diseaseData);
+				}
+			} catch (error) {
+				console.error('保存图片过程中发生错误:', error);
+				plus.nativeUI.toast('保存图片失败');
+				throw error; // 重新抛出错误，让调用者知道发生了错误
 			}
-
-			// 处理AD图片
-			if (newADImages.length > 0) {
-				const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
-				// 合并保留的原有图片和新保存的图片
-				diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
-				console.log('已保存AD图片，合并保存的图片列表:', diseaseData.ADImgs);
-			} else {
-				// 如果没有新增图片，直接使用保留的原有图片
-				diseaseData.ADImgs = ADImagesToKeep;
-			}
-
-			console.log('已保存病害图片，更新病害数据...:', diseaseData);
-			// 根据模式发送不同的事件
-			if (isEditMode) {
-				uni.$emit('updateDisease', diseaseData);
-			} else {
-				uni.$emit('addNewDisease', diseaseData);
-			}
-		} catch (error) {
-			console.error('保存图片过程中发生错误:', error);
-			plus.nativeUI.toast('保存图片失败');
-		}
 	};
 
 	// 添加一个函数来获取当前选择的构件名称,可能为picker中直接选取，也可能为其他时自行输入
@@ -2289,7 +2263,6 @@
 						// 创建带有isDelete标记的对象
 						const deleteData = {
 							id: currentId,
-							isDelete: true
 						};
 
 						// 使用事件总线通知bridge-disease页面
@@ -2327,7 +2300,8 @@
 		ADImgs.value = [];
 
 		// 将编辑模式切换为新增模式
-		isEdit.value = false;
+		// isEdit.value = false;
+    openMode.value = 'create';
 
 		// 简单提示
 		uni.showToast({
@@ -2342,6 +2316,7 @@
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();
+    diseaseData.commit_type = 1;
 
 		// 验证数据完整性
 		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {

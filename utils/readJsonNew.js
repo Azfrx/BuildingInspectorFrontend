@@ -207,3 +207,174 @@ export function getFrontPhoto(userName, buildingId) {
     trackPath(path);
     return getJsonData(path);
 }
+
+export function removeDiseaseImage(paths) {
+    return new Promise((resolve, reject) => {
+        try {
+            // 如果是数组，处理多个文件
+            if (Array.isArray(paths)) {
+                const results = [];
+                const errors = [];
+                
+                // 处理每个文件
+                paths.forEach((absolutePath, index) => {
+                    plus.io.resolveLocalFileSystemURL(absolutePath, (entry) => {
+                        entry.remove(
+                            () => {
+                                console.log(`成功删除图片: ${absolutePath}`);
+                                results.push({
+                                    path: absolutePath,
+                                    success: true
+                                });
+                                
+                                // 当所有文件处理完成后，返回结果
+                                if (results.length + errors.length === paths.length) {
+                                    resolve({
+                                        success: errors.length === 0,
+                                        results: results,
+                                        errors: errors
+                                    });
+                                }
+                            },
+                            (err) => {
+                                console.error(`删除图片失败: ${absolutePath}`, err);
+                                errors.push({
+                                    path: absolutePath,
+                                    error: err.message || '删除失败'
+                                });
+                                
+                                // 当所有文件处理完成后，返回结果
+                                if (results.length + errors.length === paths.length) {
+                                    resolve({
+                                        success: errors.length === 0,
+                                        results: results,
+                                        errors: errors
+                                    });
+                                }
+                            }
+                        );
+                    }, (err) => {
+                        console.error(`无法解析文件路径: ${absolutePath}`, err);
+                        errors.push({
+                            path: absolutePath,
+                            error: '无法解析文件路径'
+                        });
+                        
+                        // 当所有文件处理完成后，返回结果
+                        if (results.length + errors.length === paths.length) {
+                            resolve({
+                                success: errors.length === 0,
+                                results: results,
+                                errors: errors
+                            });
+                        }
+                    });
+                });
+            } else {
+                // 处理单个文件
+                const absolutePath = paths;
+                
+                plus.io.resolveLocalFileSystemURL(absolutePath, (entry) => {
+                    entry.remove(
+                        () => {
+                            console.log(`成功删除图片: ${absolutePath}`);
+                            resolve({
+                                success: true,
+                                path: absolutePath
+                            });
+                        },
+                        (err) => {
+                            console.error(`删除图片失败: ${absolutePath}`, err);
+                            reject({
+                                success: false,
+                                path: absolutePath,
+                                error: err.message || '删除失败'
+                            });
+                        }
+                    );
+                }, (err) => {
+                    console.error(`无法解析文件路径: ${absolutePath}`, err);
+                    reject({
+                        success: false,
+                        path: absolutePath,
+                        error: '无法解析文件路径'
+                    });
+                });
+            }
+        } catch (error) {
+            console.error('删除图片时发生错误:', error);
+            reject({
+                success: false,
+                error: error.message || '删除过程中发生错误'
+            });
+        }
+    });
+}
+
+export async function readDiseaseCommit(userName, buildingId, yearId){
+    try {
+        // 获取病害数据并等待Promise解析
+        const diseaseData = await getDisease(userName, buildingId, yearId);
+        
+        // 检查diseases数组是否存在
+        if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+            console.log('没有找到病害数据或数据格式不正确');
+            return false;
+        }
+        
+        // 使用some方法检查是否有任何病害的commit_type为1（未提交）
+        const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commit_type === 1);
+        
+        console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
+        return hasUncommittedDiseases;
+    } catch (error) {
+        console.error('检查病害提交状态时出错:', error);
+        return false; // 出错时返回false
+    }
+}
+
+export async function readDiseaseComponent(userName, buildingId, biObjectId){
+    const currentYear = new Date().getFullYear().toString();
+    
+    try {
+        // 获取当前年份的病害数据
+        const diseaseData = await getDisease(userName, buildingId, currentYear);
+        
+        // 检查数据是否有效
+        if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+            console.log('没有找到病害数据或数据格式不正确');
+            return 0; // 如果没有数据或格式不正确，返回0
+        }
+        
+        // 用于存储已经统计过的code，避免重复计数
+        const countedCodes = new Set();
+        
+        // 统计符合条件的病害数量
+        let count = 0;
+        
+        // 遍历所有病害
+        diseaseData.diseases.forEach(disease => {
+            // 检查component字段是否存在且biObjectId匹配
+            if (disease.component && 
+                disease.component.biObjectId === biObjectId && 
+                disease.component.code) {
+                
+                const code = disease.component.code;
+                
+                // 检查这个code是否已经被统计过
+                if (!countedCodes.has(code)) {
+                    // 如果没有被统计过，计数加1并将code添加到Set中
+                    count++;
+                    countedCodes.add(code);
+                }
+            }
+        });
+        
+        console.log(`biObjectId ${biObjectId} 下不重复的code数量: ${count}`);
+        return count;
+        
+    } catch (error) {
+        console.error('统计病害组件出错:', error);
+        return 0; // 出错时返回0
+    }
+}

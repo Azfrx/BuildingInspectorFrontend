@@ -215,7 +215,6 @@ const handleSwipeClick = (e) => {
 					// 创建删除数据对象
 					const deleteData = {
 						id: props.item.id,
-						isDelete: true
 					};
 					
 					// 使用事件发送删除请求
