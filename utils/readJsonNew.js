@@ -333,6 +333,7 @@ export async function readDiseaseCommit(userName, buildingId, yearId){
     }
 }
 
+// 统计某个构件中病害构件数量
 export async function readDiseaseComponent(userName, buildingId, biObjectId){
     const currentYear = new Date().getFullYear().toString();
     
@@ -354,6 +355,11 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId){
         
         // 遍历所有病害
         diseaseData.diseases.forEach(disease => {
+            // 排除已删除的病害记录(commit_type为2)
+            if (disease.commit_type === 2) {
+                return; // 跳过此次循环
+            }
+            
             // 检查component字段是否存在且biObjectId匹配
             if (disease.component && 
                 disease.component.biObjectId === biObjectId && 
@@ -376,5 +382,74 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId){
     } catch (error) {
         console.error('统计病害组件出错:', error);
         return 0; // 出错时返回0
+    }
+}
+
+// 判断某一构建下面是否有病害
+export async function isExistDisease(userName, buildingId, componentName){
+    try {
+        // 获取当前年份
+        const currentYear = new Date().getFullYear().toString();
+        
+        // 获取当前年份的病害数据
+        const diseaseData = await getDisease(userName, buildingId, currentYear);
+        
+        // 检查数据是否有效
+        if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+            console.log('没有找到病害数据或数据格式不正确');
+            return false; // 如果没有数据或格式不正确，返回false
+        }
+        
+        // 遍历所有病害记录，检查是否存在匹配的componentName
+        const exists = diseaseData.diseases.some(disease => {
+            // 排除已删除的病害记录(commit_type为2)
+            if (disease.commit_type === 2) {
+                return false;
+            }
+            
+            // 检查component字段是否存在且name匹配
+            return disease.component && disease.component.name === componentName;
+        });
+        
+        console.log(`检查componentName为 ${componentName} 的病害${exists ? '存在' : '不存在'}`);
+        return exists;
+        
+    } catch (error) {
+        console.error('检查病害是否存在与某个构件上时出错:', error);
+        return false; // 出错时返回false
+    }
+}
+
+// 判断某一构建下面是否只有一个病害
+export async function isOnlyDisease(userName, buildingId, componentName){
+    try {
+        // 获取当前年份
+        const currentYear = new Date().getFullYear().toString();
+        
+        // 获取当前年份的病害数据
+        const diseaseData = await getDisease(userName, buildingId, currentYear);
+        
+        // 检查数据是否有效
+        if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+            console.log('没有找到病害数据或数据格式不正确');
+            return false; // 如果没有数据或格式不正确，返回false
+        }
+        
+        // 过滤出与指定componentName匹配且未删除的病害记录
+        const matchingDiseases = diseaseData.diseases.filter(disease => 
+            disease.component && 
+            disease.component.name === componentName && 
+            disease.commit_type !== 2  // 排除已删除的病害记录
+        );
+        
+        // 检查是否只有一个匹配的记录
+        const isOnly = matchingDiseases.length === 1;
+        
+        console.log(`componentName为 ${componentName} 的病害${isOnly ? '只有一个' : '有多个或没有'}`);
+        return isOnly;
+        
+    } catch (error) {
+        console.error('检查病害是否唯一时出错:', error);
+        return false; // 出错时返回false
     }
 }
