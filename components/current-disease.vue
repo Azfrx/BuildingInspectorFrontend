@@ -34,7 +34,6 @@
 					:key="index" 
 					:item="item"
           :editMode="'edit'"
-					@delete="deleteDisease" 
 				/>
 				<view v-if="filteredDiseases.length === 0" class="placeholder">
 					暂无数据
@@ -360,50 +359,6 @@ const addNewDisease = () => {
 	// 打开新增病害页面，不再传递类型参数
 	uni.navigateTo({
 		url: `/pages/add-disease/add-disease`
-	});
-};
-
-const deleteDisease = (itemId) => {
-	// 确认删除
-	uni.showModal({
-		title: '确认删除',
-		content: '确定要删除这条病害记录吗？',
-		success: (res) => {
-			if (res.confirm) {
-				// 查找病害数据
-				const index = diseaseList.value.findIndex(item => item.id === itemId);
-				if (index !== -1) {
-					// 将commit_type置为2表示已删除，而不是直接从数组中移除
-					diseaseList.value[index].commit_type = 2;
-
-					const currentYear = new Date().getFullYear().toString();
-					
-					// 构建要保存的数据对象
-					const saveData = {
-						year: parseInt(currentYear),
-						buildingId: parseInt(buildingId.value),
-						diseases: diseaseList.value
-					};
-					
-					// 调用setDisease方法保存数据
-					setDisease(userInfo.username, buildingId.value, currentYear, saveData)
-						.then(() => {
-							// 删除成功提示
-							uni.showToast({
-								title: '删除成功',
-								icon: 'success'
-							});
-						})
-						.catch(error => {
-							console.error('保存删除失败:', error);
-							uni.showToast({
-								title: '删除失败',
-								icon: 'none'
-							});
-						});
-				}
-			}
-		}
 	});
 };
 
