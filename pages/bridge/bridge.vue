@@ -76,6 +76,9 @@
 	import {
 		interval
 	} from 'rxjs';
+	import {
+		getAllDataAndSetToLocal
+	} from '@/utils/request.js';
 	// 获取当前日期字符串 (格式: YY-MM-DD)
 	function getCurrentDateStr() {
 		const now = new Date();
@@ -152,10 +155,14 @@
 							}
 						});
 						console.log('获取到的项目数据:', projectResponse.data);
-						if (projectResponse.data.code === 0) {
-							await getProjectsTasks(projectResponse.data.data.projects, token)
+						//所有项目信息
+						const allProjects = projectResponse.data.data.projects || [];
+						await getAllDataAndSetToLocal(allProjects, token, userInfo.username);
 
-							const repeatYears = projectResponse.data.data.projects.map(item => {
+						if (projectResponse.data.code === 0) {
+							await getProjectsTasks(allProjects, token)
+
+							const repeatYears = allProjects.map(item => {
 								return item.year
 							})
 							years.value = [...new Set(repeatYears)].sort((a, b) => b - a)

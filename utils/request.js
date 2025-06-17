@@ -2,11 +2,59 @@ import {
 	saveBridgeImage,
 	saveDiseaseImages,
 	setDisease,
-	setProperty
+	setProperty,
+	setTask
 } from "@/utils/writeNew";
 
-export async function propertyRequest(username, buildingId, token) {
+export async function getAllDataAndSetToLocal(projects, token, username) {
+	//所有的项目 每一个项目去获取它下面的任务
+	projects.forEach(async (project) => {
+		const projectId = project.id;
+		// console.log('开始获取BuildingId:', projectId);
+		// buildings也就是tasks 每一个桥梁是一个检测任务
+		const buildings = await getBuildingIdByProjectId(projectId, token, username);
+		buildings.forEach(async (building) => {
+			const buildingId = building.buildingId;
+			// console.log('开始获取桥梁卡片数据:', buildingId);
+			await propertyRequest(buildingId, token, username);
 
+			// console.log('开始获取历史病害数据:', buildingId);
+			await diseaseRequest(buildingId, token, username);
+
+			// console.log('开始获取桥梁构件数据:', buildingId);
+			await getStructureInfoByBuildingId(buildingId, token, username);
+		})
+	});
+}
+
+const getBuildingIdByProjectId = async (projectId, token, username) => {
+	try {
+		const response = await uni.request({
+			url: `http://60.205.13.156:8090/api/project/${projectId}/task`,
+			method: 'GET',
+			header: {
+				'Authorization': `${token}`
+			}
+		});
+		if (response.data.code === 0) {
+			setTask(username, projectId, response.data)
+			return response.data.data.tasks
+		} else {
+			uni.showToast({
+				title: response.data.msg || '获取BuildingId失败',
+				icon: 'none'
+			});
+		}
+	} catch (error) {
+		console.error('获取BuildingId失败:', error);
+		uni.showToast({
+			title: '获取数据失败，请稍后重试',
+			icon: 'none'
+		});
+	}
+}
+
+export async function propertyRequest(buildingId, token, username) {
 	try {
 		const response = await uni.request({
 			url: `http://60.205.13.156:8090/api/building/${buildingId}/property`,
@@ -15,7 +63,6 @@ export async function propertyRequest(username, buildingId, token) {
 				'Authorization': `${token}`
 			}
 		});
-		console.log('从后端接口获取到的桥梁卡片数据:', response.data.data);
 
 		if (response.data.code === 0) {
 			const bridgedata = response.data.data;
@@ -49,9 +96,6 @@ export async function propertyRequest(username, buildingId, token) {
 					// 保留原始值，避免字段消失
 				}
 			}
-
-			console.log('保存后的桥梁卡片数据:', bridgedata);
-			//调用接口将数据存在本地(disease)
 			await setProperty(username, buildingId, bridgedata);
 		} else {
 			uni.showToast({
@@ -68,7 +112,7 @@ export async function propertyRequest(username, buildingId, token) {
 	}
 }
 
-export async function diseaseRequest(username, buildingId, token) {
+export async function diseaseRequest(buildingId, token, username) {
 	console.log('开始从后端获取历史病害数据...........');
 	try {
 		const response = await uni.request({
@@ -110,5 +154,32 @@ export async function diseaseRequest(username, buildingId, token) {
 	} catch (error) {
 		console.error('获取历史病害数据失败:', error);
 	}
+}
 
+const getStructureInfoByBuildingId = async (buildingId, token, username) => {
+	try {
+		const response = await uni.request({
+			//寫死 因爲只有55是最新數據
+			url: `http://60.205.13.156:8090/api/building/${buildingId}/object`,
+			method: 'GET',
+			header: {
+				'Authorization': `${token}`
+			}
+		});
+		if (response.data.code === 0) {
+			//将数据存在本地 提交前初始化数据
+			setObject(username, buildingId, response.data.data);
+		} else {
+			uni.showToast({
+				title: response.data.msg || '获取桥梁构件数据失败',
+				icon: 'none'
+			});
+		}
+	} catch (error) {
+		console.error('获取桥梁构件数据失败:', error);
+		uni.showToast({
+			title: '获取桥梁构件数据失败，请稍后重试',
+			icon: 'none'
+		});
+	}
 }

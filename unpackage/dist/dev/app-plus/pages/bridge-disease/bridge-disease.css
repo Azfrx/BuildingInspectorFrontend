@@ -821,9 +821,18 @@
 	background-color: #0F4687;
 	color: white;
 	font-size: 0.46875rem;
-	height: 1.25rem;
-	line-height: 0.9375rem;
+	height: 1.125rem;
+	line-height: 0.8125rem;
 	padding: 0.15625rem 0.3125rem;
+}
+.submit-button[data-v-0ae3eae8] {
+  margin-left:3.125rem;
+  background-color: #0F4687;
+  color: white;
+  font-size: 0.46875rem;
+  height: 1.125rem;
+  line-height: 0.8125rem;
+  padding: 0.15625rem 0.3125rem;
 }
 
 /* 内容布局 */

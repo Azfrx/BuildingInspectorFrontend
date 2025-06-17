@@ -105,7 +105,7 @@ if (uni.restoreGlobal) {
     trackPath(path);
     return setJsonData(path, data);
   }
-  function setObject(userName, buildingId, data) {
+  function setObject$1(userName, buildingId, data) {
     const path = DOC_BASE_PATH$1 + FILE_NAMING$1.object(userName, buildingId);
     trackPath(path);
     return setJsonData(path, data);
@@ -2257,6 +2257,112 @@ This will fail in production.`);
     trackPath(path);
     return getJsonData(path);
   }
+  function removeDiseaseImage(paths) {
+    return new Promise((resolve, reject) => {
+      try {
+        if (Array.isArray(paths)) {
+          const results = [];
+          const errors = [];
+          paths.forEach((absolutePath, index) => {
+            plus.io.resolveLocalFileSystemURL(absolutePath, (entry) => {
+              entry.remove(
+                () => {
+                  formatAppLog("log", "at utils/readJsonNew.js:224", `成功删除图片: ${absolutePath}`);
+                  results.push({
+                    path: absolutePath,
+                    success: true
+                  });
+                  if (results.length + errors.length === paths.length) {
+                    resolve({
+                      success: errors.length === 0,
+                      results,
+                      errors
+                    });
+                  }
+                },
+                (err) => {
+                  formatAppLog("error", "at utils/readJsonNew.js:240", `删除图片失败: ${absolutePath}`, err);
+                  errors.push({
+                    path: absolutePath,
+                    error: err.message || "删除失败"
+                  });
+                  if (results.length + errors.length === paths.length) {
+                    resolve({
+                      success: errors.length === 0,
+                      results,
+                      errors
+                    });
+                  }
+                }
+              );
+            }, (err) => {
+              formatAppLog("error", "at utils/readJsonNew.js:257", `无法解析文件路径: ${absolutePath}`, err);
+              errors.push({
+                path: absolutePath,
+                error: "无法解析文件路径"
+              });
+              if (results.length + errors.length === paths.length) {
+                resolve({
+                  success: errors.length === 0,
+                  results,
+                  errors
+                });
+              }
+            });
+          });
+        } else {
+          const absolutePath = paths;
+          plus.io.resolveLocalFileSystemURL(absolutePath, (entry) => {
+            entry.remove(
+              () => {
+                formatAppLog("log", "at utils/readJsonNew.js:280", `成功删除图片: ${absolutePath}`);
+                resolve({
+                  success: true,
+                  path: absolutePath
+                });
+              },
+              (err) => {
+                formatAppLog("error", "at utils/readJsonNew.js:287", `删除图片失败: ${absolutePath}`, err);
+                reject({
+                  success: false,
+                  path: absolutePath,
+                  error: err.message || "删除失败"
+                });
+              }
+            );
+          }, (err) => {
+            formatAppLog("error", "at utils/readJsonNew.js:296", `无法解析文件路径: ${absolutePath}`, err);
+            reject({
+              success: false,
+              path: absolutePath,
+              error: "无法解析文件路径"
+            });
+          });
+        }
+      } catch (error) {
+        formatAppLog("error", "at utils/readJsonNew.js:305", "删除图片时发生错误:", error);
+        reject({
+          success: false,
+          error: error.message || "删除过程中发生错误"
+        });
+      }
+    });
+  }
+  async function readDiseaseCommit(userName, buildingId, yearId) {
+    try {
+      const diseaseData = await getDisease(userName, buildingId, yearId);
+      if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+        formatAppLog("log", "at utils/readJsonNew.js:321", "没有找到病害数据或数据格式不正确");
+        return false;
+      }
+      const hasUncommittedDiseases = diseaseData.diseases.some((disease) => disease.commit_type === 1);
+      formatAppLog("log", "at utils/readJsonNew.js:328", `检查未提交病害: ${hasUncommittedDiseases ? "有未提交病害" : "全部已提交"}`);
+      return hasUncommittedDiseases;
+    } catch (error) {
+      formatAppLog("error", "at utils/readJsonNew.js:331", "检查病害提交状态时出错:", error);
+      return false;
+    }
+  }
   var extendStatics = function(d2, b2) {
     extendStatics = Object.setPrototypeOf || { __proto__: [] } instanceof Array && function(d3, b3) {
       d3.__proto__ = b3;
@@ -3011,6 +3117,155 @@ This will fail in production.`);
     }
     return timer(period, period, scheduler);
   }
+  async function getAllDataAndSetToLocal(projects, token, username) {
+    projects.forEach(async (project) => {
+      const projectId2 = project.id;
+      const buildings = await getBuildingIdByProjectId(projectId2, token, username);
+      buildings.forEach(async (building) => {
+        const buildingId = building.buildingId;
+        await propertyRequest(buildingId, token, username);
+        await diseaseRequest(buildingId, token, username);
+        await getStructureInfoByBuildingId(buildingId, token, username);
+      });
+    });
+  }
+  const getBuildingIdByProjectId = async (projectId2, token, username) => {
+    try {
+      const response = await uni.request({
+        url: `http://60.205.13.156:8090/api/project/${projectId2}/task`,
+        method: "GET",
+        header: {
+          "Authorization": `${token}`
+        }
+      });
+      if (response.data.code === 0) {
+        setTask(username, projectId2, response.data);
+        return response.data.data.tasks;
+      } else {
+        uni.showToast({
+          title: response.data.msg || "获取BuildingId失败",
+          icon: "none"
+        });
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/request.js:49", "获取BuildingId失败:", error);
+      uni.showToast({
+        title: "获取数据失败，请稍后重试",
+        icon: "none"
+      });
+    }
+  };
+  async function propertyRequest(buildingId, token, username) {
+    try {
+      const response = await uni.request({
+        url: `http://60.205.13.156:8090/api/building/${buildingId}/property`,
+        method: "GET",
+        header: {
+          "Authorization": `${token}`
+        }
+      });
+      if (response.data.code === 0) {
+        const bridgedata = response.data.data;
+        if (bridgedata.property.children[7].children[0].value !== "/") {
+          try {
+            const savedImageUrl = await saveBridgeImage(username, buildingId, bridgedata.property.children[7].children[0].value);
+            if (savedImageUrl) {
+              bridgedata.property.children[7].children[0].value = savedImageUrl;
+            } else {
+              formatAppLog("error", "at utils/request.js:78", "保存图片1失败: 返回的URL为空");
+            }
+          } catch (error) {
+            formatAppLog("error", "at utils/request.js:81", "保存图片1出错:", error);
+          }
+        }
+        if (bridgedata.property.children[7].children[1].value !== "/") {
+          try {
+            const savedImageUrl = await saveBridgeImage(username, buildingId, bridgedata.property.children[7].children[1].value);
+            if (savedImageUrl) {
+              bridgedata.property.children[7].children[1].value = savedImageUrl;
+            } else {
+              formatAppLog("error", "at utils/request.js:92", "保存图片2失败: 返回的URL为空");
+            }
+          } catch (error) {
+            formatAppLog("error", "at utils/request.js:95", "保存图片2出错:", error);
+          }
+        }
+        await setProperty(username, buildingId, bridgedata);
+      } else {
+        uni.showToast({
+          title: response.data.msg || "获取数据失败",
+          icon: "none"
+        });
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/request.js:107", "获取桥梁卡片数据失败:", error);
+      uni.showToast({
+        title: "获取数据失败，请稍后重试",
+        icon: "none"
+      });
+    }
+  }
+  async function diseaseRequest(buildingId, token, username) {
+    formatAppLog("log", "at utils/request.js:116", "开始从后端获取历史病害数据...........");
+    try {
+      const response = await uni.request({
+        //桥梁id改为全局
+        url: `http://60.205.13.156:8090/api/building/${buildingId}/disease`,
+        method: "GET",
+        header: {
+          "Authorization": `${token}`
+        }
+      });
+      formatAppLog("log", "at utils/request.js:126", "从后端接口获取到的历史病害数据:", response.data.data);
+      if (response.data.code === 0) {
+        for (const yearDisease of response.data.data) {
+          const year = yearDisease.year;
+          for (const disease of yearDisease.diseases) {
+            if (disease.images && Array.isArray(disease.images)) {
+              disease.images = await saveDiseaseImages(username, buildingId, disease.images);
+            }
+            if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
+              disease.ADImgs = await saveDiseaseImages(username, buildingId, disease.ADImgs);
+            }
+          }
+          await setDisease(username, buildingId, year, yearDisease);
+        }
+      } else {
+        uni.showToast({
+          title: response.data.msg || "获取数据失败",
+          icon: "none"
+        });
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/request.js:155", "获取历史病害数据失败:", error);
+    }
+  }
+  const getStructureInfoByBuildingId = async (buildingId, token, username) => {
+    try {
+      const response = await uni.request({
+        //寫死 因爲只有55是最新數據
+        url: `http://60.205.13.156:8090/api/building/${buildingId}/object`,
+        method: "GET",
+        header: {
+          "Authorization": `${token}`
+        }
+      });
+      if (response.data.code === 0) {
+        setObject(username, buildingId, response.data.data);
+      } else {
+        uni.showToast({
+          title: response.data.msg || "获取桥梁构件数据失败",
+          icon: "none"
+        });
+      }
+    } catch (error) {
+      formatAppLog("error", "at utils/request.js:179", "获取桥梁构件数据失败:", error);
+      uni.showToast({
+        title: "获取桥梁构件数据失败，请稍后重试",
+        icon: "none"
+      });
+    }
+  };
   const _imports_0$5 = "/static/image/RightOutline.svg";
   const _sfc_main$z = {
     __name: "bridge",
@@ -3050,12 +3305,12 @@ This will fail in production.`);
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at pages/bridge/bridge.vue:132", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at pages/bridge/bridge.vue:135", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           infoData.value = responseLogin.data;
           if (userInfo.username) {
             dir.value = getUserDir2(userInfo.username);
-            formatAppLog("log", "at pages/bridge/bridge.vue:140", "当前用户目录:", dir.value);
+            formatAppLog("log", "at pages/bridge/bridge.vue:143", "当前用户目录:", dir.value);
             idInfo.setDir(dir.value);
           }
           if (token) {
@@ -3068,14 +3323,16 @@ This will fail in production.`);
                     "Authorization": `${token}`
                   }
                 });
-                formatAppLog("log", "at pages/bridge/bridge.vue:154", "获取到的项目数据:", projectResponse.data);
+                formatAppLog("log", "at pages/bridge/bridge.vue:157", "获取到的项目数据:", projectResponse.data);
+                const allProjects = projectResponse.data.data.projects || [];
+                await getAllDataAndSetToLocal(allProjects, token, userInfo.username);
                 if (projectResponse.data.code === 0) {
-                  await getProjectsTasks(projectResponse.data.data.projects, token);
-                  const repeatYears = projectResponse.data.data.projects.map((item) => {
+                  await getProjectsTasks(allProjects, token);
+                  const repeatYears = allProjects.map((item) => {
                     return item.year;
                   });
                   years.value = [...new Set(repeatYears)].sort((a2, b2) => b2 - a2);
-                  formatAppLog("log", "at pages/bridge/bridge.vue:162", years.value);
+                  formatAppLog("log", "at pages/bridge/bridge.vue:169", years.value);
                   initData.value = projectResponse.data;
                   const fileArray = await getAllFirstLevelDirs();
                   let userDirExists = false;
@@ -3090,10 +3347,10 @@ This will fail in production.`);
                   if (!userDirExists) {
                     await setProject(userInfo.username, initData.value);
                   } else {
-                    formatAppLog("log", "at pages/bridge/bridge.vue:183", "用户目录已存在，跳过创建");
+                    formatAppLog("log", "at pages/bridge/bridge.vue:190", "用户目录已存在，跳过创建");
                   }
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:187", "API返回错误:", projectResponse.data.msg);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:194", "API返回错误:", projectResponse.data.msg);
                   uni.showToast({
                     title: projectResponse.data.msg || "获取数据失败",
                     icon: "none"
@@ -3101,13 +3358,13 @@ This will fail in production.`);
                 }
               } catch (error) {
                 if (error.errMsg && (error.errMsg.includes("request:fail") || error.errMsg.includes("timeout"))) {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:197", "网络请求失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:204", "网络请求失败:", error);
                   uni.showToast({
                     title: "网络连接失败，请检查网络",
                     icon: "none"
                   });
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:203", "获取项目数据失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:210", "获取项目数据失败:", error);
                   if (!initData.value || !initData.value.data) {
                     uni.showToast({
                       title: "获取数据失败，请稍后重试",
@@ -3119,14 +3376,14 @@ This will fail in production.`);
             };
             await getData();
           } else {
-            formatAppLog("error", "at pages/bridge/bridge.vue:217", "未获取到有效token");
+            formatAppLog("error", "at pages/bridge/bridge.vue:224", "未获取到有效token");
             uni.showToast({
               title: "登录信息无效，请重新登录",
               icon: "none"
             });
           }
         } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:224", "初始化数据失败:", error);
+          formatAppLog("error", "at pages/bridge/bridge.vue:231", "初始化数据失败:", error);
         }
       };
       const filteredProjects = vue.computed(() => {
@@ -3141,7 +3398,7 @@ This will fail in production.`);
       const changeYear = (e2) => {
         selectedYearIndex.value = e2.detail.value;
         currentYear.value = years.value[selectedYearIndex.value];
-        formatAppLog("log", "at pages/bridge/bridge.vue:250", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
+        formatAppLog("log", "at pages/bridge/bridge.vue:257", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
       };
       const back = () => {
         uni.navigateBack();
@@ -3216,6 +3473,8 @@ This will fail in production.`);
         return getAllFirstLevelDirs;
       }, get interval() {
         return interval;
+      }, get getAllDataAndSetToLocal() {
+        return getAllDataAndSetToLocal;
       } };
       Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
       return __returned__;
@@ -5292,10 +5551,9 @@ This will fail in production.`);
             success: (res) => {
               if (res.confirm) {
                 const deleteData = {
-                  id: props.item.id,
-                  isDelete: true
+                  id: props.item.id
                 };
-                formatAppLog("log", "at components/disease-item/disease-item.vue:222", "准备发送deleteDisease事件，ID:", props.item.id);
+                formatAppLog("log", "at components/disease-item/disease-item.vue:221", "准备发送deleteDisease事件，ID:", props.item.id);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -5560,6 +5818,7 @@ This will fail in production.`);
       const diseaseList = vue.ref([]);
       const isJson = vue.ref(1);
       const userInfo = userStore();
+      const submitButtonEnabled = vue.ref(false);
       const userId = vue.ref(20);
       const idStorageInfo = idStore();
       const buildingId = vue.ref(idStorageInfo.buildingId);
@@ -5584,16 +5843,16 @@ This will fail in production.`);
         try {
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const yearData = await getDisease(userInfo.username, buildingId.value, currentYear);
-          formatAppLog("log", "at components/current-disease.vue:102", `获取到${currentYear}年病害数据:`, yearData);
+          formatAppLog("log", "at components/current-disease.vue:103", `获取到${currentYear}年病害数据:`, yearData);
           if (yearData && yearData.diseases && yearData.diseases.length > 0) {
             diseaseList.value = yearData.diseases;
           } else {
             diseaseList.value = [];
           }
-          formatAppLog("log", "at components/current-disease.vue:111", "病害数据加载完成:", diseaseList.value);
+          formatAppLog("log", "at components/current-disease.vue:112", "病害数据加载完成:", diseaseList.value);
         } catch (error) {
           isJson.value = 0;
-          formatAppLog("error", "at components/current-disease.vue:114", "读取当前病害数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:115", "读取当前病害数据失败:", error);
         }
       };
       const loadCurrentYearDiseaseData = async () => {
@@ -5606,11 +5865,11 @@ This will fail in production.`);
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at components/current-disease.vue:129", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at components/current-disease.vue:130", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const getData = async () => {
-            formatAppLog("log", "at components/current-disease.vue:133", "开始从后端获取当前病害数据...........");
+            formatAppLog("log", "at components/current-disease.vue:134", "开始从后端获取当前病害数据...........");
             try {
               const response = await uni.request({
                 //桥梁id改为全局
@@ -5621,9 +5880,9 @@ This will fail in production.`);
                 }
               });
               if (response.data.code === 0) {
-                formatAppLog("log", "at components/current-disease.vue:144", "后端接口返回当前病害数据:", response.data.data);
+                formatAppLog("log", "at components/current-disease.vue:145", "后端接口返回当前病害数据:", response.data.data);
                 const saveData = response.data.data[0];
-                formatAppLog("log", "at components/current-disease.vue:152", "准备保存的当前病害数据:", saveData);
+                formatAppLog("log", "at components/current-disease.vue:153", "准备保存的当前病害数据:", saveData);
                 for (const disease of saveData.diseases) {
                   if (disease.images && Array.isArray(disease.images)) {
                     disease.images = await saveDiseaseImages(userInfo.username, buildingId.value, disease.images);
@@ -5640,7 +5899,7 @@ This will fail in production.`);
                 });
               }
             } catch (error) {
-              formatAppLog("error", "at components/current-disease.vue:175", "获取当前病害数据失败:", error);
+              formatAppLog("error", "at components/current-disease.vue:176", "获取当前病害数据失败:", error);
               uni.showToast({
                 title: "获取数据失败，请稍后重试",
                 icon: "none"
@@ -5653,7 +5912,7 @@ This will fail in production.`);
       };
       const addNewDiseaseData = async (newDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:190", "接收到新增病害数据:", newDisease);
+          formatAppLog("log", "at components/current-disease.vue:191", "接收到新增病害数据:", newDisease);
           diseaseList.value.push(newDisease);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
@@ -5661,15 +5920,15 @@ This will fail in production.`);
             buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:204", "准备保存的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:205", "准备保存的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:209", "新增病害数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:210", "新增病害数据保存成功");
           uni.showToast({
             title: "保存成功",
             icon: "success"
           });
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:215", "保存新增病害数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:216", "保存新增病害数据失败:", error);
           uni.showToast({
             title: "保存失败",
             icon: "none"
@@ -5678,29 +5937,29 @@ This will fail in production.`);
       };
       const handleDeleteDisease = async (deleteData) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:226", "接收到删除病害事件:", deleteData);
+          formatAppLog("log", "at components/current-disease.vue:227", "接收到删除病害事件:", deleteData);
           if (!deleteData || !deleteData.id) {
-            formatAppLog("error", "at components/current-disease.vue:229", "删除数据无效");
+            formatAppLog("error", "at components/current-disease.vue:230", "删除数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == deleteData.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:236", "未找到要删除的病害数据:", deleteData.id);
+            formatAppLog("error", "at components/current-disease.vue:237", "未找到要删除的病害数据:", deleteData.id);
             return;
           }
-          diseaseList.value.splice(index, 1);
-          formatAppLog("log", "at components/current-disease.vue:242", `病害ID:${deleteData.id}已删除`);
+          diseaseList.value[index].commit_type = 2;
+          formatAppLog("log", "at components/current-disease.vue:243", `病害ID:${deleteData.id}已标记为删除(commit_type=2)`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
             year: parseInt(currentYear),
             buildingId: parseInt(buildingId.value),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:254", "准备保存删除后的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:255", "准备保存更新后的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:259", "删除保存成功");
+          formatAppLog("log", "at components/current-disease.vue:260", "删除标记保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:261", "保存删除失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:262", "保存删除失败:", error);
           uni.showToast({
             title: "删除失败",
             icon: "none"
@@ -5709,29 +5968,29 @@ This will fail in production.`);
       };
       const handleUpdateDisease = async (updatedDisease) => {
         try {
-          formatAppLog("log", "at components/current-disease.vue:272", "接收到更新病害事件:", updatedDisease);
+          formatAppLog("log", "at components/current-disease.vue:273", "接收到更新病害事件:", updatedDisease);
           if (!updatedDisease || !updatedDisease.id) {
-            formatAppLog("error", "at components/current-disease.vue:275", "更新数据无效");
+            formatAppLog("error", "at components/current-disease.vue:276", "更新数据无效");
             return;
           }
           const index = diseaseList.value.findIndex((item) => item.id == updatedDisease.id);
           if (index === -1) {
-            formatAppLog("error", "at components/current-disease.vue:282", "未找到要更新的病害数据:", updatedDisease.id);
+            formatAppLog("error", "at components/current-disease.vue:283", "未找到要更新的病害数据:", updatedDisease.id);
             return;
           }
           diseaseList.value[index] = updatedDisease;
-          formatAppLog("log", "at components/current-disease.vue:288", `病害ID:${updatedDisease.id}已更新`);
+          formatAppLog("log", "at components/current-disease.vue:289", `病害ID:${updatedDisease.id}已更新`);
           const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
           const saveData = {
             year: parseInt(currentYear),
             buildingId: parseInt(buildingId),
             diseases: diseaseList.value
           };
-          formatAppLog("log", "at components/current-disease.vue:300", "准备保存更新后的数据:", saveData);
+          formatAppLog("log", "at components/current-disease.vue:301", "准备保存更新后的数据:", saveData);
           await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-          formatAppLog("log", "at components/current-disease.vue:305", "更新数据保存成功");
+          formatAppLog("log", "at components/current-disease.vue:306", "更新数据保存成功");
         } catch (error) {
-          formatAppLog("error", "at components/current-disease.vue:307", "保存更新数据失败:", error);
+          formatAppLog("error", "at components/current-disease.vue:308", "保存更新数据失败:", error);
           uni.showToast({
             title: "更新失败",
             icon: "none"
@@ -5742,6 +6001,9 @@ This will fail in production.`);
         const selectedType = tabItems.value[activeTab.value];
         return diseaseList.value.filter((item) => {
           var _a, _b, _c;
+          if (item.commit_type === 2) {
+            return false;
+          }
           if (((_a = item.component) == null ? void 0 : _a.grandObjectName) !== selectedType) {
             return false;
           }
@@ -5753,7 +6015,7 @@ This will fail in production.`);
       });
       const search = (e2) => {
         searchText.value = e2.value;
-        formatAppLog("log", "at components/current-disease.vue:339", "搜索内容:", e2);
+        formatAppLog("log", "at components/current-disease.vue:344", "搜索内容:", e2);
       };
       const changeTab = (index) => {
         activeTab.value = index;
@@ -5762,7 +6024,7 @@ This will fail in production.`);
         return diseaseList.value.filter(
           (item) => {
             var _a;
-            return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === type;
+            return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === type && item.commit_type !== 2;
           }
         ).length;
       };
@@ -5771,47 +6033,15 @@ This will fail in production.`);
           url: `/pages/add-disease/add-disease`
         });
       };
-      const deleteDisease = (itemId) => {
-        uni.showModal({
-          title: "确认删除",
-          content: "确定要删除这条病害记录吗？",
-          success: (res) => {
-            if (res.confirm) {
-              const index = diseaseList.value.findIndex((item) => item.id === itemId);
-              if (index !== -1) {
-                diseaseList.value.splice(index, 1);
-                const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
-                const saveData = {
-                  year: parseInt(currentYear),
-                  buildingId: parseInt(buildingId.value),
-                  diseases: diseaseList.value
-                };
-                setDisease(userInfo.username, buildingId.value, currentYear, saveData).then(() => {
-                  uni.showToast({
-                    title: "删除成功",
-                    icon: "success"
-                  });
-                }).catch((error) => {
-                  formatAppLog("error", "at components/current-disease.vue:392", "保存删除失败:", error);
-                  uni.showToast({
-                    title: "删除失败",
-                    icon: "none"
-                  });
-                });
-              }
-            }
-          }
-        });
-      };
       const submitZip = async () => {
-        formatAppLog("log", "at components/current-disease.vue:405", "提交压缩文件,buildingId", buildingId.value);
+        formatAppLog("log", "at components/current-disease.vue:366", "提交压缩文件,buildingId", buildingId.value);
         try {
           uni.showLoading({
             title: "正在提交",
             mask: true
           });
           const zipFilePath = await saveBridgeZip(userInfo.username, buildingId.value);
-          formatAppLog("log", "at components/current-disease.vue:415", "压缩完成，文件路径:", zipFilePath);
+          formatAppLog("log", "at components/current-disease.vue:376", "压缩完成，文件路径:", zipFilePath);
           uni.showLoading({
             title: "正在提交",
             mask: true
@@ -5829,7 +6059,7 @@ This will fail in production.`);
             return;
           }
           const token = responseLogin.data.token;
-          formatAppLog("log", "at components/current-disease.vue:438", "授权成功，开始上传文件", zipFilePath);
+          formatAppLog("log", "at components/current-disease.vue:399", "授权成功，开始上传文件", zipFilePath);
           uni.showLoading({
             title: "正在提交",
             mask: true
@@ -5844,7 +6074,7 @@ This will fail in production.`);
             }
           });
           uni.hideLoading();
-          formatAppLog("log", "at components/current-disease.vue:459", "后端响应:", response.data);
+          formatAppLog("log", "at components/current-disease.vue:420", "后端响应:", response.data);
           let responseData;
           try {
             responseData = JSON.parse(response.data);
@@ -5852,6 +6082,27 @@ This will fail in production.`);
             responseData = response.data;
           }
           if (responseData && responseData.code === 0) {
+            let hasChanges = false;
+            diseaseList.value.forEach((disease) => {
+              if (disease.commit_type === 1) {
+                disease.commit_type = 0;
+                hasChanges = true;
+              }
+            });
+            if (hasChanges) {
+              const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+              const saveData = {
+                year: parseInt(currentYear),
+                buildingId: parseInt(buildingId.value),
+                diseases: diseaseList.value
+              };
+              try {
+                await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+                formatAppLog("log", "at components/current-disease.vue:456", "成功更新病害提交状态");
+              } catch (error) {
+                formatAppLog("error", "at components/current-disease.vue:458", "更新病害提交状态失败:", error);
+              }
+            }
             uni.showToast({
               title: "提交成功",
               icon: "success",
@@ -5865,22 +6116,37 @@ This will fail in production.`);
           }
         } catch (error) {
           uni.hideLoading();
-          formatAppLog("error", "at components/current-disease.vue:486", "提交数据错误:", error);
+          formatAppLog("error", "at components/current-disease.vue:478", "提交数据错误:", error);
           uni.showToast({
             title: "提交数据出错，请稍后重试",
             icon: "none"
           });
         }
       };
+      const checkUncommittedDiseases = async () => {
+        try {
+          const currentYear = (/* @__PURE__ */ new Date()).getFullYear().toString();
+          const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, buildingId.value, currentYear);
+          formatAppLog("log", "at components/current-disease.vue:491", "检查未提交病害结果:", hasUncommittedDiseases);
+          submitButtonEnabled.value = hasUncommittedDiseases;
+        } catch (error) {
+          formatAppLog("error", "at components/current-disease.vue:494", "检查未提交病害出错:", error);
+          submitButtonEnabled.value = false;
+        }
+      };
+      vue.watch(diseaseList, async () => {
+        formatAppLog("log", "at components/current-disease.vue:501", "diseaseList发生变化，检查未提交病害");
+        await checkUncommittedDiseases();
+      }, { deep: true });
       vue.onMounted(() => {
-        formatAppLog("log", "at components/current-disease.vue:496", "current-disease组件挂载，准备加载数据");
+        formatAppLog("log", "at components/current-disease.vue:507", "current-disease组件挂载，准备加载数据");
         loadCurrentYearDiseaseData();
         uni.$on("addNewDisease", addNewDiseaseData);
         uni.$on("deleteDisease", handleDeleteDisease);
         uni.$on("updateDisease", handleUpdateDisease);
         uni.$on("getDiseasesOfType", (data) => {
           if (!data || !data.type || !data.callback) {
-            formatAppLog("error", "at components/current-disease.vue:512", "获取同类型病害列表参数不完整");
+            formatAppLog("error", "at components/current-disease.vue:523", "获取同类型病害列表参数不完整");
             return;
           }
           const filteredList = diseaseList.value.filter(
@@ -5889,9 +6155,10 @@ This will fail in production.`);
               return ((_a = item.component) == null ? void 0 : _a.grandObjectName) === data.type;
             }
           );
-          formatAppLog("log", "at components/current-disease.vue:521", `获取${data.type}类型的病害列表，共${filteredList.length}条`);
+          formatAppLog("log", "at components/current-disease.vue:532", `获取${data.type}类型的病害列表，共${filteredList.length}条`);
           data.callback(filteredList);
         });
+        checkUncommittedDiseases();
       });
       vue.onUnmounted(() => {
         uni.$off("addNewDisease");
@@ -5899,8 +6166,10 @@ This will fail in production.`);
         uni.$off("updateDisease");
         uni.$off("getDiseasesOfType");
       });
-      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, isJson, userInfo, userId, idStorageInfo, buildingId, bridgeIdFromURL, readCurrentYearDiseaseDataByJson, loadCurrentYearDiseaseData, addNewDiseaseData, handleDeleteDisease, handleUpdateDisease, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, deleteDisease, submitZip, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, onUnmounted: vue.onUnmounted, get getDisease() {
+      const __returned__ = { tabItems, activeTab, searchText, showAddPopup, diseaseList, isJson, userInfo, submitButtonEnabled, userId, idStorageInfo, buildingId, bridgeIdFromURL, readCurrentYearDiseaseDataByJson, loadCurrentYearDiseaseData, addNewDiseaseData, handleDeleteDisease, handleUpdateDisease, filteredDiseases, search, changeTab, getTpyeItemCount, addNewDisease, submitZip, checkUncommittedDiseases, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, onUnmounted: vue.onUnmounted, get getDisease() {
         return getDisease;
+      }, get readDiseaseCommit() {
+        return readDiseaseCommit;
       }, get saveBridgeZip() {
         return saveBridgeZip;
       }, get saveDiseaseImages() {
@@ -5908,7 +6177,7 @@ This will fail in production.`);
       }, get setDisease() {
         return setDisease;
       }, get setObject() {
-        return setObject;
+        return setObject$1;
       }, get userStore() {
         return userStore;
       }, get idStore() {
@@ -5933,9 +6202,10 @@ This will fail in production.`);
           })
         ]),
         vue.createElementVNode("button", {
-          class: "add-button",
-          onClick: $setup.submitZip
-        }, " 提交"),
+          class: "submit-button",
+          onClick: $setup.submitZip,
+          disabled: !$setup.submitButtonEnabled
+        }, " 提交", 8, ["disabled"]),
         vue.createElementVNode("button", {
           class: "add-button",
           onClick: $setup.addNewDisease
@@ -5984,8 +6254,7 @@ This will fail in production.`);
               return vue.openBlock(), vue.createBlock(_component_disease_item, {
                 key: index,
                 item,
-                editMode: "edit",
-                onDelete: $setup.deleteDisease
+                editMode: "edit"
               }, null, 8, ["item"]);
             }),
             128
@@ -7271,18 +7540,16 @@ This will fail in production.`);
               formatAppLog("log", "at components/bridge-archive.vue:142", "从后端接口获取到的桥梁卡片数据:", response.data.data);
               if (response.data.code === 0) {
                 const bridgedata = response.data.data;
-                bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
-                bridgedata.images.front = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
                 if (bridgedata.property.children[7].children[0].value !== "/") {
                   try {
                     const savedImageUrl = await saveBridgeImage(userInfo.username, buildingId.value, bridgedata.property.children[7].children[0].value);
                     if (savedImageUrl) {
                       bridgedata.property.children[7].children[0].value = savedImageUrl;
                     } else {
-                      formatAppLog("error", "at components/bridge-archive.vue:155", "保存图片1失败: 返回的URL为空");
+                      formatAppLog("error", "at components/bridge-archive.vue:154", "保存图片1失败: 返回的URL为空");
                     }
                   } catch (error) {
-                    formatAppLog("error", "at components/bridge-archive.vue:158", "保存图片1出错:", error);
+                    formatAppLog("error", "at components/bridge-archive.vue:157", "保存图片1出错:", error);
                   }
                 }
                 if (bridgedata.property.children[7].children[1].value !== "/") {
@@ -7291,13 +7558,13 @@ This will fail in production.`);
                     if (savedImageUrl) {
                       bridgedata.property.children[7].children[1].value = savedImageUrl;
                     } else {
-                      formatAppLog("error", "at components/bridge-archive.vue:168", "保存图片2失败: 返回的URL为空");
+                      formatAppLog("error", "at components/bridge-archive.vue:167", "保存图片2失败: 返回的URL为空");
                     }
                   } catch (error) {
-                    formatAppLog("error", "at components/bridge-archive.vue:171", "保存图片2出错:", error);
+                    formatAppLog("error", "at components/bridge-archive.vue:170", "保存图片2出错:", error);
                   }
                 }
-                formatAppLog("log", "at components/bridge-archive.vue:176", "保存后的桥梁卡片数据:", bridgedata);
+                formatAppLog("log", "at components/bridge-archive.vue:175", "保存后的桥梁卡片数据:", bridgedata);
                 await setProperty(userInfo.username, buildingId.value, bridgedata);
               } else {
                 uni.showToast({
@@ -7306,7 +7573,7 @@ This will fail in production.`);
                 });
               }
             } catch (error) {
-              formatAppLog("error", "at components/bridge-archive.vue:186", "获取桥梁卡片数据失败:", error);
+              formatAppLog("error", "at components/bridge-archive.vue:185", "获取桥梁卡片数据失败:", error);
               uni.showToast({
                 title: "获取数据失败，请稍后重试",
                 icon: "none"
@@ -7317,7 +7584,7 @@ This will fail in production.`);
           await readPropetryDataByJson();
         }
         dataLoaded.value = true;
-        formatAppLog("log", "at components/bridge-archive.vue:201", "桥梁卡片数据加载完成，发送dataLoaded事件");
+        formatAppLog("log", "at components/bridge-archive.vue:200", "桥梁卡片数据加载完成，发送dataLoaded事件");
         emit("dataLoaded", true);
       };
       vue.onMounted(async () => {
@@ -8889,7 +9156,7 @@ This will fail in production.`);
             if (response.data.code === 0) {
               structureData.value = response.data;
               resultData.value = response.data.data;
-              setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+              setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
               formatAppLog("log", "at components/structure-info.vue:204", "structureData:", structureData.value);
               formatAppLog("log", "at components/structure-info.vue:205", "resultData:", resultData.value);
               formatAppLog("log", "at components/structure-info.vue:207", "第一层结构数据:", structureData.value.children);
@@ -9046,7 +9313,7 @@ This will fail in production.`);
         });
         selectedThirdIndex.value = -1;
         formatAppLog("log", "at components/structure-info.vue:429", "最终存的resultData.value", resultData.value);
-        setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+        setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
       };
       const setStatus = (e2) => {
         if (currentEditItem.value) {
@@ -9126,7 +9393,7 @@ This will fail in production.`);
             });
             return;
           }
-          setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+          setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
           formatAppLog("log", "at components/structure-info.vue:551", "已将数据存储到本地:", resultData.value);
         } catch (error) {
           formatAppLog("error", "at components/structure-info.vue:554", "存储数据错误:", error);
@@ -9174,7 +9441,7 @@ This will fail in production.`);
         await init();
       });
       const __returned__ = { confirmed, confirmPopup, structureData, selectedIndex, selectedSecondIndex, selectedThirdIndex, editPopup, currentEditItem, currentEditItemBoolean, TaskBridgeId, resultData, userInfo, bridgeIdFromURL, init, secondLevelItems, thirdLevelItems, confirmStructure, confirmConfirm, calculateAndUpdateCounts, closeConfirmPopup, changeTab, changeSecondTab, changeThirdTab, handleCancel, handleEdit, handleDisable, setStatus, saveEdit, closeEditPopup, updateResultData, storeDataLocally, normalizeStatusFields, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, CustomSwitch, get setObject() {
-        return setObject;
+        return setObject$1;
       }, get userStore() {
         return userStore;
       } };
@@ -9833,7 +10100,7 @@ This will fail in production.`);
   function I(e2) {
     return e2 && "string" == typeof e2 ? JSON.parse(e2) : e2;
   }
-  const S = true, b = "app", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","26.243.31.100","10.151.1.229"],"servePort":7000,"debugPort":9000,"initialLaunchType":"local","skipFiles":["<node_internals>/**","D:/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"buildinginspector","spaceId":"mp-99a7ba6b-a4dc-412a-a997-03ccd938029d","clientSecret":"M2m1FnUVcpvOqJ4cqRRURA==","endpoint":"https://api.next.bspapp.com"}]') || [];
+  const S = true, b = "app", T = I(define_process_env_UNI_SECURE_NETWORK_CONFIG_default), A = b, P = I('{"address":["127.0.0.1","26.243.31.100","10.151.1.229"],"servePort":7002,"debugPort":9002,"initialLaunchType":"local","skipFiles":["<node_internals>/**","D:/HBuilderX/plugins/unicloud/**/*.js"]}'), C = I('[{"provider":"aliyun","spaceName":"hubeijiaotou-projects","spaceId":"mp-7d09721a-c5bc-4c38-8165-a1419ee971b8","clientSecret":"Q9SksrsW1LSsFMlUc7AUvQ==","endpoint":"https://api.next.bspapp.com"}]') || [];
   let O = "";
   try {
     O = "__UNI__B200628";
@@ -15265,7 +15532,7 @@ ${i3}
         }
       });
       const createDescription = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:888", "diseaseDataList.value", diseaseDataList.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:889", "diseaseDataList.value", diseaseDataList.value);
         const createDescription2 = generateDiseaseDescription({
           componentName: getComponentName(),
           // 构件名称
@@ -15286,10 +15553,10 @@ ${i3}
         const existingData = [...diseaseDataList.value];
         const newList = [];
         const useRangeMode = count >= 10;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:910", `数量: ${count}, 使用范围模式: ${useRangeMode}`);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:911", `数量: ${count}, 使用范围模式: ${useRangeMode}`);
         if (useRangeMode) {
           const firstItem = existingData.length > 0 ? existingData[0] : null;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:916", "范围模式，使用第一条记录作为基础:", firstItem ? firstItem : "null");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:917", "范围模式，使用第一条记录作为基础:", firstItem ? firstItem : "null");
           newList.push({
             reference1Location: (firstItem == null ? void 0 : firstItem.reference1Location) || "",
             reference1LocationStart: (firstItem == null ? void 0 : firstItem.reference1LocationStart) || "",
@@ -15327,7 +15594,7 @@ ${i3}
             developmentTrendIndex: (firstItem == null ? void 0 : firstItem.developmentTrendIndex) || 0,
             useRangeMode: true
           });
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:956", "更新后的范围模式数据:", newList[0]);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:957", "更新后的范围模式数据:", newList[0]);
         } else {
           for (let i2 = 0; i2 < count; i2++) {
             if (i2 < existingData.length) {
@@ -15493,12 +15760,12 @@ ${i3}
             }
             updateThirdColumn();
           } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1188", "未找到对应的结构部分或其子项");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1189", "未找到对应的结构部分或其子项");
             typeMultiArray.value[1] = [];
             typeMultiArray.value[2] = [];
           }
         } else {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1193", "结构数据尚未加载完成");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1194", "结构数据尚未加载完成");
         }
       };
       const updateThirdColumn = () => {
@@ -15587,10 +15854,10 @@ ${i3}
           if (options.data) {
             try {
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1340", "接收到的编辑数据:", diseaseData);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1341", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1345", "解析编辑数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1346", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
@@ -15602,10 +15869,10 @@ ${i3}
           if (options.data) {
             try {
               const diseaseData = JSON.parse(decodeURIComponent(options.data));
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1358", "接收到的编辑数据:", diseaseData);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1359", "接收到的编辑数据:", diseaseData);
               fillFormWithData(diseaseData);
             } catch (error) {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:1363", "解析编辑数据失败:", error);
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:1364", "解析编辑数据失败:", error);
               uni.showToast({
                 title: "加载编辑数据失败",
                 icon: "none"
@@ -15620,10 +15887,10 @@ ${i3}
       });
       const fillFormWithData = (data) => {
         var _a, _b, _c, _d, _e2, _f;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1385", "开始填充表单数据:", data);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1386", "开始填充表单数据:", data);
         if ((_a = data.component) == null ? void 0 : _a.grandObjectName) {
           grandObjectName.value = data.component.grandObjectName;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1390", "设置病害所属大类:", grandObjectName.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1391", "设置病害所属大类:", grandObjectName.value);
           const parentIndex = structureTypes.value.findIndex((item) => item === grandObjectName.value);
           if (parentIndex !== -1) {
             typeMultiIndex.value[0] = parentIndex;
@@ -15631,9 +15898,9 @@ ${i3}
             if (typeMultiArray.value[1] && typeMultiArray.value[1].length > 0) {
               if ((_b = data.component) == null ? void 0 : _b.parentObjectName) {
                 parentObjectName.value = data.component.parentObjectName;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1405", "设置部件父级名称:", parentObjectName.value);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1406", "设置部件父级名称:", parentObjectName.value);
                 const secondLevelIndex = typeMultiArray.value[1].findIndex((item) => item === parentObjectName.value);
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1410", "第二级索引:", secondLevelIndex);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1411", "第二级索引:", secondLevelIndex);
                 if (secondLevelIndex !== -1) {
                   typeMultiIndex.value[1] = secondLevelIndex;
                   updateThirdColumn();
@@ -15644,45 +15911,45 @@ ${i3}
                       const thirdLevelIndex = typeMultiArray.value[2].findIndex((item) => item === componentNamePicker.value);
                       if (thirdLevelIndex !== -1 && componentNamePicker.value !== "其他") {
                         typeMultiIndex.value[2] = thirdLevelIndex;
-                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1430", "成功设置构件名称(第三级):", componentNamePicker.value);
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1431", "成功设置构件名称(第三级):", componentNamePicker.value);
                         if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
                           biObjectindex.value = typeMultiIndex.value[1];
-                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1436", "成功设置biObjectindex:", biObjectindex.value);
+                          formatAppLog("log", "at pages/add-disease/add-disease.vue:1437", "成功设置biObjectindex:", biObjectindex.value);
                         }
                       } else if (componentNamePicker.value === "其他") {
                         componentNameInput.value = componentName;
-                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1441", "设置自定义构件名称:", componentName);
+                        formatAppLog("log", "at pages/add-disease/add-disease.vue:1442", "设置自定义构件名称:", componentName);
                       }
                     } else {
                       componentNameInput.value = componentName;
-                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1446", "第三级列表为空，设置自定义构件名称:", componentName);
+                      formatAppLog("log", "at pages/add-disease/add-disease.vue:1447", "第三级列表为空，设置自定义构件名称:", componentName);
                     }
                   }
                 } else {
                   if ((_c = data.component) == null ? void 0 : _c.name) {
                     componentNamePicker.value = data.component.name;
                     componentNameInput.value = data.component.name;
-                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1455", "设置自定义构件名称:", data.component.name);
+                    formatAppLog("log", "at pages/add-disease/add-disease.vue:1456", "设置自定义构件名称:", data.component.name);
                   }
                 }
               } else if ((_d = data.component) == null ? void 0 : _d.name) {
                 componentNamePicker.value = data.component.name;
                 componentNameInput.value = data.component.name;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1462", "设置自定义构件名称:", data.component.name);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1463", "设置自定义构件名称:", data.component.name);
               }
             } else {
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:1465", "第二维数据初始化失败，无法设置构件名称");
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:1466", "第二维数据初始化失败，无法设置构件名称");
               if ((_e2 = data.component) == null ? void 0 : _e2.name) {
                 componentNamePicker.value = data.component.name;
                 componentNameInput.value = data.component.name;
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:1470", "设置自定义构件名称:", data.component.name);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:1471", "设置自定义构件名称:", data.component.name);
               }
             }
           }
         }
         if ((_f = data.component) == null ? void 0 : _f.code) {
           componentCodeInput.value = data.component.code;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1479", "成功设置构件编号:", data.component.code);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1480", "成功设置构件编号:", data.component.code);
         }
         if (data.type) {
           updateDiseaseTypeOptions();
@@ -15694,22 +15961,22 @@ ${i3}
             typePicker.value = "其他";
             typeInput.value = data.type;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1497", "成功设置病害类型:", data.type);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1498", "成功设置病害类型:", data.type);
         }
         if (data.position) {
           updateDiseasePositionOptions();
           position.value = data.position;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1505", "预设选项:", diseasePosition.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1506", "预设选项:", diseasePosition.value);
           if (diseasePosition.value.includes(data.position)) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1508", "在预设选项中:", data.position);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1509", "在预设选项中:", data.position);
             positionPicker.value = data.position;
             positionInput.value = "";
           } else {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1512", "不在预设选项中:", data.position);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1513", "不在预设选项中:", data.position);
             positionPicker.value = "其他";
             positionInput.value = data.position;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1517", "成功设置病害位置:", data.position);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1518", "成功设置病害位置:", data.position);
         }
         if (data.quantity) {
           quantity.value = parseInt(data.quantity) || 1;
@@ -15737,7 +16004,7 @@ ${i3}
             }
             level.value = newLevelOptions;
             levelindex.value = Math.max(minScale, Math.min(maxScale, levelVal));
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1561", "根据病害类型设置评定标度范围:", minScale, "至", maxScale, "选中值:", levelindex.value);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1562", "根据病害类型设置评定标度范围:", minScale, "至", maxScale, "选中值:", levelindex.value);
           } else {
             levelindex.value = levelVal;
           }
@@ -15748,7 +16015,7 @@ ${i3}
         if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
           const quantity2 = parseInt(data.quantity) || 0;
           const isRangeMode = quantity2 >= 10;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1579", "根据quantity判断范围模式:", quantity2, isRangeMode);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1580", "根据quantity判断范围模式:", quantity2, isRangeMode);
           if (isRangeMode) {
             const detail = data.diseaseDetails[0];
             const rangeData = {
@@ -15808,7 +16075,7 @@ ${i3}
             });
             diseaseDataList.value = newList;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1657", "成功设置diseaseDetails数据, 条目数量:", diseaseDataList.value.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1658", "成功设置diseaseDetails数据, 条目数量:", diseaseDataList.value.length);
         } else {
           const defaultData = {
             useRangeMode: false,
@@ -15830,12 +16097,12 @@ ${i3}
             developmentTrendIndex: findIndexByText(developmentTrend.value, data.developmentTrend) || 0
           };
           diseaseDataList.value = [defaultData];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1682", "使用老格式数据创建默认记录");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1683", "使用老格式数据创建默认记录");
         }
         if (data.images && Array.isArray(data.images)) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1687", "开始处理图片数据......:", data.images);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1688", "开始处理图片数据......:", data.images);
           const imagesPaths = readDiseaseImages(userInfo.username, buildingId.value, data.images);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1689", "处理后的图片路径:", imagesPaths);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1690", "处理后的图片路径:", imagesPaths);
           fileList.value = imagesPaths.map((url, index) => ({
             name: `图片${index + 1}`,
             url,
@@ -15849,7 +16116,7 @@ ${i3}
             src
           }));
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1706", "表单数据填充完成");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1707", "表单数据填充完成");
       };
       const findIndexByText = (optionsArray, targetText) => {
         if (!optionsArray || !Array.isArray(optionsArray) || !targetText)
@@ -15865,7 +16132,7 @@ ${i3}
       });
       const beforedisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1727", "上一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1728", "上一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -15907,7 +16174,7 @@ ${i3}
       };
       const nextdisease = () => {
         var _a;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1780", "下一条");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1781", "下一条");
         const pages2 = getCurrentPages();
         const currentPage = pages2[pages2.length - 1];
         const options = (_a = currentPage.$page) == null ? void 0 : _a.options;
@@ -15959,10 +16226,10 @@ ${i3}
         uni.redirectTo({
           url: `/pages/add-disease/add-disease?mode=edit&id=${disease.id}&data=${diseaseData}`,
           success: () => {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:1849", "成功导航到病害:", disease.id);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:1850", "成功导航到病害:", disease.id);
           },
           fail: (error) => {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:1852", "导航失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:1853", "导航失败:", error);
             uni.showToast({
               title: "切换失败，请重试",
               icon: "none"
@@ -15971,30 +16238,31 @@ ${i3}
         });
       };
       const savetonextdisease = () => {
-        var _a, _b;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1862", "保存并复制到下一条");
+        var _a, _b, _c, _d;
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1863", "保存并复制到下一条");
         const diseaseData = createDiseaseData();
         if (diseaseData) {
           saveWithoutNavigateBack(diseaseData);
         }
         diseaseData.id = ((_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id) || (/* @__PURE__ */ new Date()).getTime();
+        diseaseData.local_id = ((_d = (_c = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _c.options) == null ? void 0 : _d.id) || (/* @__PURE__ */ new Date()).getTime();
       };
       const createDiseaseData = () => {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e2, _f;
         let diseaseTypeObj = null;
         if (typePicker.value && allDiseaseTypes.length > 0) {
           diseaseTypeObj = allDiseaseTypes.find((item) => item.name === typePicker.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1878", "找到的病害类型对象:", diseaseTypeObj ? diseaseTypeObj.name : "未找到");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1880", "找到的病害类型对象:", diseaseTypeObj ? diseaseTypeObj.name : "未找到");
         }
         let biObjectObj = null;
         if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex.value]) {
           biObjectObj = biObjectNameOptions.value[biObjectindex.value];
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1887", "选中的第二级构件对象:", biObjectObj);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1889", "选中的第二级构件对象:", biObjectObj);
         let diseaseDetails = [];
         const numValue = parseInt(quantity.value);
         const isRangeMode = numValue >= 10;
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:1893", "保存时使用的模式:", isRangeMode ? "范围模式" : "普通模式", "缺损数量:", numValue);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:1895", "保存时使用的模式:", isRangeMode ? "范围模式" : "普通模式", "缺损数量:", numValue);
         if (isRangeMode) {
           const rangeData = diseaseDataList.value[0];
           diseaseDetails.push({
@@ -16034,7 +16302,7 @@ ${i3}
             reference2LocationStart: rangeData.reference2LocationStart || "",
             reference2LocationEnd: rangeData.reference2LocationEnd || ""
           });
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:1941", "保存时生成的范围模式数据结构:", JSON.stringify(diseaseDetails[0]));
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:1943", "保存时生成的范围模式数据结构:", JSON.stringify(diseaseDetails[0]));
         } else {
           diseaseDataList.value.forEach((item) => {
             var _a2, _b2;
@@ -16137,12 +16405,15 @@ ${i3}
           buildingId: buildingId.value,
           images: [],
           // 初始化为空数组，等待图片保存后更新
-          ADImgs: []
+          ADImgs: [],
           // 添加AD图片字段
+          commit_type: 1,
+          //0为已提交 1为未提交 2为删除
+          local_id: ((_f = (_e2 = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _e2.options) == null ? void 0 : _f.id) || (/* @__PURE__ */ new Date()).getTime()
         };
       };
       const saveWithoutNavigateBack = (diseaseData) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2049", "保存但不返回");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2053", "保存但不返回");
         uni.showLoading({
           title: "保存中..."
         });
@@ -16154,7 +16425,7 @@ ${i3}
           });
           setTimeout(() => {
             fileList.value = [];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2069", "已清空图片列表，保留其他表单数据");
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2073", "已清空图片列表，保留其他表单数据");
             uni.showToast({
               title: "已保存，可继续添加下一条",
               icon: "none",
@@ -16162,7 +16433,7 @@ ${i3}
             });
           }, 500);
         }).catch((error) => {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2080", "保存失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2084", "保存失败:", error);
           uni.hideLoading();
           uni.showToast({
             title: "保存失败，请重试",
@@ -16180,82 +16451,55 @@ ${i3}
         if (isEditMode && options && options.data) {
           try {
             const originalData = JSON.parse(decodeURIComponent(options.data));
-            originalImages = originalData.images || [];
-            originalADImages = originalData.ADImgs || [];
+            originalImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.images) || [];
+            originalADImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.ADImgs) || [];
           } catch (error) {
-            formatAppLog("error", "at pages/add-disease/add-disease.vue:2105", "解析原始数据失败:", error);
+            formatAppLog("error", "at pages/add-disease/add-disease.vue:2110", "解析原始数据失败:", error);
           }
         }
         const currentImageUrls = fileList.value.map((img) => img.url);
         const currentADImages = ADImgs.value.map((img) => img.src);
-        const ADImagesToKeep = originalADImages.filter(
-          (img) => currentADImages.includes(img)
-        );
-        const imagesToKeep = originalImages.filter(
-          (img) => currentImageUrls.includes(img)
-        );
-        const imagesToDelete = originalImages.filter(
-          (img) => !currentImageUrls.includes(img)
-        );
-        const ADImagesToDelete = originalADImages.filter(
-          (img) => !currentADImages.includes(img)
-        );
-        const newImages = currentImageUrls.filter(
-          (url) => !originalImages.includes(url)
-        );
-        const newADImages = currentADImages.filter(
-          (src) => !originalADImages.includes(src)
-        );
-        if (imagesToDelete.length > 0) {
-          imagesToDelete.forEach((imgPath) => {
-            plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
-              fileEntry.remove(() => {
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2142", "删除原有图片成功:", imgPath);
-              }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:2144", "删除原有图片失败:", error);
-              });
-            }, (error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:2147", "无法访问原有图片:", error);
-            });
-          });
-        }
-        if (ADImagesToDelete.length > 0) {
-          ADImagesToDelete.forEach((imgPath) => {
-            plus.io.resolveLocalFileSystemURL(imgPath, (fileEntry) => {
-              fileEntry.remove(() => {
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2155", "删除原有AD图片成功:", imgPath);
-              }, (error) => {
-                formatAppLog("error", "at pages/add-disease/add-disease.vue:2157", "删除原有AD图片失败:", error);
-              });
-            }, (error) => {
-              formatAppLog("error", "at pages/add-disease/add-disease.vue:2160", "无法访问原有AD图片:", error);
-            });
-          });
-        }
         try {
-          if (newImages.length > 0) {
-            const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newImages);
-            diseaseData.images = [...imagesToKeep, ...savedPaths];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2171", "已保存病害图片，合并保存的图片列表:", diseaseData.images);
+          let imageRelativePaths = [];
+          if (currentImageUrls.length > 0) {
+            imageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentImageUrls);
+            diseaseData.images = imageRelativePaths;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2124", "保存当前所有病害图片，相对路径:", imageRelativePaths);
           } else {
-            diseaseData.images = imagesToKeep;
+            diseaseData.images = [];
           }
-          if (newADImages.length > 0) {
-            const savedPaths = await saveDiseaseImages(userInfo.username, buildingId.value, newADImages);
-            diseaseData.ADImgs = [...ADImagesToKeep, ...savedPaths];
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2182", "已保存AD图片，合并保存的图片列表:", diseaseData.ADImgs);
+          let adImageRelativePaths = [];
+          if (currentADImages.length > 0) {
+            adImageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentADImages);
+            diseaseData.ADImgs = adImageRelativePaths;
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2134", "保存当前所有AD图片，相对路径:", adImageRelativePaths);
           } else {
-            diseaseData.ADImgs = ADImagesToKeep;
+            diseaseData.ADImgs = [];
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2188", "已保存病害图片，更新病害数据...:", diseaseData);
+          if (originalImages.length > 0) {
+            await removeDiseaseImage(originalImages).then((result) => {
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2143", "删除原有病害图片成功:", result);
+            }).catch((error) => {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2146", "删除原有病害图片失败:", error);
+            });
+          }
+          if (originalADImages.length > 0) {
+            await removeDiseaseImage(originalADImages).then((result) => {
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2154", "删除原有AD图片成功:", result);
+            }).catch((error) => {
+              formatAppLog("error", "at pages/add-disease/add-disease.vue:2157", "删除原有AD图片失败:", error);
+            });
+          }
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2161", "已保存病害图片，更新病害数据...:", diseaseData);
           if (isEditMode) {
             uni.$emit("updateDisease", diseaseData);
           } else {
             uni.$emit("addNewDisease", diseaseData);
           }
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2196", "保存图片过程中发生错误:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2169", "保存图片过程中发生错误:", error);
           plus.nativeUI.toast("保存图片失败");
+          throw error;
         }
       };
       const getComponentName = () => {
@@ -16270,10 +16514,10 @@ ${i3}
         return componentName;
       };
       const savedisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2217", "保存按钮点击");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2191", "保存按钮点击");
         const diseaseData = createDiseaseData();
         if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2224", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2198", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -16326,10 +16570,9 @@ ${i3}
               const currentId = (_b = (_a = getCurrentPages()[getCurrentPages().length - 1].$page) == null ? void 0 : _a.options) == null ? void 0 : _b.id;
               if (currentId) {
                 const deleteData = {
-                  id: currentId,
-                  isDelete: true
+                  id: currentId
                 };
-                formatAppLog("log", "at pages/add-disease/add-disease.vue:2296", "准备发送deleteDisease事件，标记删除ID:", currentId);
+                formatAppLog("log", "at pages/add-disease/add-disease.vue:2269", "准备发送deleteDisease事件，标记删除ID:", currentId);
                 uni.$emit("deleteDisease", deleteData);
                 uni.showToast({
                   title: "删除成功",
@@ -16349,10 +16592,10 @@ ${i3}
         });
       };
       const copyAndAddDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2321", "复制并新增");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2294", "复制并新增");
         fileList.value = [];
         ADImgs.value = [];
-        isEdit.value = false;
+        openMode.value = "create";
         uni.showToast({
           title: "复制成功",
           icon: "none",
@@ -16360,10 +16603,11 @@ ${i3}
         });
       };
       const editDisease = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2341", "编辑");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2315", "编辑");
         const diseaseData = createDiseaseData();
+        diseaseData.commit_type = 1;
         if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2348", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2323", "数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置");
           uni.hideLoading();
           uni.showToast({
             title: "请填写必填项",
@@ -16392,9 +16636,9 @@ ${i3}
         });
       };
       const handleFileSelect = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2386", "文件选择事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2361", "文件选择事件", e2);
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2389", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2364", "选择的文件数量:", e2.tempFiles.length);
           const newFiles = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -16414,29 +16658,29 @@ ${i3}
             }
           });
           fileList.value = [...fileList.value];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2425", "更新后的fileList:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2400", "更新后的fileList:", fileList.value);
           const paths = getImagePaths(fileList.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2429", "当前有效路径数:", paths.length);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2404", "当前有效路径数:", paths.length);
         }
       };
       const handleFileDelete = (e2) => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2434", "文件删除事件", e2);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2409", "文件删除事件", e2);
         if (e2 && e2.tempFile && e2.tempFile.name) {
           const fileName = e2.tempFile.name;
           fileList.value = fileList.value.filter((file) => file.name !== fileName);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2443", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2418", "删除后的文件列表:", fileList.value);
         } else if (e2 && e2.index !== void 0 && e2.index >= 0) {
           fileList.value.splice(e2.index, 1);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2447", "删除后的文件列表:", fileList.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2422", "删除后的文件列表:", fileList.value);
         }
       };
       const getImagePaths = (fileListData) => {
         const paths = [];
         if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2456", "文件列表为空");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2431", "文件列表为空");
           return paths;
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2460", "处理文件列表:", fileListData);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2435", "处理文件列表:", fileListData);
         fileListData.forEach((file, index) => {
           let path = "";
           if (file.url) {
@@ -16451,10 +16695,10 @@ ${i3}
             path = file.image.location;
           }
           if (path) {
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2480", `文件[${index}]有效路径:`, path);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2455", `文件[${index}]有效路径:`, path);
             paths.push(path);
           } else {
-            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2483", `文件[${index}]没有有效路径:`, file);
+            formatAppLog("warn", "at pages/add-disease/add-disease.vue:2458", `文件[${index}]没有有效路径:`, file);
           }
         });
         return paths;
@@ -16488,11 +16732,11 @@ ${i3}
       const fetchStructureData = async () => {
         try {
           const data = await getObject(userInfo.username, buildingId.value);
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2529", "结构数据获取成功:", data);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2504", "结构数据获取成功:", data);
           structureData.value = data;
           return Promise.resolve(data);
         } catch (error) {
-          formatAppLog("error", "at pages/add-disease/add-disease.vue:2535", "获取结构数据失败:", error);
+          formatAppLog("error", "at pages/add-disease/add-disease.vue:2510", "获取结构数据失败:", error);
           uni.showToast({
             title: "获取结构数据失败",
             icon: "none"
@@ -16502,25 +16746,25 @@ ${i3}
       };
       const updateDiseaseTypeOptions = () => {
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2550", "无效的部件类型选择");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2525", "无效的部件类型选择");
           diseaseTypeOptions.value = [];
           return;
         }
         if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2557", "部件类型选择超出范围");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2532", "部件类型选择超出范围");
           diseaseTypeOptions.value = [];
           return;
         }
         const selectedBiObject = biObjectNameOptions.value[typeMultiIndex.value[1]];
         if (!selectedBiObject) {
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2565", "选中的部件类型不存在");
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2540", "选中的部件类型不存在");
           diseaseTypeOptions.value = [];
           return;
         }
         allDiseaseTypes = [];
         if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
           allDiseaseTypes = [...selectedBiObject.diseaseTypes];
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2576", "第二级病害类型:", allDiseaseTypes);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2551", "第二级病害类型:", allDiseaseTypes);
         }
         if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children && Array.isArray(selectedBiObject.children) && typeMultiIndex.value[2] < selectedBiObject.children.length) {
           const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
@@ -16530,21 +16774,21 @@ ${i3}
                 allDiseaseTypes.push(item);
               }
             });
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2593", "添加第三级后的病害类型:", allDiseaseTypes);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2568", "添加第三级后的病害类型:", allDiseaseTypes);
           }
         }
         diseaseTypeOptions.value = allDiseaseTypes.map((item) => item.name);
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2600", "最终缺损类型选项更新为:", diseaseTypeOptions.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2575", "最终缺损类型选项更新为:", diseaseTypeOptions.value);
         if (type.value) {
           const index = diseaseTypeOptions.value.findIndex((item) => item === type.value);
           if (index !== -1) {
             typeindex.value = index;
             typePicker.value = type.value;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2608", "成功设置病害类型索引:", index);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2583", "成功设置病害类型索引:", index);
           } else {
             typePicker.value = "其他";
             typeInput.value = type.value;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2613", "当前病害类型不在选项中，设为自定义输入:", type.value);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2588", "当前病害类型不在选项中，设为自定义输入:", type.value);
           }
         }
       };
@@ -16554,7 +16798,7 @@ ${i3}
       const componentNameInput = vue.ref("");
       const componentCodeInput = vue.ref("");
       const updateDiseasePositionOptions = () => {
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2631", "开始更新病害位置选项");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2606", "开始更新病害位置选项");
         if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
           diseasePosition.value = [];
           return;
@@ -16569,13 +16813,13 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
               diseasePosition.value = selectedThirdLevel.children.map((item) => item.name);
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2657", "更新病害位置选项为第三级子组件:", diseasePosition.value);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2632", "更新病害位置选项为第三级子组件:", diseasePosition.value);
               return;
             }
           }
         }
         diseasePosition.value = [];
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2665", "使用默认病害位置选项");
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2640", "使用默认病害位置选项");
       };
       const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
         currentReferenceSurface.value = surfaceNumber;
@@ -16599,18 +16843,18 @@ ${i3}
           const matchingChild = selectedComponent.children.find((child) => child.name === position.value);
           if (matchingChild && matchingChild.props) {
             positionProps = matchingChild.props;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2722", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2697", "找到匹配的病害位置组件:", matchingChild.name, "其props:", positionProps);
           }
         }
         if (!positionProps && selectedComponent && selectedComponent.props) {
           positionProps = selectedComponent.props;
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2729", "使用当前选中组件的props:", positionProps);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2704", "使用当前选中组件的props:", positionProps);
         }
         if (positionProps) {
           const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
           if (options && options.length > 0) {
             referenceSurfaceOptions.value = options;
-            formatAppLog("log", "at pages/add-disease/add-disease.vue:2737", `解析到参考面${surfaceNumber}选项:`, options);
+            formatAppLog("log", "at pages/add-disease/add-disease.vue:2712", `解析到参考面${surfaceNumber}选项:`, options);
           } else {
             setDefaultReferenceSurfaceOptions(surfaceNumber);
           }
@@ -16625,7 +16869,7 @@ ${i3}
         } else {
           referenceSurfaceOptions.value = [];
         }
-        formatAppLog("log", "at pages/add-disease/add-disease.vue:2758", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+        formatAppLog("log", "at pages/add-disease/add-disease.vue:2733", `使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
       };
       const parsePropsForRef = (propsString, refKey) => {
         if (!propsString)
@@ -16688,7 +16932,7 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.id) {
               thirdLevelComponentId = selectedThirdLevel.id;
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2846", "找到第三级组件ID:", thirdLevelComponentId);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2821", "找到第三级组件ID:", thirdLevelComponentId);
             }
           }
         }
@@ -16702,7 +16946,7 @@ ${i3}
             const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
             if (selectedThirdLevel && selectedThirdLevel.name) {
               thirdLevelComponentName = selectedThirdLevel.name;
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2864", "找到第三级组件Name:", thirdLevelComponentName);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2839", "找到第三级组件Name:", thirdLevelComponentName);
             }
           }
         }
@@ -16751,10 +16995,10 @@ ${i3}
               if (levelindex.value < minScale || levelindex.value > maxScale) {
                 levelindex.value = minScale;
               }
-              formatAppLog("log", "at pages/add-disease/add-disease.vue:2934", "更新评定标度范围:", minScale, "至", maxScale);
+              formatAppLog("log", "at pages/add-disease/add-disease.vue:2909", "更新评定标度范围:", minScale, "至", maxScale);
             }
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2938", "病害类型选择变更为:", typePicker.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2913", "病害类型选择变更为:", typePicker.value);
         }
       };
       const onDiseasePositionChange = (e2) => {
@@ -16766,7 +17010,7 @@ ${i3}
           } else {
             position.value = positionPicker.value;
           }
-          formatAppLog("log", "at pages/add-disease/add-disease.vue:2956", "病害位置选择变更为:", positionPicker.value);
+          formatAppLog("log", "at pages/add-disease/add-disease.vue:2931", "病害位置选择变更为:", positionPicker.value);
         }
       };
       vue.watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
@@ -16786,6 +17030,8 @@ ${i3}
         return getObject;
       }, get readDiseaseImages() {
         return readDiseaseImages;
+      }, get removeDiseaseImage() {
+        return removeDiseaseImage;
       }, get saveDiseaseImages() {
         return saveDiseaseImages;
       }, get userStore() {
@@ -21055,8 +21301,8 @@ ${i3}
             let data = {
               action: "checkVersion",
               appid: appId,
-              appVersion: "100",
-              wgtVersion: "100"
+              appVersion: "1.0.250615",
+              wgtVersion: "1.0.250615"
               // appVersion: appVersion,
               // wgtVersion: widgetInfo.version
             };
