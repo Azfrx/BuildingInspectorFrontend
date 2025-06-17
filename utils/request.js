@@ -100,7 +100,7 @@ export async function propertyRequest(buildingId, token, username) {
 			await setProperty(username, buildingId, bridgedata);
 		} else {
 			uni.showToast({
-				title: response.data.msg || '获取桥梁卡片数据失败',
+				title: response.data.msg || `保存桥梁卡片${buildingId}图片失败`,
 				icon: 'none'
 			});
 		}

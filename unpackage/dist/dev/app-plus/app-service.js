@@ -3223,7 +3223,7 @@ This will fail in production.`);
         await setProperty(username, buildingId, bridgedata);
       } else {
         uni.showToast({
-          title: response.data.msg || "获取桥梁卡片数据失败",
+          title: response.data.msg || `保存桥梁卡片${buildingId}图片失败`,
           icon: "none"
         });
       }
@@ -14030,7 +14030,6 @@ ${i3}
     setup(__props, { expose: __expose }) {
       __expose();
       const props = __props;
-      const isJson = vue.ref(1);
       const isSubmit = vue.ref(false);
       const frontLeft = vue.ref([]);
       const frontRight = vue.ref([]);
@@ -14047,14 +14046,16 @@ ${i3}
         height: "200rpx"
       });
       vue.watch(() => props.isDataLoaded, (newVal) => {
-        formatAppLog("log", "at components/front-photo.vue:115", "front-photo组件检测到isDataLoaded变化:", newVal);
+        formatAppLog("log", "at components/front-photo.vue:130", "front-photo组件检测到isDataLoaded变化:", newVal);
         if (newVal === true) {
           readBridgeImageByJson();
         }
-      }, { immediate: true });
-      const frontLeftSelect = (e2) => {
+      }, {
+        immediate: true
+      });
+      const frontLeftSelect = async (e2) => {
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at components/front-photo.vue:123", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at components/front-photo.vue:140", "选择的文件数量:", e2.tempFiles.length);
           frontLeft.value = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -14062,11 +14063,12 @@ ${i3}
               extname: file.extname || "jpg"
             };
           });
+          await autoSavePhotos();
         }
       };
-      const frontRightSelect = (e2) => {
+      const frontRightSelect = async (e2) => {
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at components/front-photo.vue:137", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at components/front-photo.vue:158", "选择的文件数量:", e2.tempFiles.length);
           frontRight.value = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -14074,11 +14076,12 @@ ${i3}
               extname: file.extname || "jpg"
             };
           });
+          await autoSavePhotos();
         }
       };
-      const sideLeftSelect = (e2) => {
+      const sideLeftSelect = async (e2) => {
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at components/front-photo.vue:151", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at components/front-photo.vue:176", "选择的文件数量:", e2.tempFiles.length);
           sideLeft.value = e2.tempFiles.map((file) => {
             return {
               name: file.name,
@@ -14086,17 +14089,50 @@ ${i3}
               extname: file.extname || "jpg"
             };
           });
+          await autoSavePhotos();
         }
       };
-      const sideRightSelect = (e2) => {
+      const sideRightSelect = async (e2) => {
         if (e2 && e2.tempFiles && e2.tempFiles.length > 0) {
-          formatAppLog("log", "at components/front-photo.vue:165", "选择的文件数量:", e2.tempFiles.length);
+          formatAppLog("log", "at components/front-photo.vue:194", "选择的文件数量:", e2.tempFiles.length);
           sideRight.value = e2.tempFiles.map((file) => {
             return {
               name: file.name,
               url: file.url || file.path || file.file && file.file.path || file.image && file.image.location || file.tempFilePath,
               extname: file.extname || "jpg"
             };
+          });
+          await autoSavePhotos();
+        }
+      };
+      const autoSavePhotos = async () => {
+        try {
+          const hasImages = frontLeft.value.length > 0 || frontRight.value.length > 0 || sideLeft.value.length > 0 || sideRight.value.length > 0;
+          if (!hasImages) {
+            formatAppLog("log", "at components/front-photo.vue:220", "没有图片需要保存");
+            return;
+          }
+          uni.showLoading({
+            title: "保存中...",
+            mask: true
+          });
+          const savePhotoData = await createPhotoDate();
+          formatAppLog("log", "at components/front-photo.vue:231", "保存的图片json数据:", savePhotoData);
+          await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
+          uni.hideLoading();
+          uni.showToast({
+            title: "保存成功",
+            icon: "success",
+            duration: 1500
+          });
+          isSubmit.value = true;
+        } catch (error) {
+          uni.hideLoading();
+          formatAppLog("error", "at components/front-photo.vue:249", "保存图片失败:", error);
+          uni.showToast({
+            title: "保存失败，请重试",
+            icon: "none",
+            duration: 1500
           });
         }
       };
@@ -14107,29 +14143,53 @@ ${i3}
           sideLeft: [],
           sideRight: []
         };
-        if (hasImageChanged(frontLeft.value, originalFrontLeft.value)) {
-          result.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft.value.map((img) => img.url));
-        } else {
-          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-          result.frontLeft = data.frontLeft || [];
-        }
-        if (hasImageChanged(frontRight.value, originalFrontRight.value)) {
-          result.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight.value.map((img) => img.url));
-        } else {
-          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-          result.frontRight = data.frontRight || [];
-        }
-        if (hasImageChanged(sideLeft.value, originalSideLeft.value)) {
-          result.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft.value.map((img) => img.url));
-        } else {
-          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-          result.sideLeft = data.sideLeft || [];
-        }
-        if (hasImageChanged(sideRight.value, originalSideRight.value)) {
-          result.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight.value.map((img) => img.url));
-        } else {
-          const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-          result.sideRight = data.sideRight || [];
+        try {
+          if (hasImageChanged(frontLeft.value, originalFrontLeft.value)) {
+            result.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft.value.map((img) => img.url));
+          } else {
+            try {
+              const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+              result.frontLeft = data.frontLeft || [];
+            } catch (error) {
+              formatAppLog("error", "at components/front-photo.vue:277", "获取原始frontLeft数据失败:", error);
+              result.frontLeft = [];
+            }
+          }
+          if (hasImageChanged(frontRight.value, originalFrontRight.value)) {
+            result.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight.value.map((img) => img.url));
+          } else {
+            try {
+              const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+              result.frontRight = data.frontRight || [];
+            } catch (error) {
+              formatAppLog("error", "at components/front-photo.vue:292", "获取原始frontRight数据失败:", error);
+              result.frontRight = [];
+            }
+          }
+          if (hasImageChanged(sideLeft.value, originalSideLeft.value)) {
+            result.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft.value.map((img) => img.url));
+          } else {
+            try {
+              const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+              result.sideLeft = data.sideLeft || [];
+            } catch (error) {
+              formatAppLog("error", "at components/front-photo.vue:307", "获取原始sideLeft数据失败:", error);
+              result.sideLeft = [];
+            }
+          }
+          if (hasImageChanged(sideRight.value, originalSideRight.value)) {
+            result.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight.value.map((img) => img.url));
+          } else {
+            try {
+              const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+              result.sideRight = data.sideRight || [];
+            } catch (error) {
+              formatAppLog("error", "at components/front-photo.vue:322", "获取原始sideRight数据失败:", error);
+              result.sideRight = [];
+            }
+          }
+        } catch (error) {
+          formatAppLog("error", "at components/front-photo.vue:327", "创建照片数据失败:", error);
         }
         return result;
       };
@@ -14144,20 +14204,23 @@ ${i3}
         }
         return false;
       };
-      const savePhoto = async () => {
+      const onUploadSuccess = async (type) => {
+        formatAppLog("log", "at components/front-photo.vue:352", `${type} 上传成功`);
         const savePhotoData = await createPhotoDate();
-        formatAppLog("log", "at components/front-photo.vue:245", "保存的图片json数据:", savePhotoData);
+        formatAppLog("log", "at components/front-photo.vue:356", "保存的图片json数据:", savePhotoData);
         await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
         uni.showToast({
           title: "保存成功",
-          icon: "success"
+          icon: "success",
+          duration: 1500
         });
         isSubmit.value = true;
       };
       const readBridgeImageByJson = async () => {
+        var _a, _b, _c, _d;
         try {
           const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-          formatAppLog("log", "at components/front-photo.vue:257", "获取正立面照数据成功:", data);
+          formatAppLog("log", "at components/front-photo.vue:371", "获取正立面照数据成功:", data);
           if (data.frontLeft && Array.isArray(data.frontLeft)) {
             const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
             frontLeft.value = imagesPaths.map((url, index) => ({
@@ -14194,8 +14257,20 @@ ${i3}
             }));
             originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
           }
+          if (((_a = data.frontLeft) == null ? void 0 : _a.length) || ((_b = data.frontRight) == null ? void 0 : _b.length) || ((_c = data.sideLeft) == null ? void 0 : _c.length) || ((_d = data.sideRight) == null ? void 0 : _d.length)) {
+            isSubmit.value = true;
+          }
         } catch (error) {
-          formatAppLog("error", "at components/front-photo.vue:301", "读取正立面照失败:", error);
+          formatAppLog("error", "at components/front-photo.vue:421", "读取正立面照失败:", error);
+          frontLeft.value = [];
+          frontRight.value = [];
+          sideLeft.value = [];
+          sideRight.value = [];
+          originalFrontLeft.value = [];
+          originalFrontRight.value = [];
+          originalSideLeft.value = [];
+          originalSideRight.value = [];
+          isSubmit.value = false;
         }
       };
       vue.onMounted(async () => {
@@ -14203,7 +14278,7 @@ ${i3}
           await readBridgeImageByJson();
         }
       });
-      const __returned__ = { props, isJson, isSubmit, frontLeft, frontRight, sideLeft, sideRight, originalFrontLeft, originalFrontRight, originalSideLeft, originalSideRight, idStorageInfo, userInfo, imageStyles, frontLeftSelect, frontRightSelect, sideLeftSelect, sideRightSelect, createPhotoDate, hasImageChanged, savePhoto, readBridgeImageByJson, computed: vue.computed, onMounted: vue.onMounted, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get getFrontPhoto() {
+      const __returned__ = { props, isSubmit, frontLeft, frontRight, sideLeft, sideRight, originalFrontLeft, originalFrontRight, originalSideLeft, originalSideRight, idStorageInfo, userInfo, imageStyles, frontLeftSelect, frontRightSelect, sideLeftSelect, sideRightSelect, autoSavePhotos, createPhotoDate, hasImageChanged, onUploadSuccess, readBridgeImageByJson, computed: vue.computed, onMounted: vue.onMounted, reactive: vue.reactive, ref: vue.ref, watch: vue.watch, get getFrontPhoto() {
         return getFrontPhoto;
       }, get getProperty() {
         return getProperty;
@@ -14238,11 +14313,7 @@ ${i3}
               3
               /* TEXT, CLASS */
             )
-          ]),
-          vue.createElementVNode("button", {
-            class: "save",
-            onClick: $setup.savePhoto
-          }, "保存")
+          ])
         ]),
         vue.createElementVNode("view", { class: "photo-container" }, [
           vue.createElementVNode("view", { class: "photo-item" }, [
@@ -14258,7 +14329,8 @@ ${i3}
               "file-mediatype": "image",
               mode: "grid",
               onSelect: $setup.frontLeftSelect,
-              "auto-upload": false
+              "auto-upload": false,
+              onSuccess: _cache[1] || (_cache[1] = ($event) => $setup.onUploadSuccess("frontLeft"))
             }, null, 8, ["image-styles", "modelValue"])
           ]),
           vue.createElementVNode("view", { class: "photo-item" }, [
@@ -14270,11 +14342,12 @@ ${i3}
               limit: "1",
               "image-styles": $setup.imageStyles,
               modelValue: $setup.frontRight,
-              "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => $setup.frontRight = $event),
+              "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.frontRight = $event),
               "file-mediatype": "image",
               mode: "grid",
               onSelect: $setup.frontRightSelect,
-              "auto-upload": false
+              "auto-upload": false,
+              onSuccess: _cache[3] || (_cache[3] = ($event) => $setup.onUploadSuccess("frontRight"))
             }, null, 8, ["image-styles", "modelValue"])
           ])
         ]),
@@ -14288,11 +14361,12 @@ ${i3}
               limit: "1",
               "image-styles": $setup.imageStyles,
               modelValue: $setup.sideLeft,
-              "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => $setup.sideLeft = $event),
+              "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => $setup.sideLeft = $event),
               "file-mediatype": "image",
               mode: "grid",
               onSelect: $setup.sideLeftSelect,
-              "auto-upload": false
+              "auto-upload": false,
+              onSuccess: _cache[5] || (_cache[5] = ($event) => $setup.onUploadSuccess("sideLeft"))
             }, null, 8, ["image-styles", "modelValue"])
           ]),
           vue.createElementVNode("view", { class: "photo-item" }, [
@@ -14304,11 +14378,12 @@ ${i3}
               limit: "1",
               "image-styles": $setup.imageStyles,
               modelValue: $setup.sideRight,
-              "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => $setup.sideRight = $event),
+              "onUpdate:modelValue": _cache[6] || (_cache[6] = ($event) => $setup.sideRight = $event),
               "file-mediatype": "image",
               mode: "grid",
               onSelect: $setup.sideRightSelect,
-              "auto-upload": false
+              "auto-upload": false,
+              onSuccess: _cache[7] || (_cache[7] = ($event) => $setup.onUploadSuccess("sideRight"))
             }, null, 8, ["image-styles", "modelValue"])
           ])
         ])
