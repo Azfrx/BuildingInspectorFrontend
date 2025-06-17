@@ -1,5 +1,6 @@
 // 文档基础路径
 const DOC_BASE_PATH = '_doc/';
+import { getObject } from './readJsonNew';
 import { trackPath } from './reviseJson';
 
 // 获取当前日期字符串 (格式: YY-MM-DD)
@@ -29,7 +30,6 @@ const FILE_NAMING = {
         `${getUserDir(userName)}/building/${buildingId}/disease/images`,
     bridgeImages:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/images`,
     targetBridgeZip:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}`,
-    frontPhoto:  (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/frontPhoto.json`,
 };
 
 // 核心文件写入方法（保持不变）
@@ -88,7 +88,111 @@ export function setAllUserInfo(userName, data) {
     trackPath(path);
     return setJsonData(path, data);
 }
+/**
+ * 更新指定节点的病害数量（diseaseNumber + 1）
+ * @param {string} userName 用户名
+ * @param {string} buildingId 建筑ID
+ * @param {string} nameOne 第一层级的name属性值
+ * @param {string} nameTwo 第二层级的name属性值
+ * @param {string} idThree 第三层级的id属性值
+ * @returns {boolean} 是否成功更新
+ */
+export function addDiseaseNumber(userName, buildingId, nameOne, nameTwo, idThree) {
+    // 构建文件路径
+    const path = DOC_BASE_PATH + FILE_NAMING.object(userName, buildingId);
+    trackPath(path); // 记录路径（假设是日志跟踪）
+    
+    // 获取原始数据对象
+    const data = getObject(userName, buildingId);
+    if (!data || !data.children) {
+        console.error('数据格式错误：缺少children字段');
+        return false;
+    }
 
+    // 第一层查找：通过name匹配
+    const firstLevelItem = data.children.find(item => item.name === nameOne);
+    if (!firstLevelItem) {
+        console.error(`未找到第一层级项目：${nameOne}`);
+        return false;
+    }
+
+    // 第二层查找：通过name匹配
+    if (!firstLevelItem.children) {
+        console.error(`项目${nameOne}缺少children字段`);
+        return false;
+    }
+    const secondLevelItem = firstLevelItem.children.find(item => item.name === nameTwo);
+    if (!secondLevelItem) {
+        console.error(`未找到第二层级项目：${nameTwo}`);
+        return false;
+    }
+
+    // 第三层查找：通过id匹配
+    if (!secondLevelItem.children) {
+        console.error(`项目${nameTwo}缺少children字段`);
+        return false;
+    }
+    const targetItem = secondLevelItem.children.find(item => item.id === idThree);
+    if (!targetItem) {
+        console.error(`未找到目标项目ID：${idThree}`);
+        return false;
+    }
+
+    // 更新病害数量（如果不存在则初始化为0后+1）
+    targetItem.diseaseNumber = (targetItem.diseaseNumber || 0) + 1;
+    console.log(`病害数量已更新：${targetItem.diseaseNumber}`);
+
+    // 保存修改后的数据
+    return setJsonData(path, data);
+}
+/**
+ * 减少指定节点的病害数量（diseaseNumber - 1，最小值为0）
+ * @param {string} userName 用户名
+ * @param {string} buildingId 建筑ID
+ * @param {string} nameOne 第一层级的name属性值
+ * @param {string} nameTwo 第二层级的name属性值
+ * @param {string} idThree 第三层级的id属性值
+ * @returns {boolean} 是否成功更新
+ */
+export function decreaseDiseaseNumber(userName, buildingId, nameOne, nameTwo, idThree) {
+    const path = DOC_BASE_PATH + FILE_NAMING.object(userName, buildingId);
+    trackPath(path);
+    const data = getObject(userName, buildingId);
+    
+    // 验证数据基础结构
+    if (!data?.children) {
+        console.error('数据格式错误：缺失children字段');
+        return false;
+    }
+
+    // 三级层级查找（使用相同的查找逻辑）
+    const firstLevel = data.children.find(item => item.name === nameOne);
+    if (!firstLevel) {
+        console.error(`[第一层] 未找到名称: ${nameOne}`);
+        return false;
+    }
+
+    const secondLevel = firstLevel.children?.find(item => item.name === nameTwo);
+    if (!secondLevel) {
+        console.error(`[第二层] 未找到名称: ${nameTwo}`);
+        return false;
+    }
+
+    const targetItem = secondLevel.children?.find(item => item.id === idThree);
+    if (!targetItem) {
+        console.error(`[第三层] 未找到ID: ${idThree}`);
+        return false;
+    }
+
+    // 执行减1操作（确保不小于0）
+    targetItem.diseaseNumber = Math.max(
+        (targetItem.diseaseNumber || 0) - 1, 
+        0
+    );
+    
+    console.log(`病害数已更新: ${targetItem.diseaseNumber}`);
+    return setJsonData(path, data);
+}
 // 保存图片到与JSON文件同级目录
 export function saveDiseaseImages(userName, buildingId, tempImagePaths) {
     console.log('保存的图片tempImagePaths:',  tempImagePaths)
@@ -307,10 +411,5 @@ export function saveBridgeZip(userName, buildingId){
                 reject(error);
         });
     });
-}
-
-export function setFrontPhoto(userName, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
-    return setJsonData(path,  data);
 }
 
