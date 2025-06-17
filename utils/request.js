@@ -3,7 +3,8 @@ import {
 	saveDiseaseImages,
 	setDisease,
 	setProperty,
-	setTask
+	setTask,
+	setObject
 } from "@/utils/writeNew";
 
 export async function getAllDataAndSetToLocal(projects, token, username) {
@@ -99,14 +100,14 @@ export async function propertyRequest(buildingId, token, username) {
 			await setProperty(username, buildingId, bridgedata);
 		} else {
 			uni.showToast({
-				title: response.data.msg || '获取数据失败',
+				title: response.data.msg || `保存桥梁卡片${buildingId}图片失败`,
 				icon: 'none'
 			});
 		}
 	} catch (error) {
 		console.error('获取桥梁卡片数据失败:', error);
 		uni.showToast({
-			title: '获取数据失败，请稍后重试',
+			title: '获取桥梁卡片数据失败，请稍后重试',
 			icon: 'none'
 		});
 	}
@@ -147,7 +148,7 @@ export async function diseaseRequest(buildingId, token, username) {
 			}
 		} else {
 			uni.showToast({
-				title: response.data.msg || '获取数据失败',
+				title: response.data.msg || '获取病害数据失败',
 				icon: 'none'
 			});
 		}
