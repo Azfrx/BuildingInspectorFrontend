@@ -100,8 +100,10 @@
 		isDataLoaded: {
 			type: Boolean,
 			default: false
-		}
+		},
+    activeTabTop:{type: Number, default: 0}
 	});
+
 	// 是否从json中读取数据
 	const isSubmit = ref(false);
 
@@ -118,6 +120,13 @@
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
+
+  watch(() => props.activeTabTop, (newval, oldval) => {
+    if (newval == 3) {
+      console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+      readBridgeImageByJson();
+    }
+  })
 
 	// 图片上传样式
 	const imageStyles = reactive({

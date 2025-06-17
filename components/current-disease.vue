@@ -52,46 +52,27 @@ import {saveBridgeZip, saveDiseaseImages, setDisease, setObject} from '../utils/
 import {userStore} from "@/store";
 import {idStore} from "@/store/idStorage";
 
+const props = defineProps({
+  activeTabTop:{type: Number, default: 0}
+})
+
 // 数据
 const tabItems = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
 const activeTab = ref(0);
 const searchText = ref('');
-const showAddPopup = ref(false);
 const diseaseList = ref([]);
-const isJson = ref(1);//1为有json数据，0为无json数据
 const userInfo = userStore();
 // 控制提交按钮是否可点击
 const submitButtonEnabled = ref(false);
 
-//用户id
-const userId = ref(20);
-
-
 const idStorageInfo = idStore();
 
-//桥梁id
-const buildingId = ref(idStorageInfo.buildingId);
-
-// 通过计算属性获取URL中的bridgeId参数
-const bridgeIdFromURL = computed(() => {
-  const pages = getCurrentPages();
-  if (pages.length > 0) {
-    const currentPage = pages[pages.length - 1];
-    const options = currentPage.$page?.options;
-
-    if (options && options.bridgeId) {
-      return options.bridgeId;
-    }
+watch(() => props.activeTabTop, (newval, oldval) => {
+  if(newval == 0){
+    console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+    readCurrentYearDiseaseDataByJson()
   }
-  return 0; // 默认值
-});
-
-// 监听bridgeIdFromURL的变化
-watch(bridgeIdFromURL, (newVal) => {
-  if (newVal) {
-    buildingId.value = newVal;
-  }
-});
+})
 
 //
 const readCurrentYearDiseaseDataByJson = async () => {
@@ -99,7 +80,7 @@ const readCurrentYearDiseaseDataByJson = async () => {
     const currentYear = new Date().getFullYear().toString();
 
     // 调用getDisease获取当前年份数据
-    const yearData = await getDisease(userInfo.username, buildingId.value, currentYear);
+    const yearData = await getDisease(userInfo.username, idStorageInfo.buildingId, currentYear);
     console.log(`获取到${currentYear}年病害数据:`, yearData);
 
     // 直接使用diseases数组
@@ -111,77 +92,12 @@ const readCurrentYearDiseaseDataByJson = async () => {
 
     console.log('病害数据加载完成:', diseaseList.value);
   } catch (error) {
-    isJson.value = 0;
     console.error('读取当前病害数据失败:', error);
   }
 };
 
 // 加载当前年份病害数据
 const loadCurrentYearDiseaseData = async () => {
-  if (bridgeIdFromURL.value) {
-    buildingId.value = bridgeIdFromURL.value;
-  }
-  await readCurrentYearDiseaseDataByJson();
-  if(isJson.value === 0){
-    const responseLogin = await uni.request({
-      url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-      method: 'POST'
-    });
-    console.log('用户信息:', responseLogin.data);
-    const token = responseLogin.data.token
-    const currentYear = new Date().getFullYear().toString();
-    const getData = async () => {
-      console.log('开始从后端获取当前病害数据...........');
-      try {
-        const response = await uni.request({
-          //桥梁id改为全局
-          url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease?year=${currentYear}`,
-          method: 'GET',
-          header: {
-            'Authorization': `${token}`
-          }
-        });
-        if (response.data.code === 0) {
-          console.log('后端接口返回当前病害数据:', response.data.data);
-          //调用接口将数据存在本地(disease)
-          /*const saveData = {
-            year: parseInt(currentYear),
-            buildingId: parseInt(buildingId.value),
-            diseases: response.data.data.diseases || []
-          };*/
-          const saveData = response.data.data[0];
-          console.log('准备保存的当前病害数据:', saveData)
-
-          // 遍历diseases数组
-          for (const disease of saveData.diseases) {
-            // 处理images列表
-            if (disease.images && Array.isArray(disease.images)) {
-              disease.images = await saveDiseaseImages( userInfo.username, buildingId.value, disease.images);
-            }
-
-            // 处理ADImgs列表
-            if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
-              disease.ADImgs = await saveDiseaseImages( userInfo.username, buildingId.value, disease.ADImgs);
-            }
-          }
-
-          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
-        } else {
-          uni.showToast({
-            title: response.data.msg || '获取数据失败',
-            icon: 'none'
-          });
-        }
-      } catch (error) {
-        console.error('获取当前病害数据失败:', error);
-        uni.showToast({
-          title: '获取数据失败，请稍后重试',
-          icon: 'none'
-        });
-      }
-    };
-    await getData();
-  }
   await readCurrentYearDiseaseDataByJson();
 };
 
@@ -198,14 +114,14 @@ const addNewDiseaseData = async (newDisease) => {
     // 构建要保存的数据对象
     const saveData = {
       year: parseInt(currentYear),
-      buildingId: parseInt(buildingId.value),
+      buildingId: parseInt(idStorageInfo.buildingId),
       diseases: diseaseList.value
     };
     
     console.log('准备保存的数据:', saveData);
     
     // 调用setDisease方法保存数据
-    await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+    await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
     
     console.log('新增病害数据保存成功');
     uni.showToast({
@@ -239,8 +155,8 @@ const handleDeleteDisease = async (deleteData) => {
     }
     
     // 将commit_type置为2表示已删除，而不是直接从数组中移除
-    diseaseList.value[index].commit_type = 2;
-    console.log(`病害ID:${deleteData.id}已标记为删除(commit_type=2)`);
+    diseaseList.value[index].commitType = 2;
+    console.log(`病害ID:${deleteData.id}已标记为删除(commitType=2)`);
   
     // 准备要保存的数据
     const currentYear = new Date().getFullYear().toString();
@@ -248,14 +164,14 @@ const handleDeleteDisease = async (deleteData) => {
     // 构建要保存的数据对象
     const saveData = {
       year: parseInt(currentYear),
-      buildingId: parseInt(buildingId.value),
+      buildingId: parseInt(idStorageInfo.buildingId),
       diseases: diseaseList.value
     };
     
     console.log('准备保存更新后的数据:', saveData);
     
     // 调用setDisease方法保存数据
-    await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+    await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
     
     console.log('删除标记保存成功');
   } catch (error) {
@@ -294,14 +210,14 @@ const handleUpdateDisease = async (updatedDisease) => {
     // 构建要保存的数据对象
     const saveData = {
       year: parseInt(currentYear),
-      buildingId: parseInt(buildingId),
+      buildingId: parseInt(idStorageInfo.buildingId),
       diseases: diseaseList.value
     };
     
     console.log('准备保存更新后的数据:', saveData);
     
     // 调用setDisease方法保存数据
-    await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+    await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
     
     console.log('更新数据保存成功');
   } catch (error) {
@@ -320,7 +236,7 @@ const filteredDiseases = computed(() => {
 	
 	return diseaseList.value.filter(item => {
 		// 过滤掉已删除的数据（commit_type=2）
-		if (item.commit_type === 2) {
+		if (item.commitType === 2) {
 			return false;
 		}
 		// 按类型过滤 - 使用component.grandObjectName
@@ -351,7 +267,7 @@ const changeTab = (index) => {
 const getTpyeItemCount = (type) => {
 	// 根据type获取该类型的病害数量，排除已删除的数据(commit_type=2)
 	return diseaseList.value.filter(item => 
-    item.component?.grandObjectName === type && item.commit_type !== 2
+    item.component?.grandObjectName === type && item.commitType !== 2
   ).length;
 };
 
@@ -363,7 +279,7 @@ const addNewDisease = () => {
 };
 
 const submitZip = async () => {
-  console.log('提交压缩文件,buildingId', buildingId.value);
+  console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
   try {
     // 显示压缩中的加载提示
     uni.showLoading({
@@ -372,7 +288,7 @@ const submitZip = async () => {
     });
     
     // 等待压缩完成
-    const zipFilePath = await saveBridgeZip(userInfo.username, buildingId.value);
+    const zipFilePath = await saveBridgeZip(userInfo.username, idStorageInfo.buildingId);
     console.log('压缩完成，文件路径:', zipFilePath);
     
     // 更新加载提示为登录中
@@ -433,8 +349,8 @@ const submitZip = async () => {
       
       // 遍历diseaseList，将commit_type为1的记录更新为0
       diseaseList.value.forEach(disease => {
-        if (disease.commit_type === 1) {
-          disease.commit_type = 0;
+        if (disease.commitType === 1) {
+          disease.commitType = 0;
           hasChanges = true;
         }
       });
@@ -446,13 +362,13 @@ const submitZip = async () => {
         // 构建要保存的数据对象
         const saveData = {
           year: parseInt(currentYear),
-          buildingId: parseInt(buildingId.value),
+          buildingId: parseInt(idStorageInfo.buildingId),
           diseases: diseaseList.value
         };
         
         try {
           // 保存更新后的数据
-          await setDisease(userInfo.username, buildingId.value, currentYear, saveData);
+          await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
           console.log('成功更新病害提交状态');
         } catch (error) {
           console.error('更新病害提交状态失败:', error);
@@ -487,7 +403,7 @@ const submitZip = async () => {
 const checkUncommittedDiseases = async () => {
   try {
     const currentYear = new Date().getFullYear().toString();
-    const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, buildingId.value, currentYear);
+    const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
     console.log('检查未提交病害结果:', hasUncommittedDiseases);
     submitButtonEnabled.value = hasUncommittedDiseases;
   } catch (error) {

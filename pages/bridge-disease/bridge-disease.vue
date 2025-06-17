@@ -16,23 +16,23 @@
 		<view class="content">
 			<view v-show="activeTab === 0">
 				<!-- 当前病害内容 -->
-				<current-disease></current-disease>
+				<current-disease :activeTabTop="activeTab"></current-disease>
 			</view>
 			<view v-show="activeTab === 1">
 				<!-- 历史病害内容 -->
-				<history-disease></history-disease>
+				<history-disease :activeTabTop="activeTab"></history-disease>
 			</view>
       <view v-show="activeTab === 2">
         <!-- 桥梁卡片内容 -->
-        <bridge-archive ref="bridgeArchiveRef" @dataLoaded="handleDataLoaded"></bridge-archive>
+        <bridge-archive :activeTabTop="activeTab" ref="bridgeArchiveRef" @dataLoaded="handleDataLoaded"></bridge-archive>
       </view>
 			<view v-show="activeTab === 3">
 				<!-- 正面立照内容 -->
-				<front-photo :isDataLoaded="bridgeDataLoaded"></front-photo>
+				<front-photo :activeTabTop="activeTab" :isDataLoaded="bridgeDataLoaded"></front-photo>
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
-				<structure-info></structure-info>
+				<structure-info :activeTabTop="activeTab"></structure-info>
 			</view>
 		</view>
 	</view>

@@ -1867,7 +1867,7 @@
 			saveWithoutNavigateBack(diseaseData);
 		}
 		diseaseData.id = getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime();
-    diseaseData.local_id = getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime();
+    diseaseData.localId = new Date().getTime();
 	}
 
 	// 创建病害数据对象的方法
@@ -2043,8 +2043,8 @@
 			buildingId: buildingId.value,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
-      commit_type: 1, //0为已提交 1为未提交 2为删除
-      local_id:getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime(),
+      commitType: 1, //0为已提交 1为未提交 2为删除
+      localId:new Date().getTime(),
 		};
 	}
 
@@ -2316,7 +2316,7 @@
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();
-    diseaseData.commit_type = 1;
+    diseaseData.commitType = 1;
 
 		// 验证数据完整性
 		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {

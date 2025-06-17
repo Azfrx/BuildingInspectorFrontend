@@ -128,23 +128,25 @@ export async function diseaseRequest(buildingId, token, username) {
 		if (response.data.code === 0) {
 			for (const yearDisease of response.data.data) {
 				const year = yearDisease.year;
+				const currentYear = new Date().getFullYear();
+				if(year !== currentYear){
+					// 遍历diseases数组
+					for (const disease of yearDisease.diseases) {
+						// 处理images列表
+						if (disease.images && Array.isArray(disease.images)) {
+							disease.images = await saveDiseaseImages(username, buildingId, disease
+								.images);
+						}
 
-				// 遍历diseases数组
-				for (const disease of yearDisease.diseases) {
-					// 处理images列表
-					if (disease.images && Array.isArray(disease.images)) {
-						disease.images = await saveDiseaseImages(username, buildingId, disease
-							.images);
+						// 处理ADImgs列表
+						if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
+							disease.ADImgs = await saveDiseaseImages(username, buildingId, disease
+								.ADImgs);
+						}
 					}
-
-					// 处理ADImgs列表
-					if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
-						disease.ADImgs = await saveDiseaseImages(username, buildingId, disease
-							.ADImgs);
-					}
+					//调用接口将数据存在本地(disease)
+					await setDisease(username, buildingId, year, yearDisease)
 				}
-				//调用接口将数据存在本地(disease)
-				await setDisease(username, buildingId, year, yearDisease)
 			}
 		} else {
 			uni.showToast({

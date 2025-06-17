@@ -78,6 +78,10 @@ defineOptions({
   name: "history-disease"
 });
 
+const props = defineProps({
+  activeTabTop:{type: Number, default: 0}
+})
+
 const userInfo = userStore()
 
 // 响应式状态
@@ -93,44 +97,20 @@ const diseaseItems = ref(null);
 // 病害列表数据
 const diseaseMap = ref({}); // 用于按年份存储病害
 
-//是否从json中获取数据 1为是，0为否
-const isJson = ref(1);
-
-//用户id
-const userId = ref(20);
-
-
 const idStorageInfo = idStore();
 
-//桥梁id
-const buildingId = ref(0);
-
-// 通过计算属性获取URL中的bridgeId参数
-const bridgeIdFromURL = computed(() => {
-  const pages = getCurrentPages();
-  if (pages.length > 0) {
-    const currentPage = pages[pages.length - 1];
-    const options = currentPage.$page?.options;
-
-    if (options && options.bridgeId) {
-      return options.bridgeId;
-    }
+watch(() => props.activeTabTop, (newval, oldval) => {
+  if (newval == 1) {
+    console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+    loadDiseaseData();
   }
-  return 0; // 默认值
-});
-
-// 监听bridgeIdFromURL的变化
-watch(bridgeIdFromURL, (newVal) => {
-  if (newVal) {
-    buildingId.value = newVal;
-  }
-});
+})
 
 // 读取json文件中的数据
 const readHistoryDiseaseData = async () => {
   try {
     //  获取所有历史病害年份
-    const years = await getHistoryYear(userInfo.username, buildingId.value);
+    const years = await getHistoryYear(userInfo.username, idStorageInfo.buildingId);
 
     tabItems.value = years;
 
@@ -140,7 +120,7 @@ const readHistoryDiseaseData = async () => {
     // 依次读取各年份数据
     for (const year of years) {
       try {
-        const yearData = await getDisease(userInfo.username, buildingId.value, year);
+        const yearData = await getDisease(userInfo.username, idStorageInfo.buildingId, year);
         console.log(`获取到${year}年病害数据:`, yearData);
 
         // 直接按年份存储
@@ -157,68 +137,12 @@ const readHistoryDiseaseData = async () => {
 
   } catch (error) {
     console.error('读取病害数据失败:', error);
-    isJson.value = 0;
   }
 };
 
 // 加载数据
 const loadDiseaseData = async () => {
-  if (bridgeIdFromURL.value) {
-    buildingId.value = bridgeIdFromURL.value;
-  }
   await readHistoryDiseaseData();
-  //如果diseaseList为空，则从接口获取数据并写入json中
-  if (isJson.value === 0) {
-    const responseLogin = await uni.request({
-      url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-      method: 'POST'
-    });
-    const token = responseLogin.data.token
-    const getData = async () => {
-      console.log('开始从后端获取历史病害数据...........');
-      try {
-        const response = await uni.request({
-          //桥梁id改为全局
-          url: `http://60.205.13.156:8090/api/building/${buildingId.value}/disease`,
-          method: 'GET',
-          header: {
-            'Authorization': `${token}`
-          }
-        });
-        console.log('从后端接口获取到的历史病害数据:', response.data.data);
-        if (response.data.code === 0) {
-          for(const yearDisease of response.data.data){
-            const year = yearDisease.year;
-
-            // 遍历diseases数组
-            for (const disease of yearDisease.diseases) {
-              // 处理images列表
-              if (disease.images && Array.isArray(disease.images)) {
-                disease.images = await saveDiseaseImages( userInfo.username, buildingId.value, disease.images);
-              }
-
-              // 处理ADImgs列表
-              if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
-                disease.ADImgs = await saveDiseaseImages( userInfo.username, buildingId.value, disease.ADImgs);
-              }
-            }
-            //调用接口将数据存在本地(disease)
-            await setDisease(userInfo.username, buildingId.value, year, yearDisease)
-          }
-        } else {
-          uni.showToast({
-            title: response.data.msg || '获取数据失败',
-            icon: 'none'
-          });
-        }
-      } catch (error) {
-        console.error('获取历史病害数据失败:', error);
-      }
-    };
-    await getData();
-    await readHistoryDiseaseData();
-  }
-
   console.log('历史病害数据',  diseaseMap.value);
 };
 
@@ -345,7 +269,9 @@ const copyDisease = () => {
   // 一次性添加所有选中的病害
   Promise.all(copiedDiseases.map(disease => {
     return new Promise((resolve) => {
-      disease.nature =  '旧害';
+      disease.nature =  '旧病害';
+      disease.commitType = 1;
+      disease.localId = new Date().getTime();
       // 发送添加新病害事件给current-disease组件
       console.log('发送添加新病害事件给current-disease组件:', disease);
       uni.$emit('addNewDisease', disease);

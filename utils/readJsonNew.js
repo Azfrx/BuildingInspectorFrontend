@@ -323,7 +323,7 @@ export async function readDiseaseCommit(userName, buildingId, yearId){
         }
         
         // 使用some方法检查是否有任何病害的commit_type为1（未提交）
-        const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commit_type === 1);
+        const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commitType === 1);
         
         console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
         return hasUncommittedDiseases;
@@ -356,7 +356,7 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId){
         // 遍历所有病害
         diseaseData.diseases.forEach(disease => {
             // 排除已删除的病害记录(commit_type为2)
-            if (disease.commit_type === 2) {
+            if (disease.commitType === 2) {
                 return; // 跳过此次循环
             }
             
@@ -403,7 +403,7 @@ export async function isExistDisease(userName, buildingId, componentName){
         // 遍历所有病害记录，检查是否存在匹配的componentName
         const exists = diseaseData.diseases.some(disease => {
             // 排除已删除的病害记录(commit_type为2)
-            if (disease.commit_type === 2) {
+            if (disease.commitType === 2) {
                 return false;
             }
             
@@ -439,7 +439,7 @@ export async function isOnlyDisease(userName, buildingId, componentName){
         const matchingDiseases = diseaseData.diseases.filter(disease => 
             disease.component && 
             disease.component.name === componentName && 
-            disease.commit_type !== 2  // 排除已删除的病害记录
+            disease.commitType !== 2  // 排除已删除的病害记录
         );
         
         // 检查是否只有一个匹配的记录
