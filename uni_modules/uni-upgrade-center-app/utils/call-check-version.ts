@@ -43,8 +43,8 @@ export default function () : Promise<UniUpgradeCenterResult> {
 					let data = {
 						action: 'checkVersion',
 						appid: appId,
-						appVersion: '100',
-						wgtVersion: '100'
+						appVersion: '1.0.250615',
+						wgtVersion: '1.0.250615'
 						// appVersion: appVersion,
 						// wgtVersion: widgetInfo.version
 					}
