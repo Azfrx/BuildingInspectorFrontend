@@ -16,20 +16,21 @@
 			<view class="content">
 				<!--使用条件渲染显示不同组件 -->
 				<!--行政识别数据 -->
-				<administrative-identification-data
-					v-if="activeTab === 0"
-					:data="bridgeArchive.children[0].children">
+				<administrative-identification-data v-if="activeTab === 0" :data="bridgeArchive.children[0].children">
 				</administrative-identification-data>
 				<!--桥梁技术指标-->
 				<bridge-tech v-else-if="activeTab === 1" :data="bridgeArchive.children[1].children"></bridge-tech>
 				<!--桥梁结构信息-->
-				<bridge-structure v-else-if="activeTab === 2" :data="bridgeArchive.children[2].children"></bridge-structure>
+				<bridge-structure v-else-if="activeTab === 2"
+					:data="bridgeArchive.children[2].children"></bridge-structure>
 				<!--桥梁档案资料-->
 				<bridge-files v-else-if="activeTab === 3" :data="bridgeArchive.children[3].children"></bridge-files>
 				<!--桥梁检测评定历史-->
-				<bridge-inspection-history v-else-if="activeTab === 4" :data="bridgeArchive.children[4].children"></bridge-inspection-history>
+				<bridge-inspection-history v-else-if="activeTab === 4"
+					:data="bridgeArchive.children[4].children"></bridge-inspection-history>
 				<!--养护处置记录-->
-				<maintenance-records v-else-if="activeTab === 5" :data="bridgeArchive.children[5].children"></maintenance-records>
+				<maintenance-records v-else-if="activeTab === 5"
+					:data="bridgeArchive.children[5].children"></maintenance-records>
 				<!--需要说明的事项-->
 				<notes v-else-if="activeTab === 6" :data="bridgeArchive.children[6]"></notes>
 				<!--其他-->
@@ -41,84 +42,84 @@
 
 
 <script setup>
-import {
-  ref,
-  watch,
-  onMounted, computed
-} from 'vue';
-import {getDisease, getHistoryYear, getProperty} from '../utils/readJsonNew.js';
-import {saveBridgeImages, setProperty,saveBridgeImage} from "@/utils/writeNew";
-import {userStore} from "@/store";
-import {idStore} from "@/store/idStorage";
+	import {
+		ref,
+		watch,
+		onMounted,
+		computed
+	} from 'vue';
+	import {
+		getDisease,
+		getHistoryYear,
+		getProperty
+	} from '../utils/readJsonNew.js';
+	import {
+		saveBridgeImages,
+		setProperty,
+		saveBridgeImage
+	} from "@/utils/writeNew";
+	import {
+		userStore
+	} from "@/store";
+	import {
+		idStore
+	} from "@/store/idStorage";
 
-const props = defineProps({
-  activeTabTop:{type: Number, default: 0}
-})
+	const props = defineProps({
+		activeTabTop: {
+			type: Number,
+			default: 0
+		}
+	})
 
-// 定义emit，用于向父组件发送事件
-const emit = defineEmits(['dataLoaded']);
+	const userInfo = userStore()
 
-const userInfo = userStore()
+	// 本地状态，用于组件内部使用
+	const bridgeArchive = ref({
+		children: [{}, {}, {}, {}, {}, {}, {}, {}] // 初始化8个空对象，对应8个标签页
+	});
+	const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
+	const activeTab = ref(0);
 
-// 本地状态，用于组件内部使用
-const bridgeArchive = ref({
-  children: [{}, {}, {}, {}, {}, {}, {}, {}]  // 初始化8个空对象，对应8个标签页
-});
-const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
-const activeTab = ref(0);
-// 数据是否已加载完成
-const dataLoaded = ref(false);
+	const idStorageInfo = idStore();
 
-const idStorageInfo = idStore();
+	watch(() => props.activeTabTop, (newval, oldval) => {
+		if (newval == 2) {
+			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+			loadDiseaseData();
+		}
+	})
 
-watch(() => props.activeTabTop, (newval, oldval) => {
-  if (newval == 2) {
-    console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
-    loadDiseaseData();
-  }
-})
-
-// 左侧导航栏选择
-const changeTab = (index) => {
-	activeTab.value = index;
-};
+	// 左侧导航栏选择
+	const changeTab = (index) => {
+		activeTab.value = index;
+	};
 
 
-const readPropetryDataByJson  = async () => {
-  try {
-    // 直接调用getProperty方法获取数据，传入username和buildingId
-    const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
-    console.log('获取到桥梁档案数据:', data);
+	const readPropetryDataByJson = async () => {
+		try {
+			// 直接调用getProperty方法获取数据，传入username和buildingId
+			const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
+			console.log('获取到桥梁档案数据:', data);
 
-    // 将获取的数据赋值给本地状态
-    if (data && Object.keys(data).length > 0) {
-      bridgeArchive.value = data.property;
-    }
-  } catch (error) {
-    console.error('本地json获取桥梁档案数据失败:', error);
-  }
-};
+			// 将获取的数据赋值给本地状态
+			if (data && Object.keys(data).length > 0) {
+				bridgeArchive.value = data.property;
+			}
+		} catch (error) {
+			console.error('本地json获取桥梁档案数据失败:', error);
+		}
+	};
 
-const loadDiseaseData = async () => {
+	const loadDiseaseData = async () => {
 
-  await readPropetryDataByJson();
-  
-  // 设置数据加载完成状态
-  dataLoaded.value = true;
-  console.log('桥梁卡片数据加载完成，发送dataLoaded事件');
-  // 向父组件发送数据加载完成事件
-  emit('dataLoaded', true);
-};
+		await readPropetryDataByJson();
+	};
 
-// 组件挂载时直接获取数据
-onMounted(async () => {
-  await loadDiseaseData();
-});
-
-// 导出数据加载状态，供其他组件使用
-defineExpose({
-  dataLoaded
-});
+	// 组件挂载时直接获取数据
+	onMounted(async () => {
+		await loadDiseaseData();
+	});
 </script>
 
 <style scoped>
