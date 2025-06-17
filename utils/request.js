@@ -3,17 +3,18 @@ import {
 	saveDiseaseImages,
 	setDisease,
 	setProperty,
-	setTask
+	setTask,
+	setObject
 } from "@/utils/writeNew";
 
 export async function getAllDataAndSetToLocal(projects, token, username) {
 	//所有的项目 每一个项目去获取它下面的任务
-	projects.forEach(async (project) => {
+	for (const project of projects) {
 		const projectId = project.id;
 		// console.log('开始获取BuildingId:', projectId);
 		// buildings也就是tasks 每一个桥梁是一个检测任务
 		const buildings = await getBuildingIdByProjectId(projectId, token, username);
-		buildings.forEach(async (building) => {
+		for (const building of buildings) {
 			const buildingId = building.buildingId;
 			// console.log('开始获取桥梁卡片数据:', buildingId);
 			await propertyRequest(buildingId, token, username);
@@ -23,8 +24,8 @@ export async function getAllDataAndSetToLocal(projects, token, username) {
 
 			// console.log('开始获取桥梁构件数据:', buildingId);
 			await getStructureInfoByBuildingId(buildingId, token, username);
-		})
-	});
+		}
+	}
 }
 
 const getBuildingIdByProjectId = async (projectId, token, username) => {
@@ -48,7 +49,7 @@ const getBuildingIdByProjectId = async (projectId, token, username) => {
 	} catch (error) {
 		console.error('获取BuildingId失败:', error);
 		uni.showToast({
-			title: '获取数据失败，请稍后重试',
+			title: '获取BuildingId失败，请稍后重试',
 			icon: 'none'
 		});
 	}
@@ -99,14 +100,14 @@ export async function propertyRequest(buildingId, token, username) {
 			await setProperty(username, buildingId, bridgedata);
 		} else {
 			uni.showToast({
-				title: response.data.msg || '获取数据失败',
+				title: response.data.msg || '获取桥梁卡片数据失败',
 				icon: 'none'
 			});
 		}
 	} catch (error) {
 		console.error('获取桥梁卡片数据失败:', error);
 		uni.showToast({
-			title: '获取数据失败，请稍后重试',
+			title: '获取桥梁卡片数据失败，请稍后重试',
 			icon: 'none'
 		});
 	}
@@ -147,7 +148,7 @@ export async function diseaseRequest(buildingId, token, username) {
 			}
 		} else {
 			uni.showToast({
-				title: response.data.msg || '获取数据失败',
+				title: response.data.msg || '获取历史病害数据失败',
 				icon: 'none'
 			});
 		}

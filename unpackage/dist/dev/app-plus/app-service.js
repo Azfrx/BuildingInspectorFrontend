@@ -105,7 +105,7 @@ if (uni.restoreGlobal) {
     trackPath(path);
     return setJsonData(path, data);
   }
-  function setObject$1(userName, buildingId, data) {
+  function setObject(userName, buildingId, data) {
     const path = DOC_BASE_PATH$1 + FILE_NAMING$1.object(userName, buildingId);
     trackPath(path);
     return setJsonData(path, data);
@@ -1803,7 +1803,7 @@ This will fail in production.`);
     }
     return target;
   };
-  const _sfc_main$B = {
+  const _sfc_main$C = {
     __name: "LoginPage",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -1926,7 +1926,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$B(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock("view", { class: "loginPage" }, [
       vue.createElementVNode("view", { class: "logo" }, [
         vue.createElementVNode("view", { class: "logo-container" }, [
@@ -2005,11 +2005,11 @@ This will fail in production.`);
       ])
     ]);
   }
-  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
+  const PagesLoginPageLoginPage = /* @__PURE__ */ _export_sfc(_sfc_main$C, [["render", _sfc_render$B], ["__scopeId", "data-v-314e8b73"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/LoginPage/LoginPage.vue"]]);
   const _imports_0$6 = "/static/image/loginLogo.png";
   const _imports_1$3 = "/static/image/bridgeTrue.png";
   const _imports_2$2 = "/static/image/settingTrue.png";
-  const _sfc_main$A = {
+  const _sfc_main$B = {
     __name: "home",
     setup(__props, { expose: __expose }) {
       __expose();
@@ -2031,7 +2031,7 @@ This will fail in production.`);
       return __returned__;
     }
   };
-  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+  function _sfc_render$A(_ctx, _cache, $props, $setup, $data, $options) {
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
@@ -2100,7 +2100,37 @@ This will fail in production.`);
       /* STABLE_FRAGMENT */
     );
   }
-  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const PagesHomeHome = /* @__PURE__ */ _export_sfc(_sfc_main$B, [["render", _sfc_render$A], ["__scopeId", "data-v-07e72d3c"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/pages/home/home.vue"]]);
+  const _sfc_main$A = {
+    __name: "LoadingMask",
+    props: {
+      text: {
+        type: String,
+        default: "加载中..."
+      }
+    },
+    setup(__props, { expose: __expose }) {
+      __expose();
+      const __returned__ = {};
+      Object.defineProperty(__returned__, "__isScriptSetup", { enumerable: false, value: true });
+      return __returned__;
+    }
+  };
+  function _sfc_render$z(_ctx, _cache, $props, $setup, $data, $options) {
+    return vue.openBlock(), vue.createElementBlock("view", { class: "mask-container" }, [
+      vue.createElementVNode("view", { class: "mask-loading-box" }, [
+        vue.createElementVNode("view", { class: "spinner-css" }),
+        vue.createElementVNode(
+          "text",
+          { class: "loading-text" },
+          vue.toDisplayString($props.text),
+          1
+          /* TEXT */
+        )
+      ])
+    ]);
+  }
+  const __easycom_0$8 = /* @__PURE__ */ _export_sfc(_sfc_main$A, [["render", _sfc_render$z], ["__scopeId", "data-v-66e20d01"], ["__file", "D:/code/HbuilderX/BuildingInspectorFrontend/components/LoadingMask/LoadingMask.vue"]]);
   const DOC_BASE_PATH = "_doc/";
   function getCurrentDateStr() {
     const now2 = /* @__PURE__ */ new Date();
@@ -3118,16 +3148,16 @@ This will fail in production.`);
     return timer(period, period, scheduler);
   }
   async function getAllDataAndSetToLocal(projects, token, username) {
-    projects.forEach(async (project) => {
+    for (const project of projects) {
       const projectId2 = project.id;
       const buildings = await getBuildingIdByProjectId(projectId2, token, username);
-      buildings.forEach(async (building) => {
+      for (const building of buildings) {
         const buildingId = building.buildingId;
         await propertyRequest(buildingId, token, username);
         await diseaseRequest(buildingId, token, username);
         await getStructureInfoByBuildingId(buildingId, token, username);
-      });
-    });
+      }
+    }
   }
   const getBuildingIdByProjectId = async (projectId2, token, username) => {
     try {
@@ -3148,9 +3178,9 @@ This will fail in production.`);
         });
       }
     } catch (error) {
-      formatAppLog("error", "at utils/request.js:49", "获取BuildingId失败:", error);
+      formatAppLog("error", "at utils/request.js:50", "获取BuildingId失败:", error);
       uni.showToast({
-        title: "获取数据失败，请稍后重试",
+        title: "获取BuildingId失败，请稍后重试",
         icon: "none"
       });
     }
@@ -3172,10 +3202,10 @@ This will fail in production.`);
             if (savedImageUrl) {
               bridgedata.property.children[7].children[0].value = savedImageUrl;
             } else {
-              formatAppLog("error", "at utils/request.js:78", "保存图片1失败: 返回的URL为空");
+              formatAppLog("error", "at utils/request.js:79", "保存图片1失败: 返回的URL为空");
             }
           } catch (error) {
-            formatAppLog("error", "at utils/request.js:81", "保存图片1出错:", error);
+            formatAppLog("error", "at utils/request.js:82", "保存图片1出错:", error);
           }
         }
         if (bridgedata.property.children[7].children[1].value !== "/") {
@@ -3184,29 +3214,29 @@ This will fail in production.`);
             if (savedImageUrl) {
               bridgedata.property.children[7].children[1].value = savedImageUrl;
             } else {
-              formatAppLog("error", "at utils/request.js:92", "保存图片2失败: 返回的URL为空");
+              formatAppLog("error", "at utils/request.js:93", "保存图片2失败: 返回的URL为空");
             }
           } catch (error) {
-            formatAppLog("error", "at utils/request.js:95", "保存图片2出错:", error);
+            formatAppLog("error", "at utils/request.js:96", "保存图片2出错:", error);
           }
         }
         await setProperty(username, buildingId, bridgedata);
       } else {
         uni.showToast({
-          title: response.data.msg || "获取数据失败",
+          title: response.data.msg || "获取桥梁卡片数据失败",
           icon: "none"
         });
       }
     } catch (error) {
-      formatAppLog("error", "at utils/request.js:107", "获取桥梁卡片数据失败:", error);
+      formatAppLog("error", "at utils/request.js:108", "获取桥梁卡片数据失败:", error);
       uni.showToast({
-        title: "获取数据失败，请稍后重试",
+        title: "获取桥梁卡片数据失败，请稍后重试",
         icon: "none"
       });
     }
   }
   async function diseaseRequest(buildingId, token, username) {
-    formatAppLog("log", "at utils/request.js:116", "开始从后端获取历史病害数据...........");
+    formatAppLog("log", "at utils/request.js:117", "开始从后端获取历史病害数据...........");
     try {
       const response = await uni.request({
         //桥梁id改为全局
@@ -3216,7 +3246,7 @@ This will fail in production.`);
           "Authorization": `${token}`
         }
       });
-      formatAppLog("log", "at utils/request.js:126", "从后端接口获取到的历史病害数据:", response.data.data);
+      formatAppLog("log", "at utils/request.js:127", "从后端接口获取到的历史病害数据:", response.data.data);
       if (response.data.code === 0) {
         for (const yearDisease of response.data.data) {
           const year = yearDisease.year;
@@ -3232,12 +3262,12 @@ This will fail in production.`);
         }
       } else {
         uni.showToast({
-          title: response.data.msg || "获取数据失败",
+          title: response.data.msg || "获取历史病害数据失败",
           icon: "none"
         });
       }
     } catch (error) {
-      formatAppLog("error", "at utils/request.js:155", "获取历史病害数据失败:", error);
+      formatAppLog("error", "at utils/request.js:156", "获取历史病害数据失败:", error);
     }
   }
   const getStructureInfoByBuildingId = async (buildingId, token, username) => {
@@ -3259,7 +3289,7 @@ This will fail in production.`);
         });
       }
     } catch (error) {
-      formatAppLog("error", "at utils/request.js:179", "获取桥梁构件数据失败:", error);
+      formatAppLog("error", "at utils/request.js:180", "获取桥梁构件数据失败:", error);
       uni.showToast({
         title: "获取桥梁构件数据失败，请稍后重试",
         icon: "none"
@@ -3299,18 +3329,19 @@ This will fail in production.`);
       const selectedYearIndex = vue.ref(0);
       const years = vue.ref([]);
       const tasksNumber = vue.ref(0);
+      const loading = vue.ref(false);
       const init = async () => {
         try {
           const responseLogin = await uni.request({
             url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
             method: "POST"
           });
-          formatAppLog("log", "at pages/bridge/bridge.vue:135", "用户信息:", responseLogin.data);
+          formatAppLog("log", "at pages/bridge/bridge.vue:137", "用户信息:", responseLogin.data);
           const token = responseLogin.data.token;
           infoData.value = responseLogin.data;
           if (userInfo.username) {
             dir.value = getUserDir2(userInfo.username);
-            formatAppLog("log", "at pages/bridge/bridge.vue:143", "当前用户目录:", dir.value);
+            formatAppLog("log", "at pages/bridge/bridge.vue:145", "当前用户目录:", dir.value);
             idInfo.setDir(dir.value);
           }
           if (token) {
@@ -3323,8 +3354,9 @@ This will fail in production.`);
                     "Authorization": `${token}`
                   }
                 });
-                formatAppLog("log", "at pages/bridge/bridge.vue:157", "获取到的项目数据:", projectResponse.data);
+                formatAppLog("log", "at pages/bridge/bridge.vue:159", "获取到的项目数据:", projectResponse.data);
                 const allProjects = projectResponse.data.data.projects || [];
+                loading.value = true;
                 await getAllDataAndSetToLocal(allProjects, token, userInfo.username);
                 if (projectResponse.data.code === 0) {
                   await getProjectsTasks(allProjects, token);
@@ -3332,7 +3364,7 @@ This will fail in production.`);
                     return item.year;
                   });
                   years.value = [...new Set(repeatYears)].sort((a2, b2) => b2 - a2);
-                  formatAppLog("log", "at pages/bridge/bridge.vue:169", years.value);
+                  formatAppLog("log", "at pages/bridge/bridge.vue:172", years.value);
                   initData.value = projectResponse.data;
                   const fileArray = await getAllFirstLevelDirs();
                   let userDirExists = false;
@@ -3347,10 +3379,10 @@ This will fail in production.`);
                   if (!userDirExists) {
                     await setProject(userInfo.username, initData.value);
                   } else {
-                    formatAppLog("log", "at pages/bridge/bridge.vue:190", "用户目录已存在，跳过创建");
+                    formatAppLog("log", "at pages/bridge/bridge.vue:193", "用户目录已存在，跳过创建");
                   }
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:194", "API返回错误:", projectResponse.data.msg);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:197", "API返回错误:", projectResponse.data.msg);
                   uni.showToast({
                     title: projectResponse.data.msg || "获取数据失败",
                     icon: "none"
@@ -3358,13 +3390,13 @@ This will fail in production.`);
                 }
               } catch (error) {
                 if (error.errMsg && (error.errMsg.includes("request:fail") || error.errMsg.includes("timeout"))) {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:204", "网络请求失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:207", "网络请求失败:", error);
                   uni.showToast({
                     title: "网络连接失败，请检查网络",
                     icon: "none"
                   });
                 } else {
-                  formatAppLog("error", "at pages/bridge/bridge.vue:210", "获取项目数据失败:", error);
+                  formatAppLog("error", "at pages/bridge/bridge.vue:213", "获取项目数据失败:", error);
                   if (!initData.value || !initData.value.data) {
                     uni.showToast({
                       title: "获取数据失败，请稍后重试",
@@ -3372,18 +3404,20 @@ This will fail in production.`);
                     });
                   }
                 }
+              } finally {
+                loading.value = false;
               }
             };
             await getData();
           } else {
-            formatAppLog("error", "at pages/bridge/bridge.vue:224", "未获取到有效token");
+            formatAppLog("error", "at pages/bridge/bridge.vue:229", "未获取到有效token");
             uni.showToast({
               title: "登录信息无效，请重新登录",
               icon: "none"
             });
           }
         } catch (error) {
-          formatAppLog("error", "at pages/bridge/bridge.vue:231", "初始化数据失败:", error);
+          formatAppLog("error", "at pages/bridge/bridge.vue:236", "初始化数据失败:", error);
         }
       };
       const filteredProjects = vue.computed(() => {
@@ -3398,7 +3432,7 @@ This will fail in production.`);
       const changeYear = (e2) => {
         selectedYearIndex.value = e2.detail.value;
         currentYear.value = years.value[selectedYearIndex.value];
-        formatAppLog("log", "at pages/bridge/bridge.vue:257", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
+        formatAppLog("log", "at pages/bridge/bridge.vue:262", `已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
       };
       const back = () => {
         uni.navigateBack();
@@ -3459,7 +3493,7 @@ This will fail in production.`);
           rememberPassword.value = false;
         }
       };
-      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, extractUserNameFromDir, currentYear, initData, infoData, userInfo, idInfo, dir, selectedYearIndex, years, tasksNumber, init, filteredProjects, filteredProjectsTasks, changeYear, back, goToList, getProjectsTasks, getTasksNumber, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
+      const __returned__ = { getCurrentDateStr: getCurrentDateStr2, getUserDir: getUserDir2, extractUserNameFromDir, currentYear, initData, infoData, userInfo, idInfo, dir, selectedYearIndex, years, tasksNumber, loading, init, filteredProjects, filteredProjectsTasks, changeYear, back, goToList, getProjectsTasks, getTasksNumber, getStatusText, currentProject, handleRadioChange, ref: vue.ref, onMounted: vue.onMounted, computed: vue.computed, get getAllUserInfo() {
         return getAllUserInfo;
       }, get getProject() {
         return getProject;
@@ -3481,12 +3515,17 @@ This will fail in production.`);
     }
   };
   function _sfc_render$y(_ctx, _cache, $props, $setup, $data, $options) {
+    const _component_LoadingMask = resolveEasycom(vue.resolveDynamicComponent("LoadingMask"), __easycom_0$8);
     return vue.openBlock(), vue.createElementBlock(
       vue.Fragment,
       null,
       [
         vue.createCommentVNode(" 内容区 "),
         vue.createElementVNode("view", { class: "container" }, [
+          $setup.loading ? (vue.openBlock(), vue.createBlock(_component_LoadingMask, {
+            key: 0,
+            text: "正在加载完整数据..."
+          })) : vue.createCommentVNode("v-if", true),
           vue.createCommentVNode(" 信息卡片 "),
           vue.createElementVNode("view", { class: "info-card" }, [
             vue.createElementVNode("view", { class: "info-boxes" }, [
@@ -6177,7 +6216,7 @@ This will fail in production.`);
       }, get setDisease() {
         return setDisease;
       }, get setObject() {
-        return setObject$1;
+        return setObject;
       }, get userStore() {
         return userStore;
       }, get idStore() {
@@ -9156,7 +9195,7 @@ This will fail in production.`);
             if (response.data.code === 0) {
               structureData.value = response.data;
               resultData.value = response.data.data;
-              setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
+              setObject(userInfo.username, TaskBridgeId.value, resultData.value);
               formatAppLog("log", "at components/structure-info.vue:204", "structureData:", structureData.value);
               formatAppLog("log", "at components/structure-info.vue:205", "resultData:", resultData.value);
               formatAppLog("log", "at components/structure-info.vue:207", "第一层结构数据:", structureData.value.children);
@@ -9313,7 +9352,7 @@ This will fail in production.`);
         });
         selectedThirdIndex.value = -1;
         formatAppLog("log", "at components/structure-info.vue:429", "最终存的resultData.value", resultData.value);
-        setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
+        setObject(userInfo.username, TaskBridgeId.value, resultData.value);
       };
       const setStatus = (e2) => {
         if (currentEditItem.value) {
@@ -9393,7 +9432,7 @@ This will fail in production.`);
             });
             return;
           }
-          setObject$1(userInfo.username, TaskBridgeId.value, resultData.value);
+          setObject(userInfo.username, TaskBridgeId.value, resultData.value);
           formatAppLog("log", "at components/structure-info.vue:551", "已将数据存储到本地:", resultData.value);
         } catch (error) {
           formatAppLog("error", "at components/structure-info.vue:554", "存储数据错误:", error);
@@ -9441,7 +9480,7 @@ This will fail in production.`);
         await init();
       });
       const __returned__ = { confirmed, confirmPopup, structureData, selectedIndex, selectedSecondIndex, selectedThirdIndex, editPopup, currentEditItem, currentEditItemBoolean, TaskBridgeId, resultData, userInfo, bridgeIdFromURL, init, secondLevelItems, thirdLevelItems, confirmStructure, confirmConfirm, calculateAndUpdateCounts, closeConfirmPopup, changeTab, changeSecondTab, changeThirdTab, handleCancel, handleEdit, handleDisable, setStatus, saveEdit, closeEditPopup, updateResultData, storeDataLocally, normalizeStatusFields, ref: vue.ref, computed: vue.computed, onMounted: vue.onMounted, watch: vue.watch, CustomSwitch, get setObject() {
-        return setObject$1;
+        return setObject;
       }, get userStore() {
         return userStore;
       } };

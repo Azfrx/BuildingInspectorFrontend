@@ -7,6 +7,7 @@
 <template>
 	<!-- 内容区 -->
 	<view class="container">
+		<LoadingMask v-if="loading" text="正在加载完整数据..." />
 		<!-- 信息卡片 -->
 		<view class="info-card">
 			<view class="info-boxes">
@@ -123,6 +124,7 @@
 	const selectedYearIndex = ref(0);
 	const years = ref([]);
 	const tasksNumber = ref(0)
+	const loading = ref(false)
 	//初始化数据
 	const init = async () => {
 		try {
@@ -157,6 +159,7 @@
 						console.log('获取到的项目数据:', projectResponse.data);
 						//所有项目信息
 						const allProjects = projectResponse.data.data.projects || [];
+						loading.value = true
 						await getAllDataAndSetToLocal(allProjects, token, userInfo.username);
 
 						if (projectResponse.data.code === 0) {
@@ -216,6 +219,8 @@
 								});
 							}
 						}
+					} finally {
+						loading.value = false; // 确保加载状态在请求完成后被重置
 					}
 				};
 
