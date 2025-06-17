@@ -2,8 +2,8 @@
     "name" : "BuildingInspectorFrontend",
     "appid" : "__UNI__B200628",
     "description" : "",
-    "versionName" : "v25-05-15",
-    "versionCode" : "250515",
+    "versionName" : "1.0.250617",
+    "versionCode" : 10250617,
     "transformPx" : false,
     /* 5+App特有相关 */
     "app-plus" : {
