@@ -4,11 +4,13 @@ import {
 	setDisease,
 	setProperty,
 	setTask,
-	setObject
+	setObject,
+	setProject
 } from "@/utils/writeNew";
 
-export async function getAllDataAndSetToLocal(projects, token, username) {
+export async function getAllDataAndSetToLocal(projects, projectResponse, token, username) {
 	//所有的项目 每一个项目去获取它下面的任务
+	await setProject(username, projectResponse);
 	for (const project of projects) {
 		const projectId = project.id;
 		// console.log('开始获取BuildingId:', projectId);

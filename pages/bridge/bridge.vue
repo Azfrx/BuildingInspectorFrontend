@@ -160,7 +160,7 @@
 						//所有项目信息
 						const allProjects = projectResponse.data.data.projects || [];
 						loading.value = true
-						await getAllDataAndSetToLocal(allProjects, token, userInfo.username);
+						await getAllDataAndSetToLocal(allProjects, projectResponse.data,token, userInfo.username);
 
 						if (projectResponse.data.code === 0) {
 							await getProjectsTasks(allProjects, token)

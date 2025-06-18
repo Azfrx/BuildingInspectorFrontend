@@ -27,7 +27,7 @@
 		<view class="divider"></view>
 		<view class="versionData">
 			<view class="versionTitle">当前数据包版本</view>
-			<view class="versionNumber">v25-05-20-zs@znjc</view>
+			<view class="versionNumber">UD-250618-inspector1@znjc</view>
 		</view>
 		<view class="divider"></view>
 		<view class="inData">
