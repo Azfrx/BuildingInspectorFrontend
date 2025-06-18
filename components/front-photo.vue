@@ -2,7 +2,7 @@
 
 	<view>
 
-		<view v-if="isDataLoaded">
+		<view>
 
 			<view class="title">
 				<view class="status-text">
@@ -61,12 +61,6 @@
 
 		</view>
 
-
-
-		<view v-else class="loading-container">
-			<text class="loading-text">正在加载桥梁数据...</text>
-		</view>
-
 	</view>
 
 </template>
@@ -97,11 +91,12 @@
 
 	// 接收父组件传递的数据加载状态
 	const props = defineProps({
-		isDataLoaded: {
-			type: Boolean,
-			default: false
+		activeTabTop: {
+			type: Number,
+			default: 0
 		}
 	});
+
 	// 是否从json中读取数据
 	const isSubmit = ref(false);
 
@@ -119,20 +114,17 @@
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
 
+	watch(() => props.activeTabTop, (newval, oldval) => {
+		if (newval == 3) {
+			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+			readBridgeImageByJson();
+		}
+	})
+
 	// 图片上传样式
 	const imageStyles = reactive({
 		width: '200rpx',
 		height: '200rpx'
-	});
-
-	// 监听isDataLoaded属性变化
-	watch(() => props.isDataLoaded, (newVal) => {
-		console.log('front-photo组件检测到isDataLoaded变化:', newVal);
-		if (newVal === true) {
-			readBridgeImageByJson();
-		}
-	}, {
-		immediate: true
 	});
 
 	const frontLeftSelect = async (e) => {
@@ -435,9 +427,7 @@
 	// 组件挂载时
 	onMounted(async () => {
 		// 只有当数据加载完成时才读取图片数据
-		if (props.isDataLoaded) {
-			await readBridgeImageByJson();
-		}
+		await readBridgeImageByJson();
 	});
 </script>
 

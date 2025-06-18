@@ -16,23 +16,23 @@
 		<view class="content">
 			<view v-show="activeTab === 0">
 				<!-- 当前病害内容 -->
-				<current-disease></current-disease>
+				<current-disease :activeTabTop="activeTab"></current-disease>
 			</view>
 			<view v-show="activeTab === 1">
 				<!-- 历史病害内容 -->
-				<history-disease></history-disease>
+				<history-disease :activeTabTop="activeTab"></history-disease>
 			</view>
-      <view v-show="activeTab === 2">
-        <!-- 桥梁卡片内容 -->
-        <bridge-archive ref="bridgeArchiveRef" @dataLoaded="handleDataLoaded"></bridge-archive>
-      </view>
+			<view v-show="activeTab === 2">
+				<!-- 桥梁卡片内容 -->
+				<bridge-archive :activeTabTop="activeTab"></bridge-archive>
+			</view>
 			<view v-show="activeTab === 3">
 				<!-- 正面立照内容 -->
-				<front-photo :isDataLoaded="bridgeDataLoaded"></front-photo>
+				<front-photo :activeTabTop="activeTab"></front-photo>
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
-				<structure-info></structure-info>
+				<structure-info :activeTabTop="activeTab"></structure-info>
 			</view>
 		</view>
 	</view>
@@ -71,20 +71,10 @@
 
 	// 当前活动标签
 	const activeTab = ref(0);
-	// 桥梁数据是否已加载完成
-	const bridgeDataLoaded = ref(false);
-	// 桥梁卡片组件引用
-	const bridgeArchiveRef = ref(null);
 
 	// 切换标签的方法
 	const switchTab = (index) => {
 		activeTab.value = index;
-	};
-
-	// 处理桥梁卡片数据加载完成事件
-	const handleDataLoaded = (loaded) => {
-		console.log('接收到桥梁卡片数据加载完成事件:', loaded);
-		bridgeDataLoaded.value = loaded;
 	};
 
 	// 计算滑动指示器的样式
@@ -99,8 +89,6 @@
 
 	// 组件挂载时
 	onMounted(() => {
-		console.log('bridge-disease页面挂载');
-		
 		// 如果直接切换到正立面照标签，需要确保桥梁卡片组件已经加载
 		if (activeTab.value === 3) {
 			// 先切换到桥梁卡片标签，触发数据加载

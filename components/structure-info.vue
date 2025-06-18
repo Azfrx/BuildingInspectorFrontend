@@ -9,32 +9,22 @@
  -->
 <template>
 	<view class="container">
-		<!-- <view class="confirm-row">
+		<view class="confirm-row">
 			<span class="confirm-text">结构信息状态：</span>
 			<span class="confirm-status"
-				:style="{color: confirmed ? '#00dd00': '#f56c6c'}">{{ confirmed ? '已确认': '未确认'}}</span>
-			<view class="confirm-button-container">
-				<button @click="confirmStructure" class="confirm-button" :disabled="confirmed">保存构件信息</button>
-			</view>
-		</view> -->
-		<uni-popup ref="confirmPopup" type="center">
-			<view class="confirmPopup-content">
-				<text class="confirmPopup-text">确定当前结构信息状态吗？</text>
-				<view class="confirmPopup-buttons">
-					<button class="confirmPopup-buttons-cancel" @click="closeConfirmPopup">取消</button>
-					<button class="confirmPopup-buttons-confirm" @click="confirmConfirm">确定</button>
-				</view>
-			</view>
-		</uni-popup>
-
+				:style="{color: Number(structureData?.data?.status) === 3 ? '#333': '#f56c6c'}">
+				{{ Number(structureData?.data?.status) === 3 ? '未锁定': '已锁定'}}
+			</span>
+		</view>
 		<!-- 添加侧边栏 -->
 		<view class="content-layout">
 			<!-- 第一个侧边栏 -->
 			<view class="sidebar">
-				<!-- Bug 后端接口json文件对不上 还是旧版本 -->
 				<view v-for="(item, index) in structureData?.data.children || []" :key="index"
 					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
-					<view class="sidebar-item-content">
+					<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
+						style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
+					<view class="treeName sidebar-item-content">
 						{{item.name || '未命名'}}
 					</view>
 				</view>
@@ -46,7 +36,9 @@
 					<view v-for="(item, index) in secondLevelItems" :key="index"
 						:class="['sidebar-item', selectedSecondIndex === index ? 'active' : '']"
 						@click="changeSecondTab(index)">
-						<view class="sidebar-item-content">
+						<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
+							style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
+						<view class="treeName sidebar-item-content">
 							{{item.name || '未命名'}}
 						</view>
 					</view>
@@ -65,23 +57,29 @@
 						<text class="item-name"
 							:class="{ 'disabled-text': item.status === '1' }">{{item.name || '未命名'}}</text>
 						<view class="item-info-right">
-							<text v-if="item.status === '0'" class="item-quantity">数量 {{ item.quantity || 0 }}</text>
-							<view v-else class="disabled-button">已停用</view>
+							<view class="counterNumber">
+								<text class="item-quantity">
+									<span class="rightcount">病害构件数量</span>{{item.diseaseNumber||0}}</text>
+								<text v-if="item.status === '0'" class="item-quantity">
+									<image v-if="item.diseaseNumber>item.count" src="@/static/image/warning.png"
+										style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
+									<span class="rightcount2">构件数量</span>
+									{{ item.count || 0 }}
+								</text>
+							</view>
 							<image src="/static/image/RightOutline.svg" class="rightarrow" />
 						</view>
 					</view>
 					<view class="action-buttons" v-if="selectedThirdIndex === index">
 						<button @click.stop="handleCancel()">取消</button>
-						<button @click.stop="handleEdit(index)">编辑</button>
-						<button @click.stop="handleDisable(index)"
-							:data-status="item.status === '0' ? 'disabled' : 'enabled'">{{ item.status === '0' ? '停用' : '启用' }}</button>
+						<button @click.stop="handleEdit(index, item)">编辑</button>
 					</view>
 				</view>
 			</view>
 			<!-- 当没有第三层数据时显示提示 -->
 			<view class="sidebar third-sidebar" v-else>
 				<view class="no-data-tip">
-					不存在構件
+					数据为空
 				</view>
 			</view>
 		</view>
@@ -95,19 +93,16 @@
 					<text class="edit-value">{{currentEditItem?.name}}</text>
 				</view>
 				<view class="edit-row">
-					<text class="edit-label">构件状态</text>
-					<view class="status-toggle">
-						<text class="status-text">停用</text>
-						<CustomSwitch v-model="currentEditItemBoolean" @change="setStatus" :active-color="'#409EFF'"
-							:inactive-color="'#ff3141'" />
-						<text class="status-text">启用</text>
+					<text class="edit-label">病害构件数量</text>
+					<view>
+						<text class="desease">{{diseaseNumber}}</text>
 					</view>
 				</view>
 				<view class="edit-row">
 					<text class="edit-label">构件数量</text>
 					<uni-easyinput v-model="currentEditItem.quantity" type="number" placeholder="请输入数量" clearSize="40"
 						class="quantity-input" :inputStyle="{ fontSize: '18rpx' }"
-						:placeholderStyle="'font-size: 18rpx;'">
+						:placeholderStyle="'font-size: 20rpx;'">
 					</uni-easyinput>
 				</view>
 				<view class="popup-buttons">
@@ -125,17 +120,19 @@
 		ref,
 		computed,
 		onMounted,
-		watch
+		watch,
+		nextTick
 	} from 'vue';
 	import CustomSwitch from './CustomSwitch.vue';
-	import {
-		setObject
-	} from '../utils/writeNew';
+		
 	import {
 		userStore
 	} from '@/store/index.js'
-	const confirmed = ref(false);
-	const confirmPopup = ref(null);
+	import {
+		structureStore
+	} from '../store/structureNumberStorage';
+import { getObject } from '../utils/readJsonNew';
+import {setObject}  from '../utils/writeNew'
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
@@ -145,12 +142,14 @@
 	const currentEditItemBoolean = computed(() => {
 		return currentEditItem.value.status === '0' ? true : false
 	})
+	//病害构件数量
+	const diseaseNumber = ref(0)
 	//桥梁id
 	const TaskBridgeId = ref(0)
 	//去除msg和code字段的数据
 	const resultData = ref(null);
 	const userInfo = userStore()
-
+	const structureNumberInfo = structureStore()
 	// 通过计算属性获取URL中的bridgeId参数
 	const bridgeIdFromURL = computed(() => {
 		const pages = getCurrentPages();
@@ -164,7 +163,7 @@
 		}
 		return 0; // 默认值
 	});
-
+	// const warningTwoFlag = warningThree(resultData.value)
 	// 监听bridgeIdFromURL的变化
 	watch(bridgeIdFromURL, (newVal) => {
 		if (newVal) {
@@ -188,7 +187,6 @@
 		const getData = async () => {
 			try {
 				const response = await uni.request({
-					//寫死 因爲只有55是最新數據
 					url: `http://60.205.13.156:8090/api/building/${TaskBridgeId.value}/object`,
 					method: 'GET',
 					header: {
@@ -198,7 +196,10 @@
 				console.log('获取到的桥梁构件数据:', response.data);
 				if (response.data.code === 0) {
 					structureData.value = response.data;
+					console.log('structureData status:', structureData.value?.data?.status);
 					resultData.value = response.data.data
+					addDiseasePrototype(resultData.value)
+					console.log('resultData.value:', resultData.value)
 					//将数据存在本地 提交前初始化数据
 					setObject(userInfo.username, TaskBridgeId.value, resultData.value);
 					console.log('structureData:', structureData.value)
@@ -215,6 +216,9 @@
 
 					// 确保所有项的status字段使用"0"/"1"
 					normalizeStatusFields(resultData.value);
+					
+					// 检查所有警告状态
+					checkAllWarnings();
 				} else {
 					uni.showToast({
 						title: response.data.msg || '获取数据失败',
@@ -249,13 +253,9 @@
 		return secondLevelItems.value[selectedSecondIndex.value].children;
 	});
 
-	const confirmStructure = () => {
-		// 打开确认弹窗前，准备提交数据
-		console.log('准备提交的数据:', resultData.value);
-		confirmPopup.value.open();
-	};
 
 	const confirmConfirm = () => {
+		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
 
 		// handleDisable(Number(currentEditItem.value))
@@ -279,7 +279,109 @@
 			icon: 'success',
 			duration: 2000
 		});
+
+		// 执行warningFlag检查
+		warningFlag();
+		
+		// 检查所有警告状态
+		checkAllWarnings();
 	};
+	const warningFlag = () => {
+		const data = getObject(userInfo.username, TaskBridgeId.value)
+		if (!data || !data.children) return
+
+		console.log('开始检查前的数据:', data)
+
+		// 递归函数，返回是否设置了flag
+		const traverse = (node, level) => {
+			if (!node) return false
+			
+			let hasWarning = false
+			
+			// 如果是第三层，检查diseaseNumber和count
+			if (level === 3) {
+				console.log('第三层节点:', node.name, 'diseaseNumber:', node.diseaseNumber, 'count:', node.count)
+				if (node.diseaseNumber > node.count) {
+					node.flag = true
+					console.log('设置警告:', node.name, 'flag:', node.flag)
+					return true
+				} else {
+					node.flag = false
+					return false
+				}
+			}
+			
+			// 遍历子节点
+			if (node.children) {
+				for (const child of node.children) {
+					if (traverse(child, level + 1)) {
+						hasWarning = true
+					}
+				}
+			}
+			
+			// 如果子节点有warning，当前节点也设置flag
+			if (hasWarning) {
+				node.flag = true
+				console.log('父节点设置警告:', node.name, 'flag:', node.flag)
+			} else {
+				node.flag = false
+			}
+			
+			return hasWarning
+		}
+		
+		// 从第一层开始遍历
+		for (const firstLevel of data.children) {
+			traverse(firstLevel, 1)
+		}
+		
+		// 更新数据
+		setObject(userInfo.username, TaskBridgeId.value, data)
+		
+		// 强制更新视图
+		structureData.value = {
+			...structureData.value,
+			data: {
+				...structureData.value.data,
+				children: data.children
+			}
+		}
+		
+		console.log('更新后的数据:', structureData.value)
+		
+		// 强制更新视图
+		nextTick(() => {
+			console.log('视图更新后的数据:', structureData.value)
+		})
+	}
+	// 添加病害构件数量字段obj.deaseaseNumber = getDeaseaseNumberById();
+	const addDiseasePrototype = (obj) => {
+		for (let i = 0; i < obj.children.length; i++) {
+			obj.children[i].flag = true
+			for (let j = 0; j < obj.children[i].children.length; j++) {
+				obj.children[i].children[j].flag = true
+				for (let k = 0; k < obj.children[i].children[j].children.length; k++) {
+					obj.children[i].children[j].children[k].diseaseNumber = 9
+					obj.children[i].children[j].children[k].flag = false;
+				}
+			}
+		}
+	}
+	//判断第三层数据是否有warning
+	const warningThree = (obj) => {
+		for (let i = 0; i < obj.children.length; i++) {
+			for (let j = 0; j < obj.children[i].children.length; j++) {
+				for (let k = 0; k < obj.children[i].children[j].children.length; k++) {
+					if (obj.children[i].children[j].children[k].flag === false) {
+						return false;
+					}
+				}
+			}
+		}
+		return true
+	}
+
 
 	// 添加计算并更新各级count总和的函数
 	const calculateAndUpdateCounts = () => {
@@ -386,8 +488,12 @@
 		// 不再需要index参数，直接重置selectedThirdIndex
 		selectedThirdIndex.value = -1; // 使用-1表示没有选中项
 	};
-
-	const handleEdit = (index) => {
+	
+	const currentEditDisease = ref()
+	const handleEdit = (index, diseaseItem) => {
+		diseaseNumber.value = diseaseItem.diseaseNumber
+		currentEditDisease.value = diseaseItem
+		
 		currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
 		if (currentEditItem.value) {
 			if (currentEditItem.value.status === undefined) {
@@ -478,7 +584,6 @@
 		// 隐藏操作按钮
 		selectedThirdIndex.value = -1;
 	};
-
 	// 添加更新resultData的函数
 	const updateResultData = (updatedItem) => {
 		if (!resultData.value || !resultData.value.children) {
@@ -580,7 +685,7 @@
 					// 规范化第二层status
 					if (typeof secondLevel.status === 'boolean') {
 						secondLevel.status = secondLevel.status ? "0" :
-						"1"; // true转为"0"(启用)，false转为"1"(停用)
+							"1"; // true转为"0"(启用)，false转为"1"(停用)
 					}
 
 					// 处理第三层
@@ -591,7 +696,7 @@
 							// 规范化第三层status
 							if (typeof thirdLevel.status === 'boolean') {
 								thirdLevel.status = thirdLevel.status ? "0" :
-								"1"; // true转为"0"(启用)，false转为"1"(停用)
+									"1"; // true转为"0"(启用)，false转为"1"(停用)
 							}
 						});
 					}
@@ -600,6 +705,45 @@
 		});
 
 		console.log('已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
+	};
+
+	// 添加检查子节点是否有警告的函数
+	const hasWarningInChildren = (node) => {
+		if (!node) return false;
+		
+		let hasWarning = false;
+		
+		// 如果是第三层节点
+		if (node.diseaseNumber !== undefined && node.count !== undefined) {
+			hasWarning = node.diseaseNumber > node.count;
+		}
+		// 如果是第一层或第二层节点
+		else if (node.children) {
+			hasWarning = node.children.some(child => hasWarningInChildren(child));
+		}
+		
+		// 如果发现任何警告，更新 structureNumberInfo.status
+		if (hasWarning) {
+			structureNumberInfo.status = true;
+		}
+		
+		return hasWarning;
+	};
+
+	// 添加一个函数来检查整个数据结构是否有警告
+	const checkAllWarnings = () => {
+		if (!structureData.value?.data?.children) return;
+		
+		// 重置状态
+		structureNumberInfo.status = false;
+		
+		// 检查所有第一层节点
+		const hasAnyWarning = structureData.value.data.children.some(node => hasWarningInChildren(node));
+		
+		// 如果没有发现任何警告，确保状态为 false
+		if (!hasAnyWarning) {
+			structureNumberInfo.status = false;
+		}
 	};
 
 	onMounted(async () => {
@@ -613,6 +757,11 @@
 </script>
 
 <style scoped>
+	.active {
+		background-color: #0F4687;
+		/* 选中项背景色 */
+	}
+
 	.container {
 		width: 100%;
 		height: 100%;
@@ -630,6 +779,12 @@
 		display: flex;
 		flex: 1;
 		overflow: hidden;
+	}
+	
+	.flagImage{
+		position: absolute;
+		top: 10rpx;
+		left: 10rpx;
 	}
 
 	/* 侧边栏样式 */
@@ -649,8 +804,18 @@
 		/* 修改为190rpx */
 	}
 
+	.treeName {
+		margin-left: 20rpx;
+		font-size: 15rpx;
+	}
+
 	.third-sidebar {
 		width: 100%;
+	}
+
+	.rightcount {
+		margin-right: 10rpx;
+		margin-bottom: 10rpx;
 	}
 
 	.third-sidebar .sidebar-item {
@@ -689,9 +854,18 @@
 		margin-left: auto;
 	}
 
+	.counterNumber {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		min-width: 120rpx;
+	}
+
 	.item-quantity {
-		font-size: 20rpx;
+		font-size: 15rpx;
 		margin-right: 10rpx;
+		text-align: right;
+		width: 100%;
 	}
 
 	.rightarrow {
@@ -722,11 +896,11 @@
 		align-items: center;
 		padding-left: 12rpx;
 		width: 60%;
-		font-size: 18rpx;
 	}
 
 	.sidebar-item.active {
 		background-color: #ffffff;
+
 	}
 
 	/* 修改活动项样式，使用伪元素创建蓝色线 */
@@ -788,13 +962,6 @@
 
 	.confirm-button-container {
 		margin-left: auto;
-	}
-
-	.confirm-button {
-		background-color: #0F4687;
-		color: #fff;
-		font-size: 15px;
-		border-radius: 5rpx;
 	}
 
 	.confirmPopup-content {
@@ -911,7 +1078,12 @@
 		font-size: 20rpx;
 		color: #333;
 		flex: 1;
-		margin-left: -45rpx;
+		margin-left: 10rpx;
+	}
+
+	.desease {
+		margin-left: 10rpx;
+		font-size: 20rpx;
 	}
 
 	.status-toggle {
@@ -930,7 +1102,7 @@
 	.quantity-input {
 		flex: 1;
 		font-size: 20rpx;
-		margin-left: -50rpx;
+		margin-left: 10rpx;
 		height: 24rpx;
 		align-self: center;
 		margin-bottom: 16rpx;
