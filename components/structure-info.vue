@@ -12,15 +12,15 @@
 		<view class="confirm-row">
 			<span class="confirm-text">结构信息状态：</span>
 			<span class="confirm-status"
-				:style="{color: Number(structureData?.data?.status) === 3 ? '#333': '#f56c6c'}">
-				{{ Number(structureData?.data?.status) === 3 ? '未锁定': '已锁定'}}
+				:style="{color: Number(structureData?.status) === 3 ? '#333': '#f56c6c'}">
+				{{ Number(structureData?.status) === 3 ? '未锁定': '已锁定'}}
 			</span>
 		</view>
 		<!-- 添加侧边栏 -->
 		<view class="content-layout">
 			<!-- 第一个侧边栏 -->
 			<view class="sidebar">
-				<view v-for="(item, index) in structureData?.data.children || []" :key="index"
+				<view v-for="(item, index) in structureData?.children || []" :key="index"
 					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
 					<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
 						style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
@@ -133,6 +133,8 @@
 	} from '../store/structureNumberStorage';
 	import { getObject,readDiseaseComponent } from '../utils/readJsonNew';
 	import {setObject}  from '../utils/writeNew'
+	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
+	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
 import { async } from 'rxjs';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
@@ -170,6 +172,7 @@ import { async } from 'rxjs';
 		if (newVal) {
 			TaskBridgeId.value = newVal;
 			console.log('接收到的桥梁ID:', TaskBridgeId.value);
+			
 		}
 	});
 
@@ -179,70 +182,28 @@ import { async } from 'rxjs';
 		if (bridgeIdFromURL.value) {
 			TaskBridgeId.value = bridgeIdFromURL.value;
 		}
-		const responseLogin = await uni.request({
-			url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-			method: 'POST'
-		});
-		console.log('用户信息:', responseLogin.data);
-		const token = responseLogin.data.token
-		const getData = async () => {
-			try {
-				const response = await uni.request({
-					url: `http://60.205.13.156:8090/api/building/${TaskBridgeId.value}/object`,
-					method: 'GET',
-					header: {
-						'Authorization': `${token}`
-					}
-				});
-				console.log('获取到的桥梁构件数据:', response.data);
-				if (response.data.code === 0) {
-					structureData.value = response.data;
-					console.log('structureData status:', structureData.value?.data?.status);
-					resultData.value = response.data.data
-					addDiseasePrototype(resultData.value)
-					console.log('resultData.value:', resultData.value)
-					//将数据存在本地 提交前初始化数据
-					setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-					console.log('structureData:', structureData.value)
-					console.log('resultData:', resultData.value)
-					// 打印第一层结构数据，检查是否完整
-					console.log('第一层结构数据:', structureData.value.children)
-					if (structureData.value.children) {
-						structureData.value.children.forEach((item, index) => {
-							console.log(`第一层结构 ${index+1}:`, item.name);
-						});
-					}
-					//调用接口将数据存在本地
-					//参数是写死的 如何动态生成
 
-					// 确保所有项的status字段使用"0"/"1"
-					normalizeStatusFields(resultData.value);
-					
-					// 检查所有警告状态
-					checkAllWarnings();
-				} else {
-					uni.showToast({
-						title: response.data.msg || '获取数据失败',
-						icon: 'none'
-					});
-				}
-			} catch (error) {
-				console.error('获取桥梁构件数据失败:', error);
-				uni.showToast({
-					title: '获取数据失败，请稍后重试',
-					icon: 'none'
-				});
-			}
-		};
-
-		await getData();
+		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
+		console.log("structureData.value ",structureData.value);
+		const modifiedData = await addFlagsAndDiseaseNumber(structureData.value,userInfo.username,TaskBridgeId.value);
+		console.log("添加字段后的数据",modifiedData);
+		setObject(userInfo.username,TaskBridgeId.value,modifiedData)
+		// incrementDiseaseNumber(modifiedData,4490)
+		// incrementDiseaseNumber(modifiedData,4491)
+		// incrementDiseaseNumber(modifiedData,4491)
+		// incrementDiseaseNumber(modifiedData,4492)
+		// incrementDiseaseNumber(modifiedData,4492)
+		// incrementDiseaseNumber(modifiedData,4492)
+		// console.log("add后的数据",modifiedData);
+		//读取完整数据
+		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
 	};
 	// 计算第二个侧边栏的数据
 	const secondLevelItems = computed(() => {
-		if (!structureData.value?.data.children?.[selectedIndex.value]?.children) {
+		if (!structureData.value?.children?.[selectedIndex.value]?.children) {
 			return [];
 		}
-		return structureData.value.data.children[selectedIndex.value].children;
+		return structureData.value.children[selectedIndex.value].children;
 	});
 
 	// 计算第三个侧边栏的数据
@@ -254,7 +215,31 @@ import { async } from 'rxjs';
 		return secondLevelItems.value[selectedSecondIndex.value].children;
 	});
 
+// 刷新数据的函数
+const refreshData = async () => {
+  // 重新获取最新数据
+  structureData.value = await getObject(userInfo.username, TaskBridgeId.value);
+  
+  // 重新执行警告标志检查
+  warningFlag();
+  
+  // 检查所有警告状态
+  checkAllWarnings();
+  
+  // 重置选中状态
+  selectedIndex.value = 0;
+  selectedSecondIndex.value = 0;
+  selectedThirdIndex.value = -1;
+  
+  console.log('数据已刷新');
+};
 
+// 监听版本号变化
+watch(() => structureNumberInfo.dataVersion, (newVal) => {
+  if (newVal > 0) {
+    refreshData();
+  }
+});
 	const confirmConfirm = () => {
 		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
@@ -355,19 +340,6 @@ import { async } from 'rxjs';
 		nextTick(() => {
 			console.log('视图更新后的数据:', structureData.value)
 		})
-	}
-	// 添加病害构件数量字段obj.deaseaseNumber = getDeaseaseNumberById();
-	const addDiseasePrototype = (obj) => {
-		for (let i = 0; i < obj.children.length; i++) {
-			obj.children[i].flag = true
-			for (let j = 0; j < obj.children[i].children.length; j++) {
-				obj.children[i].children[j].flag = true
-				for (let k = 0; k < obj.children[i].children[j].children.length; k++) {
-					obj.children[i].children[j].children[k].diseaseNumber = 0
-					obj.children[i].children[j].children[k].flag = false;
-				}
-			}
-		}
 	}
 	//判断第三层数据是否有warning
 	const warningThree = (obj) => {
@@ -753,7 +725,7 @@ import { async } from 'rxjs';
 		if (bridgeIdFromURL.value) {
 			TaskBridgeId.value = bridgeIdFromURL.value;
 		}
-		await init();
+		 await init();
 	});
 </script>
 

@@ -91,6 +91,8 @@ const initTaskData= ref(null)
 const taskBridgeId = ref(0);
 const userInfo = userStore()
 const idInfo = idStore()
+const projects = ref(null)
+ const tasks = ref([])
 // 初始化时获取projectId参数
 const getURLParams = () => {
   const pages = getCurrentPages();
@@ -111,61 +113,10 @@ const getURLParams = () => {
 const init = async () => {
   // 先确保已经获取了URL参数
   getURLParams();
-  
-  const responseLogin = await uni.request({
-    	url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-    	method: 'POST'
-    });
-  console.log('用户信息:', responseLogin.data);
-  //模拟的假数据
-  const token = responseLogin.data.token
-  const getData = async () => {
-    try {
-      const response = await uni.request({
-		  //Bug1 这里的项目id是写死的
-        url: `http://60.205.13.156:8090/api/project/${projectId.value}/task`,
-        method: 'GET',
-        header: {
-          'Authorization': `${token}` 
-        }
-      });
-      console.log('获取到的任务数据:', response.data);
-      if (response.data.code === 0) {
-        initTaskData.value = response.data;
-		//调用接口将数据存在本地(Task)
-		//Bug2  projectId的问题同上
-		// //创建假数据
-		// const mockData = ref({
-		// 	"msg": "登录成功,请妥善保管您的token信息",
-		// 	"code": 0,
-		// 	"token": responseLogin.data.token,
-		// 	"userId":"1",
-		// 	"userName":"张三",
-		// 			})
-		// //设置假数据
-		// projectInfo.value = projects;
-		setTask(userInfo.username,projectId.value,initTaskData.value)
-		 // setTask(responseLogin.data.userId,projectId.value,projectInfo.value)
-      } else {
-        uni.showToast({
-          title: response.data.msg || '获取数据失败',
-          icon: 'none'
-        });
-      }
-    } catch (error) {
-      console.error('获取任务数据失败:', error);
-      uni.showToast({
-        title: '获取数据失败，请稍后重试',
-        icon: 'none'
-      });
-    }
-  };
-
-  await getData();
-  //Bug3 userId写死的
-  projectInfo.value = await getProject(userInfo.username);
-  console.log('项目数据111',projectInfo.value)
-  console.log('currentProject的值:', currentProject.value.name);
+   projectInfo.value = await getProject(userInfo.username)
+   initTaskData.value = await getTask(userInfo.username,projectId.value)
+  console.log("project",projects.value);
+  console.log("task",tasks.value)
 };
 
 // 页面加载时获取数据
