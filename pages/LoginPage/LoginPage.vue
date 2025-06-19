@@ -100,8 +100,9 @@
 	onMounted(() => {
 		const lastUsername = uni.getStorageSync('lastUsername')
 		const lastPassword = uni.getStorageSync('lastPassword')
+		const isRemember = uni.getStorageSync('isRemember')
 
-		if (lastUsername && lastPassword) {
+		if (isRemember) {
 			username.value = lastUsername
 			password.value = lastPassword
 		}
@@ -135,6 +136,7 @@
 				userInfo.setUserInfo({
 					username: username.value,
 					password: password.value,
+					infoData: response.data,
 				})
 				idInfo.setUserId(response.data.userId)
 				// // 将allUserInfo写入本地
@@ -153,33 +155,42 @@
 				uni.navigateTo({
 					url: '/pages/home/home'
 				});
+				//在线登录后保存用户信息到本地
+				console.log('准备保存用户信息');
+				let accountArray = uni.getStorageSync('accountArray') || null
+				if (!Array.isArray(accountArray)) {
+					accountArray = [{
+						username: username.value,
+						password: password.value,
+						infoData: response.data,
+					}]
+				} else {
+					accountArray.push({
+						username: username.value,
+						password: password.value,
+						infoData: response.data,
+					})
+				}
+				//去重 保留后者
+				const uniqueAccounts = Array.from(
+					new Map(accountArray.map(item => [item.username, item])).values()
+				);
+				uni.removeStorageSync('accountArray')
+				uni.setStorageSync('accountArray', uniqueAccounts)
+				//上次保存密码登录的账号密码
+				uni.removeStorageSync('lastUsername')
+				uni.removeStorageSync('lastPassword')
+				uni.setStorageSync('lastUsername', username.value)
+				uni.setStorageSync('lastPassword', password.value)
 
 				console.log('记住密码状态:', rememberPassword.value);
 				if (rememberPassword.value) {
-					console.log('准备保存用户信息');
-					let accountArray = uni.getStorageSync('accountArray') || null
-					if (!Array.isArray(accountArray)) {
-						accountArray = [{
-							username: username.value,
-							password: password.value
-						}]
-					} else {
-						accountArray.push({
-							username: username.value,
-							password: password.value
-						})
-					}
-					uni.removeStorageSync('accountArray')
-					uni.setStorageSync('accountArray', accountArray)
-					//上次保存密码登录的账号密码
-					uni.removeStorageSync('lastUsername')
-					uni.removeStorageSync('lastPassword')
-					uni.setStorageSync('lastUsername', username.value)
-					uni.setStorageSync('lastPassword', password.value)
+					uni.removeStorageSync('isRemember')
+					uni.setStorageSync('isRemember', true)
 				} else {
 					console.log('未勾选记住密码，下次不填充，但是本地缓存的账号密码不删除');
-					uni.removeStorageSync('lastUsername')
-					uni.removeStorageSync('lastPassword')
+					uni.removeStorageSync('isRemember')
+					uni.setStorageSync('isRemember', false)
 				}
 			} else {
 				uni.showToast({
@@ -192,14 +203,22 @@
 			const accountArray = uni.getStorageSync('accountArray')
 			// 离线登录逻辑
 			let findAccount = false;
+			let currentAccountInfo = null;
 			for (let i = 0; i < accountArray.length; i++) {
 				if (accountArray[i].username === username.value && accountArray[i].password === password.value) {
 					findAccount = true
+					console.log("zhaodao", accountArray[i]);
+					currentAccountInfo = accountArray[i].infoData
 					break;
 				}
 			}
 			if (findAccount) {
 				console.log('离线登录成功，准备跳转');
+				userInfo.setUserInfo({
+					username: username.value,
+					password: password.value,
+					infoData: currentAccountInfo,
+				})
 				// 登录成功，跳转到bridge页面
 				uni.navigateTo({
 					url: '/pages/home/home'

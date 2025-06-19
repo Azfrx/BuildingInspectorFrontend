@@ -60,7 +60,8 @@
 	} from 'vue';
 	import {
 		getAllUserInfo,
-		getProject
+		getProject,
+		getTask
 	} from '../../utils/readJsonNew';
 	import {
 		setProject
@@ -77,6 +78,7 @@
 		getAllFirstLevelDirs,
 	} from "@/utils/readJsonNew.js";
 	import {
+		async,
 		interval
 	} from 'rxjs';
 	import {
@@ -130,19 +132,19 @@
 	const years = ref([]);
 	const tasksNumber = ref(0)
 	const loading = ref(false)
+	const localProjects = ref([]);
 	//初始化数据
 	const init = async () => {
 		try {
 			// 在线登录逻辑
-			//待处理 Bug Bug 1
-			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-				method: 'POST'
-			});
-			console.log('用户信息:', responseLogin.data);
-			//模拟的假数据
-			const token = responseLogin.data.token
-			infoData.value = responseLogin.data;
+			// const responseLogin = await uni.request({
+			// 	url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+			// 	method: 'POST'
+			// });
+			infoData.value = userInfo.infoData
+			console.log('用户信息:', infoData.value);
+			// const token = responseLogin.data.token
+			// infoData.value = responseLogin.data;
 
 			// 获取并存储用户目录
 			if (userInfo.username) {
@@ -151,85 +153,23 @@
 				idInfo.setDir(dir.value)
 			}
 
-			if (token) {
+			if (infoData.value.token) {
 				const getData = async () => {
-					try {
-						const projectResponse = await uni.request({
-							url: 'http://60.205.13.156:8090/api/project',
-							method: 'GET',
-							header: {
-								'Authorization': `${token}`
-							}
-						});
-						console.log('获取到的项目数据:', projectResponse.data);
-						//所有项目信息
-						const allProjects = projectResponse.data.data.projects || [];
-						loading.value = true
-						await getAllDataAndSetToLocal(allProjects, projectResponse.data, token, userInfo
-							.username);
-
-						if (projectResponse.data.code === 0) {
-							await getProjectsTasks(allProjects, token)
-
-							const repeatYears = allProjects.map(item => {
-								return item.year
-							})
-							years.value = [...new Set(repeatYears)].sort((a, b) => b - a)
-							console.log(years.value);
-							// years = getYears(projectResponse.data.projects)
-							initData.value = projectResponse.data;
-							// 获取一级目录数组
-							const fileArray = await getAllFirstLevelDirs();
-							let userDirExists = false;
-							// 遍历数组检查是否已存在用户目录
-							for (let i = 0; i < fileArray.length; i++) {
-								const dir = fileArray[i];
-								const name = extractUserNameFromDir(dir); // 从目录名中提取用户名
-
-								if (name === userInfo.username) {
-									userDirExists = true;
-									break; // 找到匹配项，跳出循环
-								}
-							}
-
-							if (!userDirExists) {
-								await setProject(userInfo.username, initData.value);
-							} else {
-								// 如果已存在用户目录，可以选择执行其他操作或什么都不做
-								console.log('用户目录已存在，跳过创建');
-							}
-						} else {
-							// 只有在真正的API错误时才显示提示
-							console.error('API返回错误:', projectResponse.data.msg);
-							uni.showToast({
-								title: projectResponse.data.msg || '获取数据失败',
-								icon: 'none'
-							});
+					const projectResponse = await uni.request({
+						url: 'http://60.205.13.156:8090/api/project',
+						method: 'GET',
+						header: {
+							'Authorization': `${infoData.value.token}`
 						}
-					} catch (error) {
-						// 检查是否是网络错误或其他严重错误
-						if (error.errMsg && (error.errMsg.includes('request:fail') || error.errMsg
-								.includes('timeout'))) {
-							console.error('网络请求失败:', error);
-							uni.showToast({
-								title: '网络连接失败，请检查网络',
-								icon: 'none'
-							});
-						} else {
-							console.error('获取项目数据失败:', error);
-							// 避免重复显示错误提示
-							if (!initData.value || !initData.value.data) {
-								uni.showToast({
-									title: '获取数据失败，请稍后重试',
-									icon: 'none'
-								});
-							}
-						}
-					} finally {
-						loading.value = false; // 确保加载状态在请求完成后被重置
-					}
+					});
+					console.log('获取到的项目数据:', projectResponse.data);
+					//所有项目信息
+					const allProjects = projectResponse.data.data.projects || [];
+					loading.value = true
+					await getAllDataAndSetToLocal(allProjects, projectResponse.data, infoData.value.token,
+						userInfo
+						.username);
 				};
-
 				await getData();
 			} else {
 				console.error('未获取到有效token');
@@ -239,18 +179,39 @@
 				});
 			}
 		} catch (error) {
-			console.error('初始化数据失败:', error)
+			// 离线登录逻辑
+			console.log('当前无网络，离线模式，读取本地数据', error)
+			uni.showToast({
+				title: '当前无网络，离线模式登录',
+				icon: 'none'
+			});
+		} finally {
+			//不论有没有网，都从本地读取projects
+			const localProjectsAsync = await getProject(userInfo.username)
+			console.log("拿到数据", localProjectsAsync.data);
+			const allProjects = localProjectsAsync.data.projects
+			await getProjectsTasks(allProjects)
+			localProjects.value = allProjects
+			const repeatYears = allProjects.map(item => {
+				return item.year
+			})
+			years.value = [...new Set(repeatYears)].sort((a, b) => b - a)
+
+			loading.value = false; // 确保加载状态在请求完成后被重置
 		}
 	};
 
 	// 添加计算属性
 	const filteredProjects = computed(() => {
-		if (!initData.value || !initData.value.data || !initData.value.data.projects) {
-			return [];
-		}
-		return initData.value.data.projects.filter(project => {
-			return project.year == currentYear.value;
-		});
+		// if (!initData.value || !initData.value.data || !initData.value.data.projects) {
+		// 	return [];
+		// }
+		// return initData.value.data.projects.filter(project => {
+		// 	return project.year == currentYear.value;
+		// });
+		return localProjects.value.filter(project => {
+			return project.year === currentYear.value;
+		})
 	});
 	const filteredProjectsTasks = ref([])
 
@@ -284,18 +245,20 @@
 		});
 	};
 
-	const getProjectsTasks = async (projects, token) => {
+	const getProjectsTasks = async (projects) => {
 		for (const item of projects) {
-			const response = await uni.request({
-				url: `http://60.205.13.156:8090/api/project/${item.id}/task`,
-				method: 'GET',
-				header: {
-					'Authorization': `${token}`
-				}
-			});
+			// const response = await uni.request({
+			// 	url: `http://60.205.13.156:8090/api/project/${item.id}/task`,
+			// 	method: 'GET',
+			// 	header: {
+			// 		'Authorization': `${token}`
+			// 	}
+			// });
+			//读取本地task
+			const taskGetWithProjectId = await getTask(userInfo.username, item.id)
 			filteredProjectsTasks.value.push({
 				projectId: item.id,
-				tastsNumber: response.data.data.tasks.length
+				tastsNumber: taskGetWithProjectId.data.tasks.length
 			});
 		}
 	}

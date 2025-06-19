@@ -17,7 +17,9 @@
             "delay" : 0
         },
         /* 模块配置 */
-        "modules" : {},
+        "modules" : {
+            "Camera" : {}
+        },
         /* 应用发布信息 */
         "distribute" : {
             /* android打包配置 */
@@ -34,7 +36,10 @@
             },
             /* ios打包配置 */
             "ios" : {
-                "dSYMs" : false
+                "dSYMs" : false,
+                "privacyDescription" : {
+                    "NSCameraUsageDescription" : "需要使用相机进行拍摄"
+                }
             },
             /* SDK配置 */
             "sdkConfigs" : {},
@@ -103,3 +108,16 @@
     },
     "vueVersion" : "3"
 }
+/* ios打包配置 *//* SDK配置 *///可选，JSON对象，应用图标相关配置
+//可选，JSON对象，iOS平台图标配置 
+//必填，字符串类型，分辨率1024x1024, 提交app sotre使用的图标路径
+//可选，JSON对象，iPhone设备图标配置
+//可选，字符串类型，分辨率120x120，程序图标路径  
+//可选，字符串类型，分辨率180x180，程序图标路径  
+//可选，字符串类型，分辨率80x80，Spotlight搜索图标路径
+//可选，字符串类型，分辨率120x120，Spotlight搜索图标路径
+//可选，字符串类型，分辨率58x58，Settings设置图标路径
+//可选，字符串类型，分辨率87x87，Settings设置图标路径
+//可选，字符串类型，分辨率40x40，通知栏图标路径
+//可选，字符串类型，分辨率60x60，通知栏图标路径
+

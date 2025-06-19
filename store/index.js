@@ -8,14 +8,17 @@ import {
 export const userStore = defineStore('user', () => {
 	const username = ref('')
 	const password = ref('')
-	
+	const infoData = ref('')
+
 	const setUserInfo = (userinfo) => {
 		username.value = userinfo.username
 		password.value = userinfo.password
+		infoData.value = userinfo.infoData
 	}
 	return {
-		username, 
-		password, 
+		username,
+		password,
+		infoData,
 		setUserInfo,
 	}
 })

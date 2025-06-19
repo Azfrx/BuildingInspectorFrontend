@@ -6,9 +6,11 @@ import {
 	setTask,
 	setObject,
 	setProject,
+	coverProject
 } from "@/utils/writeNew";
 import {
-	getProject
+	getProject,
+	getAllFirstLevelDirs
 } from "@/utils/readJsonNew.js";
 
 export async function getAllDataAndSetToLocal(projects, projectResponse, token, username) {
@@ -20,7 +22,8 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
 		//根据新projects过滤本地projects，这里只增删project
 		filtProjects(localProjects, projects)
 
-		await setProject(username, projectResponse);
+		//判断是否已存在project.json，如果不存在则创建一个新的json文件，在当前日期的目录中
+		await createProjectJson(username, projectResponse);
 		//所有的项目 每一个项目去获取它下面的任务
 		for (const project of projects) {
 			const projectId = project.id;
@@ -71,6 +74,43 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
 			}
 		}
 	}
+}
+
+const createProjectJson = async (username, projectResponse) => {
+	// 获取一级目录数组
+	const fileArray = await getAllFirstLevelDirs();
+	let oldProjectUsername = null;
+	// 遍历数组检查是否已存在用户目录
+	for (let i = 0; i < fileArray.length; i++) {
+		const dir = fileArray[i];
+		const name = extractUserNameFromDir(dir); // 从目录名中提取用户名
+		if (name === username) {
+			oldProjectUsername = fileArray[i];
+			break; // 找到匹配项，跳出循环
+		}
+	}
+	if (!oldProjectUsername) {
+		// 如果不存在用户目录，则新建
+		await setProject(username, projectResponse);
+		console.log(`创建新项目目录: ${username}`);
+	} else {
+		// 如果已存在用户目录，则覆写
+		await coverProject(username, projectResponse, oldProjectUsername);
+		console.log(`已存在项目目录，覆写: ${username}`);
+	}
+}
+
+// 从目录名中提取用户名
+function extractUserNameFromDir(dirName) {
+	// 检查目录名格式是否符合 UD日期-用户名
+	if (dirName && dirName.startsWith('UD') && dirName.includes('-')) {
+		// 获取最后一个'-'后面的内容作为用户名
+		const lastDashIndex = dirName.lastIndexOf('-');
+		if (lastDashIndex !== -1 && lastDashIndex < dirName.length - 1) {
+			return dirName.substring(lastDashIndex + 1);
+		}
+	}
+	return ''; // 如果格式不符，返回空字符串
 }
 
 const filtProjects = (oldProjects, newProjects) => {

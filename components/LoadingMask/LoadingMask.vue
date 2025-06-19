@@ -11,7 +11,7 @@
 	defineProps({
 		text: {
 			type: String,
-			default: '加载中...'
+			default: '加载中...' 
 		}
 	});
 </script>
@@ -33,15 +33,15 @@
 	.mask-loading-box {
 		background: #fff;
 		border-radius: 20rpx;
-		padding: 30rpx 40rpx;
+		padding: 20rpx 30rpx;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 	}
 
 	.spinner-css {
-		width: 60rpx;
-		height: 60rpx;
+		width: 40rpx;
+		height: 40rpx;
 		border: 6rpx solid #ccc;
 		border-top-color: #007AFF;
 		border-radius: 50%;
@@ -50,7 +50,7 @@
 
 	.loading-text {
 		margin-top: 20rpx;
-		font-size: 28rpx;
+		font-size: 20rpx;
 		color: #333;
 	}
 

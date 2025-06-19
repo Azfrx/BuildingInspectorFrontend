@@ -20,6 +20,7 @@ function getUserDir(userName) {
 // 路径生成规则（不再依赖userId）
 const FILE_NAMING = {
     project: userName => `${getUserDir(userName)}/project/projects.json`,
+	coverProject: userName => `${userName}/project/projects.json`,
     task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
     property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
     object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
@@ -56,6 +57,13 @@ async function setJsonData(path, data) {
 // 对外接口（仅使用userName）
 export function setProject(userName, data) {
     const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
+    trackPath(path);
+    return setJsonData(path, data);
+}
+
+// 对外接口 覆盖已存在的project（仅使用userName）
+export function coverProject(userName, data, oldProjectUsername) {
+    const path = DOC_BASE_PATH + FILE_NAMING.coverProject(oldProjectUsername);
     trackPath(path);
     return setJsonData(path, data);
 }
