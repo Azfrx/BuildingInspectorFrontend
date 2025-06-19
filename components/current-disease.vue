@@ -47,8 +47,15 @@
 
 <script setup>
 import { ref, computed, onMounted, watch, onUnmounted } from 'vue';
-import { getDisease, readDiseaseCommit } from '../utils/readJsonNew.js';
-import {saveBridgeZip, saveDiseaseImages, setDisease, setObject} from '../utils/writeNew.js';
+import {getDisease, isExistDisease, isOnlyDisease, readDiseaseCommit} from '../utils/readJsonNew.js';
+import {
+  addDiseaseNumber,
+  decreaseDiseaseNumber,
+  saveBridgeZip,
+  saveDiseaseImages,
+  setDisease,
+  setObject
+} from '../utils/writeNew.js';
 import {userStore} from "@/store";
 import {idStore} from "@/store/idStorage";
 
@@ -119,6 +126,11 @@ const addNewDiseaseData = async (newDisease) => {
     };
     
     console.log('准备保存的数据:', saveData);
+    const isExist =  await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component.name);
+    if(isExist === false){
+      console.log('该构件下不存在该病害类型，需要增加病害构件数量')
+      addDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.component.grandObjectName,newDisease.component.parentObjectName,newDisease.component.biObjectId);
+    }
     
     // 调用setDisease方法保存数据
     await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
@@ -152,6 +164,12 @@ const handleDeleteDisease = async (deleteData) => {
     if (index === -1) {
       console.error('未找到要删除的病害数据:', deleteData.id);
       return;
+    }
+
+    const isExist =  await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.name);
+    if(isExist === true){
+      console.log('该构件只有这一个病害，需要减少病害构件数量')
+      decreaseDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.grandObjectName,diseaseList.value[index].component.parentObjectName,diseaseList.value[index].component.biObjectId);
     }
     
     // 将commit_type置为2表示已删除，而不是直接从数组中移除
@@ -198,6 +216,19 @@ const handleUpdateDisease = async (updatedDisease) => {
     if (index === -1) {
       console.error('未找到要更新的病害数据:', updatedDisease.id);
       return;
+    }
+
+    if(diseaseList.value[index].component.name !== updatedDisease.component.name){
+      const isOnly =  await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.name);
+      if(isOnly === true){
+        console.log('该构件只有这一个病害，需要减少病害构件数量')
+        decreaseDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.grandObjectName,diseaseList.value[index].component.parentObjectName,diseaseList.value[index].component.biObjectId);
+      }
+      const isExist =  await isExistDisease(userInfo.username, idStorageInfo.buildingId, updatedDisease.component.name);
+      if(isExist === false){
+        console.log('该构件下不存在该病害类型，需要增加病害构件数量')
+        addDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease.component.grandObjectName,updatedDisease.component.parentObjectName,updatedDisease.component.biObjectId);
+      }
     }
     
     // 更新病害数据
