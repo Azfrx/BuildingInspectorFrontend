@@ -190,11 +190,11 @@
 								<view class="right-icon">&gt;</view>
 							</view>
 							<view class="reference-start">
-								<input type="text" placeholder="起点位置" v-model="diseaseData.reference1LocationStart">
+								<input type="number" placeholder="起点位置" v-model="diseaseData.reference1LocationStart">
 								<view class="clear-input" @click="clearReferenceSurfaceStart(index, 1)">×</view>
 							</view>
 							<view class="reference-end">
-								<input type="text" placeholder="终点位置" v-model="diseaseData.reference1LocationEnd">
+								<input type="number" placeholder="终点位置" v-model="diseaseData.reference1LocationEnd">
 								<view class="clear-input" @click="clearReferenceSurfaceEnd(index, 1)">×</view>
 							</view>
 							<view class="quantitative-data-right-unit">
@@ -219,11 +219,11 @@
 								<view class="right-icon">&gt;</view>
 							</view>
 							<view class="reference-start">
-								<input type="text" placeholder="起点位置" v-model="diseaseData.reference2LocationStart">
+								<input type="number" placeholder="起点位置" v-model="diseaseData.reference2LocationStart">
 								<view class="clear-input" @click="clearReferenceSurfaceStart(index, 2)">×</view>
 							</view>
 							<view class="reference-end">
-								<input type="text" placeholder="终点位置" v-model="diseaseData.reference2LocationEnd">
+								<input type="number" placeholder="终点位置" v-model="diseaseData.reference2LocationEnd">
 								<view class="clear-input" @click="clearReferenceSurfaceEnd(index, 2)">×</view>
 							</view>
 							<view class="quantitative-data-right-unit">
@@ -771,7 +771,7 @@
 	import {
 		getObject,
 		readDiseaseImages,
-    removeDiseaseImage
+		removeDiseaseImage
 	} from '../../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages
@@ -818,12 +818,10 @@
 		}
 	});
 
-	const openMode = ref('history');
+	const openMode = ref('create');
 
 	const popup = ref(null);
 	const ADImgs = ref([]);
-	// 判断是编辑模式还是新增模式
-	const isEdit = ref(false);
 
 	// 保存结构数据
 	const structureData = ref(null);
@@ -1331,7 +1329,6 @@
 		initMultiPickerColumns();
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
-			isEdit.value = true;
 			openMode.value = 'edit';
 
 			// 如果传递了数据，则解析并填充表单
@@ -1356,7 +1353,7 @@
 			if (options.data) {
 				try {
 					const diseaseData = JSON.parse(decodeURIComponent(options.data));
-					console.log('接收到的编辑数据:', diseaseData);
+					console.log('接收到的历史病害数据:', diseaseData);
 
 					// 填充表单数据
 					fillFormWithData(diseaseData);
@@ -1866,8 +1863,8 @@
 		if (diseaseData) {
 			saveWithoutNavigateBack(diseaseData);
 		}
-		diseaseData.id = getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime();
-    diseaseData.localId = new Date().getTime();
+		diseaseData.id = new Date().getTime();
+		diseaseData.localId = new Date().getTime();
 	}
 
 	// 创建病害数据对象的方法
@@ -1999,7 +1996,7 @@
 			createBy: "",
 			createTime: formatDateTime(),
 			updateTime: formatDateTime(),
-			id: getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id || new Date().getTime(),
+			id: openMode.value === 'create' ? new Date().getTime() : getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id,
 			diseaseType: diseaseTypeObj ? {
 				id: diseaseTypeObj.id,
 				code: diseaseTypeObj.code || '',
@@ -2043,8 +2040,8 @@
 			buildingId: buildingId.value,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
-      commitType: 1, //0为已提交 1为未提交 2为删除
-      localId:new Date().getTime(),
+			commitType: 1, //0为已提交 1为未提交 2为删除
+			localId: new Date().getTime(),
 		};
 	}
 
@@ -2058,7 +2055,7 @@
 		});
 
 		// 使用公共方法保存图片和更新病害数据
-		saveImagesAndUpdateDisease(diseaseData, false)
+		saveImagesAndUpdateDisease(diseaseData)
 			.then(() => {
 				uni.hideLoading();
 				uni.showToast({
@@ -2091,85 +2088,88 @@
 	}
 
 	// 保存图片的公共方法
-	const saveImagesAndUpdateDisease = async (diseaseData, isEditMode) => {
+	const saveImagesAndUpdateDisease = async (diseaseData) => {
 		// 获取当前页面选项
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 
-			// 如果是编辑模式，获取原始数据中的图片和AD图片
-			let originalImages = [];
-			let originalADImages = [];
-			if (isEditMode && options && options.data) {
-				try {
-					const originalData = JSON.parse(decodeURIComponent(options.data));
-					// 将相对路径转为绝对路径
-					originalImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.images) || [];
-					originalADImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.ADImgs) || [];
-				} catch (error) {
-					console.error('解析原始数据失败:', error);
-				}
+		// 如果是编辑模式，获取原始数据中的图片和AD图片
+		let originalImages = [];
+		let originalADImages = [];
+		if (options && options.data) {
+			try {
+				const originalData = JSON.parse(decodeURIComponent(options.data));
+				// 将相对路径转为绝对路径
+				originalImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.images) || [];
+				originalADImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.ADImgs) ||
+				[];
+			} catch (error) {
+				console.error('解析原始数据失败:', error);
 			}
+		}
 
 		// 获取当前文件列表中的图片URL
 		const currentImageUrls = fileList.value.map(img => img.url);
 		const currentADImages = ADImgs.value.map(img => img.src);
 
-			try {
-				// 1. 先保存当前所有病害图片
-				let imageRelativePaths = [];
-				if (currentImageUrls.length > 0) {
-					imageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentImageUrls);
-					diseaseData.images = imageRelativePaths;
-					console.log('保存当前所有病害图片，相对路径:', imageRelativePaths);
-				} else {
-					diseaseData.images = [];
-				}
-
-				// 2. 保存当前所有AD图片
-				let adImageRelativePaths = [];
-				if (currentADImages.length > 0) {
-					adImageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value, currentADImages);
-					diseaseData.ADImgs = adImageRelativePaths;
-					console.log('保存当前所有AD图片，相对路径:', adImageRelativePaths);
-				} else {
-					diseaseData.ADImgs = [];
-				}
-
-				// 3. 删除所有原有病害图片
-				if (originalImages.length > 0) {
-					await removeDiseaseImage(originalImages)
-						.then(result => {
-							console.log('删除原有病害图片成功:', result);
-						})
-						.catch(error => {
-							console.error('删除原有病害图片失败:', error);
-						});
-				}
-
-				// 4. 删除所有原有AD图片
-				if (originalADImages.length > 0) {
-					await removeDiseaseImage(originalADImages)
-						.then(result => {
-							console.log('删除原有AD图片成功:', result);
-						})
-						.catch(error => {
-							console.error('删除原有AD图片失败:', error);
-						});
-				}
-
-				console.log('已保存病害图片，更新病害数据...:', diseaseData);
-				// 根据模式发送不同的事件
-				if (isEditMode) {
-					uni.$emit('updateDisease', diseaseData);
-				} else {
-					uni.$emit('addNewDisease', diseaseData);
-				}
-			} catch (error) {
-				console.error('保存图片过程中发生错误:', error);
-				plus.nativeUI.toast('保存图片失败');
-				throw error; // 重新抛出错误，让调用者知道发生了错误
+		try {
+			// 1. 先保存当前所有病害图片
+			let imageRelativePaths = [];
+			if (currentImageUrls.length > 0) {
+				imageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value,
+				currentImageUrls);
+				diseaseData.images = imageRelativePaths;
+				console.log('保存当前所有病害图片，相对路径:', imageRelativePaths);
+			} else {
+				diseaseData.images = [];
 			}
+
+			// 2. 保存当前所有AD图片
+			let adImageRelativePaths = [];
+			if (currentADImages.length > 0) {
+				adImageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value,
+					currentADImages);
+				diseaseData.ADImgs = adImageRelativePaths;
+				console.log('保存当前所有AD图片，相对路径:', adImageRelativePaths);
+			} else {
+				diseaseData.ADImgs = [];
+			}
+
+			// 3. 删除所有原有病害图片
+			if (originalImages.length > 0) {
+				await removeDiseaseImage(originalImages)
+					.then(result => {
+						console.log('删除原有病害图片成功:', result);
+					})
+					.catch(error => {
+						console.error('删除原有病害图片失败:', error);
+					});
+			}
+
+			// 4. 删除所有原有AD图片
+			if (originalADImages.length > 0) {
+				await removeDiseaseImage(originalADImages)
+					.then(result => {
+						console.log('删除原有AD图片成功:', result);
+					})
+					.catch(error => {
+						console.error('删除原有AD图片失败:', error);
+					});
+			}
+
+			console.log('已保存病害图片，更新病害数据...:', diseaseData);
+			// 根据模式发送不同的事件
+			if (openMode.value === 'create') {
+				uni.$emit('addNewDisease', diseaseData);
+			} else {
+				uni.$emit('updateDisease', diseaseData);
+			}
+		} catch (error) {
+			console.error('保存图片过程中发生错误:', error);
+			plus.nativeUI.toast('保存图片失败');
+			throw error; // 重新抛出错误，让调用者知道发生了错误
+		}
 	};
 
 	// 添加一个函数来获取当前选择的构件名称,可能为picker中直接选取，也可能为其他时自行输入
@@ -2210,7 +2210,7 @@
 		});
 
 		// 使用公共方法保存图片和更新病害数据
-		saveImagesAndUpdateDisease(diseaseData, isEdit.value)
+		saveImagesAndUpdateDisease(diseaseData)
 			.then(() => {
 				uni.hideLoading();
 				uni.showToast({
@@ -2300,8 +2300,7 @@
 		ADImgs.value = [];
 
 		// 将编辑模式切换为新增模式
-		// isEdit.value = false;
-    openMode.value = 'create';
+		openMode.value = 'create';
 
 		// 简单提示
 		uni.showToast({
@@ -2316,7 +2315,7 @@
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();
-    diseaseData.commitType = 1;
+		diseaseData.commitType = 1;
 
 		// 验证数据完整性
 		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
@@ -2335,7 +2334,7 @@
 		});
 
 		// 使用公共方法保存图片和更新病害数据
-		saveImagesAndUpdateDisease(diseaseData, true)
+		saveImagesAndUpdateDisease(diseaseData)
 			.then(() => {
 				uni.hideLoading();
 				uni.showToast({
@@ -2640,20 +2639,6 @@
 		console.log('使用默认病害位置选项');
 	};
 
-
-	// // 监听构件名称选择变化，更新病害位置选项
-	// watch([grandObjectName], () => {
-	// 	// 当grandObjectName变化时，可能是从编辑模式加载数据导致的
-	// 	// 此时可能需要更新病害位置选项，但仅在编辑模式下
-	// 	if (isEdit.value) {
-	// 		setTimeout(() => {
-	// 			updateDiseasePositionOptions();
-	// 		}, 300);
-	// 	}
-	// }, {
-	// 	deep: true
-	// });
-
 	// 打开参考面选择弹窗
 	const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
 		// 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
@@ -2942,6 +2927,24 @@
 	}, {
 		deep: true
 	});
+
+	watch(openMode, (newOpenMode) => {
+		if (newOpenMode === 'edit') {
+			uni.setNavigationBarTitle({
+				title: '编辑病害', // 要设置的标题文字
+			});
+		}
+		if (newOpenMode === 'create') {
+			uni.setNavigationBarTitle({
+				title: '新增病害', // 要设置的标题文字
+			});
+		}
+		if (newOpenMode === 'history') {
+			uni.setNavigationBarTitle({
+				title: '历史病害', // 要设置的标题文字
+			});
+		}
+	})
 </script>
 <style>
 	.input-text-placeholder {
