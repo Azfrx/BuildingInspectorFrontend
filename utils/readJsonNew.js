@@ -17,8 +17,9 @@ function getUserDir(userName) {
 }
 
 // 路径生成规则（基于userName）
-const FILE_NAMING = {
+export const FILE_NAMING = {
     project: userName => `${getUserDir(userName)}/project/projects.json`,
+	projectsFolder: userName => `${getUserDir(userName)}/project`,
     task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
     property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
     disease: (userName, buildingId, yearId) => `${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
@@ -124,7 +125,7 @@ export async function getHistoryYear(userName, buildingId) {
 }
 
 // 辅助方法：列出目录中的文件
-function listDirectoryFiles(path) {
+export function listDirectoryFiles(path) {
     return new Promise((resolve, reject) => {
         // 1. 获取完整的沙盒目录路径
         const fullPath = plus.io.convertLocalFileSystemURL(path);

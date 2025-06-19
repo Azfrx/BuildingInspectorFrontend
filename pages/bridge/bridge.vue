@@ -72,14 +72,19 @@
 		idStore
 	} from '../../store/idStorage';
 	import {
-		getAllFirstLevelDirs
-	} from '../../utils/readJsonNew';
+		FILE_NAMING,
+		listDirectoryFiles,
+		getAllFirstLevelDirs,
+	} from "@/utils/readJsonNew.js";
 	import {
 		interval
 	} from 'rxjs';
 	import {
 		getAllDataAndSetToLocal
 	} from '@/utils/request.js';
+	import {
+		deleteFolderInApp
+	} from '@/utils/deleteFolder.js';
 	// 获取当前日期字符串 (格式: YY-MM-DD)
 	function getCurrentDateStr() {
 		const now = new Date();
@@ -160,7 +165,8 @@
 						//所有项目信息
 						const allProjects = projectResponse.data.data.projects || [];
 						loading.value = true
-						await getAllDataAndSetToLocal(allProjects, projectResponse.data,token, userInfo.username);
+						await getAllDataAndSetToLocal(allProjects, projectResponse.data, token, userInfo
+							.username);
 
 						if (projectResponse.data.code === 0) {
 							await getProjectsTasks(allProjects, token)

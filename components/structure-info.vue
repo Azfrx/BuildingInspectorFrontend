@@ -131,8 +131,9 @@
 	import {
 		structureStore
 	} from '../store/structureNumberStorage';
-import { getObject } from '../utils/readJsonNew';
-import {setObject}  from '../utils/writeNew'
+	import { getObject,readDiseaseComponent } from '../utils/readJsonNew';
+	import {setObject}  from '../utils/writeNew'
+import { async } from 'rxjs';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
@@ -362,7 +363,7 @@ import {setObject}  from '../utils/writeNew'
 			for (let j = 0; j < obj.children[i].children.length; j++) {
 				obj.children[i].children[j].flag = true
 				for (let k = 0; k < obj.children[i].children[j].children.length; k++) {
-					obj.children[i].children[j].children[k].diseaseNumber = 9
+					obj.children[i].children[j].children[k].diseaseNumber = 0
 					obj.children[i].children[j].children[k].flag = false;
 				}
 			}

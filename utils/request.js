@@ -5,27 +5,91 @@ import {
 	setProperty,
 	setTask,
 	setObject,
-	setProject
+	setProject,
 } from "@/utils/writeNew";
+import {
+	getProject
+} from "@/utils/readJsonNew.js";
 
 export async function getAllDataAndSetToLocal(projects, projectResponse, token, username) {
-	//所有的项目 每一个项目去获取它下面的任务
-	await setProject(username, projectResponse);
-	for (const project of projects) {
-		const projectId = project.id;
-		// console.log('开始获取BuildingId:', projectId);
-		// buildings也就是tasks 每一个桥梁是一个检测任务
-		const buildings = await getBuildingIdByProjectId(projectId, token, username);
-		for (const building of buildings) {
-			const buildingId = building.buildingId;
-			// console.log('开始获取桥梁卡片数据:', buildingId);
-			await propertyRequest(buildingId, token, username);
+	//获取本地所有project
+	try {
+		const localProjectsAsync = await getProject(username)
+		const localProjects = localProjectsAsync.data.projects
 
-			// console.log('开始获取历史病害数据:', buildingId);
-			await diseaseRequest(buildingId, token, username);
+		//根据新projects过滤本地projects，这里只增删project
+		filtProjects(localProjects, projects)
 
-			// console.log('开始获取桥梁构件数据:', buildingId);
-			await getStructureInfoByBuildingId(buildingId, token, username);
+		await setProject(username, projectResponse);
+		//所有的项目 每一个项目去获取它下面的任务
+		for (const project of projects) {
+			const projectId = project.id;
+
+			// 查找本地是否已有该项目
+			const localProject = localProjects.find(p => p.id === projectId);
+
+			// 如果本地有这个项目，且 updateTime 一致，则跳过更新
+			if (localProject && localProject.updateTime === project.updateTime) {
+				console.log(`项目 ${project.name} 未更新，跳过数据请求`);
+				continue;
+			}
+
+			// console.log('开始获取BuildingId:', projectId);
+			// buildings也就是tasks 每一个桥梁是一个检测任务
+			const buildings = await getBuildingIdByProjectId(projectId, token, username);
+
+			for (const building of buildings) {
+				const buildingId = building.buildingId;
+				//对比updatetime
+				const localBuilding = localBuildings.find(b => b.buildingId === buildingId);
+				if (localBuilding && localBuilding.updateTime === building.updateTime) {
+					console.log(`Building ${buildingId} 未更新，跳过`);
+					continue;
+				}
+				console.log(`Building ${buildingId} 有更新，开始请求数据`);
+
+				// console.log('开始获取桥梁卡片数据:', buildingId);
+				await propertyRequest(buildingId, token, username);
+				// console.log('开始获取历史病害数据:', buildingId);
+				await diseaseRequest(buildingId, token, username);
+				// console.log('开始获取桥梁构件数据:', buildingId);
+				await getStructureInfoByBuildingId(buildingId, token, username);
+			}
+		}
+	} catch (error) {
+		//本地文件夹为空 全量下载
+		await setProject(username, projectResponse);
+		//所有的项目 每一个项目去获取它下面的任务
+		for (const project of projects) {
+			const projectId = project.id;
+			const buildings = await getBuildingIdByProjectId(projectId, token, username);
+			for (const building of buildings) {
+				const buildingId = building.buildingId;
+				await propertyRequest(buildingId, token, username);
+				await diseaseRequest(buildingId, token, username);
+				await getStructureInfoByBuildingId(buildingId, token, username);
+			}
+		}
+	}
+}
+
+const filtProjects = (oldProjects, newProjects) => {
+	for (let i = oldProjects.length - 1; i >= 0; i--) {
+		const oldProject = oldProjects[i];
+		const exists = newProjects.some(newProject => newProject.id === oldProject.id);
+		if (!exists) {
+			console.log("oldProjects[i].id", oldProjects[i].id);
+			//删除项目文件夹
+			// deleteFolderInApp('_doc/' + FILE_NAMING.projectsFolder(username) +
+			// 	'/' + oldProjects[i].id)
+			oldProjects.splice(i, 1); // 删除不存在的项目
+		}
+	}
+
+	for (const newProject of newProjects) {
+		const exists = oldProjects.some(oldProject => oldProject.id === newProject.id);
+		if (!exists) {
+			oldProjects.push(newProject); // 添加新的项目
 		}
 	}
 }
@@ -131,7 +195,7 @@ export async function diseaseRequest(buildingId, token, username) {
 			for (const yearDisease of response.data.data) {
 				const year = yearDisease.year;
 				const currentYear = new Date().getFullYear();
-				if(year !== currentYear){
+				if (year !== currentYear) {
 					// 遍历diseases数组
 					for (const disease of yearDisease.diseases) {
 						// 处理images列表
