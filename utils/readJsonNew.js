@@ -358,11 +358,10 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId){
         diseaseData.diseases.forEach(disease => {
             // 排除已删除的病害记录(commit_type为2)
             if (disease.commitType === 2) {
-                return; // 跳过此次循环
             }
             
             // 检查component字段是否存在且biObjectId匹配
-            if (disease.component && 
+            else if (disease.component &&
                 disease.component.biObjectId === biObjectId && 
                 disease.component.code) {
                 
