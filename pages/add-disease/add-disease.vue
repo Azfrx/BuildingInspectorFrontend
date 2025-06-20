@@ -23,14 +23,18 @@
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
 		<view class="form-container">
 
-			<view>
+			<disease-information :structureData="structureData" ref="diseaseInformationRef"> </disease-information>
+
+      <disease-quantitative-data :structureData="structureData" ref="diseaseQuantitativeDataRef"> </disease-quantitative-data>
+
+<!--			<view>
 				<view class="head">
 					<view class="head-text">
 						病害基础信息
 					</view>
 				</view>
 
-				<!-- 将原来的部件类型picker改为multiSelector -->
+				&lt;!&ndash; 将原来的部件类型picker改为multiSelector &ndash;&gt;
 				<view class="component-name">
 					<picker class="picker" mode="multiSelector" @change="typeMultiPickerChange"
 						@columnchange="typeColumnChange" :value="typeMultiIndex" :range="typeMultiArray">
@@ -60,7 +64,7 @@
 				</view>
 
 
-				<!-- 替换原来的构件编号picker为input输入框 -->
+				&lt;!&ndash; 替换原来的构件编号picker为input输入框 &ndash;&gt;
 				<view class="picker">
 					<view class="picker-titleAndContent">
 						<view class="picker-left">
@@ -77,7 +81,7 @@
 					</view>
 				</view>
 
-				<!-- 修改病害类型选择器 -->
+				&lt;!&ndash; 修改病害类型选择器 &ndash;&gt;
 				<view class="picker">
 					<view class="picker-titleAndContent">
 						<view class="picker-left">
@@ -103,7 +107,7 @@
 					</view>
 				</view>
 
-				<!-- 修改病害位置区域 - 从弹窗改为picker和input组合 -->
+				&lt;!&ndash; 修改病害位置区域 - 从弹窗改为picker和input组合 &ndash;&gt;
 				<view class="picker">
 					<view class="picker-titleAndContent">
 						<view class="picker-left">
@@ -130,9 +134,9 @@
 				</view>
 
 
-			</view>
+			</view>-->
 
-			<view>
+<!--			<view>
 				<view class="head">
 					<view class="head-text">
 						病害定量数据
@@ -157,9 +161,9 @@
 					</view>
 				</view>
 
-				<!-- 使用v-for循环生成多组定量数据输入框 -->
+				&lt;!&ndash; 使用v-for循环生成多组定量数据输入框 &ndash;&gt;
 				<view v-for="(diseaseData, index) in diseaseDataList" :key="index" class="">
-					<!-- 如果缺损数量大于1，显示缺损编号 -->
+					&lt;!&ndash; 如果缺损数量大于1，显示缺损编号 &ndash;&gt;
 					<view v-if="diseaseDataList.length > 1" class="disease-index-title">
 						缺损-{{index + 1}}
 					</view>
@@ -233,13 +237,13 @@
 						</view>
 					</view>
 
-					<!-- 长度 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 长度 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							长度
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -255,7 +259,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -270,13 +274,13 @@
 						</view>
 					</view>
 
-					<!-- 宽度 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 宽度 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							宽度
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -292,7 +296,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -306,13 +310,13 @@
 						</view>
 					</view>
 
-					<!-- 高度/深度 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 高度/深度 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							高度/深度
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -329,7 +333,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -344,13 +348,13 @@
 						</view>
 					</view>
 
-					<!-- 缝宽 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 缝宽 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							缝宽
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -367,7 +371,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -383,13 +387,13 @@
 						</view>
 					</view>
 
-					<!-- 面积 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 面积 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							面积
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -405,7 +409,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -419,13 +423,13 @@
 						</view>
 					</view>
 
-					<!-- 体积 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 体积 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							体积
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -441,7 +445,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -456,13 +460,13 @@
 						</view>
 					</view>
 
-					<!-- 角度 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 角度 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							角度
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -478,7 +482,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -493,13 +497,13 @@
 						</view>
 					</view>
 
-					<!-- 百分比 - 根据模式显示不同的输入框 -->
+					&lt;!&ndash; 百分比 - 根据模式显示不同的输入框 &ndash;&gt;
 					<view class="quantitative-data">
 						<view class="quantitative-data-left">
 							百分比
 						</view>
 						<view class="quantitative-data-right">
-							<!-- 范围模式 -->
+							&lt;!&ndash; 范围模式 &ndash;&gt;
 							<template v-if="diseaseData.useRangeMode">
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
@@ -516,7 +520,7 @@
 									</view>
 								</view>
 							</template>
-							<!-- 普通模式 -->
+							&lt;!&ndash; 普通模式 &ndash;&gt;
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -543,7 +547,7 @@
 					</view>
 				</view>
 
-			</view>
+			</view>-->
 
 			<view>
 				<view class="head">
@@ -594,7 +598,6 @@
 
 
 			</view>
-
 
 			<view>
 				<view class="head">
@@ -724,19 +727,6 @@
 			</view>
 		</uni-popup>
 
-		<!-- 添加病害位置选择弹窗 -->
-		<uni-popup ref="diseasePositionPopup" type="center">
-			<view class="position-popup-content">
-				<view class="position-popup-title">选择病害位置</view>
-				<uni-combox class="position-combox" :candidates="diseasePosition" v-model="selectedPosition"
-					placeholder="请选择病害位置"></uni-combox>
-				<view class="position-popup-buttons">
-					<button class="position-popup-button cancel" @click="closeDiseasePositionPopup">取消</button>
-					<button class="position-popup-button confirm" @click="confirmDiseasePosition">确认</button>
-				</view>
-			</view>
-		</uni-popup>
-
 		<uni-popup ref="referenceSurfacePopup" type="center">
 			<view class="location-description-position-popup-content">
 				<view class="location-description-position-popup-title">参考面选择</view>
@@ -785,38 +775,14 @@
 	import {
 		generateDiseaseDescription
 	} from "@/utils/diseaseDescriptionCreate.js"
+	import DiseaseInformation from "@/components/disease-information.vue";
+  import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
 
-
-	//用户id
-	const userId = ref(20);
+  const diseaseInformationRef = ref(null);
 
 	const userInfo = userStore()
 
 	const idStorageInfo = idStore();
-
-	//桥梁id
-	const buildingId = ref(0);
-
-	// 通过计算属性获取URL中的bridgeId参数
-	const bridgeIdFromURL = computed(() => {
-		const pages = getCurrentPages();
-		if (pages.length > 0) {
-			const currentPage = pages[pages.length - 2];
-			const options = currentPage.$page?.options;
-
-			if (options && options.bridgeId) {
-				return options.bridgeId;
-			}
-		}
-		return 0; // 默认值
-	});
-
-	// 监听bridgeIdFromURL的变化
-	watch(bridgeIdFromURL, (newVal) => {
-		if (newVal) {
-			buildingId.value = newVal;
-		}
-	});
 
 	const openMode = ref('create');
 
@@ -838,13 +804,6 @@
 	const componentNamePicker = ref('');
 	// 部件类型索引
 	const biObjectindex = ref(-1);
-
-	// 构件编号
-	const componentCode = ref([]);
-	const componentCodeindex = ref(-1);
-	// 存储过滤后的构件编号
-	const filteredComponentCodes = ref([]);
-
 
 	// 创建一个数组来存储所有病害类型选项
 	let allDiseaseTypes = [];
@@ -1042,7 +1001,7 @@
 	const selectedPosition = ref('');
 
 	// 为三级选择器添加的数据和方法
-	const structureTypes = ref(['上部结构', '下部结构', '桥面系', '附属设施']);
+	const structureTypes = ref([]);
 	const typeMultiArray = ref([
 		structureTypes.value,
 		[],
@@ -1156,8 +1115,21 @@
 
 	// 初始化三级选择器的列数据
 	const initMultiPickerColumns = () => {
+		// 首先从structureData中获取第一列数据
+		if (structureData.value && structureData.value.children) {
+			// 更新第一列数据为structureData中的children的name数组
+			const firstColumnData = structureData.value.children.map(item => item.name);
+			structureTypes.value = firstColumnData;
+			typeMultiArray.value[0] = firstColumnData;
+			
+			// 如果第一列索引超出范围，重置为0
+			if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
+				typeMultiIndex.value[0] = 0;
+			}
+		}
+
 		// 根据第一列当前选中项更新第二列的数据
-		const structureType = structureTypes.value[typeMultiIndex.value[0]];
+		const structureType = typeMultiArray.value[0][typeMultiIndex.value[0]];
 
 		// 设置grandObjectName以便获取对应的部件类型列表
 		grandObjectName.value = structureType;
@@ -1315,9 +1287,6 @@
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
-		if (bridgeIdFromURL.value) {
-			buildingId.value = bridgeIdFromURL.value;
-		}
 		// 获取结构数据（先执行，并等待完成）
 		await fetchStructureData();
 
@@ -1370,9 +1339,6 @@
 		} else {
 			openMode.value = 'create';
 		}
-
-		// 初始化过滤后的构件编号列表
-		filteredComponentCodes.value = [...componentCode.value];
 
 		// 初始化缺损数据列表
 		updateDiseaseDataList(quantity.value);
@@ -1683,7 +1649,7 @@
 		// 处理图片数据
 		if (data.images && Array.isArray(data.images)) {
 			console.log('开始处理图片数据......:', data.images);
-			const imagesPaths = readDiseaseImages(userInfo.username, buildingId.value, data.images);
+			const imagesPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
 			console.log('处理后的图片路径:', imagesPaths);
 			fileList.value = imagesPaths.map((url, index) => ({
 				name: `图片${index + 1}`,
@@ -1695,7 +1661,7 @@
 
 		// AD图片
 		if (data.ADImgs && Array.isArray(data.ADImgs)) {
-			const ADImgsPaths = readDiseaseImages(userInfo.username, buildingId.value, data.ADImgs);
+			const ADImgsPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
 			ADImgs.value = ADImgsPaths.map((src, index) => ({
 				src: src
 			}));
@@ -1996,7 +1962,8 @@
 			createBy: "",
 			createTime: formatDateTime(),
 			updateTime: formatDateTime(),
-			id: openMode.value === 'create' ? new Date().getTime() : getCurrentPages()[getCurrentPages().length - 1].$page?.options?.id,
+			id: openMode.value === 'create' ? new Date().getTime() : getCurrentPages()[getCurrentPages().length - 1]
+				.$page?.options?.id,
 			diseaseType: diseaseTypeObj ? {
 				id: diseaseTypeObj.id,
 				code: diseaseTypeObj.code || '',
@@ -2037,7 +2004,7 @@
 				grandObjectName: grandObjectName.value // 使用第一级选择的值
 			},
 			componentId: null, // 组件ID也设为null
-			buildingId: buildingId.value,
+			buildingId: idStorageInfo.buildingId,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			commitType: 1, //0为已提交 1为未提交 2为删除
@@ -2101,9 +2068,10 @@
 			try {
 				const originalData = JSON.parse(decodeURIComponent(options.data));
 				// 将相对路径转为绝对路径
-				originalImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.images) || [];
-				originalADImages = readDiseaseImages(userInfo.username, buildingId.value, originalData.ADImgs) ||
-				[];
+				originalImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+					.images) || [];
+				originalADImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+					.ADImgs) || [];
 			} catch (error) {
 				console.error('解析原始数据失败:', error);
 			}
@@ -2117,8 +2085,8 @@
 			// 1. 先保存当前所有病害图片
 			let imageRelativePaths = [];
 			if (currentImageUrls.length > 0) {
-				imageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value,
-				currentImageUrls);
+				imageRelativePaths = await saveDiseaseImages(userInfo.username, idStorageInfo.buildingId,
+					currentImageUrls);
 				diseaseData.images = imageRelativePaths;
 				console.log('保存当前所有病害图片，相对路径:', imageRelativePaths);
 			} else {
@@ -2128,7 +2096,7 @@
 			// 2. 保存当前所有AD图片
 			let adImageRelativePaths = [];
 			if (currentADImages.length > 0) {
-				adImageRelativePaths = await saveDiseaseImages(userInfo.username, buildingId.value,
+				adImageRelativePaths = await saveDiseaseImages(userInfo.username, idStorageInfo.buildingId,
 					currentADImages);
 				diseaseData.ADImgs = adImageRelativePaths;
 				console.log('保存当前所有AD图片，相对路径:', adImageRelativePaths);
@@ -2482,24 +2450,12 @@
 		ADImgs.value.splice(index, 1)
 	}
 
-
-	// 关闭病害位置选择弹窗
-	const closeDiseasePositionPopup = () => {
-		diseasePositionPopup.value.close();
-	}
-
-	// 确认病害位置选择
-	const confirmDiseasePosition = () => {
-		position.value = selectedPosition.value;
-		closeDiseasePositionPopup();
-	}
-
 	// 获取结构数据
 	const fetchStructureData = async () => {
 		try {
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
-			const data = await getObject(userInfo.username, buildingId.value);
+			const data = await getObject(userInfo.username, idStorageInfo.buildingId);
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 
