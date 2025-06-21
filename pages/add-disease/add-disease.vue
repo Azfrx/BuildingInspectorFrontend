@@ -25,9 +25,12 @@
 
 			<disease-information :structureData="structureData" ref="diseaseInformationRef"> </disease-information>
 
-      <disease-quantitative-data :structureData="structureData" ref="diseaseQuantitativeDataRef"> </disease-quantitative-data>
+			<disease-quantitative-data ref="diseaseQuantitativeDataRef">
+			</disease-quantitative-data>
 
-<!--			<view>
+			<disease-description-part ref="diseaseDescriptionPart"></disease-description-part>
+
+			<!--			<view>
 				<view class="head">
 					<view class="head-text">
 						病害基础信息
@@ -136,7 +139,7 @@
 
 			</view>-->
 
-<!--			<view>
+			<!--			<view>
 				<view class="head">
 					<view class="head-text">
 						病害定量数据
@@ -549,7 +552,7 @@
 
 			</view>-->
 
-			<view>
+			<!-- <view>
 				<view class="head">
 					<view class="head-text">
 						病害定性数据
@@ -595,9 +598,7 @@
 						<uni-data-checkbox mode="tag" v-model="levelindex" :localdata="level"></uni-data-checkbox>
 					</view>
 				</view>
-
-
-			</view>
+			</view> -->
 
 			<view>
 				<view class="head">
@@ -776,9 +777,12 @@
 		generateDiseaseDescription
 	} from "@/utils/diseaseDescriptionCreate.js"
 	import DiseaseInformation from "@/components/disease-information.vue";
-  import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
+	import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
+	import DiseaseDescriptionPart from '@/components/disease-descriptionPart.vue';
 
-  const diseaseInformationRef = ref(null);
+	const diseaseInformationRef = ref(null);
+	const diseaseQuantitativeDataRef = ref(null);
+	const diseaseDescriptionPart = ref(null);
 
 	const userInfo = userStore()
 
@@ -1121,7 +1125,7 @@
 			const firstColumnData = structureData.value.children.map(item => item.name);
 			structureTypes.value = firstColumnData;
 			typeMultiArray.value[0] = firstColumnData;
-			
+
 			// 如果第一列索引超出范围，重置为0
 			if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
 				typeMultiIndex.value[0] = 0;
@@ -1437,17 +1441,23 @@
 			}
 		}
 
+		//设置构建名称
+		if (data.component?.biObject?.name) {
+			uni.$emit('setComponentName', data.component.biObject.name)
+		}
+
 		// 设置构件编号
 		if (data.component?.code) {
 			componentCodeInput.value = data.component.code;
+			uni.$emit('setComponentCode', componentCodeInput.value)
 			console.log('成功设置构件编号:', data.component.code);
 		}
 
 		// 设置病害类型
 		if (data.type) {
 			// 更新病害类型和位置选项
-			updateDiseaseTypeOptions();
 			type.value = data.type;
+			updateDiseaseTypeOptions();
 
 			// 检查是否在预设选项中
 			if (diseaseTypeOptions.value.includes(data.type)) {
@@ -1457,7 +1467,10 @@
 				typePicker.value = '其他';
 				typeInput.value = data.type;
 			}
-
+			uni.$emit('setDiseaseType', {
+				diseaseTypeOptions: diseaseTypeOptions.value,
+				diseaseType: data.type
+			})
 			console.log('成功设置病害类型:', data.type);
 		}
 
@@ -1472,10 +1485,20 @@
 				console.log('在预设选项中:', data.position);
 				positionPicker.value = data.position;
 				positionInput.value = '';
+				uni.$emit('setDiseasePosition', {
+					positionPicker: data.position,
+					positionInput: '',
+					diseasePosition: diseasePosition.value
+				})
 			} else {
 				console.log('不在预设选项中:', data.position);
 				positionPicker.value = '其他';
 				positionInput.value = data.position;
+				uni.$emit('setDiseasePosition', {
+					positionPicker: '其他',
+					positionInput: data.position,
+					diseasePosition: diseasePosition.value
+				})
 			}
 
 			console.log('成功设置病害位置:', data.position);
@@ -2157,6 +2180,10 @@
 
 	const savedisease = () => {
 		console.log('保存按钮点击');
+		console.log("拿到第1个，应该为-1:", diseaseInformationRef.value.biObjectindex);
+		console.log("拿到第2个，应该为1:", diseaseQuantitativeDataRef.value.quantity);
+		console.log("拿到第3个，应该为binghaimiaoshu:", diseaseDescriptionPart.value.description);
+		return;
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();

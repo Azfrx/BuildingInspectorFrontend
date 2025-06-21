@@ -10,15 +10,37 @@ import {
 } from "@/utils/writeNew";
 import {
 	getProject,
-	getAllFirstLevelDirs
+	getAllFirstLevelDirs,
+	getHadProject
 } from "@/utils/readJsonNew.js";
+import {
+	userStore
+} from '@/store/index.js'
+
 
 export async function getAllDataAndSetToLocal(projects, projectResponse, token, username) {
 	//获取本地所有project
 	try {
-		const localProjectsAsync = await getProject(username)
+		const userInfo = userStore()
+		let localProjectsAsync = null;
+		const allUsers = await readUserFolders();
+		for (const user of allUsers) {
+			const hadUsernameArrBySplit = user.split('-');
+			const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
+			if (hadUsername === username) {
+				//已存在此用户 去读旧数据
+				console.log("已存在此用户", user);
+				userInfo.setHadUsername(user); // 设置已存在的用户名到store
+				console.log("已存入用户：", userInfo.hadUsername);
+				localProjectsAsync = await getHadProject(user);
+				break;
+			}
+		}
+		if (!localProjectsAsync) {
+			localProjectsAsync = await getProject(username)
+		}
 		const localProjects = localProjectsAsync.data.projects
-
+		console.log("拿到的用户数据", localProjects);
 		//根据新projects过滤本地projects，这里只增删project
 		filtProjects(localProjects, projects)
 
@@ -97,6 +119,7 @@ const createProjectJson = async (username, projectResponse) => {
 		// 如果已存在用户目录，则覆写
 		await coverProject(username, projectResponse, oldProjectUsername);
 		console.log(`已存在项目目录，覆写: ${username}`);
+		console.log("oldProjectUsername是什么", oldProjectUsername);
 	}
 }
 
@@ -291,4 +314,15 @@ const getStructureInfoByBuildingId = async (buildingId, token, username) => {
 			icon: 'none'
 		});
 	}
+}
+
+function readUserFolders() {
+	return new Promise((resolve, reject) => {
+		plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+			entry.createReader().readEntries((entries) => {
+				const folders = entries.filter(e => e.isDirectory);
+				resolve(folders.map(f => f.name));
+			}, reject);
+		}, reject);
+	});
 }

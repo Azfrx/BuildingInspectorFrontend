@@ -61,7 +61,8 @@
 	import {
 		getAllUserInfo,
 		getProject,
-		getTask
+		getTask,
+		getTaskByHadUsername
 	} from '../../utils/readJsonNew';
 	import {
 		setProject
@@ -76,6 +77,7 @@
 		FILE_NAMING,
 		listDirectoryFiles,
 		getAllFirstLevelDirs,
+		getHadProject
 	} from "@/utils/readJsonNew.js";
 	import {
 		async,
@@ -147,11 +149,11 @@
 			// infoData.value = responseLogin.data;
 
 			// 获取并存储用户目录
-			if (userInfo.username) {
-				dir.value = getUserDir(userInfo.username);
-				console.log('当前用户目录:', dir.value);
-				idInfo.setDir(dir.value)
-			}
+			// if (userInfo.username) {
+			// 	dir.value = getUserDir(userInfo.username);
+			// 	console.log('当前用户目录:', dir.value);
+			// 	idInfo.setDir(dir.value)
+			// }
 
 			if (infoData.value.token) {
 				const getData = async () => {
@@ -186,18 +188,22 @@
 				icon: 'none'
 			});
 		} finally {
-			//不论有没有网，都从本地读取projects
-			const localProjectsAsync = await getProject(userInfo.username)
-			console.log("拿到数据", localProjectsAsync.data);
-			const allProjects = localProjectsAsync.data.projects
-			await getProjectsTasks(allProjects)
-			localProjects.value = allProjects
-			const repeatYears = allProjects.map(item => {
-				return item.year
-			})
-			years.value = [...new Set(repeatYears)].sort((a, b) => b - a)
-
-			loading.value = false; // 确保加载状态在请求完成后被重置
+			try {
+				//不论有没有网，都从本地读取project
+				const localProjectsAsync = await getProject(userInfo.username)
+				console.log("拿到数据", localProjectsAsync.data);
+				const allProjects = localProjectsAsync.data.projects
+				await getProjectsTasks(allProjects)
+				localProjects.value = allProjects
+				const repeatYears = allProjects.map(item => {
+					return item.year
+				})
+				years.value = [...new Set(repeatYears)].sort((a, b) => b - a)
+			} catch (error) {
+				console.error('从本地读取数据时发生错误:', error);
+			} finally {
+				loading.value = false; // 确保加载状态在请求完成后被重置
+			}
 		}
 	};
 
@@ -256,6 +262,17 @@
 			// });
 			//读取本地task
 			const taskGetWithProjectId = await getTask(userInfo.username, item.id)
+			filteredProjectsTasks.value.push({
+				projectId: item.id,
+				tastsNumber: taskGetWithProjectId.data.tasks.length
+			});
+		}
+	}
+
+	const getProjectsTasksByHadUsername = async (projects, hadUsername) => {
+		for (const item of projects) {
+			//读取本地task
+			const taskGetWithProjectId = await getTaskByHadUsername(hadUsername, item.id)
 			filteredProjectsTasks.value.push({
 				projectId: item.id,
 				tastsNumber: taskGetWithProjectId.data.tasks.length

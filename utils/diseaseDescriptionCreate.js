@@ -1,6 +1,7 @@
 function generateDiseaseDescription(data) {
 	const {
 		componentName, // 构件名称
+		componentCode, // 构件编号
 		diseaseType, // 病害类型
 		diseasePosition, // 病害位置
 		crackFeature = [], // 裂缝特征（可选）
@@ -11,7 +12,7 @@ function generateDiseaseDescription(data) {
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
 
-	let description = `${componentName}${diseasePosition}${diseaseType}`;
+	let description = `${componentName}#${componentCode}${diseasePosition}${diseaseType}`;
 
 	if (counts < 10) {
 		const details = defects.map(item => {

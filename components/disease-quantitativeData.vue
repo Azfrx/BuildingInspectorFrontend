@@ -408,106 +408,118 @@
 			</view>
 		</view>
 
-    <uni-popup ref="referenceSurfacePopup" type="center">
-      <view class="location-description-position-popup-content">
-        <view class="location-description-position-popup-title">参考面选择</view>
-        <view class="location-description-position-popup-input1">
-          <input type="text" placeholder="请填写" class="location-description-popup-input"
-                 v-model="referenceSurfaceInput" />
-          <button class="location-description-popup-button" @click="confirmreferenceSurfaceInput">确定</button>
-        </view>
-        <view class="location-description-position-popup-input3">
-          <view v-for="(item, index) in referenceSurfaceOptions" :key="index"
-                class="location-description-position-popup-input3-item"
-                @click="selectReferenceSurfaceItem(item)">
-            {{item}}
-          </view>
-        </view>
-      </view>
-    </uni-popup>
+		<uni-popup ref="referenceSurfacePopup" type="center">
+			<view class="location-description-position-popup-content">
+				<view class="location-description-position-popup-title">参考面选择</view>
+				<view class="location-description-position-popup-input1">
+					<input type="text" placeholder="请填写" class="location-description-popup-input"
+						v-model="referenceSurfaceInput" />
+					<button class="location-description-popup-button" @click="confirmreferenceSurfaceInput">确定</button>
+				</view>
+				<view class="location-description-position-popup-input3">
+					<view v-for="(item, index) in referenceSurfaceOptions" :key="index"
+						class="location-description-position-popup-input3-item"
+						@click="selectReferenceSurfaceItem(item)">
+						{{item}}
+					</view>
+				</view>
+			</view>
+		</uni-popup>
 
 	</view>
 </template>
 
 <script setup>
 	// 添加一个数组来存储多个缺损的数据
-  import {
-    onMounted,
-    ref,
-    watch
-  } from "vue";
+	import {
+		onMounted,
+		ref,
+		watch
+	} from "vue";
 
 	const diseaseDataList = ref([]);
 
 	// 缺损数量
 	const quantity = ref(1);
 
-  const crackType = ref([{
-    text: '纵向',
-    value: 0
-  },
-    {
-      text: '横向',
-      value: 1
-    },
-    {
-      text: '斜向',
-      value: 2
-    },
-    {
-      text: 'L型',
-      value: 3
-    },
-    {
-      text: 'U型',
-      value: 4
-    }
-  ])
+	const crackType = ref([{
+			text: '纵向',
+			value: 0
+		},
+		{
+			text: '横向',
+			value: 1
+		},
+		{
+			text: '斜向',
+			value: 2
+		},
+		{
+			text: 'L型',
+			value: 3
+		},
+		{
+			text: 'U型',
+			value: 4
+		}
+	])
 
-  const developmentTrend = ref([{
-    text: '稳定',
-    value: 0
-  },
-    {
-      text: '发展',
-      value: 1
-    },
-    {
-      text: '新增',
-      value: 2
-    },
-    {
-      text: '已维修',
-      value: 3
-    }
-  ])
+	const developmentTrend = ref([{
+			text: '稳定',
+			value: 0
+		},
+		{
+			text: '发展',
+			value: 1
+		},
+		{
+			text: '新增',
+			value: 2
+		},
+		{
+			text: '已维修',
+			value: 3
+		}
+	])
 
-  // 添加当前编辑的缺损索引
-  const currentDiseaseIndex = ref(0);
+	// 添加当前编辑的缺损索引
+	const currentDiseaseIndex = ref(0);
 
-  // 参考面弹窗引用
-  const referenceSurfacePopup = ref(null);
+	// 参考面弹窗引用
+	const referenceSurfacePopup = ref(null);
 
-  // 当前选择的是参考面1还是参考面2
-  const currentReferenceSurface = ref(1);
+	// 当前选择的是参考面1还是参考面2
+	const currentReferenceSurface = ref(1);
 
-  // 参考面输入框的值
-  const referenceSurfaceInput = ref('');
+	// 参考面输入框的值
+	const referenceSurfaceInput = ref('');
 
-  // 参考面选项列表
-  const referenceSurfaceOptions = ref([]);
+	// 参考面选项列表
+	const referenceSurfaceOptions = ref([]);
 
-  const positionProps = ref('')
+	const positionProps = ref('')
 
-  // 添加onMounted处理可能的初始值
-  onMounted(() => {
-    uni.$on('positionProps', setPositionProps)
-  })
+	// 添加onMounted处理可能的初始值
+	onMounted(() => {
+		uni.$on('setPositionProps', setPositionProps)
+		uni.$on('getDescription', getDescription);
+		updateDiseaseDataList(1);
+	})
 
-  const setPositionProps = (props) => {
-    console.log('设置positionProps:', props)
-    positionProps.value = props
-  }
+	const setPositionProps = (props) => {
+		console.log('设置positionProps:', props)
+		positionProps.value = props
+	}
+
+	//传递病害描述所需数据
+	const getDescription = () => {
+		const description = {
+			crackFeature: crackType.value, // 裂缝特征数组
+			defects: diseaseDataList.value, // 病害定量数据数组
+			counts: quantity.value, // 病害数量
+		};
+		uni.$emit('setDescription2', description);
+	}
 
 	// 监听缺损数量变化，动态更新diseaseDataList
 	watch(quantity, (newValue) => {
@@ -524,227 +536,229 @@
 		}
 	});
 
-  // 更新缺损数据列表
-  const updateDiseaseDataList = (count) => {
-    // 保存现有数据
-    const existingData = [...diseaseDataList.value];
+	// 更新缺损数据列表
+	const updateDiseaseDataList = (count) => {
+		// 保存现有数据
+		const existingData = [...diseaseDataList.value];
 
-    // 创建新的数据列表
-    const newList = [];
+		// 创建新的数据列表
+		const newList = [];
 
-    // 自动判断是否使用范围模式
-    const useRangeMode = count >= 10;
-    console.log(`数量: ${count}, 使用范围模式: ${useRangeMode}`);
+		// 自动判断是否使用范围模式
+		const useRangeMode = count >= 10;
+		console.log(`数量: ${count}, 使用范围模式: ${useRangeMode}`);
 
-    // 如果数量大于等于10，只创建一条记录，使用范围模式
-    if (useRangeMode) {
-      // 如果已有数据，尝试保留第一条的值作为范围的起始值
-      const firstItem = existingData.length > 0 ? existingData[0] : null;
-      console.log('范围模式，使用第一条记录作为基础:', firstItem ? firstItem : 'null');
+		// 如果数量大于等于10，只创建一条记录，使用范围模式
+		if (useRangeMode) {
+			// 如果已有数据，尝试保留第一条的值作为范围的起始值
+			const firstItem = existingData.length > 0 ? existingData[0] : null;
+			console.log('范围模式，使用第一条记录作为基础:', firstItem ? firstItem : 'null');
 
-      newList.push({
-        reference1Location: firstItem?.reference1Location || '',
-        reference1LocationStart: firstItem?.reference1LocationStart || '',
-        reference1LocationEnd: firstItem?.reference1LocationEnd || '',
-        reference2Location: firstItem?.reference2Location || '',
-        reference2LocationStart: firstItem?.reference2LocationStart || '',
-        reference2LocationEnd: firstItem?.reference2LocationEnd || '',
-        // 范围输入字段 - 保留现有的范围数据
-        lengthRangeStart: firstItem?.lengthRangeStart || firstItem?.length || '',
-        lengthRangeEnd: firstItem?.lengthRangeEnd || '',
-        widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
-        widthRangeEnd: firstItem?.widthRangeEnd || '',
-        heightDepthRangeStart: firstItem?.heightDepthRangeStart || firstItem?.heightDepth || '',
-        heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
-        crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
-        crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
-        areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
-        areaRangeEnd: firstItem?.areaRangeEnd || '',
-        volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
-        volumeRangeEnd: firstItem?.volumeRangeEnd || '',
-        angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
-        angleRangeEnd: firstItem?.angleRangeEnd || '',
-        percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
-        percentageRangeEnd: firstItem?.percentageRangeEnd || '',
-        // 保留原有字段为空
-        length: '',
-        width: '',
-        heightDepth: '',
-        crackWidth: '',
-        area: '',
-        volume: '',
-        angle: '',
-        percentage: '',
-        crackTypeIndex: firstItem?.crackTypeIndex || 0,
-        developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
-        useRangeMode: true
-      });
+			newList.push({
+				reference1Location: firstItem?.reference1Location || '',
+				reference1LocationStart: firstItem?.reference1LocationStart || '',
+				reference1LocationEnd: firstItem?.reference1LocationEnd || '',
+				reference2Location: firstItem?.reference2Location || '',
+				reference2LocationStart: firstItem?.reference2LocationStart || '',
+				reference2LocationEnd: firstItem?.reference2LocationEnd || '',
+				// 范围输入字段 - 保留现有的范围数据
+				lengthRangeStart: firstItem?.lengthRangeStart || firstItem?.length || '',
+				lengthRangeEnd: firstItem?.lengthRangeEnd || '',
+				widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
+				widthRangeEnd: firstItem?.widthRangeEnd || '',
+				heightDepthRangeStart: firstItem?.heightDepthRangeStart || firstItem?.heightDepth || '',
+				heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
+				crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
+				crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
+				areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
+				areaRangeEnd: firstItem?.areaRangeEnd || '',
+				volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
+				volumeRangeEnd: firstItem?.volumeRangeEnd || '',
+				angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
+				angleRangeEnd: firstItem?.angleRangeEnd || '',
+				percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
+				percentageRangeEnd: firstItem?.percentageRangeEnd || '',
+				// 保留原有字段为空
+				length: '',
+				width: '',
+				heightDepth: '',
+				crackWidth: '',
+				area: '',
+				volume: '',
+				angle: '',
+				percentage: '',
+				crackTypeIndex: firstItem?.crackTypeIndex || 0,
+				developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
+				useRangeMode: true
+			});
 
-      console.log('更新后的范围模式数据:', newList[0]);
-    } else {
-      // 正常模式，为每个缺损创建一条记录
-      for (let i = 0; i < count; i++) {
-        // 如果有现有数据，保留它
-        if (i < existingData.length) {
-          // 如果之前是范围模式，需要转换回普通模式
-          if (existingData[i].useRangeMode) {
-            newList.push({
-              reference1Location: existingData[i].reference1Location || '',
-              reference1LocationStart: existingData[i].reference1LocationStart || '',
-              reference1LocationEnd: existingData[i].reference1LocationEnd || '',
-              reference2Location: existingData[i].reference2Location || '',
-              reference2LocationStart: existingData[i].reference2LocationStart || '',
-              reference2LocationEnd: existingData[i].reference2LocationEnd || '',
-              // 使用Min值作为普通模式的值
-              length: existingData[i].lengthRangeStart || '',
-              width: existingData[i].widthRangeStart || '',
-              heightDepth: existingData[i].heightDepthRangeStart || '',
-              crackWidth: existingData[i].crackWidthRangeStart || '',
-              area: existingData[i].areaRangeStart || '',
-              volume: existingData[i].volumeRangeStart || '',
-              angle: existingData[i].angleRangeStart || '',
-              percentage: existingData[i].percentageRangeStart || '',
-              crackTypeIndex: existingData[i].crackTypeIndex || 0,
-              developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
-              useRangeMode: false
-            });
-          } else {
-            // 保持原有数据不变
-            newList.push(existingData[i]);
-          }
-        } else {
-          // 创建新的数据对象
-          newList.push({
-            reference1Location: '',
-            reference1LocationStart: '',
-            reference1LocationEnd: '',
-            reference2Location: '',
-            reference2LocationStart: '',
-            reference2LocationEnd: '',
-            length: '',
-            width: '',
-            crackWidth: '',
-            heightDepth: '',
-            area: '',
-            volume: '',
-            angle: '',
-            percentage: '',
-            crackTypeIndex: 0,
-            developmentTrendIndex: 0,
-            useRangeMode: false
-          });
-        }
-      }
-    }
+			console.log('更新后的范围模式数据:', newList[0]);
+		} else {
+			// 正常模式，为每个缺损创建一条记录
+			for (let i = 0; i < count; i++) {
+				// 如果有现有数据，保留它
+				if (i < existingData.length) {
+					// 如果之前是范围模式，需要转换回普通模式
+					if (existingData[i].useRangeMode) {
+						newList.push({
+							reference1Location: existingData[i].reference1Location || '',
+							reference1LocationStart: existingData[i].reference1LocationStart || '',
+							reference1LocationEnd: existingData[i].reference1LocationEnd || '',
+							reference2Location: existingData[i].reference2Location || '',
+							reference2LocationStart: existingData[i].reference2LocationStart || '',
+							reference2LocationEnd: existingData[i].reference2LocationEnd || '',
+							// 使用Min值作为普通模式的值
+							length: existingData[i].lengthRangeStart || '',
+							width: existingData[i].widthRangeStart || '',
+							heightDepth: existingData[i].heightDepthRangeStart || '',
+							crackWidth: existingData[i].crackWidthRangeStart || '',
+							area: existingData[i].areaRangeStart || '',
+							volume: existingData[i].volumeRangeStart || '',
+							angle: existingData[i].angleRangeStart || '',
+							percentage: existingData[i].percentageRangeStart || '',
+							crackTypeIndex: existingData[i].crackTypeIndex || 0,
+							developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
+							useRangeMode: false
+						});
+					} else {
+						// 保持原有数据不变
+						newList.push(existingData[i]);
+					}
+				} else {
+					// 创建新的数据对象
+					newList.push({
+						reference1Location: '',
+						reference1LocationStart: '',
+						reference1LocationEnd: '',
+						reference2Location: '',
+						reference2LocationStart: '',
+						reference2LocationEnd: '',
+						length: '',
+						width: '',
+						crackWidth: '',
+						heightDepth: '',
+						area: '',
+						volume: '',
+						angle: '',
+						percentage: '',
+						crackTypeIndex: 0,
+						developmentTrendIndex: 0,
+						useRangeMode: false
+					});
+				}
+			}
+		}
 
-    diseaseDataList.value = newList;
-  };
+		diseaseDataList.value = newList;
+	};
 
-  // 根据文本查找索引的工具函数
-  const findIndexByText = (optionsArray, targetText) => {
-    if (!optionsArray || !Array.isArray(optionsArray) || !targetText) return 0;
+	// 根据文本查找索引的工具函数
+	const findIndexByText = (optionsArray, targetText) => {
+		if (!optionsArray || !Array.isArray(optionsArray) || !targetText) return 0;
 
-    const index = optionsArray.findIndex(item =>
-        (item.text && item.text === targetText) || item === targetText
-    );
+		const index = optionsArray.findIndex(item =>
+			(item.text && item.text === targetText) || item === targetText
+		);
 
-    return index !== -1 ? index : 0;
-  };
+		return index !== -1 ? index : 0;
+	};
 
-  // 打开参考面选择弹窗
-  const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
-    console.log('打开参考面选择弹窗:', surfaceNumber, diseaseIndex)
-    // 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
-    currentReferenceSurface.value = surfaceNumber;
-    currentDiseaseIndex.value = diseaseIndex;
+	// 打开参考面选择弹窗
+	const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
+		console.log('打开参考面选择弹窗:', surfaceNumber, diseaseIndex)
+		// 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
+		currentReferenceSurface.value = surfaceNumber;
+		currentDiseaseIndex.value = diseaseIndex;
 
-    // 清空输入框
-    referenceSurfaceInput.value = '';
+		// 清空输入框
+		referenceSurfaceInput.value = '';
 
-    // 解析props中的参考面选项
-    if (positionProps.value !== '') {
-      const options = parsePropsForRef(positionProps.value, `ref${surfaceNumber}`);
-      if (options && options.length > 0) {
-        referenceSurfaceOptions.value = options;
-        console.log(`解析到参考面${surfaceNumber}选项:`, options);
-      } else {
-        // 如果没有找到对应的参考面选项，使用默认选项
-        setDefaultReferenceSurfaceOptions(surfaceNumber);
-      }
-    } else {
-      // 如果没有找到props，使用默认选项
-      setDefaultReferenceSurfaceOptions(surfaceNumber);
-    }
+		// 解析props中的参考面选项
+		if (positionProps.value !== '') {
+			const options = parsePropsForRef(positionProps.value, `ref${surfaceNumber}`);
+			if (options && options.length > 0) {
+				referenceSurfaceOptions.value = options;
+				console.log(`解析到参考面${surfaceNumber}选项:`, options);
+			} else {
+				// 如果没有找到对应的参考面选项，使用默认选项
+				setDefaultReferenceSurfaceOptions(surfaceNumber);
+			}
+		} else {
+			// 如果没有找到props，使用默认选项
+			setDefaultReferenceSurfaceOptions(surfaceNumber);
+		}
 
-    // 打开弹窗
-    referenceSurfacePopup.value.open();
-  };
+		// 打开弹窗
+		referenceSurfacePopup.value.open();
+	};
 
-  // 设置默认参考面选项
-  const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
-    if (surfaceNumber === 1) {
-      referenceSurfaceOptions.value = [];
-    } else {
-      referenceSurfaceOptions.value = [];
-    }
-    console.log(`使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
-  };
+	// 设置默认参考面选项
+	const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
+		if (surfaceNumber === 1) {
+			referenceSurfaceOptions.value = [];
+		} else {
+			referenceSurfaceOptions.value = [];
+		}
+		console.log(`使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+	};
 
-  // 解析props字符串中指定ref的选项
-  const parsePropsForRef = (propsString, refKey) => {
-    console.log('解析props字符串中指定ref的选项:', propsString, refKey)
-    if (!propsString) return [];
+	// 解析props字符串中指定ref的选项
+	const parsePropsForRef = (propsString, refKey) => {
+		console.log('解析props字符串中指定ref的选项:', propsString, refKey)
+		if (!propsString) return [];
 
-    // 尝试解析格式为 "ref1:=小桩号面、大桩号面&&ref2:=左腹板、右腹板、内腹板、外腹板" 的字符串
-    const refParts = propsString.split('&&');
+		// 尝试解析格式为 "ref1:=小桩号面、大桩号面&&ref2:=左腹板、右腹板、内腹板、外腹板" 的字符串
+		const refParts = propsString.split('&&');
 
-    for (const refPart of refParts) {
-      if (refPart.startsWith(refKey + ':=')) {
-        const parts = refPart.split(':=');
-        if (parts.length === 2) {
-          const values = parts[1].split('、');
-          return values.filter(value => value.trim() !== '');
-        }
-      }
-    }
-    return [];
-  };
+		for (const refPart of refParts) {
+			if (refPart.startsWith(refKey + ':=')) {
+				const parts = refPart.split(':=');
+				if (parts.length === 2) {
+					const values = parts[1].split('、');
+					return values.filter(value => value.trim() !== '');
+				}
+			}
+		}
+		return [];
+	};
 
-  // 确认参考面输入框的值
-  const confirmreferenceSurfaceInput = () => {
-    if (!referenceSurfaceInput.value.trim()) {
-      uni.showToast({
-        title: '请输入参考面',
-        icon: 'none'
-      });
-      return;
-    }
+	// 确认参考面输入框的值
+	const confirmreferenceSurfaceInput = () => {
+		if (!referenceSurfaceInput.value.trim()) {
+			uni.showToast({
+				title: '请输入参考面',
+				icon: 'none'
+			});
+			return;
+		}
 
-    // 根据当前编辑的是参考面1还是参考面2，设置相应的值
-    if (currentReferenceSurface.value === 1) {
-      diseaseDataList.value[currentDiseaseIndex.value].reference1Location = referenceSurfaceInput.value.trim();
-    } else {
-      diseaseDataList.value[currentDiseaseIndex.value].reference2Location = referenceSurfaceInput.value.trim();
-    }
+		// 根据当前编辑的是参考面1还是参考面2，设置相应的值
+		if (currentReferenceSurface.value === 1) {
+			diseaseDataList.value[currentDiseaseIndex.value].reference1Location = referenceSurfaceInput.value.trim();
+		} else {
+			diseaseDataList.value[currentDiseaseIndex.value].reference2Location = referenceSurfaceInput.value.trim();
+		}
 
-    // 关闭弹窗
-    referenceSurfacePopup.value.close();
-  };
+		// 关闭弹窗
+		referenceSurfacePopup.value.close();
+	};
 
-  // 选择参考面列表中的项
-  const selectReferenceSurfaceItem = (item) => {
-    // 根据当前编辑的是参考面1还是参考面2，设置相应的值
-    if (currentReferenceSurface.value === 1) {
-      diseaseDataList.value[currentDiseaseIndex.value].reference1Location = item;
-    } else {
-      diseaseDataList.value[currentDiseaseIndex.value].reference2Location = item;
-    }
+	// 选择参考面列表中的项
+	const selectReferenceSurfaceItem = (item) => {
+		// 根据当前编辑的是参考面1还是参考面2，设置相应的值
+		if (currentReferenceSurface.value === 1) {
+			diseaseDataList.value[currentDiseaseIndex.value].reference1Location = item;
+		} else {
+			diseaseDataList.value[currentDiseaseIndex.value].reference2Location = item;
+		}
 
-    // 关闭弹窗
-    referenceSurfacePopup.value.close();
-  };
+		// 关闭弹窗
+		referenceSurfacePopup.value.close();
+	};
 
-
+	defineExpose({
+		quantity: quantity
+	});
 </script>
 
 <style scoped>
