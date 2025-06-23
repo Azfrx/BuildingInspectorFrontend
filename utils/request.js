@@ -58,7 +58,7 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
 				console.log(`项目 ${project.name} 未更新，跳过数据请求`);
 				continue;
 			}
-
+			console.log(`项目 ${project.name} 更新，请求新数据`);
 			// console.log('开始获取BuildingId:', projectId);
 			// buildings也就是tasks 每一个桥梁是一个检测任务
 			const buildings = await getBuildingIdByProjectId(projectId, token, username);
@@ -151,7 +151,9 @@ const filtProjects = (oldProjects, newProjects) => {
 
 	for (const newProject of newProjects) {
 		const exists = oldProjects.some(oldProject => oldProject.id === newProject.id);
+		console.log("判断项目", newProject.name)
 		if (!exists) {
+			console.log("添加新项目", newProject.name)
 			oldProjects.push(newProject); // 添加新的项目
 		}
 	}

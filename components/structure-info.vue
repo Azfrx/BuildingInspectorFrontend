@@ -219,7 +219,7 @@ import { async } from 'rxjs';
 const refreshData = async () => {
   // 重新获取最新数据
   structureData.value = await getObject(userInfo.username, TaskBridgeId.value);
-  
+  console.log('新数据structureData.value', structureData.value)
   // 重新执行警告标志检查
   warningFlag();
   

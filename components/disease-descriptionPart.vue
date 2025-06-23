@@ -18,14 +18,15 @@
 		<view class="line-select">
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
-				<view>病害性质</view>
+				<view>发展趋势</view>
 			</view>
 			<view class="line-select-right">
-				<uni-data-checkbox mode="tag" v-model="natureindex" :localdata="nature"></uni-data-checkbox>
+				<uni-data-checkbox mode="tag" v-model="developmentTrendIndex"
+					:localdata="developmentTrend"></uni-data-checkbox>
 			</view>
 		</view>
 
-		<view class="line-select" v-show="typePicker !== '其他'">
+		<view class="line-select">
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
 				<view>参与评定</view>
@@ -36,7 +37,7 @@
 			</view>
 		</view>
 
-		<view class="line-select" v-show="typePicker !== '其他'">
+		<view class="line-select" v-show="participateAssessindex == 1">
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
 				<view>评定标度</view>
@@ -45,11 +46,23 @@
 				<uni-data-checkbox mode="tag" v-model="levelindex" :localdata="level"></uni-data-checkbox>
 			</view>
 		</view>
+
+		<view class="line-select">
+			<view class="line-select-left">
+				<text style="color: red;">*</text>
+				<view>病害性质</view>
+			</view>
+			<view class="line-select-right">
+				<uni-data-checkbox mode="tag" v-model="natureindex" :localdata="nature"></uni-data-checkbox>
+			</view>
+		</view>
+
 	</view>
 </template>
 
 <script setup>
 	import {
+		computed,
 		onMounted,
 		ref
 	} from 'vue';
@@ -63,16 +76,16 @@
 	//病害性质
 	const natureindex = ref(0);
 	const nature = ref([{
-		text: '新病害',
+		text: '非结构病害',
 		value: 0
 	}, {
-		text: '旧病害',
+		text: '结构病害',
 		value: 1
 	}]);
 	// 添加病害类型picker和input变量
 	const typePicker = ref('');
 	const typeInput = ref('');
-	const participateAssessindex = ref(0);
+	const participateAssessindex = ref(1);
 	//参与评定
 	const participateAssess = ref([{
 		text: '是',
@@ -105,32 +118,64 @@
 		max: 5
 	});
 
+	const developmentTrend = ref([{
+			text: '新增',
+			value: 0
+		},
+		{
+			text: '稳定',
+			value: 1
+		},
+		{
+			text: '发展',
+			value: 2
+		},
+		{
+			text: '已维修',
+			value: 3
+		},
+		{
+			text: '部分维修',
+			value: 4
+		}, {
+			text: '未找到',
+			value: 5
+		}
+	])
+	const developmentTrendIndex = ref(0);
+
 	onMounted(() => {
 		uni.$on('changeScale', changeScale);
 
 		uni.$on('setDescription1', setDescription1);
 		uni.$on('setDescription2', setDescription2);
-    uni.$on('setDescriptionByEmit', setDescriptionByEmit);
-    uni.$on('setLevel', setLevel);
-    uni.$on('setNature', setNature);
-    uni.$on('setParticipateAssess', setParticipateAssess);
+		uni.$on('setDescriptionByEmit', setDescriptionByEmit);
+		uni.$on('setLevel', setLevel);
+		uni.$on('setNature', setNature);
+		uni.$on('setParticipateAssess', setParticipateAssess);
+		uni.$on('setDevelopmentTrend', setDevelopmentTrend)
 	})
-  const setParticipateAssess = (emitParticipateAssess) => {
-    participateAssessindex.value = emitParticipateAssess === "0" ? 0 : 1;
-  }
 
-  const setNature = (emitNature) => {
-    const natureItem = nature.value.find(item => item.text === emitNature);
-    if (natureItem) {
-      natureindex.value = natureItem.value;
-    }
-  }
+	const setDevelopmentTrend = (emitDevelopmentTrend) => {
+		developmentTrendIndex.value = developmentTrend.value.findIndex(item => item.text === emitDevelopmentTrend);
+	}
 
-  const setLevel = (emitLevel) => {
-    levelindex.value = emitLevel
-  }
+	const setParticipateAssess = (emitParticipateAssess) => {
+		participateAssessindex.value = emitParticipateAssess === "0" ? 0 : 1;
+	}
 
-  const setDescriptionByEmit = (emitDescription) => {
+	const setNature = (emitNature) => {
+		const natureItem = nature.value.find(item => item.text === emitNature);
+		if (natureItem) {
+			natureindex.value = natureItem.value;
+		}
+	}
+
+	const setLevel = (emitLevel) => {
+		levelindex.value = emitLevel
+	}
+
+	const setDescriptionByEmit = (emitDescription) => {
 		description.value = emitDescription
 	}
 
@@ -174,11 +219,25 @@
 		description.value = createDescription
 	}
 
+	const participateAssessindexToString = computed(() => {
+		return participateAssessindex.value.toString()
+	})
+	const natureSeletedText = computed(() => {
+		return nature.value[natureindex.value].text
+	})
+	const parseIntLevel = computed(() => {
+		return parseInt(levelindex.value) || 1
+	})
+	const developmentTrendSeletedText = computed(() => {
+		return developmentTrend.value[developmentTrendIndex.value].text
+	})
+
 	defineExpose({
 		description: description,
-    participateAssess: participateAssessindex.value.toString(),
-    nature:nature.value[natureindex.value].text,
-    level: parseInt(levelindex.value) || 1,
+		participateAssess: participateAssessindexToString,
+		nature: natureSeletedText,
+		level: parseIntLevel,
+		developmentTrend: developmentTrendSeletedText,
 	});
 </script>
 
@@ -653,7 +712,7 @@
 	}
 
 	.input-area-title {
-		font-size: 18rpx;
+		font-size: 20rpx;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
@@ -667,7 +726,7 @@
 	}
 
 	.input-right-button {
-		background-color: #2979FF;
+		background-color: #0F4687;
 		border-radius: 5rpx;
 		color: #fff;
 		margin-left: auto;

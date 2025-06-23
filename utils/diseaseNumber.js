@@ -1,8 +1,8 @@
 import { getObject } from "./readJsonNew";
 import { setObject } from "./writeNew";
 
-export function incrementDiseaseNumber(userId, buildingId,targetId) {
-	const data = getObject(userId,buildingId)
+export async function incrementDiseaseNumber(username, buildingId,targetId) {
+	const data = await getObject(username,buildingId)
     // 遍历第一层 children
     if (data.children && Array.isArray(data.children)) {
         for (let firstLevel of data.children) {
@@ -19,7 +19,7 @@ export function incrementDiseaseNumber(userId, buildingId,targetId) {
                                     thirdLevel.diseaseNumber = 0;
                                 }
                                 thirdLevel.diseaseNumber++;
-								setObject(userId,buildingId,data)
+                                await setObject(username,buildingId,data)
                                 return true; // 找到并更新成功
                             }
                         }
@@ -30,8 +30,8 @@ export function incrementDiseaseNumber(userId, buildingId,targetId) {
     }
     return false; // 未找到匹配的 ID
 }
-export function decrementDiseaseNumber(userId, buildingId,targetId) {
-	const data = getObject(userId,buildingId)
+export async function decrementDiseaseNumber(username, buildingId,targetId) {
+	const data = await getObject(username,buildingId)
     // 遍历第一层 children
     if (data.children && Array.isArray(data.children)) {
         for (let firstLevel of data.children) {
@@ -47,10 +47,9 @@ export function decrementDiseaseNumber(userId, buildingId,targetId) {
                                 if (typeof thirdLevel.diseaseNumber !== 'number') {
                                     thirdLevel.diseaseNumber = 0;
                                 }
-                                
                                 // 减少计数（不低于 0）
                                 thirdLevel.diseaseNumber = Math.max(0, thirdLevel.diseaseNumber - 1);
-								setObject(userId,buildingId,data)
+								await setObject(username, buildingId, data)
                                 return true; // 找到并更新成功
                             }
                         }

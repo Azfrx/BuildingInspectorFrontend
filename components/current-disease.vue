@@ -64,6 +64,8 @@
 	import {
 		idStore
 	} from "@/store/idStorage";
+  import {decrementDiseaseNumber, incrementDiseaseNumber} from "@/utils/diseaseNumber";
+  import {structureStore} from "@/store/structureNumberStorage";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -82,6 +84,8 @@
 	const submitButtonEnabled = ref(false);
 
 	const idStorageInfo = idStore();
+
+  const structureStoreInfo = structureStore();
 
 	watch(() => props.activeTabTop, (newval, oldval) => {
 		if (newval == 0) {
@@ -135,13 +139,13 @@
 			};
 
 			console.log('准备保存的数据:', saveData);
-			/*const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component
+			const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component
 				.name);
 			if (isExist === false) {
 				console.log('该构件下不存在该病害类型，需要增加病害构件数量')
-				addDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.component.grandObjectName,
-					newDisease.component.parentObjectName, newDisease.component.biObjectId);
-			}*/
+        await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.biObjectId);
+        structureStoreInfo.incrementDataVersion();
+			}
 
 			// 调用setDisease方法保存数据
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
@@ -180,10 +184,9 @@
 			const isExist = await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
 				index].component.name);
 			if (isExist === true) {
-				console.log('该构件只有这一个病害，需要减少病害构件数量')
-				decreaseDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index]
-					.component.grandObjectName, diseaseList.value[index].component.parentObjectName,
-					diseaseList.value[index].component.biObjectId);
+				console.log('该构件只有这一个病害，需要减少病害构件数量,deleteData', diseaseList.value[index])
+        await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].biObjectId);
+        structureStoreInfo.incrementDataVersion();
 			}
 
 			// 将commit_type置为2表示已删除，而不是直接从数组中移除
@@ -237,17 +240,15 @@
 					index].component.name);
 				if (isOnly === true) {
 					console.log('该构件只有这一个病害，需要减少病害构件数量')
-					decreaseDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index]
-						.component.grandObjectName, diseaseList.value[index].component.parentObjectName,
-						diseaseList.value[index].component.biObjectId);
+          await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.biObjectId);
+          structureStoreInfo.incrementDataVersion();
 				}
 				const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, updatedDisease
 					.component.name);
 				if (isExist === false) {
 					console.log('该构件下不存在该病害类型，需要增加病害构件数量')
-					addDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease.component
-						.grandObjectName, updatedDisease.component.parentObjectName, updatedDisease.component
-						.biObjectId);
+          await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease.component.biObjectId);
+          structureStoreInfo.incrementDataVersion();
 				}
 			}
 

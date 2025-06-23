@@ -728,7 +728,7 @@
 			</view>
 		</uni-popup>
 
-<!--		<uni-popup ref="referenceSurfacePopup" type="center">
+		<!--		<uni-popup ref="referenceSurfacePopup" type="center">
 			<view class="location-description-position-popup-content">
 				<view class="location-description-position-popup-title">参考面选择</view>
 				<view class="location-description-position-popup-input1">
@@ -831,149 +831,149 @@
 	// 缺损数量
 	const quantity = ref(1);
 
-/*	// 监听缺损数量变化，动态更新diseaseDataList
-	watch(quantity, (newValue) => {
-		const numValue = parseInt(newValue);
-		if (isNaN(numValue) || numValue <= 0) {
-			// 如果输入无效，设为默认值1
-			updateDiseaseDataList(1);
-		} else if (numValue >= 10) {
-			// 限制最大数量为10，并且使用范围输入模式
-			quantity.value = numValue;
-			updateDiseaseDataList(numValue);
-		} else {
-			updateDiseaseDataList(numValue);
-		}
-	});*/
+	/*	// 监听缺损数量变化，动态更新diseaseDataList
+		watch(quantity, (newValue) => {
+			const numValue = parseInt(newValue);
+			if (isNaN(numValue) || numValue <= 0) {
+				// 如果输入无效，设为默认值1
+				updateDiseaseDataList(1);
+			} else if (numValue >= 10) {
+				// 限制最大数量为10，并且使用范围输入模式
+				quantity.value = numValue;
+				updateDiseaseDataList(numValue);
+			} else {
+				updateDiseaseDataList(numValue);
+			}
+		});*/
 
-/*	const createDescription = () => {
-		console.log("diseaseDataList.value", diseaseDataList.value);
-		const createDescription = generateDiseaseDescription({
-			componentName: getComponentName(), // 构件名称
-			diseaseType: type.value, // 病害类型
-			diseasePosition: position.value, // 病害位置
-			crackFeature: crackType.value, // 裂缝特征数组
-			defects: diseaseDataList.value, // 病害定量数据数组
-			counts: quantity.value, // 病害数量
-		})
-		description.value = createDescription
-	}*/
+	/*	const createDescription = () => {
+			console.log("diseaseDataList.value", diseaseDataList.value);
+			const createDescription = generateDiseaseDescription({
+				componentName: getComponentName(), // 构件名称
+				diseaseType: type.value, // 病害类型
+				diseasePosition: position.value, // 病害位置
+				crackFeature: crackType.value, // 裂缝特征数组
+				defects: diseaseDataList.value, // 病害定量数据数组
+				counts: quantity.value, // 病害数量
+			})
+			description.value = createDescription
+		}*/
 
 	// 更新缺损数据列表
-/*	const updateDiseaseDataList = (count) => {
-		// 保存现有数据
-		const existingData = [...diseaseDataList.value];
+	/*	const updateDiseaseDataList = (count) => {
+			// 保存现有数据
+			const existingData = [...diseaseDataList.value];
 
-		// 创建新的数据列表
-		const newList = [];
+			// 创建新的数据列表
+			const newList = [];
 
-		// 自动判断是否使用范围模式
-		const useRangeMode = count >= 10;
-		console.log(`数量: ${count}, 使用范围模式: ${useRangeMode}`);
+			// 自动判断是否使用范围模式
+			const useRangeMode = count >= 10;
+			console.log(`数量: ${count}, 使用范围模式: ${useRangeMode}`);
 
-		// 如果数量大于等于10，只创建一条记录，使用范围模式
-		if (useRangeMode) {
-			// 如果已有数据，尝试保留第一条的值作为范围的起始值
-			const firstItem = existingData.length > 0 ? existingData[0] : null;
-			console.log('范围模式，使用第一条记录作为基础:', firstItem ? firstItem : 'null');
+			// 如果数量大于等于10，只创建一条记录，使用范围模式
+			if (useRangeMode) {
+				// 如果已有数据，尝试保留第一条的值作为范围的起始值
+				const firstItem = existingData.length > 0 ? existingData[0] : null;
+				console.log('范围模式，使用第一条记录作为基础:', firstItem ? firstItem : 'null');
 
-			newList.push({
-				reference1Location: firstItem?.reference1Location || '',
-				reference1LocationStart: firstItem?.reference1LocationStart || '',
-				reference1LocationEnd: firstItem?.reference1LocationEnd || '',
-				reference2Location: firstItem?.reference2Location || '',
-				reference2LocationStart: firstItem?.reference2LocationStart || '',
-				reference2LocationEnd: firstItem?.reference2LocationEnd || '',
-				// 范围输入字段 - 保留现有的范围数据
-				lengthRangeStart: firstItem?.lengthRangeStart || firstItem?.length || '',
-				lengthRangeEnd: firstItem?.lengthRangeEnd || '',
-				widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
-				widthRangeEnd: firstItem?.widthRangeEnd || '',
-				heightDepthRangeStart: firstItem?.heightDepthRangeStart || firstItem?.heightDepth || '',
-				heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
-				crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
-				crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
-				areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
-				areaRangeEnd: firstItem?.areaRangeEnd || '',
-				volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
-				volumeRangeEnd: firstItem?.volumeRangeEnd || '',
-				angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
-				angleRangeEnd: firstItem?.angleRangeEnd || '',
-				percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
-				percentageRangeEnd: firstItem?.percentageRangeEnd || '',
-				// 保留原有字段为空
-				length: '',
-				width: '',
-				heightDepth: '',
-				crackWidth: '',
-				area: '',
-				volume: '',
-				angle: '',
-				percentage: '',
-				crackTypeIndex: firstItem?.crackTypeIndex || 0,
-				developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
-				useRangeMode: true
-			});
+				newList.push({
+					reference1Location: firstItem?.reference1Location || '',
+					reference1LocationStart: firstItem?.reference1LocationStart || '',
+					reference1LocationEnd: firstItem?.reference1LocationEnd || '',
+					reference2Location: firstItem?.reference2Location || '',
+					reference2LocationStart: firstItem?.reference2LocationStart || '',
+					reference2LocationEnd: firstItem?.reference2LocationEnd || '',
+					// 范围输入字段 - 保留现有的范围数据
+					lengthRangeStart: firstItem?.lengthRangeStart || firstItem?.length || '',
+					lengthRangeEnd: firstItem?.lengthRangeEnd || '',
+					widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
+					widthRangeEnd: firstItem?.widthRangeEnd || '',
+					heightDepthRangeStart: firstItem?.heightDepthRangeStart || firstItem?.heightDepth || '',
+					heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
+					crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
+					crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
+					areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
+					areaRangeEnd: firstItem?.areaRangeEnd || '',
+					volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
+					volumeRangeEnd: firstItem?.volumeRangeEnd || '',
+					angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
+					angleRangeEnd: firstItem?.angleRangeEnd || '',
+					percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
+					percentageRangeEnd: firstItem?.percentageRangeEnd || '',
+					// 保留原有字段为空
+					length: '',
+					width: '',
+					heightDepth: '',
+					crackWidth: '',
+					area: '',
+					volume: '',
+					angle: '',
+					percentage: '',
+					crackTypeIndex: firstItem?.crackTypeIndex || 0,
+					developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
+					useRangeMode: true
+				});
 
-			console.log('更新后的范围模式数据:', newList[0]);
-		} else {
-			// 正常模式，为每个缺损创建一条记录
-			for (let i = 0; i < count; i++) {
-				// 如果有现有数据，保留它
-				if (i < existingData.length) {
-					// 如果之前是范围模式，需要转换回普通模式
-					if (existingData[i].useRangeMode) {
+				console.log('更新后的范围模式数据:', newList[0]);
+			} else {
+				// 正常模式，为每个缺损创建一条记录
+				for (let i = 0; i < count; i++) {
+					// 如果有现有数据，保留它
+					if (i < existingData.length) {
+						// 如果之前是范围模式，需要转换回普通模式
+						if (existingData[i].useRangeMode) {
+							newList.push({
+								reference1Location: existingData[i].reference1Location || '',
+								reference1LocationStart: existingData[i].reference1LocationStart || '',
+								reference1LocationEnd: existingData[i].reference1LocationEnd || '',
+								reference2Location: existingData[i].reference2Location || '',
+								reference2LocationStart: existingData[i].reference2LocationStart || '',
+								reference2LocationEnd: existingData[i].reference2LocationEnd || '',
+								// 使用Min值作为普通模式的值
+								length: existingData[i].lengthRangeStart || '',
+								width: existingData[i].widthRangeStart || '',
+								heightDepth: existingData[i].heightDepthRangeStart || '',
+								crackWidth: existingData[i].crackWidthRangeStart || '',
+								area: existingData[i].areaRangeStart || '',
+								volume: existingData[i].volumeRangeStart || '',
+								angle: existingData[i].angleRangeStart || '',
+								percentage: existingData[i].percentageRangeStart || '',
+								crackTypeIndex: existingData[i].crackTypeIndex || 0,
+								developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
+								useRangeMode: false
+							});
+						} else {
+							// 保持原有数据不变
+							newList.push(existingData[i]);
+						}
+					} else {
+						// 创建新的数据对象
 						newList.push({
-							reference1Location: existingData[i].reference1Location || '',
-							reference1LocationStart: existingData[i].reference1LocationStart || '',
-							reference1LocationEnd: existingData[i].reference1LocationEnd || '',
-							reference2Location: existingData[i].reference2Location || '',
-							reference2LocationStart: existingData[i].reference2LocationStart || '',
-							reference2LocationEnd: existingData[i].reference2LocationEnd || '',
-							// 使用Min值作为普通模式的值
-							length: existingData[i].lengthRangeStart || '',
-							width: existingData[i].widthRangeStart || '',
-							heightDepth: existingData[i].heightDepthRangeStart || '',
-							crackWidth: existingData[i].crackWidthRangeStart || '',
-							area: existingData[i].areaRangeStart || '',
-							volume: existingData[i].volumeRangeStart || '',
-							angle: existingData[i].angleRangeStart || '',
-							percentage: existingData[i].percentageRangeStart || '',
-							crackTypeIndex: existingData[i].crackTypeIndex || 0,
-							developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
+							reference1Location: '',
+							reference1LocationStart: '',
+							reference1LocationEnd: '',
+							reference2Location: '',
+							reference2LocationStart: '',
+							reference2LocationEnd: '',
+							length: '',
+							width: '',
+							crackWidth: '',
+							heightDepth: '',
+							area: '',
+							volume: '',
+							angle: '',
+							percentage: '',
+							crackTypeIndex: 0,
+							developmentTrendIndex: 0,
 							useRangeMode: false
 						});
-					} else {
-						// 保持原有数据不变
-						newList.push(existingData[i]);
 					}
-				} else {
-					// 创建新的数据对象
-					newList.push({
-						reference1Location: '',
-						reference1LocationStart: '',
-						reference1LocationEnd: '',
-						reference2Location: '',
-						reference2LocationStart: '',
-						reference2LocationEnd: '',
-						length: '',
-						width: '',
-						crackWidth: '',
-						heightDepth: '',
-						area: '',
-						volume: '',
-						angle: '',
-						percentage: '',
-						crackTypeIndex: 0,
-						developmentTrendIndex: 0,
-						useRangeMode: false
-					});
 				}
 			}
-		}
 
-		diseaseDataList.value = newList;
-	};*/
+			diseaseDataList.value = newList;
+		};*/
 
 
 	// 长度
@@ -1106,7 +1106,7 @@
 	const reference2Location = ref('');
 
 	// 参考面弹窗引用
-	const referenceSurfacePopup = ref(null);
+	// const referenceSurfacePopup = ref(null);
 
 	// 当前选择的是参考面1还是参考面2
 	const currentReferenceSurface = ref(1);
@@ -1118,176 +1118,176 @@
 	const referenceSurfaceOptions = ref([]);
 
 	// 初始化三级选择器的列数据
-/*	const initMultiPickerColumns = () => {
-		// 首先从structureData中获取第一列数据
-		if (structureData.value && structureData.value.children) {
-			// 更新第一列数据为structureData中的children的name数组
-			const firstColumnData = structureData.value.children.map(item => item.name);
-			structureTypes.value = firstColumnData;
-			typeMultiArray.value[0] = firstColumnData;
+	/*	const initMultiPickerColumns = () => {
+			// 首先从structureData中获取第一列数据
+			if (structureData.value && structureData.value.children) {
+				// 更新第一列数据为structureData中的children的name数组
+				const firstColumnData = structureData.value.children.map(item => item.name);
+				structureTypes.value = firstColumnData;
+				typeMultiArray.value[0] = firstColumnData;
 
-			// 如果第一列索引超出范围，重置为0
-			if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
-				typeMultiIndex.value[0] = 0;
-			}
-		}
-
-		// 根据第一列当前选中项更新第二列的数据
-		const structureType = typeMultiArray.value[0][typeMultiIndex.value[0]];
-
-		// 设置grandObjectName以便获取对应的部件类型列表
-		grandObjectName.value = structureType;
-
-		// 如果结构数据已加载，则初始化部件类型列表
-		if (structureData.value && structureData.value.children) {
-			// 找到对应的结构部分（上部结构、下部结构、桥面系）
-			const structurePart = structureData.value.children.find(
-				item => item.name === grandObjectName.value
-			);
-
-			if (structurePart && structurePart.children) {
-				// 提取部件类型名称列表
-				biObjectNameOptions.value = structurePart.children;
-
-				// 更新二列数据
-				typeMultiArray.value[1] = [...structurePart.children.map(item => item.name)];
-
-				// 如果第二列已经有值且索引超出范围，重置为0
-				if (typeMultiIndex.value[1] >= typeMultiArray.value[1].length) {
-					typeMultiIndex.value[1] = 0;
+				// 如果第一列索引超出范围，重置为0
+				if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
+					typeMultiIndex.value[0] = 0;
 				}
-
-				// 更新第三列数据
-				updateThirdColumn();
-			} else {
-				console.log('未找到对应的结构部分或其子项');
-				typeMultiArray.value[1] = [];
-				typeMultiArray.value[2] = [];
 			}
-		} else {
-			console.log('结构数据尚未加载完成');
-		}
-	}*/
+
+			// 根据第一列当前选中项更新第二列的数据
+			const structureType = typeMultiArray.value[0][typeMultiIndex.value[0]];
+
+			// 设置grandObjectName以便获取对应的部件类型列表
+			grandObjectName.value = structureType;
+
+			// 如果结构数据已加载，则初始化部件类型列表
+			if (structureData.value && structureData.value.children) {
+				// 找到对应的结构部分（上部结构、下部结构、桥面系）
+				const structurePart = structureData.value.children.find(
+					item => item.name === grandObjectName.value
+				);
+
+				if (structurePart && structurePart.children) {
+					// 提取部件类型名称列表
+					biObjectNameOptions.value = structurePart.children;
+
+					// 更新二列数据
+					typeMultiArray.value[1] = [...structurePart.children.map(item => item.name)];
+
+					// 如果第二列已经有值且索引超出范围，重置为0
+					if (typeMultiIndex.value[1] >= typeMultiArray.value[1].length) {
+						typeMultiIndex.value[1] = 0;
+					}
+
+					// 更新第三列数据
+					updateThirdColumn();
+				} else {
+					console.log('未找到对应的结构部分或其子项');
+					typeMultiArray.value[1] = [];
+					typeMultiArray.value[2] = [];
+				}
+			} else {
+				console.log('结构数据尚未加载完成');
+			}
+		}*/
 
 	// 更新第三列数据
-/*	const updateThirdColumn = () => {
-		// 检查是否有第二列选择
-		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-			typeMultiArray.value[2] = [];
-			return;
-		}
+	/*	const updateThirdColumn = () => {
+			// 检查是否有第二列选择
+			if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+				typeMultiArray.value[2] = [];
+				return;
+			}
 
-		// 检查是否选择了超出范围的选项
-		if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
-			typeMultiArray.value[2] = [];
-			return;
-		}
+			// 检查是否选择了超出范围的选项
+			if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
+				typeMultiArray.value[2] = [];
+				return;
+			}
 
-		// 获取选中的第二级对象
-		const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-		if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
-			typeMultiArray.value[2] = [];
-			return;
-		}
+			// 获取选中的第二级对象
+			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
+				typeMultiArray.value[2] = [];
+				return;
+			}
 
-		// 提取第三级名称列表
-		const thirdLevelNames = selectedSecondLevel.children
-			.filter(item => item.status === '0')
-			.map(item => item.name);
-		typeMultiArray.value[2] = [...thirdLevelNames];
+			// 提取第三级名称列表
+			const thirdLevelNames = selectedSecondLevel.children
+				.filter(item => item.status === '0')
+				.map(item => item.name);
+			typeMultiArray.value[2] = [...thirdLevelNames];
 
-		// 如果第三列索引超出范围，重置为0
-		if (typeMultiIndex.value[2] >= typeMultiArray.value[2].length) {
-			typeMultiIndex.value[2] = 0;
-		}
-	}*/
+			// 如果第三列索引超出范围，重置为0
+			if (typeMultiIndex.value[2] >= typeMultiArray.value[2].length) {
+				typeMultiIndex.value[2] = 0;
+			}
+		}*/
 
-/*	// 多列选择器列变化处理
-	const typeColumnChange = (e) => {
-		const {
-			column,
-			value
-		} = e.detail;
-		typeMultiIndex.value[column] = value;
+	/*	// 多列选择器列变化处理
+		const typeColumnChange = (e) => {
+			const {
+				column,
+				value
+			} = e.detail;
+			typeMultiIndex.value[column] = value;
 
-		// 如果第一列变化，则更新第二列和第三列数据
-		if (column === 0) {
-			// 设置grandObjectName为新选择的值
-			grandObjectName.value = structureTypes.value[value];
+			// 如果第一列变化，则更新第二列和第三列数据
+			if (column === 0) {
+				// 设置grandObjectName为新选择的值
+				grandObjectName.value = structureTypes.value[value];
 
-			// 重置第二列和第三列索引
-			typeMultiIndex.value[1] = 0;
-			typeMultiIndex.value[2] = 0;
+				// 重置第二列和第三列索引
+				typeMultiIndex.value[1] = 0;
+				typeMultiIndex.value[2] = 0;
 
-			// 初始化第二列和第三列数据
-			initMultiPickerColumns();
-		}
-		// 如果第二列变化，则更新第三列数据
-		else if (column === 1) {
-			// 更新第三列数据
-			updateThirdColumn();
-		}
-	}*/
+				// 初始化第二列和第三列数据
+				initMultiPickerColumns();
+			}
+			// 如果第二列变化，则更新第三列数据
+			else if (column === 1) {
+				// 更新第三列数据
+				updateThirdColumn();
+			}
+		}*/
 
-/*	// 添加一个新函数来更新构件名称相关的值
-	const updateComponentNameValues = () => {
-		// 更新grandObjectName
-		grandObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
+	/*	// 添加一个新函数来更新构件名称相关的值
+		const updateComponentNameValues = () => {
+			// 更新grandObjectName
+			grandObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
 
-		// 如果第二级索引有效，设置parentObjectName
-		if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < typeMultiArray.value[1].length) {
-			parentObjectName.value = typeMultiArray.value[1][typeMultiIndex.value[1]];
-		}
-	}*/
+			// 如果第二级索引有效，设置parentObjectName
+			if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < typeMultiArray.value[1].length) {
+				parentObjectName.value = typeMultiArray.value[1][typeMultiIndex.value[1]];
+			}
+		}*/
 
-/*	// 确认选择事件
-	const typeMultiPickerChange = (e) => {
-		typeMultiIndex.value = e.detail.value;
+	/*	// 确认选择事件
+		const typeMultiPickerChange = (e) => {
+			typeMultiIndex.value = e.detail.value;
 
-		// 更新grandObjectName和parentObjectName
-		updateComponentNameValues();
+			// 更新grandObjectName和parentObjectName
+			updateComponentNameValues();
 
-		// 获取选择的构件名称
-		let selectedComponentName = '';
+			// 获取选择的构件名称
+			let selectedComponentName = '';
 
-		// 如果有选择第三级
-		if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
-			selectedComponentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
-		}
-		// 如果只选择了第二级
-		else if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
-			selectedComponentName = typeMultiArray.value[1][typeMultiIndex.value[1]];
-		}
+			// 如果有选择第三级
+			if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
+				selectedComponentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
+			}
+			// 如果只选择了第二级
+			else if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
+				selectedComponentName = typeMultiArray.value[1][typeMultiIndex.value[1]];
+			}
 
-		// 更新确认选择的构件名称
-		componentNamePicker.value = selectedComponentName;
+			// 更新确认选择的构件名称
+			componentNamePicker.value = selectedComponentName;
 
-		// 更新biObjectindex
-		if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
-			biObjectindex.value = typeMultiIndex.value[1];
-		} else {
-			biObjectindex.value = -1;
-		}
+			// 更新biObjectindex
+			if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < biObjectNameOptions.value.length) {
+				biObjectindex.value = typeMultiIndex.value[1];
+			} else {
+				biObjectindex.value = -1;
+			}
 
-		// 更新缺损类型和构件编号
-		updateDiseaseTypeOptions();
+			// 更新缺损类型和构件编号
+			updateDiseaseTypeOptions();
 
-		// 更新病害位置选项 - 在确认选择后更新
-		updateDiseasePositionOptions();
-		typePicker.value = '';
-		positionPicker.value = '';
-		typeInput.value = '';
-		positionInput.value = '';
-	}*/
+			// 更新病害位置选项 - 在确认选择后更新
+			updateDiseasePositionOptions();
+			typePicker.value = '';
+			positionPicker.value = '';
+			typeInput.value = '';
+			positionInput.value = '';
+		}*/
 
-/*	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
-	watch(grandObjectName, (newVal) => {
-		const index = structureTypes.value.findIndex(item => item === newVal);
-		if (index !== -1 && index !== typeMultiIndex.value[0]) {
-			typeMultiIndex.value[0] = index;
-			initMultiPickerColumns();
-		}
-	});*/
+	/*	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
+		watch(grandObjectName, (newVal) => {
+			const index = structureTypes.value.findIndex(item => item === newVal);
+			if (index !== -1 && index !== typeMultiIndex.value[0]) {
+				typeMultiIndex.value[0] = index;
+				initMultiPickerColumns();
+			}
+		});*/
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
@@ -1444,11 +1444,11 @@
 		//设置构建名称
 		if (data.component?.biObject?.name) {
 			// uni.$emit('setComponentName', data.component.biObject.name)
-      uni.$emit('setComponentName', {
-        biObjectName: data.component.biObject.name,
-        parentObjectName: data.component.parentObjectName,
-        grandObjectName: data.component.grandObjectName
-      })
+			uni.$emit('setComponentName', {
+				biObjectName: data.component.biObject.name,
+				parentObjectName: data.component.parentObjectName,
+				grandObjectName: data.component.grandObjectName
+			})
 		}
 
 		// 设置构件编号
@@ -1473,7 +1473,7 @@
 				typeInput.value = data.type;
 			}*/
 			uni.$emit('setDiseaseType', {
-        diseaseTypeInput: data.type,
+				diseaseTypeInput: data.type,
 				diseaseType: data.diseaseType.name
 			})
 			console.log('成功设置病害类型:', data.type);
@@ -1484,7 +1484,7 @@
 			// updateDiseasePositionOptions();
 			position.value = data.position;
 
-      uni.$emit('setDiseasePosition', data.position)
+			uni.$emit('setDiseasePosition', data.position)
 
 			// console.log('预设选项:', diseasePosition.value);
 			// 检查是否在预设选项中
@@ -1514,13 +1514,13 @@
 		// 设置缺损数量
 		if (data.quantity) {
 			quantity.value = parseInt(data.quantity) || 1;
-      uni.$emit('setQuantity', data.quantity)
+			uni.$emit('setQuantity', data.quantity)
 		}
 
 		// 设置参与评定值（uni-data-checkbox格式）
 		if (data.participateAssess !== undefined) {
 			participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
-      uni.$emit('setParticipateAssess', data.participateAssess)
+			uni.$emit('setParticipateAssess', data.participateAssess)
 		}
 
 		if (data.nature) {
@@ -1529,7 +1529,7 @@
 			if (natureItem) {
 				natureindex.value = natureItem.value;
 			}
-      uni.$emit('setNature', data.nature)
+			uni.$emit('setNature', data.nature)
 		}
 
 		// 设置评定标度（uni-data-checkbox格式）
@@ -1560,14 +1560,22 @@
 				// 如果没有病害类型信息，直接设置值
 				levelindex.value = levelVal; // 索引从1开始，值从1开始
 			}
-      uni.$emit('setLevel', data.level)
+			uni.$emit('setLevel', data.level)
 		}
 
 		// 设置病害描述
 		if (data.description) {
 			description.value = data.description;
-      uni.$emit('setDescriptionByEmit', data.description)
+			uni.$emit('setDescriptionByEmit', data.description)
 		}
+
+    if(data.crackType){
+      uni.$emit('setCrackType', data.crackType)
+    }
+
+    if(data.developmentTrend){
+      uni.$emit('setDevelopmentTrend', data.developmentTrend)
+    }
 
 		// 处理diseaseDetails数据
 		if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
@@ -1652,7 +1660,7 @@
 				// 更新数据列表
 				diseaseDataList.value = newList;
 			}
-      uni.$emit('setDiseaseDataList', diseaseDataList.value)
+			uni.$emit('setDiseaseDataList', diseaseDataList.value)
 			console.log('成功设置diseaseDetails数据, 条目数量:', diseaseDataList.value.length);
 		} else {
 			// 如果没有diseaseDetails数据，创建默认的单条记录
@@ -1927,9 +1935,9 @@
 				percentageRangeEnd: rangeData.percentageRangeEnd || '',
 
 				// 公共字段
-				crackType: crackType.value[rangeData.crackTypeIndex]?.text ||
-					'纵向',
-				developmentTrend: developmentTrend.value[rangeData.developmentTrendIndex]?.text || '稳定',
+				/*crackType: crackType.value[rangeData.crackTypeIndex]?.text ||
+					'纵向',*/
+				// developmentTrend: developmentTrend.value[rangeData.developmentTrendIndex]?.text || '稳定',
 				reference1Location: rangeData.reference1Location || '',
 				reference1LocationStart: rangeData.reference1LocationStart || '',
 				reference1LocationEnd: rangeData.reference1LocationEnd || '',
@@ -1941,7 +1949,7 @@
 			console.log('保存时生成的范围模式数据结构:', JSON.stringify(diseaseDetails[0]));
 		} else {
 			// 当缺损数量小于10时，使用普通模式，为每个缺损创建一条记录
-      diseaseQuantitativeDataRef.value.diseaseDataList.forEach(item => {
+			diseaseQuantitativeDataRef.value.diseaseDataList.forEach(item => {
 				diseaseDetails.push({
 					// 普通模式字段
 					length: item.length || '',
@@ -1972,9 +1980,9 @@
 					percentageRangeEnd: '',
 
 					// 公共字段
-					crackType: crackType.value[item.crackTypeIndex]
-						?.text || '纵向',
-					developmentTrend: developmentTrend.value[item.developmentTrendIndex]?.text || '稳定',
+					/*crackType: crackType.value[item.crackTypeIndex]
+						?.text || '纵向',*/
+					// developmentTrend: developmentTrend.value[item.developmentTrendIndex]?.text || '稳定',
 					reference1Location: item.reference1Location || '',
 					reference1LocationStart: item.reference1LocationStart || '',
 					reference1LocationEnd: item.reference1LocationEnd || '',
@@ -1992,7 +2000,8 @@
 		const thirdLevelComponentId = getThirdLevelComponentId();
 		const thirdLevelComponentName = getThirdLevelComponentName();*/
 
-    const diseaseTypeObj = diseaseInformationRef.value.diseaseTypeObj;
+		const diseaseTypeObj = diseaseInformationRef.value.diseaseTypeObj;
+    console.log('crackType', diseaseQuantitativeDataRef.value.crackType)
 
 		// 创建符合要求的病害数据对象
 		return {
@@ -2017,13 +2026,15 @@
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
 			type: diseaseTypeObj.name, // 直接使用type.value而不是通过索引获取
-			nature:diseaseDescriptionPart.value.nature,
+			nature: diseaseDescriptionPart.value.nature,
 			participateAssess: diseaseDescriptionPart.value.participateAssess,
 			biObjectId: diseaseInformationRef.value.component.biObject.id,
 			projectId: idStorageInfo.projectId,
+      crackType: diseaseQuantitativeDataRef.value.crackType,
+      developmentTrend: diseaseDescriptionPart.value.developmentTrend,
 			biObjectName: diseaseInformationRef.value.component.biObject.name, //使用三级选择或输入框中的值
 			component: diseaseInformationRef.value.component,
-      /*{
+			/*{
 				createBy: "",
 				createTime: formatDateTime(new Date(new Date().setFullYear(2025))),
 				updateTime: formatDateTime(new Date(new Date().setFullYear(2025))),
@@ -2179,26 +2190,26 @@
 	};
 
 	// 添加一个函数来获取当前选择的构件名称,可能为picker中直接选取，也可能为其他时自行输入
-/*	const getComponentName = () => {
-		let componentName = '';
-		if (componentNamePicker.value === '其他') {
-			// 如果选择了"其他"并且输入了自定义名称
-			componentName = componentNameInput.value;
-		} else if (typeMultiIndex.value[2] >= 0 && typeMultiIndex.value[2] < typeMultiArray.value[2].length) {
-			componentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
-		} else {
-			// 如果没有第三级选择，使用第二级作为备选
-			componentName = parentObjectName.value;
-		}
-		return componentName;
-	}*/
+	/*	const getComponentName = () => {
+			let componentName = '';
+			if (componentNamePicker.value === '其他') {
+				// 如果选择了"其他"并且输入了自定义名称
+				componentName = componentNameInput.value;
+			} else if (typeMultiIndex.value[2] >= 0 && typeMultiIndex.value[2] < typeMultiArray.value[2].length) {
+				componentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
+			} else {
+				// 如果没有第三级选择，使用第二级作为备选
+				componentName = parentObjectName.value;
+			}
+			return componentName;
+		}*/
 
 	const savedisease = () => {
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();
 
-    console.log('将要保存的病害diseaseData', diseaseData);
+		console.log('将要保存的病害diseaseData', diseaseData);
 
 		// 验证数据完整性
 		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
@@ -2513,81 +2524,81 @@
 	};
 
 	// 根据选择的部件类型更新缺损类型选项
-/*	const updateDiseaseTypeOptions = () => {
-		// 检查是否有有效的部件类型选择
-		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-			console.log('无效的部件类型选择');
-			diseaseTypeOptions.value = [];
-			return;
-		}
-
-		// 检查是否选择了超出范围的选项
-		if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
-			console.log('部件类型选择超出范围');
-			diseaseTypeOptions.value = [];
-			return;
-		}
-
-		// 获取第二级选中的对象
-		const selectedBiObject = biObjectNameOptions.value[typeMultiIndex.value[1]];
-		if (!selectedBiObject) {
-			console.log('选中的部件类型不存在');
-			diseaseTypeOptions.value = [];
-			return;
-		}
-
-		// 存储完整的diseaseTypes对象
-		allDiseaseTypes = [];
-
-		// 添加第二级的病害类型（如果有）
-		if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
-			allDiseaseTypes = [...selectedBiObject.diseaseTypes];
-			console.log('第二级病害类型:', allDiseaseTypes);
-		}
-
-		// 检查是否有第三级选择并添加其病害类型
-		if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children &&
-			Array.isArray(selectedBiObject.children) &&
-			typeMultiIndex.value[2] < selectedBiObject.children.length) {
-
-			const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
-			if (selectedThirdLevel && selectedThirdLevel.diseaseTypes && Array.isArray(selectedThirdLevel
-					.diseaseTypes)) {
-				// 添加第三级的病害类型，避免重复（通过id判断）
-				selectedThirdLevel.diseaseTypes.forEach(item => {
-					if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
-						allDiseaseTypes.push(item);
-					}
-				});
-				console.log('添加第三级后的病害类型:', allDiseaseTypes);
+	/*	const updateDiseaseTypeOptions = () => {
+			// 检查是否有有效的部件类型选择
+			if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+				console.log('无效的部件类型选择');
+				diseaseTypeOptions.value = [];
+				return;
 			}
-		}
 
-		// 更新缺损类型选项 - 只提取名称用于显示
-		diseaseTypeOptions.value = allDiseaseTypes.map(item => item.name);
-
-		console.log('最终缺损类型选项更新为:', diseaseTypeOptions.value);
-
-		// 如果已经设置了病害类型，尝试在新的选项中找到对应的索引
-		if (type.value) {
-			const index = diseaseTypeOptions.value.findIndex(item => item === type.value);
-			if (index !== -1) {
-				typeindex.value = index;
-				typePicker.value = type.value;
-				console.log('成功设置病害类型索引:', index);
-			} else {
-				// 如果在新选项中找不到当前病害类型，可能是自定义输入的
-				typePicker.value = '其他';
-				typeInput.value = type.value;
-				console.log('当前病害类型不在选项中，设为自定义输入:', type.value);
+			// 检查是否选择了超出范围的选项
+			if (typeMultiIndex.value[1] >= biObjectNameOptions.value.length) {
+				console.log('部件类型选择超出范围');
+				diseaseTypeOptions.value = [];
+				return;
 			}
-		}
-	}*/
 
-/*	// 清空函数
-	const clearQuantity = () => {
-		quantity.value = '';
-	};*/
+			// 获取第二级选中的对象
+			const selectedBiObject = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			if (!selectedBiObject) {
+				console.log('选中的部件类型不存在');
+				diseaseTypeOptions.value = [];
+				return;
+			}
+
+			// 存储完整的diseaseTypes对象
+			allDiseaseTypes = [];
+
+			// 添加第二级的病害类型（如果有）
+			if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
+				allDiseaseTypes = [...selectedBiObject.diseaseTypes];
+				console.log('第二级病害类型:', allDiseaseTypes);
+			}
+
+			// 检查是否有第三级选择并添加其病害类型
+			if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children &&
+				Array.isArray(selectedBiObject.children) &&
+				typeMultiIndex.value[2] < selectedBiObject.children.length) {
+
+				const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
+				if (selectedThirdLevel && selectedThirdLevel.diseaseTypes && Array.isArray(selectedThirdLevel
+						.diseaseTypes)) {
+					// 添加第三级的病害类型，避免重复（通过id判断）
+					selectedThirdLevel.diseaseTypes.forEach(item => {
+						if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
+							allDiseaseTypes.push(item);
+						}
+					});
+					console.log('添加第三级后的病害类型:', allDiseaseTypes);
+				}
+			}
+
+			// 更新缺损类型选项 - 只提取名称用于显示
+			diseaseTypeOptions.value = allDiseaseTypes.map(item => item.name);
+
+			console.log('最终缺损类型选项更新为:', diseaseTypeOptions.value);
+
+			// 如果已经设置了病害类型，尝试在新的选项中找到对应的索引
+			if (type.value) {
+				const index = diseaseTypeOptions.value.findIndex(item => item === type.value);
+				if (index !== -1) {
+					typeindex.value = index;
+					typePicker.value = type.value;
+					console.log('成功设置病害类型索引:', index);
+				} else {
+					// 如果在新选项中找不到当前病害类型，可能是自定义输入的
+					typePicker.value = '其他';
+					typeInput.value = type.value;
+					console.log('当前病害类型不在选项中，设为自定义输入:', type.value);
+				}
+			}
+		}*/
+
+	/*	// 清空函数
+		const clearQuantity = () => {
+			quantity.value = '';
+		};*/
 
 	// 构件名称input输入框
 	const componentNameInput = ref('');
@@ -2596,332 +2607,332 @@
 	const componentCodeInput = ref('');
 
 	// 更新病害位置选项
-/*	const updateDiseasePositionOptions = () => {
-		console.log('开始更新病害位置选项');
-		// 检查是否选择了构件
-		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
-			diseasePosition.value = [];
-			return;
-		}
+	/*	const updateDiseasePositionOptions = () => {
+			console.log('开始更新病害位置选项');
+			// 检查是否选择了构件
+			if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
+				diseasePosition.value = [];
+				return;
+			}
 
-		// 获取选中的第二级对象
-		const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-		if (!selectedSecondLevel) {
-			diseasePosition.value = [];
-			return;
-		}
+			// 获取选中的第二级对象
+			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			if (!selectedSecondLevel) {
+				diseasePosition.value = [];
+				return;
+			}
 
-		// 如果有第三级选择，使用第三级对象
-		if (typeMultiArray.value[2].length > 0 && typeMultiIndex.value[2] >= 0) {
-			// 获取选中的第三级对象
-			if (selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) &&
-				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+			// 如果有第三级选择，使用第三级对象
+			if (typeMultiArray.value[2].length > 0 && typeMultiIndex.value[2] >= 0) {
+				// 获取选中的第三级对象
+				if (selectedSecondLevel.children && Array.isArray(selectedSecondLevel.children) &&
+					typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
 
-				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+					const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
 
-				// 检查是否有子组件
-				if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
-					// 提取子组件名称
-					diseasePosition.value = selectedThirdLevel.children.map(item => item.name);
-					console.log('更新病害位置选项为第三级子组件:', diseasePosition.value);
-					return;
+					// 检查是否有子组件
+					if (selectedThirdLevel && selectedThirdLevel.children && Array.isArray(selectedThirdLevel.children)) {
+						// 提取子组件名称
+						diseasePosition.value = selectedThirdLevel.children.map(item => item.name);
+						console.log('更新病害位置选项为第三级子组件:', diseasePosition.value);
+						return;
+					}
 				}
 			}
-		}
 
-		// 如果都没有，使用默认值为空
-		diseasePosition.value = [];
-		console.log('使用默认病害位置选项');
-	};*/
+			// 如果都没有，使用默认值为空
+			diseasePosition.value = [];
+			console.log('使用默认病害位置选项');
+		};*/
 
-/*	// 打开参考面选择弹窗
-	const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
-		// 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
-		currentReferenceSurface.value = surfaceNumber;
-		currentDiseaseIndex.value = diseaseIndex;
+	/*	// 打开参考面选择弹窗
+		const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
+			// 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
+			currentReferenceSurface.value = surfaceNumber;
+			currentDiseaseIndex.value = diseaseIndex;
 
-		// 清空输入框
-		referenceSurfaceInput.value = '';
+			// 清空输入框
+			referenceSurfaceInput.value = '';
 
-		// 检查是否已选择病害位置
-		if (!position.value) {
-			uni.showToast({
-				title: '请先选择病害位置',
-				icon: 'none'
-			});
-			return;
-		}
-
-		// 尝试找到与当前选择的病害位置匹配的组件
-		let positionProps = '';
-
-		// 获取当前选中的部件类型
-		let selectedComponent = null;
-
-		// 检查是否有选择第三级
-		if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0 &&
-			biObjectNameOptions.value && biObjectNameOptions.value[typeMultiIndex.value[1]] &&
-			biObjectNameOptions.value[typeMultiIndex.value[1]].children) {
-			selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]].children[typeMultiIndex.value[2]];
-		}
-		// 如果没有第三级，使用第二级
-		else if (typeMultiIndex.value[1] >= 0 && biObjectNameOptions.value && biObjectNameOptions.value.length > 0) {
-			selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]];
-		}
-
-		// 如果找到了组件，尝试在其children中查找与当前病害位置匹配的组件
-		if (selectedComponent && selectedComponent.children && Array.isArray(selectedComponent.children)) {
-			const matchingChild = selectedComponent.children.find(child => child.name === position.value);
-			if (matchingChild && matchingChild.props) {
-				positionProps = matchingChild.props;
-				console.log('找到匹配的病害位置组件:', matchingChild.name, '其props:', positionProps);
+			// 检查是否已选择病害位置
+			if (!position.value) {
+				uni.showToast({
+					title: '请先选择病害位置',
+					icon: 'none'
+				});
+				return;
 			}
-		}
 
-		// 如果没有找到匹配的子组件props，使用当前选中组件的props
-		if (!positionProps && selectedComponent && selectedComponent.props) {
-			positionProps = selectedComponent.props;
-			console.log('使用当前选中组件的props:', positionProps);
-		}
+			// 尝试找到与当前选择的病害位置匹配的组件
+			let positionProps = '';
 
-		// 解析props中的参考面选项
-		if (positionProps) {
-			const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
-			if (options && options.length > 0) {
-				referenceSurfaceOptions.value = options;
-				console.log(`解析到参考面${surfaceNumber}选项:`, options);
+			// 获取当前选中的部件类型
+			let selectedComponent = null;
+
+			// 检查是否有选择第三级
+			if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0 &&
+				biObjectNameOptions.value && biObjectNameOptions.value[typeMultiIndex.value[1]] &&
+				biObjectNameOptions.value[typeMultiIndex.value[1]].children) {
+				selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]].children[typeMultiIndex.value[2]];
+			}
+			// 如果没有第三级，使用第二级
+			else if (typeMultiIndex.value[1] >= 0 && biObjectNameOptions.value && biObjectNameOptions.value.length > 0) {
+				selectedComponent = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			}
+
+			// 如果找到了组件，尝试在其children中查找与当前病害位置匹配的组件
+			if (selectedComponent && selectedComponent.children && Array.isArray(selectedComponent.children)) {
+				const matchingChild = selectedComponent.children.find(child => child.name === position.value);
+				if (matchingChild && matchingChild.props) {
+					positionProps = matchingChild.props;
+					console.log('找到匹配的病害位置组件:', matchingChild.name, '其props:', positionProps);
+				}
+			}
+
+			// 如果没有找到匹配的子组件props，使用当前选中组件的props
+			if (!positionProps && selectedComponent && selectedComponent.props) {
+				positionProps = selectedComponent.props;
+				console.log('使用当前选中组件的props:', positionProps);
+			}
+
+			// 解析props中的参考面选项
+			if (positionProps) {
+				const options = parsePropsForRef(positionProps, `ref${surfaceNumber}`);
+				if (options && options.length > 0) {
+					referenceSurfaceOptions.value = options;
+					console.log(`解析到参考面${surfaceNumber}选项:`, options);
+				} else {
+					// 如果没有找到对应的参考面选项，使用默认选项
+					setDefaultReferenceSurfaceOptions(surfaceNumber);
+				}
 			} else {
-				// 如果没有找到对应的参考面选项，使用默认选项
+				// 如果没有找到props，使用默认选项
 				setDefaultReferenceSurfaceOptions(surfaceNumber);
 			}
-		} else {
-			// 如果没有找到props，使用默认选项
-			setDefaultReferenceSurfaceOptions(surfaceNumber);
-		}
 
-		// 打开弹窗
-		referenceSurfacePopup.value.open();
-	};*/
+			// 打开弹窗
+			referenceSurfacePopup.value.open();
+		};*/
 
-/*	// 设置默认参考面选项
-	const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
-		if (surfaceNumber === 1) {
-			referenceSurfaceOptions.value = [];
-		} else {
-			referenceSurfaceOptions.value = [];
-		}
-		console.log(`使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
-	};
-
-	// 解析props字符串中指定ref的选项
-	const parsePropsForRef = (propsString, refKey) => {
-		if (!propsString) return [];
-
-		// 尝试解析格式为 "ref1:=小桩号面、大桩号面&&ref2:=左腹板、右腹板、内腹板、外腹板" 的字符串
-		const refParts = propsString.split('&&');
-
-		for (const refPart of refParts) {
-			if (refPart.startsWith(refKey + ':=')) {
-				const parts = refPart.split(':=');
-				if (parts.length === 2) {
-					const values = parts[1].split('、');
-					return values.filter(value => value.trim() !== '');
-				}
-			}
-		}
-		return [];
-	};*/
-
-/*	// 确认参考面输入框的值
-	const confirmreferenceSurfaceInput = () => {
-		if (!referenceSurfaceInput.value.trim()) {
-			uni.showToast({
-				title: '请输入参考面',
-				icon: 'none'
-			});
-			return;
-		}
-
-		// 根据当前编辑的是参考面1还是参考面2，设置相应的值
-		if (currentReferenceSurface.value === 1) {
-			diseaseDataList.value[currentDiseaseIndex.value].reference1Location = referenceSurfaceInput.value.trim();
-		} else {
-			diseaseDataList.value[currentDiseaseIndex.value].reference2Location = referenceSurfaceInput.value.trim();
-		}
-
-		// 关闭弹窗
-		referenceSurfacePopup.value.close();
-	};
-
-	// 选择参考面列表中的项
-	const selectReferenceSurfaceItem = (item) => {
-		// 根据当前编辑的是参考面1还是参考面2，设置相应的值
-		if (currentReferenceSurface.value === 1) {
-			diseaseDataList.value[currentDiseaseIndex.value].reference1Location = item;
-		} else {
-			diseaseDataList.value[currentDiseaseIndex.value].reference2Location = item;
-		}
-
-		// 关闭弹窗
-		referenceSurfacePopup.value.close();
-	};
-
-	// 清除参考面起点终点的值
-	const clearReferenceSurfaceStart = (diseaseIndex, surfaceNumber) => {
-		if (surfaceNumber === 1) {
-			diseaseDataList.value[diseaseIndex].reference1LocationStart = '';
-		} else {
-			diseaseDataList.value[diseaseIndex].reference2LocationStart = '';
-		}
-	};
-
-	const clearReferenceSurfaceEnd = (diseaseIndex, surfaceNumber) => {
-		if (surfaceNumber === 1) {
-			diseaseDataList.value[diseaseIndex].reference1LocationEnd = '';
-		} else {
-			diseaseDataList.value[diseaseIndex].reference2LocationEnd = '';
-		}
-	};*/
-
-/*	// 添加当前编辑的缺损索引
-	const currentDiseaseIndex = ref(0);
-
-	// 添加获取第三级组件ID的方法
-	const getThirdLevelComponentId = () => {
-		let thirdLevelComponentId = null;
-		if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
-			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-			if (selectedSecondLevel && selectedSecondLevel.children &&
-				Array.isArray(selectedSecondLevel.children) &&
-				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
-
-				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
-				if (selectedThirdLevel && selectedThirdLevel.id) {
-					thirdLevelComponentId = selectedThirdLevel.id;
-					console.log('找到第三级组件ID:', thirdLevelComponentId);
-				}
-			}
-		}
-		return thirdLevelComponentId;
-	};
-
-	const getThirdLevelComponentName = () => {
-		let thirdLevelComponentName = null;
-		if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
-			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-			if (selectedSecondLevel && selectedSecondLevel.children &&
-				Array.isArray(selectedSecondLevel.children) &&
-				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
-
-				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
-				if (selectedThirdLevel && selectedThirdLevel.name) {
-					thirdLevelComponentName = selectedThirdLevel.name;
-					console.log('找到第三级组件Name:', thirdLevelComponentName);
-				}
-			}
-		}
-		return thirdLevelComponentName;
-	}*/
-
-/*	// 添加isThirdLevelOther辅助函数，用于判断是否选择了"其他"选项
-	const isThirdLevelOther = () => {
-		if (typeMultiIndex.value[1] < 0 || typeMultiIndex.value[2] < 0) {
-			return true;
-		}
-
-		const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-		if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
-			return true;
-		}
-
-		return typeMultiIndex.value[2] >= selectedSecondLevel.children.length;
-	};*/
-
-/*	// 监听typePicker和typeInput的变化，更新type
-	watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
-		if (newTypePicker === '其他' && newTypeInput) {
-			type.value = newTypeInput;
-		} else {
-			type.value = newTypePicker;
-		}
-	}, {
-		deep: true
-	});*/
-
-/*	// 添加病害类型picker变化处理方法
-	const onDiseaseTypeChange = (e) => {
-		const index = e.detail.value;
-		if (index >= 0 && index < diseaseTypeOptions.value.length) {
-			typePicker.value = diseaseTypeOptions.value[index];
-			typeindex.value = index;
-
-			// 如果选择了"其他"，清空typeInput，等待用户输入
-			if (typePicker.value === '其他') {
-				typeInput.value = '';
+	/*	// 设置默认参考面选项
+		const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
+			if (surfaceNumber === 1) {
+				referenceSurfaceOptions.value = [];
 			} else {
-				// 否则直接更新type值
-				type.value = typePicker.value;
+				referenceSurfaceOptions.value = [];
+			}
+			console.log(`使用默认参考面${surfaceNumber}选项:`, referenceSurfaceOptions.value);
+		};
 
-				// 获取选中的病害类型对象
-				const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
-				if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
-					// 根据maxScale和minScale更新评定标度选项
-					const minScale = parseInt(selectedDiseaseType.minScale) || 1;
-					const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
+		// 解析props字符串中指定ref的选项
+		const parsePropsForRef = (propsString, refKey) => {
+			if (!propsString) return [];
 
-					// 创建新的评定标度选项
-					const newLevelOptions = [];
-					for (let i = minScale; i <= maxScale; i++) {
-						newLevelOptions.push({
-							text: String(i),
-							value: i
-						});
+			// 尝试解析格式为 "ref1:=小桩号面、大桩号面&&ref2:=左腹板、右腹板、内腹板、外腹板" 的字符串
+			const refParts = propsString.split('&&');
+
+			for (const refPart of refParts) {
+				if (refPart.startsWith(refKey + ':=')) {
+					const parts = refPart.split(':=');
+					if (parts.length === 2) {
+						const values = parts[1].split('、');
+						return values.filter(value => value.trim() !== '');
 					}
-
-					// 更新评定标度选项
-					level.value = newLevelOptions;
-
-					// 如果当前选择的评定标度不在新的范围内，则重置为最小值
-					if (levelindex.value < minScale || levelindex.value > maxScale) {
-						levelindex.value = minScale;
-					}
-
-					console.log('更新评定标度范围:', minScale, '至', maxScale);
 				}
 			}
+			return [];
+		};*/
 
-			console.log('病害类型选择变更为:', typePicker.value);
-		}
-	}
-
-	// 确认病害位置选择
-	const onDiseasePositionChange = (e) => {
-		const index = e.detail.value;
-		if (index >= 0 && index < diseasePosition.value.length) {
-			positionPicker.value = diseasePosition.value[index];
-
-			// 如果选择了"其他"，清空positionInput，等待用户输入
-			if (positionPicker.value === '其他') {
-				positionInput.value = '';
-			} else {
-				// 否则直接更新position值
-				position.value = positionPicker.value;
+	/*	// 确认参考面输入框的值
+		const confirmreferenceSurfaceInput = () => {
+			if (!referenceSurfaceInput.value.trim()) {
+				uni.showToast({
+					title: '请输入参考面',
+					icon: 'none'
+				});
+				return;
 			}
 
-			console.log('病害位置选择变更为:', positionPicker.value);
+			// 根据当前编辑的是参考面1还是参考面2，设置相应的值
+			if (currentReferenceSurface.value === 1) {
+				diseaseDataList.value[currentDiseaseIndex.value].reference1Location = referenceSurfaceInput.value.trim();
+			} else {
+				diseaseDataList.value[currentDiseaseIndex.value].reference2Location = referenceSurfaceInput.value.trim();
+			}
+
+			// 关闭弹窗
+			referenceSurfacePopup.value.close();
+		};
+
+		// 选择参考面列表中的项
+		const selectReferenceSurfaceItem = (item) => {
+			// 根据当前编辑的是参考面1还是参考面2，设置相应的值
+			if (currentReferenceSurface.value === 1) {
+				diseaseDataList.value[currentDiseaseIndex.value].reference1Location = item;
+			} else {
+				diseaseDataList.value[currentDiseaseIndex.value].reference2Location = item;
+			}
+
+			// 关闭弹窗
+			referenceSurfacePopup.value.close();
+		};
+
+		// 清除参考面起点终点的值
+		const clearReferenceSurfaceStart = (diseaseIndex, surfaceNumber) => {
+			if (surfaceNumber === 1) {
+				diseaseDataList.value[diseaseIndex].reference1LocationStart = '';
+			} else {
+				diseaseDataList.value[diseaseIndex].reference2LocationStart = '';
+			}
+		};
+
+		const clearReferenceSurfaceEnd = (diseaseIndex, surfaceNumber) => {
+			if (surfaceNumber === 1) {
+				diseaseDataList.value[diseaseIndex].reference1LocationEnd = '';
+			} else {
+				diseaseDataList.value[diseaseIndex].reference2LocationEnd = '';
+			}
+		};*/
+
+	/*	// 添加当前编辑的缺损索引
+		const currentDiseaseIndex = ref(0);
+
+		// 添加获取第三级组件ID的方法
+		const getThirdLevelComponentId = () => {
+			let thirdLevelComponentId = null;
+			if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
+				const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+				if (selectedSecondLevel && selectedSecondLevel.children &&
+					Array.isArray(selectedSecondLevel.children) &&
+					typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+
+					const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+					if (selectedThirdLevel && selectedThirdLevel.id) {
+						thirdLevelComponentId = selectedThirdLevel.id;
+						console.log('找到第三级组件ID:', thirdLevelComponentId);
+					}
+				}
+			}
+			return thirdLevelComponentId;
+		};
+
+		const getThirdLevelComponentName = () => {
+			let thirdLevelComponentName = null;
+			if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
+				const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+				if (selectedSecondLevel && selectedSecondLevel.children &&
+					Array.isArray(selectedSecondLevel.children) &&
+					typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+
+					const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
+					if (selectedThirdLevel && selectedThirdLevel.name) {
+						thirdLevelComponentName = selectedThirdLevel.name;
+						console.log('找到第三级组件Name:', thirdLevelComponentName);
+					}
+				}
+			}
+			return thirdLevelComponentName;
+		}*/
+
+	/*	// 添加isThirdLevelOther辅助函数，用于判断是否选择了"其他"选项
+		const isThirdLevelOther = () => {
+			if (typeMultiIndex.value[1] < 0 || typeMultiIndex.value[2] < 0) {
+				return true;
+			}
+
+			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			if (!selectedSecondLevel || !selectedSecondLevel.children || !Array.isArray(selectedSecondLevel.children)) {
+				return true;
+			}
+
+			return typeMultiIndex.value[2] >= selectedSecondLevel.children.length;
+		};*/
+
+	/*	// 监听typePicker和typeInput的变化，更新type
+		watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
+			if (newTypePicker === '其他' && newTypeInput) {
+				type.value = newTypeInput;
+			} else {
+				type.value = newTypePicker;
+			}
+		}, {
+			deep: true
+		});*/
+
+	/*	// 添加病害类型picker变化处理方法
+		const onDiseaseTypeChange = (e) => {
+			const index = e.detail.value;
+			if (index >= 0 && index < diseaseTypeOptions.value.length) {
+				typePicker.value = diseaseTypeOptions.value[index];
+				typeindex.value = index;
+
+				// 如果选择了"其他"，清空typeInput，等待用户输入
+				if (typePicker.value === '其他') {
+					typeInput.value = '';
+				} else {
+					// 否则直接更新type值
+					type.value = typePicker.value;
+
+					// 获取选中的病害类型对象
+					const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+					if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
+						// 根据maxScale和minScale更新评定标度选项
+						const minScale = parseInt(selectedDiseaseType.minScale) || 1;
+						const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
+
+						// 创建新的评定标度选项
+						const newLevelOptions = [];
+						for (let i = minScale; i <= maxScale; i++) {
+							newLevelOptions.push({
+								text: String(i),
+								value: i
+							});
+						}
+
+						// 更新评定标度选项
+						level.value = newLevelOptions;
+
+						// 如果当前选择的评定标度不在新的范围内，则重置为最小值
+						if (levelindex.value < minScale || levelindex.value > maxScale) {
+							levelindex.value = minScale;
+						}
+
+						console.log('更新评定标度范围:', minScale, '至', maxScale);
+					}
+				}
+
+				console.log('病害类型选择变更为:', typePicker.value);
+			}
 		}
-	}*/
+
+		// 确认病害位置选择
+		const onDiseasePositionChange = (e) => {
+			const index = e.detail.value;
+			if (index >= 0 && index < diseasePosition.value.length) {
+				positionPicker.value = diseasePosition.value[index];
+
+				// 如果选择了"其他"，清空positionInput，等待用户输入
+				if (positionPicker.value === '其他') {
+					positionInput.value = '';
+				} else {
+					// 否则直接更新position值
+					position.value = positionPicker.value;
+				}
+
+				console.log('病害位置选择变更为:', positionPicker.value);
+			}
+		}*/
 
 	// 监听positionPicker和positionInput的变化，更新position
-/*	watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
-		if (newPositionPicker === '其他' && newPositionInput) {
-			position.value = newPositionInput;
-		} else if (newPositionPicker !== '其他') {
-			position.value = newPositionPicker;
-		}
-	}, {
-		deep: true
-	});*/
+	/*	watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
+			if (newPositionPicker === '其他' && newPositionInput) {
+				position.value = newPositionInput;
+			} else if (newPositionPicker !== '其他') {
+				position.value = newPositionPicker;
+			}
+		}, {
+			deep: true
+		});*/
 
 	watch(openMode, (newOpenMode) => {
 		if (newOpenMode === 'edit') {

@@ -108,10 +108,10 @@ export function getDisease(userName, buildingId, yearId) {
 	return getJsonData(path);
 }
 
-export function getObject(userName, buildingId) {
+export async function getObject(userName, buildingId) {
 	const path = DOC_BASE_PATH + FILE_NAMING.Object(userName, buildingId);
 	trackPath(path);
-	return getJsonData(path);
+	return await getJsonData(path);
 }
 
 export function getAllUserInfo(userName) {

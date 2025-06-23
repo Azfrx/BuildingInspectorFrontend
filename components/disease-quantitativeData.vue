@@ -24,6 +24,17 @@
 			</view>
 		</view>
 
+		<view class="line-select">
+			<view class="line-select-left">
+				<text style="color: red;">*</text>
+				<view>裂缝特征</view>
+			</view>
+			<view class="line-select-right">
+				<uni-data-checkbox mode="tag" v-model="crackTypeIndex"
+					:localdata="crackTypeOptions"></uni-data-checkbox>
+			</view>
+		</view>
+
 		<!-- 使用v-for循环生成多组定量数据输入框 -->
 		<view v-for="(diseaseData, index) in diseaseDataList" :key="index" class="">
 			<!-- 如果缺损数量大于1，显示缺损编号 -->
@@ -31,16 +42,6 @@
 				缺损-{{index + 1}}
 			</view>
 
-			<view class="line-select">
-				<view class="line-select-left">
-					<text style="color: red;">*</text>
-					<view>裂缝特征</view>
-				</view>
-				<view class="line-select-right">
-					<uni-data-checkbox mode="tag" v-model="diseaseData.crackTypeIndex"
-						:localdata="crackType"></uni-data-checkbox>
-				</view>
-			</view>
 
 			<view class="location-description">
 				<view class="location-description-left">
@@ -396,7 +397,7 @@
 				</view>
 			</view>
 
-			<view class="line-select">
+			<!--			<view class="line-select">
 				<view class="line-select-left">
 					<text style="color: red;">*</text>
 					<view>发展趋势</view>
@@ -406,43 +407,47 @@
 						:localdata="developmentTrend"></uni-data-checkbox>
 				</view>
 			</view>
-		</view>
+		</view>-->
 
-		<uni-popup ref="referenceSurfacePopup" type="center">
-			<view class="location-description-position-popup-content">
-				<view class="location-description-position-popup-title">参考面选择</view>
-				<view class="location-description-position-popup-input1">
-					<input type="text" placeholder="请填写" class="location-description-popup-input"
-						v-model="referenceSurfaceInput" />
-					<button class="location-description-popup-button" @click="confirmreferenceSurfaceInput">确定</button>
-				</view>
-				<view class="location-description-position-popup-input3">
-					<view v-for="(item, index) in referenceSurfaceOptions" :key="index"
-						class="location-description-position-popup-input3-item"
-						@click="selectReferenceSurfaceItem(item)">
-						{{item}}
+			<uni-popup ref="referenceSurfacePopup" type="center">
+				<view class="location-description-position-popup-content">
+					<view class="location-description-position-popup-title">参考面选择</view>
+					<view class="location-description-position-popup-input1">
+						<input type="text" placeholder="请填写" class="location-description-popup-input"
+							v-model="referenceSurfaceInput" />
+						<button class="location-description-popup-button"
+							@click="confirmreferenceSurfaceInput">确定</button>
+					</view>
+					<view class="location-description-position-popup-input3">
+						<view v-for="(item, index) in referenceSurfaceOptions" :key="index"
+							class="location-description-position-popup-input3-item"
+							@click="selectReferenceSurfaceItem(item)">
+							{{item}}
+						</view>
 					</view>
 				</view>
-			</view>
-		</uni-popup>
+			</uni-popup>
+
+		</view>
 
 	</view>
 </template>
 
 <script setup>
 	// 添加一个数组来存储多个缺损的数据
-	import {
-		onMounted,
-		ref,
-		watch
-	} from "vue";
+  import {
+    computed,
+    onMounted,
+    ref,
+    watch
+  } from "vue";
 
 	const diseaseDataList = ref([]);
 
 	// 缺损数量
 	const quantity = ref(1);
 
-	const crackType = ref([{
+	const crackTypeOptions = ref([{
 			text: '纵向',
 			value: 0
 		},
@@ -463,24 +468,25 @@
 			value: 4
 		}
 	])
+	const crackTypeIndex = ref(0);
 
-	const developmentTrend = ref([{
-			text: '稳定',
-			value: 0
-		},
-		{
-			text: '发展',
-			value: 1
-		},
-		{
-			text: '新增',
-			value: 2
-		},
-		{
-			text: '已维修',
-			value: 3
-		}
-	])
+	/*	const developmentTrend = ref([{
+				text: '稳定',
+				value: 0
+			},
+			{
+				text: '发展',
+				value: 1
+			},
+			{
+				text: '新增',
+				value: 2
+			},
+			{
+				text: '已维修',
+				value: 3
+			}
+		])*/
 
 	// 添加当前编辑的缺损索引
 	const currentDiseaseIndex = ref(0);
@@ -501,18 +507,23 @@
 
 	// 添加onMounted处理可能的初始值
 	onMounted(() => {
-    updateDiseaseDataList(1);
+		updateDiseaseDataList(1);
 		uni.$on('setPositionProps', setPositionProps)
 		uni.$on('getDescription', getDescription);
-    uni.$on('setQuantity', setQuantity);
-    uni.$on('setDiseaseDataList', setDiseaseDataList);
+		uni.$on('setQuantity', setQuantity);
+		uni.$on('setDiseaseDataList', setDiseaseDataList);
+		uni.$on('setCrackType', setCrackType);
 	})
 
-  const setQuantity = (num) => {
-    quantity.value = num
-  }
+	const setCrackType = (crack) => {
+		crackTypeIndex.value = crackTypeOptions.value.findIndex(item => item.text === crack)
+	}
 
-  const setDiseaseDataList = (list) => {
+	const setQuantity = (num) => {
+		quantity.value = num
+	}
+
+	const setDiseaseDataList = (list) => {
 		diseaseDataList.value = list
 	}
 
@@ -597,8 +608,8 @@
 				volume: '',
 				angle: '',
 				percentage: '',
-				crackTypeIndex: firstItem?.crackTypeIndex || 0,
-				developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
+				// crackTypeIndex: firstItem?.crackTypeIndex || 0,
+				// developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
 				useRangeMode: true
 			});
 
@@ -626,8 +637,8 @@
 							volume: existingData[i].volumeRangeStart || '',
 							angle: existingData[i].angleRangeStart || '',
 							percentage: existingData[i].percentageRangeStart || '',
-							crackTypeIndex: existingData[i].crackTypeIndex || 0,
-							developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
+							// crackTypeIndex: existingData[i].crackTypeIndex || 0,
+							// developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
 							useRangeMode: false
 						});
 					} else {
@@ -651,8 +662,8 @@
 						volume: '',
 						angle: '',
 						percentage: '',
-						crackTypeIndex: 0,
-						developmentTrendIndex: 0,
+						// crackTypeIndex: 0,
+						// developmentTrendIndex: 0,
 						useRangeMode: false
 					});
 				}
@@ -699,7 +710,7 @@
 		}
 
 		// 打开弹窗
-		referenceSurfacePopup.value.open();
+		referenceSurfacePopup.value[0].open();
 	};
 
 	// 设置默认参考面选项
@@ -750,7 +761,7 @@
 		}
 
 		// 关闭弹窗
-		referenceSurfacePopup.value.close();
+		referenceSurfacePopup.value[0].close();
 	};
 
 	// 选择参考面列表中的项
@@ -763,12 +774,17 @@
 		}
 
 		// 关闭弹窗
-		referenceSurfacePopup.value.close();
+		referenceSurfacePopup.value[0].close();
 	};
+
+  const crackType = computed(() => {
+    return crackTypeOptions.value[crackTypeIndex.value].text;
+  })
 
 	defineExpose({
 		quantity: quantity,
-    diseaseDataList: diseaseDataList,
+		crackType: crackType,
+		diseaseDataList: diseaseDataList,
 	});
 </script>
 
