@@ -135,13 +135,13 @@
 			};
 
 			console.log('准备保存的数据:', saveData);
-			const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component
+			/*const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component
 				.name);
 			if (isExist === false) {
 				console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 				addDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.component.grandObjectName,
 					newDisease.component.parentObjectName, newDisease.component.biObjectId);
-			}
+			}*/
 
 			// 调用setDisease方法保存数据
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);

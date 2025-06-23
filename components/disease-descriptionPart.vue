@@ -110,7 +110,29 @@
 
 		uni.$on('setDescription1', setDescription1);
 		uni.$on('setDescription2', setDescription2);
+    uni.$on('setDescriptionByEmit', setDescriptionByEmit);
+    uni.$on('setLevel', setLevel);
+    uni.$on('setNature', setNature);
+    uni.$on('setParticipateAssess', setParticipateAssess);
 	})
+  const setParticipateAssess = (emitParticipateAssess) => {
+    participateAssessindex.value = emitParticipateAssess === "0" ? 0 : 1;
+  }
+
+  const setNature = (emitNature) => {
+    const natureItem = nature.value.find(item => item.text === emitNature);
+    if (natureItem) {
+      natureindex.value = natureItem.value;
+    }
+  }
+
+  const setLevel = (emitLevel) => {
+    levelindex.value = emitLevel
+  }
+
+  const setDescriptionByEmit = (emitDescription) => {
+		description.value = emitDescription
+	}
 
 	const changeScale = (props) => {
 		if (props) {
@@ -153,7 +175,10 @@
 	}
 
 	defineExpose({
-		description: description
+		description: description,
+    participateAssess: participateAssessindex.value.toString(),
+    nature:nature.value[natureindex.value].text,
+    level: parseInt(levelindex.value) || 1,
 	});
 </script>
 

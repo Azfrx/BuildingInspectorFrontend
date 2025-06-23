@@ -501,10 +501,20 @@
 
 	// 添加onMounted处理可能的初始值
 	onMounted(() => {
+    updateDiseaseDataList(1);
 		uni.$on('setPositionProps', setPositionProps)
 		uni.$on('getDescription', getDescription);
-		updateDiseaseDataList(1);
+    uni.$on('setQuantity', setQuantity);
+    uni.$on('setDiseaseDataList', setDiseaseDataList);
 	})
+
+  const setQuantity = (num) => {
+    quantity.value = num
+  }
+
+  const setDiseaseDataList = (list) => {
+		diseaseDataList.value = list
+	}
 
 	const setPositionProps = (props) => {
 		console.log('设置positionProps:', props)
@@ -757,7 +767,8 @@
 	};
 
 	defineExpose({
-		quantity: quantity
+		quantity: quantity,
+    diseaseDataList: diseaseDataList,
 	});
 </script>
 

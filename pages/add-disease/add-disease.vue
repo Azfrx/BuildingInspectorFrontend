@@ -728,7 +728,7 @@
 			</view>
 		</uni-popup>
 
-		<uni-popup ref="referenceSurfacePopup" type="center">
+<!--		<uni-popup ref="referenceSurfacePopup" type="center">
 			<view class="location-description-position-popup-content">
 				<view class="location-description-position-popup-title">参考面选择</view>
 				<view class="location-description-position-popup-input1">
@@ -744,7 +744,7 @@
 					</view>
 				</view>
 			</view>
-		</uni-popup>
+		</uni-popup>-->
 
 
 	</view>
@@ -831,7 +831,7 @@
 	// 缺损数量
 	const quantity = ref(1);
 
-	// 监听缺损数量变化，动态更新diseaseDataList
+/*	// 监听缺损数量变化，动态更新diseaseDataList
 	watch(quantity, (newValue) => {
 		const numValue = parseInt(newValue);
 		if (isNaN(numValue) || numValue <= 0) {
@@ -844,9 +844,9 @@
 		} else {
 			updateDiseaseDataList(numValue);
 		}
-	});
+	});*/
 
-	const createDescription = () => {
+/*	const createDescription = () => {
 		console.log("diseaseDataList.value", diseaseDataList.value);
 		const createDescription = generateDiseaseDescription({
 			componentName: getComponentName(), // 构件名称
@@ -857,10 +857,10 @@
 			counts: quantity.value, // 病害数量
 		})
 		description.value = createDescription
-	}
+	}*/
 
 	// 更新缺损数据列表
-	const updateDiseaseDataList = (count) => {
+/*	const updateDiseaseDataList = (count) => {
 		// 保存现有数据
 		const existingData = [...diseaseDataList.value];
 
@@ -973,7 +973,7 @@
 		}
 
 		diseaseDataList.value = newList;
-	};
+	};*/
 
 
 	// 长度
@@ -1118,7 +1118,7 @@
 	const referenceSurfaceOptions = ref([]);
 
 	// 初始化三级选择器的列数据
-	const initMultiPickerColumns = () => {
+/*	const initMultiPickerColumns = () => {
 		// 首先从structureData中获取第一列数据
 		if (structureData.value && structureData.value.children) {
 			// 更新第一列数据为structureData中的children的name数组
@@ -1167,10 +1167,10 @@
 		} else {
 			console.log('结构数据尚未加载完成');
 		}
-	}
+	}*/
 
 	// 更新第三列数据
-	const updateThirdColumn = () => {
+/*	const updateThirdColumn = () => {
 		// 检查是否有第二列选择
 		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
 			typeMultiArray.value[2] = [];
@@ -1200,9 +1200,9 @@
 		if (typeMultiIndex.value[2] >= typeMultiArray.value[2].length) {
 			typeMultiIndex.value[2] = 0;
 		}
-	}
+	}*/
 
-	// 多列选择器列变化处理
+/*	// 多列选择器列变化处理
 	const typeColumnChange = (e) => {
 		const {
 			column,
@@ -1227,9 +1227,9 @@
 			// 更新第三列数据
 			updateThirdColumn();
 		}
-	}
+	}*/
 
-	// 添加一个新函数来更新构件名称相关的值
+/*	// 添加一个新函数来更新构件名称相关的值
 	const updateComponentNameValues = () => {
 		// 更新grandObjectName
 		grandObjectName.value = structureTypes.value[typeMultiIndex.value[0]];
@@ -1238,9 +1238,9 @@
 		if (typeMultiIndex.value[1] >= 0 && typeMultiIndex.value[1] < typeMultiArray.value[1].length) {
 			parentObjectName.value = typeMultiArray.value[1][typeMultiIndex.value[1]];
 		}
-	}
+	}*/
 
-	// 确认选择事件
+/*	// 确认选择事件
 	const typeMultiPickerChange = (e) => {
 		typeMultiIndex.value = e.detail.value;
 
@@ -1278,16 +1278,16 @@
 		positionPicker.value = '';
 		typeInput.value = '';
 		positionInput.value = '';
-	}
+	}*/
 
-	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
+/*	// 监听grandObjectName的变化，更新三级选择器的第一列选中项
 	watch(grandObjectName, (newVal) => {
 		const index = structureTypes.value.findIndex(item => item === newVal);
 		if (index !== -1 && index !== typeMultiIndex.value[0]) {
 			typeMultiIndex.value[0] = index;
 			initMultiPickerColumns();
 		}
-	});
+	});*/
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
@@ -1299,7 +1299,7 @@
 		const options = currentPage.$page?.options;
 
 		// 初始化构件名称多级选择器
-		initMultiPickerColumns();
+		// initMultiPickerColumns();
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
 			openMode.value = 'edit';
@@ -1345,7 +1345,7 @@
 		}
 
 		// 初始化缺损数据列表
-		updateDiseaseDataList(quantity.value);
+		// updateDiseaseDataList(quantity.value);
 	});
 
 	// 根据接收的数据填充表单
@@ -1353,7 +1353,7 @@
 		console.log('开始填充表单数据:', data);
 
 		// 优先处理部件类型所属大类（上部结构/下部结构/桥面系）
-		if (data.component?.grandObjectName) {
+		/*if (data.component?.grandObjectName) {
 			grandObjectName.value = data.component.grandObjectName;
 			console.log('设置病害所属大类:', grandObjectName.value);
 
@@ -1439,11 +1439,16 @@
 					}
 				}
 			}
-		}
+		}*/
 
 		//设置构建名称
 		if (data.component?.biObject?.name) {
-			uni.$emit('setComponentName', data.component.biObject.name)
+			// uni.$emit('setComponentName', data.component.biObject.name)
+      uni.$emit('setComponentName', {
+        biObjectName: data.component.biObject.name,
+        parentObjectName: data.component.parentObjectName,
+        grandObjectName: data.component.grandObjectName
+      })
 		}
 
 		// 设置构件编号
@@ -1457,31 +1462,33 @@
 		if (data.type) {
 			// 更新病害类型和位置选项
 			type.value = data.type;
-			updateDiseaseTypeOptions();
+			// updateDiseaseTypeOptions();
 
 			// 检查是否在预设选项中
-			if (diseaseTypeOptions.value.includes(data.type)) {
+			/*if (diseaseTypeOptions.value.includes(data.type)) {
 				typePicker.value = data.type;
 				typeInput.value = '';
 			} else {
 				typePicker.value = '其他';
 				typeInput.value = data.type;
-			}
+			}*/
 			uni.$emit('setDiseaseType', {
-				diseaseTypeOptions: diseaseTypeOptions.value,
-				diseaseType: data.type
+        diseaseTypeInput: data.type,
+				diseaseType: data.diseaseType.name
 			})
 			console.log('成功设置病害类型:', data.type);
 		}
 
 		// 设置病害位置
 		if (data.position) {
-			updateDiseasePositionOptions();
+			// updateDiseasePositionOptions();
 			position.value = data.position;
 
-			console.log('预设选项:', diseasePosition.value);
+      uni.$emit('setDiseasePosition', data.position)
+
+			// console.log('预设选项:', diseasePosition.value);
 			// 检查是否在预设选项中
-			if (diseasePosition.value.includes(data.position)) {
+			/*if (diseasePosition.value.includes(data.position)) {
 				console.log('在预设选项中:', data.position);
 				positionPicker.value = data.position;
 				positionInput.value = '';
@@ -1499,7 +1506,7 @@
 					positionInput: data.position,
 					diseasePosition: diseasePosition.value
 				})
-			}
+			}*/
 
 			console.log('成功设置病害位置:', data.position);
 		}
@@ -1507,11 +1514,13 @@
 		// 设置缺损数量
 		if (data.quantity) {
 			quantity.value = parseInt(data.quantity) || 1;
+      uni.$emit('setQuantity', data.quantity)
 		}
 
 		// 设置参与评定值（uni-data-checkbox格式）
 		if (data.participateAssess !== undefined) {
 			participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
+      uni.$emit('setParticipateAssess', data.participateAssess)
 		}
 
 		if (data.nature) {
@@ -1520,6 +1529,7 @@
 			if (natureItem) {
 				natureindex.value = natureItem.value;
 			}
+      uni.$emit('setNature', data.nature)
 		}
 
 		// 设置评定标度（uni-data-checkbox格式）
@@ -1550,11 +1560,13 @@
 				// 如果没有病害类型信息，直接设置值
 				levelindex.value = levelVal; // 索引从1开始，值从1开始
 			}
+      uni.$emit('setLevel', data.level)
 		}
 
 		// 设置病害描述
 		if (data.description) {
 			description.value = data.description;
+      uni.$emit('setDescriptionByEmit', data.description)
 		}
 
 		// 处理diseaseDetails数据
@@ -1640,7 +1652,7 @@
 				// 更新数据列表
 				diseaseDataList.value = newList;
 			}
-
+      uni.$emit('setDiseaseDataList', diseaseDataList.value)
 			console.log('成功设置diseaseDetails数据, 条目数量:', diseaseDataList.value.length);
 		} else {
 			// 如果没有diseaseDetails数据，创建默认的单条记录
@@ -1858,7 +1870,7 @@
 
 	// 创建病害数据对象的方法
 	const createDiseaseData = () => {
-		// 获取选中的缺损类型对象（如果有）
+		/*// 获取选中的缺损类型对象（如果有）
 		let diseaseTypeObj = null;
 		if (typePicker.value && allDiseaseTypes.length > 0) {
 			// 在allDiseaseTypes中查找匹配的对象
@@ -1872,17 +1884,17 @@
 				.value]) {
 			biObjectObj = biObjectNameOptions.value[biObjectindex.value];
 		}
-		console.log('选中的第二级构件对象:', biObjectObj);
+		console.log('选中的第二级构件对象:', biObjectObj);*/
 
 		// 处理diseaseDataList，构建病害详细数据
 		let diseaseDetails = [];
-		const numValue = parseInt(quantity.value);
+		const numValue = diseaseQuantitativeDataRef.value.quantity;
 		const isRangeMode = numValue >= 10;
 		console.log('保存时使用的模式:', isRangeMode ? '范围模式' : '普通模式', '缺损数量:', numValue);
 
 		if (isRangeMode) {
 			// 当缺损数量大于等于10时，使用范围模式，只存储一条记录
-			const rangeData = diseaseDataList.value[0];
+			const rangeData = diseaseQuantitativeDataRef.value.diseaseDataList[0];
 
 			// 创建一个包含范围值的记录
 			diseaseDetails.push({
@@ -1929,7 +1941,7 @@
 			console.log('保存时生成的范围模式数据结构:', JSON.stringify(diseaseDetails[0]));
 		} else {
 			// 当缺损数量小于10时，使用普通模式，为每个缺损创建一条记录
-			diseaseDataList.value.forEach(item => {
+      diseaseQuantitativeDataRef.value.diseaseDataList.forEach(item => {
 				diseaseDetails.push({
 					// 普通模式字段
 					length: item.length || '',
@@ -1973,12 +1985,14 @@
 			});
 		}
 
-		// 获取构件名称
+		/*// 获取构件名称
 		const componentName = getComponentName();
 
 		// 获取第三级组件ID和Name（空心板、实心板那一级）
 		const thirdLevelComponentId = getThirdLevelComponentId();
-		const thirdLevelComponentName = getThirdLevelComponentName();
+		const thirdLevelComponentName = getThirdLevelComponentName();*/
+
+    const diseaseTypeObj = diseaseInformationRef.value.diseaseTypeObj;
 
 		// 创建符合要求的病害数据对象
 		return {
@@ -1996,19 +2010,20 @@
 				status: "0"
 			} : null,
 			diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
-			description: description.value,
-			position: position.value,
-			level: parseInt(levelindex.value) || 1,
-			quantity: parseInt(quantity.value),
+			description: diseaseDescriptionPart.value.description,
+			position: diseaseInformationRef.value.position,
+			level: diseaseDescriptionPart.value.level,
+			quantity: diseaseQuantitativeDataRef.value.quantity,
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
-			type: type.value, // 直接使用type.value而不是通过索引获取
-			nature: nature.value[natureindex.value].text,
-			participateAssess: participateAssessindex.value.toString(),
-			biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
+			type: diseaseTypeObj.name, // 直接使用type.value而不是通过索引获取
+			nature:diseaseDescriptionPart.value.nature,
+			participateAssess: diseaseDescriptionPart.value.participateAssess,
+			biObjectId: diseaseInformationRef.value.component.biObject.id,
 			projectId: idStorageInfo.projectId,
-			biObjectName: componentName, //使用三级选择或输入框中的值
-			component: {
+			biObjectName: diseaseInformationRef.value.component.biObject.name, //使用三级选择或输入框中的值
+			component: diseaseInformationRef.value.component,
+      /*{
 				createBy: "",
 				createTime: formatDateTime(new Date(new Date().setFullYear(2025))),
 				updateTime: formatDateTime(new Date(new Date().setFullYear(2025))),
@@ -2025,7 +2040,7 @@
 				},
 				parentObjectName: parentObjectName.value, // 使用第二级选择的值
 				grandObjectName: grandObjectName.value // 使用第一级选择的值
-			},
+			},*/
 			componentId: null, // 组件ID也设为null
 			buildingId: idStorageInfo.buildingId,
 			images: [], // 初始化为空数组，等待图片保存后更新
@@ -2164,7 +2179,7 @@
 	};
 
 	// 添加一个函数来获取当前选择的构件名称,可能为picker中直接选取，也可能为其他时自行输入
-	const getComponentName = () => {
+/*	const getComponentName = () => {
 		let componentName = '';
 		if (componentNamePicker.value === '其他') {
 			// 如果选择了"其他"并且输入了自定义名称
@@ -2176,17 +2191,14 @@
 			componentName = parentObjectName.value;
 		}
 		return componentName;
-	}
+	}*/
 
 	const savedisease = () => {
-		console.log('保存按钮点击');
-		console.log("拿到第1个，应该为-1:", diseaseInformationRef.value.biObjectindex);
-		console.log("拿到第2个，应该为1:", diseaseQuantitativeDataRef.value.quantity);
-		console.log("拿到第3个，应该为binghaimiaoshu:", diseaseDescriptionPart.value.description);
-		return;
 
 		// 调用方法创建病害数据对象
 		const diseaseData = createDiseaseData();
+
+    console.log('将要保存的病害diseaseData', diseaseData);
 
 		// 验证数据完整性
 		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
@@ -2501,7 +2513,7 @@
 	};
 
 	// 根据选择的部件类型更新缺损类型选项
-	const updateDiseaseTypeOptions = () => {
+/*	const updateDiseaseTypeOptions = () => {
 		// 检查是否有有效的部件类型选择
 		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
 			console.log('无效的部件类型选择');
@@ -2570,12 +2582,12 @@
 				console.log('当前病害类型不在选项中，设为自定义输入:', type.value);
 			}
 		}
-	}
+	}*/
 
-	// 清空函数
+/*	// 清空函数
 	const clearQuantity = () => {
 		quantity.value = '';
-	};
+	};*/
 
 	// 构件名称input输入框
 	const componentNameInput = ref('');
@@ -2584,7 +2596,7 @@
 	const componentCodeInput = ref('');
 
 	// 更新病害位置选项
-	const updateDiseasePositionOptions = () => {
+/*	const updateDiseasePositionOptions = () => {
 		console.log('开始更新病害位置选项');
 		// 检查是否选择了构件
 		if (typeMultiIndex.value[1] < 0 || !biObjectNameOptions.value || biObjectNameOptions.value.length === 0) {
@@ -2620,9 +2632,9 @@
 		// 如果都没有，使用默认值为空
 		diseasePosition.value = [];
 		console.log('使用默认病害位置选项');
-	};
+	};*/
 
-	// 打开参考面选择弹窗
+/*	// 打开参考面选择弹窗
 	const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
 		// 设置当前正在编辑的是参考面1还是参考面2，以及缺损索引
 		currentReferenceSurface.value = surfaceNumber;
@@ -2689,9 +2701,9 @@
 
 		// 打开弹窗
 		referenceSurfacePopup.value.open();
-	};
+	};*/
 
-	// 设置默认参考面选项
+/*	// 设置默认参考面选项
 	const setDefaultReferenceSurfaceOptions = (surfaceNumber) => {
 		if (surfaceNumber === 1) {
 			referenceSurfaceOptions.value = [];
@@ -2718,9 +2730,9 @@
 			}
 		}
 		return [];
-	};
+	};*/
 
-	// 确认参考面输入框的值
+/*	// 确认参考面输入框的值
 	const confirmreferenceSurfaceInput = () => {
 		if (!referenceSurfaceInput.value.trim()) {
 			uni.showToast({
@@ -2769,9 +2781,9 @@
 		} else {
 			diseaseDataList.value[diseaseIndex].reference2LocationEnd = '';
 		}
-	};
+	};*/
 
-	// 添加当前编辑的缺损索引
+/*	// 添加当前编辑的缺损索引
 	const currentDiseaseIndex = ref(0);
 
 	// 添加获取第三级组件ID的方法
@@ -2809,9 +2821,9 @@
 			}
 		}
 		return thirdLevelComponentName;
-	}
+	}*/
 
-	// 添加isThirdLevelOther辅助函数，用于判断是否选择了"其他"选项
+/*	// 添加isThirdLevelOther辅助函数，用于判断是否选择了"其他"选项
 	const isThirdLevelOther = () => {
 		if (typeMultiIndex.value[1] < 0 || typeMultiIndex.value[2] < 0) {
 			return true;
@@ -2823,9 +2835,9 @@
 		}
 
 		return typeMultiIndex.value[2] >= selectedSecondLevel.children.length;
-	};
+	};*/
 
-	// 监听typePicker和typeInput的变化，更新type
+/*	// 监听typePicker和typeInput的变化，更新type
 	watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
 		if (newTypePicker === '其他' && newTypeInput) {
 			type.value = newTypeInput;
@@ -2834,9 +2846,9 @@
 		}
 	}, {
 		deep: true
-	});
+	});*/
 
-	// 添加病害类型picker变化处理方法
+/*	// 添加病害类型picker变化处理方法
 	const onDiseaseTypeChange = (e) => {
 		const index = e.detail.value;
 		if (index >= 0 && index < diseaseTypeOptions.value.length) {
@@ -2898,10 +2910,10 @@
 
 			console.log('病害位置选择变更为:', positionPicker.value);
 		}
-	}
+	}*/
 
 	// 监听positionPicker和positionInput的变化，更新position
-	watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
+/*	watch([positionPicker, positionInput], ([newPositionPicker, newPositionInput]) => {
 		if (newPositionPicker === '其他' && newPositionInput) {
 			position.value = newPositionInput;
 		} else if (newPositionPicker !== '其他') {
@@ -2909,7 +2921,7 @@
 		}
 	}, {
 		deep: true
-	});
+	});*/
 
 	watch(openMode, (newOpenMode) => {
 		if (newOpenMode === 'edit') {
