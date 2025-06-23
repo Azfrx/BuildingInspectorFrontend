@@ -1,4 +1,6 @@
 // 文档基础路径
+import {userStore} from "@/store";
+
 const DOC_BASE_PATH = '_doc/';
 import { getObject } from './readJsonNew';
 import { trackPath } from './reviseJson';
@@ -14,7 +16,15 @@ function getCurrentDateStr() {
 
 // 生成用户目录名（格式: UD25-06-11-userName）
 function getUserDir(userName) {
-    return `UD${getCurrentDateStr()}-${userName}`;
+    const userInfo = userStore()
+    if (userInfo.hadUsername !== '') {
+        //即找到了相同用户名但不同日期的文件夹
+        //console.log("找到了，返回保存的hadname:", userInfo.hadUsername);
+        return userInfo.hadUsername;
+    } else {
+        //console.log("没找到新拼一个");
+        return `UD${getCurrentDateStr()}-${userName}`;
+    }
 }
 
 // 路径生成规则（不再依赖userId）
