@@ -155,6 +155,7 @@
 				title: '保存成功',
 				icon: 'success'
 			});
+      await checkUncommittedDiseases() ;
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
 			uni.showToast({
@@ -209,6 +210,7 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('删除标记保存成功');
+      await checkUncommittedDiseases() ;
 		} catch (error) {
 			console.error('保存删除失败:', error);
 			uni.showToast({
@@ -272,6 +274,7 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('更新数据保存成功');
+      await checkUncommittedDiseases() ;
 		} catch (error) {
 			console.error('保存更新数据失败:', error);
 			uni.showToast({
@@ -455,8 +458,7 @@
 	const checkUncommittedDiseases = async () => {
 		try {
 			const currentYear = new Date().getFullYear().toString();
-			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
-				currentYear);
+			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
 			console.log('检查未提交病害结果:', hasUncommittedDiseases);
 			submitButtonEnabled.value = hasUncommittedDiseases;
 		} catch (error) {

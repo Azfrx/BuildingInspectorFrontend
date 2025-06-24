@@ -24,7 +24,7 @@
 			</view>
 		</view>
 
-		<view class="line-select">
+		<view class="line-select" v-show="showColumns[0] == 1" >
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
 				<view>裂缝特征</view>
@@ -100,7 +100,7 @@
 			</view>
 
 			<!-- 长度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show = "showColumns[1] == 1">
 				<view class="quantitative-data-left">
 					长度
 				</view>
@@ -125,8 +125,8 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.length">
-							<view class="clear-input" @click="diseaseData.length = ''">×</view>
+								v-model="diseaseData.length1">
+							<view class="clear-input" @click="diseaseData.length1 = ''">×</view>
 						</view>
 					</template>
 					<view class="quantitative-data-right-unit">
@@ -137,12 +137,12 @@
 			</view>
 
 			<!-- 宽度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+<!--			<view class="quantitative-data">
 				<view class="quantitative-data-left">
 					宽度
 				</view>
 				<view class="quantitative-data-right">
-					<!-- 范围模式 -->
+					&lt;!&ndash; 范围模式 &ndash;&gt;
 					<template v-if="diseaseData.useRangeMode">
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
@@ -158,7 +158,7 @@
 							</view>
 						</view>
 					</template>
-					<!-- 普通模式 -->
+					&lt;!&ndash; 普通模式 &ndash;&gt;
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
@@ -170,10 +170,10 @@
 						<view class="quantitative-data-right-unit-input"> m</view>
 					</view>
 				</view>
-			</view>
+			</view>-->
 
 			<!-- 高度/深度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[5] == 1">
 				<view class="quantitative-data-left">
 					高度/深度
 				</view>
@@ -211,7 +211,7 @@
 			</view>
 
 			<!-- 缝宽 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[4] == 1">
 				<view class="quantitative-data-left">
 					缝宽
 				</view>
@@ -250,35 +250,35 @@
 			</view>
 
 			<!-- 面积 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[6] == 1">
 				<view class="quantitative-data-left">
 					面积
 				</view>
 				<view class="quantitative-data-right">
 					<!-- 范围模式 -->
-					<template v-if="diseaseData.useRangeMode">
+<!--					<template v-if="diseaseData.useRangeMode">-->
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.areaRangeStart">
-								<view class="clear-input" @click="diseaseData.areaRangeStart = ''">×</view>
+								<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+									v-model="diseaseData.areaLength">
+								<view class="clear-input" @click="diseaseData.areaLength = ''">×</view>
 							</view>
-							<view class="range-separator">-</view>
+							<view class="range-separator">×</view>
 							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.areaRangeEnd">
-								<view class="clear-input" @click="diseaseData.areaRangeEnd = ''">×</view>
+								<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+									v-model="diseaseData.areaWidth">
+								<view class="clear-input" @click="diseaseData.areaWidth = ''">×</view>
 							</view>
 						</view>
-					</template>
+<!--					</template>-->
 					<!-- 普通模式 -->
-					<template v-else>
+<!--					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
 								v-model="diseaseData.area">
 							<view class="clear-input" @click="diseaseData.area = ''">×</view>
 						</view>
-					</template>
+					</template>-->
 					<view class="quantitative-data-right-unit">
 						<view class="quantitative-data-right-unit-input"> m² </view>
 					</view>
@@ -286,9 +286,9 @@
 			</view>
 
 			<!-- 体积 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[7] == 1">
 				<view class="quantitative-data-left">
-					体积
+					变形/位移
 				</view>
 				<view class="quantitative-data-right">
 					<!-- 范围模式 -->
@@ -296,14 +296,14 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.volumeRangeStart">
-								<view class="clear-input" @click="diseaseData.volumeRangeStart = ''">×</view>
+									v-model="diseaseData.deformationRangeStart">
+								<view class="clear-input" @click="diseaseData.deformationRangeStart = ''">×</view>
 							</view>
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.volumeRangeEnd">
-								<view class="clear-input" @click="diseaseData.volumeRangeEnd = ''">×</view>
+									v-model="diseaseData.deformationRangeEnd">
+								<view class="clear-input" @click="diseaseData.deformationRangeEnd = ''">×</view>
 							</view>
 						</view>
 					</template>
@@ -311,19 +311,19 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.volume">
-							<view class="clear-input" @click="diseaseData.volume = ''">×</view>
+								v-model="diseaseData.deformation">
+							<view class="clear-input" @click="diseaseData.deformation = ''">×</view>
 						</view>
 					</template>
 					<view class="quantitative-data-right-unit">
-						<view class="quantitative-data-right-unit-input"> m³
+						<view class="quantitative-data-right-unit-input"> mm
 						</view>
 					</view>
 				</view>
 			</view>
 
 			<!-- 角度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[8] == 1">
 				<view class="quantitative-data-left">
 					角度
 				</view>
@@ -360,36 +360,36 @@
 			</view>
 
 			<!-- 百分比 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data">
+			<view class="quantitative-data" v-show="showColumns[9] == 1">
 				<view class="quantitative-data-left">
-					百分比
+					比例
 				</view>
 				<view class="quantitative-data-right">
 					<!-- 范围模式 -->
-					<template v-if="diseaseData.useRangeMode">
+<!--					<template v-if="diseaseData.useRangeMode">-->
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.percentageRangeStart">
-								<view class="clear-input" @click="diseaseData.percentageRangeStart = ''">×
+								<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+									v-model="diseaseData.numeratorRatio">
+								<view class="clear-input" @click="diseaseData.numeratorRatio = ''">×
 								</view>
 							</view>
-							<view class="range-separator">-</view>
+							<view class="range-separator">/</view>
 							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.percentageRangeEnd">
-								<view class="clear-input" @click="diseaseData.percentageRangeEnd = ''">×</view>
+								<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+									v-model="diseaseData.denominatorRatio">
+								<view class="clear-input" @click="diseaseData.denominatorRatio = ''">×</view>
 							</view>
 						</view>
-					</template>
+<!--					</template>-->
 					<!-- 普通模式 -->
-					<template v-else>
+<!--					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
 								v-model="diseaseData.percentage">
 							<view class="clear-input" @click="diseaseData.percentage = ''">×</view>
 						</view>
-					</template>
+					</template>-->
 					<view class="quantitative-data-right-unit">
 						<view class="quantitative-data-right-unit-input"> %
 						</view>
@@ -466,7 +466,10 @@
 		{
 			text: 'U型',
 			value: 4
-		}
+		},{
+    text: '网状',
+    value: 5
+    }
 	])
 	const crackTypeIndex = ref(0);
 
@@ -505,15 +508,26 @@
 
 	const positionProps = ref('')
 
+  const selectedColumn = ref(0)
+
+  const showColumns = ref([])
+
 	// 添加onMounted处理可能的初始值
 	onMounted(() => {
-		updateDiseaseDataList(1);
-		uni.$on('setPositionProps', setPositionProps)
-		uni.$on('getDescription', getDescription);
-		uni.$on('setQuantity', setQuantity);
-		uni.$on('setDiseaseDataList', setDiseaseDataList);
-		uni.$on('setCrackType', setCrackType);
-	})
+    updateDiseaseDataList(1);
+    uni.$on('setPositionProps', setPositionProps)
+    uni.$on('getDescription', getDescription);
+    uni.$on('setQuantity', setQuantity);
+    uni.$on('setDiseaseDataList', setDiseaseDataList);
+    uni.$on('setCrackType', setCrackType);
+    uni.$on('setSelectColumn', setSelectColumn)
+  })
+  const setSelectColumn = (emitSelectColumn) => {
+    console.log('setSelectColumn:', emitSelectColumn)
+    selectedColumn.value = emitSelectColumn || 0
+    showColumns.value = selectedColumn.value.toString(2).padStart(10, '0').split('').reverse();
+    console.log('showColumns:', showColumns.value)
+  }
 
 	const setCrackType = (crack) => {
 		crackTypeIndex.value = crackTypeOptions.value.findIndex(item => item.text === crack)
@@ -535,7 +549,8 @@
 	//传递病害描述所需数据
 	const getDescription = () => {
 		const description = {
-			crackFeature: crackType.value, // 裂缝特征数组
+      crackType: crackType.value, // 裂缝特征
+      showColumns: showColumns.value, //判断是否显示裂缝特征
 			defects: diseaseDataList.value, // 病害定量数据数组
 			counts: quantity.value, // 病害数量
 		};
@@ -585,29 +600,29 @@
 				// 范围输入字段 - 保留现有的范围数据
 				lengthRangeStart: firstItem?.lengthRangeStart || firstItem?.length || '',
 				lengthRangeEnd: firstItem?.lengthRangeEnd || '',
-				widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
-				widthRangeEnd: firstItem?.widthRangeEnd || '',
+/*				widthRangeStart: firstItem?.widthRangeStart || firstItem?.width || '',
+				widthRangeEnd: firstItem?.widthRangeEnd || '',*/
 				heightDepthRangeStart: firstItem?.heightDepthRangeStart || firstItem?.heightDepth || '',
 				heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
 				crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
 				crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
-				areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
-				areaRangeEnd: firstItem?.areaRangeEnd || '',
-				volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
-				volumeRangeEnd: firstItem?.volumeRangeEnd || '',
+				areaLength: firstItem?.areaLength ||  '',
+				areaWidth: firstItem?.areaWidth || '',
+				deformationRangeStart: firstItem?.deformationRangeStart || firstItem?.deformation || '',
+				deformationRangeEnd: firstItem?.deformationRangeEnd || '',
 				angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
 				angleRangeEnd: firstItem?.angleRangeEnd || '',
-				percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
-				percentageRangeEnd: firstItem?.percentageRangeEnd || '',
+				numeratorRatio: firstItem?.numeratorRatio || firstItem?.percentage || '',
+				denominatorRatio: firstItem?.denominatorRatio || '',
 				// 保留原有字段为空
-				length: '',
-				width: '',
+				length1: '',
+				// width: '',
 				heightDepth: '',
 				crackWidth: '',
-				area: '',
-				volume: '',
+				// area: '',
+				deformation: '',
 				angle: '',
-				percentage: '',
+				// percentage: '',
 				// crackTypeIndex: firstItem?.crackTypeIndex || 0,
 				// developmentTrendIndex: firstItem?.developmentTrendIndex || 0,
 				useRangeMode: true
@@ -629,16 +644,19 @@
 							reference2LocationStart: existingData[i].reference2LocationStart || '',
 							reference2LocationEnd: existingData[i].reference2LocationEnd || '',
 							// 使用Min值作为普通模式的值
-							length: existingData[i].lengthRangeStart || '',
-							width: existingData[i].widthRangeStart || '',
+							length1: existingData[i].lengthRangeStart || '',
+							// width: existingData[i].widthRangeStart || '',
 							heightDepth: existingData[i].heightDepthRangeStart || '',
 							crackWidth: existingData[i].crackWidthRangeStart || '',
-							area: existingData[i].areaRangeStart || '',
-							volume: existingData[i].volumeRangeStart || '',
+							areaLength: existingData[i].areaLength || '',
+              areaWidth: existingData[i].areaWidth || '',
+							deformation: existingData[i].deformationRangeStart || '',
 							angle: existingData[i].angleRangeStart || '',
-							percentage: existingData[i].percentageRangeStart || '',
+							// percentage: existingData[i].numeratorRatio || '',
 							// crackTypeIndex: existingData[i].crackTypeIndex || 0,
 							// developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
+              numeratorRatio: existingData[i].numeratorRatio || '',
+              denominatorRatio: existingData[i].denominatorRatio || '',
 							useRangeMode: false
 						});
 					} else {
@@ -654,14 +672,17 @@
 						reference2Location: '',
 						reference2LocationStart: '',
 						reference2LocationEnd: '',
-						length: '',
-						width: '',
+						length1: '',
+						// width: '',
 						crackWidth: '',
 						heightDepth: '',
-						area: '',
-						volume: '',
+						areaLength: '',
+            areaWidth: '',
+						deformation: '',
 						angle: '',
-						percentage: '',
+            numeratorRatio: '',
+            denominatorRatio: '',
+						// percentage: '',
 						// crackTypeIndex: 0,
 						// developmentTrendIndex: 0,
 						useRangeMode: false
@@ -786,248 +807,10 @@
 		crackType: crackType,
 		diseaseDataList: diseaseDataList,
 	});
+
 </script>
 
 <style scoped>
-	/* 编辑病害顶部按钮 */
-	.button-group-edit {
-		display: flex;
-		flex-direction: row;
-		background-color: #BDCBE0;
-		align-items: center;
-		/* 垂直居中按钮 */
-		padding: 10rpx 0;
-	}
-
-	.button-delete {
-		height: 36rpx;
-		font-size: 16px;
-		background-color: #FF3141;
-		color: #ffffff;
-		margin-right: 10rpx;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.button-edit {
-		height: 36rpx;
-		font-size: 16px;
-		color: #ffffff;
-		background-color: #0F4687;
-		margin: 0 10rpx;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	/* 新增病害顶部按钮 */
-	.button-group-add {
-		display: flex;
-		flex-direction: row;
-		background-color: #BDCBE0;
-		align-items: center;
-		/* 垂直居中按钮 */
-		padding: 10rpx 0;
-	}
-
-	.button-before,
-	.button-next {
-		height: 36rpx;
-		font-size: 16px;
-		margin: 0 10rpx;
-		background-color: #0F4687;
-		color: #ffffff;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.button-savetonext {
-		height: 36rpx;
-		font-size: 16px;
-		background-color: #0F4687;
-		color: #ffffff;
-		margin-right: 10rpx;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.button-save {
-		height: 36rpx;
-		font-size: 16px;
-		background-color: #0F4687;
-		color: #ffffff;
-		margin-left: 0;
-		margin-right: 0;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.button-cancle {
-		height: 36rpx;
-		font-size: 16px;
-		border: 1px solid #1677FF;
-		margin: 0 10rpx;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	/*picker公用*/
-	.picker-content {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-
-
-	/* 上传图片 */
-	.part-UploadImage {
-		display: flex;
-		flex-direction: column;
-		border-bottom: 1px solid #EEEEEE;
-		padding: 12rpx 16rpx;
-		height: 200rpx;
-	}
-
-	.part-title {
-		font-size: 20rpx;
-	}
-
-	.upload-view {
-		width: 100%;
-		margin-top: 10rpx;
-	}
-
-	.file-picker {}
-
-	.part-ADImages {
-		display: flex;
-		flex-direction: column;
-		border-bottom: 1px solid #EEEEEE;
-		padding: 12rpx 16rpx;
-	}
-
-
-	.ADImages {
-		width: 100%;
-		margin-top: 10rpx;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		flex-wrap: wrap;
-	}
-
-	.img-wrapper {
-		width: 140rpx;
-		height: 140rpx;
-		position: relative;
-		display: inline-block;
-		margin: 0 10rpx;
-		border: 1px solid #EEEEEE;
-		border-radius: 5rpx;
-	}
-
-	.ADImage {
-		height: 140rpx;
-		width: 140rpx;
-		object-fit: cover;
-		/* 保持比例裁剪填充 */
-		border-radius: 8rpx;
-	}
-
-	/* 右上角的删除按钮 */
-	.close-btn {
-		position: absolute;
-		top: 0rpx;
-		right: 0rpx;
-		width: 20rpx;
-		height: 20rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 50%;
-		background-color: rgba(0, 0, 0, 0.6);
-		color: #fff;
-		font-size: 24rpx;
-		z-index: 1;
-	}
-
-	.ADImage-container {
-		height: 140rpx;
-		width: 140rpx;
-		border: 1px solid #eeeeee;
-		border-radius: 5rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.ADImageButton {
-		height: 100rpx;
-		width: 100rpx;
-	}
-
-	.popup-content {
-		background-color: #fff;
-		height: 70vh;
-		/* padding: 10rpx; */
-		display: flex;
-		flex-direction: column;
-		overflow: auto;
-	}
-
-	.template-row {
-		width: 100%;
-		border-bottom: 1px solid #eeeeee;
-	}
-
-	.template-type {
-		font-size: 18rpx;
-		padding: 16rpx;
-		box-sizing: border-box;
-	}
-
-	.template-image {
-		width: 100%;
-		padding: 20rpx;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		flex-wrap: wrap;
-		row-gap: 10rpx;
-		border-bottom: 1px solid #eeeeee;
-		gap: 20rpx;
-	}
-
-	.template-image-card {
-		height: 200rpx;
-		width: 200rpx;
-	}
-
 	.head {
 		background-color: #BDCBE0;
 	}
@@ -1036,111 +819,9 @@
 		padding: 4rpx 10rpx;
 		font-size: 18rpx;
 	}
-
-	.component-name {}
-
-	.picker {
-		font-size: 20rpx;
-	}
-
-	.picker-titleAndContent {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		padding: 14rpx 12rpx;
-		border-bottom: 1rpx solid #eee;
-	}
-
-	.picker-title {
-		color: #666666;
-		font-size: 20rpx;
-	}
-
-	.picker-right {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-	}
-
-	.picker-left {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-	}
-
-	.picker-content {
-		color: #333333;
-		font-size: 20rpx;
-		margin-right: 10rpx;
-	}
-
-	.picker-icon {
-		color: #CCCCCC;
-		font-size: 20rpx;
-	}
-
 	.picker-must {
 		color: #FF0000;
 	}
-
-	.component-name-input {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		width: 180rpx;
-		border: 1rpx solid #eee;
-		padding: 0 4rpx;
-	}
-
-
-	/* 病害位置弹窗样式 */
-	.position-popup-content {
-		background-color: #fff;
-		width: 600rpx;
-		height: 250rpx;
-		border-radius: 8rpx;
-		padding: 20rpx 30rpx;
-		box-sizing: border-box;
-	}
-
-	.position-popup-title {
-		text-align: center;
-		font-size: 30rpx;
-		font-weight: bold;
-		margin-bottom: 20rpx;
-	}
-
-	.position-combox {
-		margin-bottom: 20rpx;
-	}
-
-	.position-popup-buttons {
-		display: flex;
-		justify-content: center;
-		gap: 30rpx;
-	}
-
-	.position-popup-button {
-		width: 160rpx;
-		height: 60rpx;
-		line-height: 60rpx;
-		text-align: center;
-		border-radius: 6rpx;
-		font-size: 26rpx;
-		padding: 0;
-	}
-
-	.position-popup-button.cancel {
-		border: 1rpx solid #ddd;
-		color: #666;
-	}
-
-	.position-popup-button.confirm {
-		background-color: #0F4687;
-		color: #fff;
-	}
-
 	.location-description {
 		font-size: 20rpx;
 		padding: 12rpx 16rpx;
@@ -1193,18 +874,10 @@
 		border: 1rpx solid #EEEEEE;
 		padding: 4rpx 4rpx;
 	}
-
-
 	.right-icon {
 		margin-left: 20rpx;
 		color: #CCCCCC;
 	}
-
-
-	.clear {
-		margin-left: 10rpx;
-	}
-
 	.quantitative-data {
 		font-size: 18rpx;
 		padding: 12rpx 14rpx;
@@ -1251,36 +924,6 @@
 		font-size: 20rpx;
 		color: #333333;
 	}
-
-
-	.input-area {
-		padding: 12rpx 16rpx;
-		border-bottom: 1rpx solid #eee;
-	}
-
-	.input-area-title {
-		font-size: 18rpx;
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		color: #666666;
-	}
-
-	.input-area-content {
-		margin-top: 10rpx;
-		font-size: 20rpx;
-		width: 100%;
-	}
-
-	.input-right-button {
-		background-color: #2979FF;
-		border-radius: 5rpx;
-		color: #fff;
-		margin-left: auto;
-		padding: 8rpx 14rpx;
-		font-size: 16rpx;
-	}
-
 	.line-select {
 		font-size: 18rpx;
 		padding: 8rpx 14rpx;
@@ -1321,15 +964,6 @@
 		justify-content: center !important;
 		width: 100% !important;
 		/* 确保文本容器占满父级 */
-	}
-
-
-	.form-container {
-		height: calc(100vh - 80rpx);
-		/* 减去顶部按钮组的高度 */
-		overflow-y: auto;
-		/* 垂直方向可滚动 */
-		box-sizing: border-box;
 	}
 
 	/* 确保外部容器不滚动 */
@@ -1395,24 +1029,6 @@
 		margin-bottom: 10rpx;
 	}
 
-
-	/* 构件编号输入框样式 */
-	.input-right {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		width: 180rpx;
-		border: 1rpx solid #eee;
-		padding: 0 4rpx;
-	}
-
-	.component-code-input {
-		font-size: 20rpx;
-		text-align: right;
-		padding-right: 10rpx;
-	}
-
-
 	.disease-index-title {
 		padding: 8rpx 16rpx;
 		font-size: 20rpx;
@@ -1434,4 +1050,8 @@
 		font-size: 20rpx;
 		font-weight: bold;
 	}
+
+  .clear-input{
+    opacity: 0.5;
+  }
 </style>

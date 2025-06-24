@@ -401,14 +401,14 @@
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最小值"
-											type="number" v-model="diseaseData.areaRangeStart">
-										<view class="clear-input" @click="diseaseData.areaRangeStart = ''">×</view>
+											type="number" v-model="diseaseData.areaLength">
+										<view class="clear-input" @click="diseaseData.areaLength = ''">×</view>
 									</view>
 									<view class="range-separator">-</view>
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最大值"
-											type="number" v-model="diseaseData.areaRangeEnd">
-										<view class="clear-input" @click="diseaseData.areaRangeEnd = ''">×</view>
+											type="number" v-model="diseaseData.areaWidth">
+										<view class="clear-input" @click="diseaseData.areaWidth = ''">×</view>
 									</view>
 								</view>
 							</template>
@@ -437,14 +437,14 @@
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最小值"
-											type="number" v-model="diseaseData.volumeRangeStart">
-										<view class="clear-input" @click="diseaseData.volumeRangeStart = ''">×</view>
+											type="number" v-model="diseaseData.deformationRangeStart">
+										<view class="clear-input" @click="diseaseData.deformationRangeStart = ''">×</view>
 									</view>
 									<view class="range-separator">-</view>
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最大值"
-											type="number" v-model="diseaseData.volumeRangeEnd">
-										<view class="clear-input" @click="diseaseData.volumeRangeEnd = ''">×</view>
+											type="number" v-model="diseaseData.deformationRangeEnd">
+										<view class="clear-input" @click="diseaseData.deformationRangeEnd = ''">×</view>
 									</view>
 								</view>
 							</template>
@@ -452,8 +452,8 @@
 							<template v-else>
 								<view class="quantitative-data-right-value">
 									<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-										v-model="diseaseData.volume">
-									<view class="clear-input" @click="diseaseData.volume = ''">×</view>
+										v-model="diseaseData.deformation">
+									<view class="clear-input" @click="diseaseData.deformation = ''">×</view>
 								</view>
 							</template>
 							<view class="quantitative-data-right-unit">
@@ -511,15 +511,15 @@
 								<view class="quantitative-data-right-range">
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最小值"
-											type="number" v-model="diseaseData.percentageRangeStart">
-										<view class="clear-input" @click="diseaseData.percentageRangeStart = ''">×
+											type="number" v-model="diseaseData.numeratorRatio">
+										<view class="clear-input" @click="diseaseData.numeratorRatio = ''">×
 										</view>
 									</view>
 									<view class="range-separator">-</view>
 									<view class="quantitative-data-right-value">
 										<input class="quantitative-data-right-value-input" placeholder="最大值"
-											type="number" v-model="diseaseData.percentageRangeEnd">
-										<view class="clear-input" @click="diseaseData.percentageRangeEnd = ''">×</view>
+											type="number" v-model="diseaseData.denominatorRatio">
+										<view class="clear-input" @click="diseaseData.denominatorRatio = ''">×</view>
 									</view>
 								</view>
 							</template>
@@ -893,21 +893,21 @@
 					heightDepthRangeEnd: firstItem?.heightDepthRangeEnd || '',
 					crackWidthRangeStart: firstItem?.crackWidthRangeStart || firstItem?.crackWidth || '',
 					crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
-					areaRangeStart: firstItem?.areaRangeStart || firstItem?.area || '',
-					areaRangeEnd: firstItem?.areaRangeEnd || '',
-					volumeRangeStart: firstItem?.volumeRangeStart || firstItem?.volume || '',
-					volumeRangeEnd: firstItem?.volumeRangeEnd || '',
+					areaLength: firstItem?.areaLength || firstItem?.area || '',
+					areaWidth: firstItem?.areaWidth || '',
+					deformationRangeStart: firstItem?.deformationRangeStart || firstItem?.deformation || '',
+					deformationRangeEnd: firstItem?.deformationRangeEnd || '',
 					angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
 					angleRangeEnd: firstItem?.angleRangeEnd || '',
-					percentageRangeStart: firstItem?.percentageRangeStart || firstItem?.percentage || '',
-					percentageRangeEnd: firstItem?.percentageRangeEnd || '',
+					numeratorRatio: firstItem?.numeratorRatio || firstItem?.percentage || '',
+					denominatorRatio: firstItem?.denominatorRatio || '',
 					// 保留原有字段为空
 					length: '',
 					width: '',
 					heightDepth: '',
 					crackWidth: '',
 					area: '',
-					volume: '',
+					deformation: '',
 					angle: '',
 					percentage: '',
 					crackTypeIndex: firstItem?.crackTypeIndex || 0,
@@ -935,10 +935,10 @@
 								width: existingData[i].widthRangeStart || '',
 								heightDepth: existingData[i].heightDepthRangeStart || '',
 								crackWidth: existingData[i].crackWidthRangeStart || '',
-								area: existingData[i].areaRangeStart || '',
-								volume: existingData[i].volumeRangeStart || '',
+								area: existingData[i].areaLength || '',
+								deformation: existingData[i].deformationRangeStart || '',
 								angle: existingData[i].angleRangeStart || '',
-								percentage: existingData[i].percentageRangeStart || '',
+								percentage: existingData[i].numeratorRatio || '',
 								crackTypeIndex: existingData[i].crackTypeIndex || 0,
 								developmentTrendIndex: existingData[i].developmentTrendIndex || 0,
 								useRangeMode: false
@@ -961,7 +961,7 @@
 							crackWidth: '',
 							heightDepth: '',
 							area: '',
-							volume: '',
+							deformation: '',
 							angle: '',
 							percentage: '',
 							crackTypeIndex: 0,
@@ -1596,20 +1596,20 @@
 					// 最小值
 					lengthRangeStart: detail.lengthRangeStart || '',
 					lengthRangeEnd: detail.lengthRangeEnd || '',
-					widthRangeStart: detail.widthRangeStart || '',
-					widthRangeEnd: detail.widthRangeEnd || '',
+/*					widthRangeStart: detail.widthRangeStart || '',
+					widthRangeEnd: detail.widthRangeEnd || '',*/
 					heightDepthRangeStart: detail.heightDepthRangeStart || '',
 					heightDepthRangeEnd: detail.heightDepthRangeEnd || '',
 					crackWidthRangeStart: detail.crackWidthRangeStart || '',
 					crackWidthRangeEnd: detail.crackWidthRangeEnd || '',
-					areaRangeStart: detail.areaRangeStart || '',
-					areaRangeEnd: detail.areaRangeEnd || '',
-					volumeRangeStart: detail.volumeRangeStart || '',
-					volumeRangeEnd: detail.volumeRangeEnd || '',
+					areaLength: detail.areaLength || '',
+					areaWidth: detail.areaWidth || '',
+					deformationRangeStart: detail.deformationRangeStart || '',
+					deformationRangeEnd: detail.deformationRangeEnd || '',
 					angleRangeStart: detail.angleRangeStart || '',
 					angleRangeEnd: detail.angleRangeEnd || '',
-					percentageRangeStart: detail.percentageRangeStart || '',
-					percentageRangeEnd: detail.percentageRangeEnd || '',
+					numeratorRatio: detail.numeratorRatio || '',
+					denominatorRatio: detail.denominatorRatio || '',
 
 					// 参考面信息
 					reference1Location: detail.reference1Location || '',
@@ -1620,9 +1620,9 @@
 					reference2LocationEnd: detail.reference2LocationEnd || '',
 
 					// 裂缝特征和趋势 - 查找索引值
-					crackTypeIndex: findIndexByText(crackType.value, detail
+/*					crackTypeIndex: findIndexByText(crackType.value, detail
 						.crackType) || 0,
-					developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0
+					developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0*/
 				};
 
 				// 更新数据列表
@@ -1632,14 +1632,18 @@
 				const newList = data.diseaseDetails.map(detail => {
 					return {
 						useRangeMode: false,
-						length: detail.length || '',
-						width: detail.width || '',
+						length1: detail.length1 || '',
+						// width: detail.width || '',
 						heightDepth: detail.heightDepth || '',
 						crackWidth: detail.crackWidth || '',
-						area: detail.area || '',
-						volume: detail.volume || '',
+						areaLength: detail.areaLength || '',
+            areaWidth: detail.areaWidth || '',
+						deformation: detail.deformation || '',
 						angle: detail.angle || '',
-						percentage: detail.percentage || '',
+						// percentage: detail.percentage || '',
+            numeratorRatio: detail.numeratorRatio || '',
+            denominatorRatio: detail.denominatorRatio || '',
+
 
 						// 参考面信息
 						reference1Location: detail.reference1Location || '',
@@ -1650,10 +1654,10 @@
 						reference2LocationEnd: detail.reference2LocationEnd || '',
 
 						// 裂缝特征和趋势 - 查找索引值
-						crackTypeIndex: findIndexByText(crackType.value, detail
+/*						crackTypeIndex: findIndexByText(crackType.value, detail
 							.crackType) || 0,
 						developmentTrendIndex: findIndexByText(developmentTrend.value, detail
-							.developmentTrend) || 0
+							.developmentTrend) || 0*/
 					};
 				});
 
@@ -1662,7 +1666,8 @@
 			}
 			uni.$emit('setDiseaseDataList', diseaseDataList.value)
 			console.log('成功设置diseaseDetails数据, 条目数量:', diseaseDataList.value.length);
-		} else {
+		}
+    /*else {
 			// 如果没有diseaseDetails数据，创建默认的单条记录
 			// 检查老的数据格式并转换
 			const defaultData = {
@@ -1672,7 +1677,7 @@
 				heightDepth: data.heightDepth || '',
 				crackWidth: data.crackWidth || '',
 				area: data.area || '',
-				volume: '',
+				deformation: '',
 				angle: '',
 				percentage: '',
 				reference1Location: '',
@@ -1687,7 +1692,7 @@
 
 			diseaseDataList.value = [defaultData];
 			console.log('使用老格式数据创建默认记录');
-		}
+		}*/
 
 		// 处理图片数据
 		if (data.images && Array.isArray(data.images)) {
@@ -1907,32 +1912,32 @@
 			// 创建一个包含范围值的记录
 			diseaseDetails.push({
 				// 普通模式字段设为空
-				length: '',
-				width: '',
+				length1: '',
+				// width: '',
 				heightDepth: '',
 				crackWidth: '',
-				area: '',
-				volume: '',
+				// area: '',
+				deformation: '',
 				angle: '',
-				percentage: '',
+				// percentage: '',
 
 				// 范围模式字段
 				lengthRangeStart: rangeData.lengthRangeStart || '',
 				lengthRangeEnd: rangeData.lengthRangeEnd || '',
-				widthRangeStart: rangeData.widthRangeStart || '',
-				widthRangeEnd: rangeData.widthRangeEnd || '',
+/*				widthRangeStart: rangeData.widthRangeStart || '',
+				widthRangeEnd: rangeData.widthRangeEnd || '',*/
 				heightDepthRangeStart: rangeData.heightDepthRangeStart || '',
 				heightDepthRangeEnd: rangeData.heightDepthRangeEnd || '',
 				crackWidthRangeStart: rangeData.crackWidthRangeStart || '',
 				crackWidthRangeEnd: rangeData.crackWidthRangeEnd || '',
-				areaRangeStart: rangeData.areaRangeStart || '',
-				areaRangeEnd: rangeData.areaRangeEnd || '',
-				volumeRangeStart: rangeData.volumeRangeStart || '',
-				volumeRangeEnd: rangeData.volumeRangeEnd || '',
+				areaLength: rangeData.areaLength || '',
+				areaWidth: rangeData.areaWidth || '',
+				deformationRangeStart: rangeData.deformationRangeStart || '',
+				deformationRangeEnd: rangeData.deformationRangeEnd || '',
 				angleRangeStart: rangeData.angleRangeStart || '',
 				angleRangeEnd: rangeData.angleRangeEnd || '',
-				percentageRangeStart: rangeData.percentageRangeStart || '',
-				percentageRangeEnd: rangeData.percentageRangeEnd || '',
+				numeratorRatio: rangeData.numeratorRatio || '',
+				denominatorRatio: rangeData.denominatorRatio || '',
 
 				// 公共字段
 				/*crackType: crackType.value[rangeData.crackTypeIndex]?.text ||
@@ -1952,32 +1957,32 @@
 			diseaseQuantitativeDataRef.value.diseaseDataList.forEach(item => {
 				diseaseDetails.push({
 					// 普通模式字段
-					length: item.length || '',
-					width: item.width || '',
+					length1: item.length1 || '',
+					// width: item.width || '',
 					heightDepth: item.heightDepth || '',
 					crackWidth: item.crackWidth || '',
-					area: item.area || '',
-					volume: item.volume || '',
+					// area: item.area || '',
+					deformation: item.deformation || '',
 					angle: item.angle || '',
-					percentage: item.percentage || '',
+					// percentage: item.percentage || '',
 
 					// 范围模式字段设为空
 					lengthRangeStart: '',
 					lengthRangeEnd: '',
-					widthRangeStart: '',
-					widthRangeEnd: '',
+					// widthRangeStart: '',
+					// widthRangeEnd: '',
 					heightDepthRangeStart: '',
 					heightDepthRangeEnd: '',
 					crackWidthRangeStart: '',
 					crackWidthRangeEnd: '',
-					areaRangeStart: '',
-					areaRangeEnd: '',
-					volumeRangeStart: '',
-					volumeRangeEnd: '',
+					areaLength: '',
+					areaWidth: '',
+					deformationRangeStart: '',
+					deformationRangeEnd: '',
 					angleRangeStart: '',
 					angleRangeEnd: '',
-					percentageRangeStart: '',
-					percentageRangeEnd: '',
+					numeratorRatio: '',
+					denominatorRatio: '',
 
 					// 公共字段
 					/*crackType: crackType.value[item.crackTypeIndex]
