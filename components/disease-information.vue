@@ -537,27 +537,65 @@
 		// 存储完整的diseaseTypes对象
 		allDiseaseTypes = [];
 
-		// 添加第二级的病害类型（如果有）
-		if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
-			allDiseaseTypes = [...selectedBiObject.diseaseTypes];
-			console.log('第二级病害类型:', allDiseaseTypes);
-		}
+		if(componentNamePicker.value === '其他'){
+			// 当选择"其他"时，通过grandObjectName查找对应的第一级结构
+			if (structureData.value && structureData.value.children) {
+				const structurePart = structureData.value.children.find(
+					item => item.name === grandObjectName.value
+				);
+				
+				if (structurePart && structurePart.children) {
+					// 遍历第二级children
+					structurePart.children.forEach(secondLevel => {
+						// 添加第二级的病害类型（如果有）
+						if (secondLevel.diseaseTypes && Array.isArray(secondLevel.diseaseTypes)) {
+							secondLevel.diseaseTypes.forEach(item => {
+								if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
+									allDiseaseTypes.push(item);
+								}
+							});
+						}
+						
+						// 遍历第三级children并添加其病害类型
+						if (secondLevel.children && Array.isArray(secondLevel.children)) {
+							secondLevel.children.forEach(thirdLevel => {
+								if (thirdLevel.diseaseTypes && Array.isArray(thirdLevel.diseaseTypes)) {
+									thirdLevel.diseaseTypes.forEach(item => {
+										if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
+											allDiseaseTypes.push(item);
+										}
+									});
+								}
+							});
+						}
+					});
+					
+					console.log('其他选项 - 合并所有病害类型:', allDiseaseTypes);
+				}
+			}
+		} else {
+			// 添加第二级的病害类型（如果有）
+			if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
+				allDiseaseTypes = [...selectedBiObject.diseaseTypes];
+				console.log('第二级病害类型:', allDiseaseTypes);
+			}
 
-		// 检查是否有第三级选择并添加其病害类型
-		if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children &&
-			Array.isArray(selectedBiObject.children) &&
-			typeMultiIndex.value[2] < selectedBiObject.children.length) {
+			// 检查是否有第三级选择并添加其病害类型
+			if (typeMultiIndex.value[2] >= 0 && selectedBiObject.children &&
+				Array.isArray(selectedBiObject.children) &&
+				typeMultiIndex.value[2] < selectedBiObject.children.length) {
 
-			const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
-			if (selectedThirdLevel && selectedThirdLevel.diseaseTypes && Array.isArray(selectedThirdLevel
-					.diseaseTypes)) {
-				// 添加第三级的病害类型，避免重复（通过id判断）
-				selectedThirdLevel.diseaseTypes.forEach(item => {
-					if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
-						allDiseaseTypes.push(item);
-					}
-				});
-				console.log('添加第三级后的病害类型:', allDiseaseTypes);
+				const selectedThirdLevel = selectedBiObject.children[typeMultiIndex.value[2]];
+				if (selectedThirdLevel && selectedThirdLevel.diseaseTypes && Array.isArray(selectedThirdLevel
+						.diseaseTypes)) {
+					// 添加第三级的病害类型，避免重复（通过id判断）
+					selectedThirdLevel.diseaseTypes.forEach(item => {
+						if (!allDiseaseTypes.some(existing => existing.id === item.id)) {
+							allDiseaseTypes.push(item);
+						}
+					});
+					console.log('添加第三级后的病害类型:', allDiseaseTypes);
+				}
 			}
 		}
 
