@@ -246,7 +246,8 @@
 
             // 如果有构件名称（第三级），设置它
             if (emitComponent.biObjectName) {
-              const componentName = emitComponent.biObjectName;
+              const biObjectName = emitComponent.biObjectName;
+              const biObjectNameInput = emitComponent.biObjectInput;
 
               // 先设置componentNamePicker，这是我们用来显示的值
               componentNamePicker.value = emitComponent.biObjectName;
@@ -267,13 +268,13 @@
                   }
                 } else if (componentNamePicker.value === '其他') {
                   // 如果在第三级中找不到匹配项，可能是自定义名称
-                  componentNameInput.value = componentName;
-                  console.log('设置自定义构件名称:', componentName);
+                  componentNameInput.value = biObjectNameInput;
+                  console.log('设置自定义构件名称:', biObjectName);
                 }
               } else {
                 // 第三级列表为空，设置为自定义名称
-                componentNameInput.value = componentName;
-                console.log('第三级列表为空，设置自定义构件名称:', componentName);
+                componentNameInput.value = biObjectNameInput;
+                console.log('第三级列表为空，设置自定义构件名称:', biObjectName);
               }
             }
           }
@@ -878,11 +879,17 @@
     }
   });
 
+  const getBiObjctName = computed(() => {
+    return getComponentName()
+  });
+
 	defineExpose({
+    getBiObjctName,
     diseaseTypeObj,
     component,
     componentCodeInput,
-    position
+    position,
+    type
 	});
 </script>
 

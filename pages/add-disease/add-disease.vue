@@ -1447,7 +1447,8 @@
 			uni.$emit('setComponentName', {
 				biObjectName: data.component.biObject.name,
 				parentObjectName: data.component.parentObjectName,
-				grandObjectName: data.component.grandObjectName
+				grandObjectName: data.component.grandObjectName,
+        biObjectInput: data.biObjectName,
 			})
 		}
 
@@ -2006,12 +2007,11 @@
 		const thirdLevelComponentName = getThirdLevelComponentName();*/
 
 		const diseaseTypeObj = diseaseInformationRef.value.diseaseTypeObj;
-    console.log('crackType', diseaseQuantitativeDataRef.value.crackType)
 
 		// 创建符合要求的病害数据对象
 		return {
 			createBy: "",
-			createTime: formatDateTime(),
+			createTime: openMode.value === 'create' ? formatDateTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.createTime,
 			updateTime: formatDateTime(),
 			id: openMode.value === 'create' ? new Date().getTime() : getCurrentPages()[getCurrentPages().length - 1]
 				.$page?.options?.id,
@@ -2030,14 +2030,14 @@
 			quantity: diseaseQuantitativeDataRef.value.quantity,
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
-			type: diseaseTypeObj.name, // 直接使用type.value而不是通过索引获取
+			type: diseaseInformationRef.value.type, // 直接使用type.value而不是通过索引获取
 			nature: diseaseDescriptionPart.value.nature,
 			participateAssess: diseaseDescriptionPart.value.participateAssess,
 			biObjectId: diseaseInformationRef.value.component.biObject.id,
 			projectId: idStorageInfo.projectId,
       crackType: diseaseQuantitativeDataRef.value.crackType,
       developmentTrend: diseaseDescriptionPart.value.developmentTrend,
-			biObjectName: diseaseInformationRef.value.component.biObject.name, //使用三级选择或输入框中的值
+			biObjectName: diseaseInformationRef.value.getBiObjctName, //使用三级选择或输入框中的值
 			component: diseaseInformationRef.value.component,
 			/*{
 				createBy: "",
