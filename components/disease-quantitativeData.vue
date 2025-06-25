@@ -15,7 +15,7 @@
 				<view class="quantitative-data-right-value">
 					<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
 						v-model="quantity">
-					<view class="clear-input" @click="clearQuantity">×</view>
+					<view class="clear-input" @click="quantity = ''">×</view>
 				</view>
 				<view class="quantitative-data-right-unit">
 					<view class="quantitative-data-right-unit-input"> 个
@@ -172,8 +172,47 @@
 				</view>
 			</view>-->
 
+      <!-- 缝宽 - 根据模式显示不同的输入框 -->
+      <view class="quantitative-data" v-show="showColumns[2] == 1">
+        <view class="quantitative-data-left">
+          缝宽
+        </view>
+        <view class="quantitative-data-right">
+          <!-- 范围模式 -->
+          <template v-if="diseaseData.useRangeMode">
+            <view class="quantitative-data-right-range">
+              <view class="quantitative-data-right-value">
+                <input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
+                       v-model="diseaseData.crackWidthRangeStart">
+                <view class="clear-input" @click="diseaseData.crackWidthRangeStart = ''">×
+                </view>
+              </view>
+              <view class="range-separator">-</view>
+              <view class="quantitative-data-right-value">
+                <input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
+                       v-model="diseaseData.crackWidthRangeEnd">
+                <view class="clear-input" @click="diseaseData.crackWidthRangeEnd = ''">×</view>
+              </view>
+            </view>
+          </template>
+          <!-- 普通模式 -->
+          <template v-else>
+            <view class="quantitative-data-right-value">
+              <input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+                     v-model="diseaseData.crackWidth">
+              <view class="clear-input" @click="diseaseData.crackWidth = ''">×</view>
+            </view>
+          </template>
+          <view class="quantitative-data-right-unit">
+            <view class="quantitative-data-right-unit-input">
+              mm
+            </view>
+          </view>
+        </view>
+      </view>
+
 			<!-- 高度/深度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[5] == 1">
+			<view class="quantitative-data" v-show="showColumns[3] == 1">
 				<view class="quantitative-data-left">
 					高度/深度
 				</view>
@@ -210,47 +249,8 @@
 				</view>
 			</view>
 
-			<!-- 缝宽 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[4] == 1">
-				<view class="quantitative-data-left">
-					缝宽
-				</view>
-				<view class="quantitative-data-right">
-					<!-- 范围模式 -->
-					<template v-if="diseaseData.useRangeMode">
-						<view class="quantitative-data-right-range">
-							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.crackWidthRangeStart">
-								<view class="clear-input" @click="diseaseData.crackWidthRangeStart = ''">×
-								</view>
-							</view>
-							<view class="range-separator">-</view>
-							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.crackWidthRangeEnd">
-								<view class="clear-input" @click="diseaseData.crackWidthRangeEnd = ''">×</view>
-							</view>
-						</view>
-					</template>
-					<!-- 普通模式 -->
-					<template v-else>
-						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.crackWidth">
-							<view class="clear-input" @click="diseaseData.crackWidth = ''">×</view>
-						</view>
-					</template>
-					<view class="quantitative-data-right-unit">
-						<view class="quantitative-data-right-unit-input">
-							mm
-						</view>
-					</view>
-				</view>
-			</view>
-
 			<!-- 面积 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[6] == 1">
+			<view class="quantitative-data" v-show="showColumns[4] == 1">
 				<view class="quantitative-data-left">
 					面积
 				</view>
@@ -286,7 +286,7 @@
 			</view>
 
 			<!-- 体积 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[7] == 1">
+			<view class="quantitative-data" v-show="showColumns[5] == 1">
 				<view class="quantitative-data-left">
 					变形/位移
 				</view>
@@ -323,7 +323,7 @@
 			</view>
 
 			<!-- 角度 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[8] == 1">
+			<view class="quantitative-data" v-show="showColumns[6] == 1">
 				<view class="quantitative-data-left">
 					角度
 				</view>
@@ -360,7 +360,7 @@
 			</view>
 
 			<!-- 百分比 - 根据模式显示不同的输入框 -->
-			<view class="quantitative-data" v-show="showColumns[9] == 1">
+			<view class="quantitative-data" v-show="showColumns[7] == 1">
 				<view class="quantitative-data-left">
 					比例
 				</view>
@@ -512,6 +512,14 @@
 
   const showColumns = ref([])
 
+  watch (() => crackTypeIndex.value, (newValue) => {
+    if(newValue === 5){
+      showColumns.value = ['0', '0', '0', '0', '1', '0', '0', '0']
+    }else{
+      showColumns.value = ['0', '1', '1', '0', '0', '0', '0', '0']
+    }
+  })
+
 	// 添加onMounted处理可能的初始值
 	onMounted(() => {
     updateDiseaseDataList(1);
@@ -525,7 +533,7 @@
   const setSelectColumn = (emitSelectColumn) => {
     console.log('setSelectColumn:', emitSelectColumn)
     selectedColumn.value = emitSelectColumn || 0
-    showColumns.value = selectedColumn.value.toString(2).padStart(10, '0').split('').reverse();
+    showColumns.value = selectedColumn.value.toString(2).padStart(8, '0').split('').reverse();
     console.log('showColumns:', showColumns.value)
   }
 
@@ -797,6 +805,22 @@
 		// 关闭弹窗
 		referenceSurfacePopup.value[0].close();
 	};
+
+  const clearReferenceSurfaceStart = (diseaseIndex, surfaceNumber) => {
+    if (surfaceNumber === 1) {
+      diseaseDataList.value[diseaseIndex].reference1LocationStart = '';
+    } else {
+      diseaseDataList.value[diseaseIndex].reference2LocationStart = '';
+    }
+  };
+
+  const clearReferenceSurfaceEnd = (diseaseIndex, surfaceNumber) => {
+    if (surfaceNumber === 1) {
+      diseaseDataList.value[diseaseIndex].reference1LocationEnd = '';
+    } else {
+      diseaseDataList.value[diseaseIndex].reference2LocationEnd = '';
+    }
+  };
 
   const crackType = computed(() => {
     return crackTypeOptions.value[crackTypeIndex.value].text;

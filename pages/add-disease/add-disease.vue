@@ -1475,7 +1475,8 @@
 			}*/
 			uni.$emit('setDiseaseType', {
 				diseaseTypeInput: data.type,
-				diseaseType: data.diseaseType.name
+				diseaseType: data.diseaseType.name,
+        diseaseTypeId: data.diseaseType.id
 			})
 			console.log('成功设置病害类型:', data.type);
 		}

@@ -689,10 +689,12 @@
 	const onDiseaseTypeChangeByEmit = (diseaseObj) => {
 		const {
 			diseaseTypeInput: diseaseTypeInput,
-			diseaseType: diseaseType
+			diseaseType: diseaseType,
+      diseaseTypeId: diseaseTypeId
 		} = diseaseObj;
 		// diseaseTypeOptions.value = typeOptions || [];
-		const index = diseaseTypeOptions.value.findIndex(item => item === diseaseType);
+		// const index = diseaseTypeOptions.value.findIndex(item => item === diseaseType);
+    const index = allDiseaseTypes.findIndex(item => item.id === diseaseTypeId);
 		typePicker.value = diseaseType;
 		typeindex.value = index;
 		// 如果选择了"其他"，清空typeInput，等待用户输入
@@ -702,7 +704,8 @@
 			// 否则直接更新type值
 			type.value = typePicker.value;
 			// 获取选中的病害类型对象
-			const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+			// const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+      const selectedDiseaseType = allDiseaseTypes.find(item => item.id === diseaseTypeId);
 			if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
 				// 根据maxScale和minScale更新评定标度选项
 				const minScale = parseInt(selectedDiseaseType.minScale) || 1;
@@ -734,7 +737,9 @@
 				type.value = typePicker.value;
 
 				// 获取选中的病害类型对象
-				const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+				// const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+        const selectedDiseaseType = allDiseaseTypes[typeindex.value];
+        console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
 				if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
 					// 根据maxScale和minScale更新评定标度选项
 					const minScale = parseInt(selectedDiseaseType.minScale) || 1;
@@ -744,9 +749,7 @@
             minScale: minScale,
             maxScale: maxScale
           });
-
           uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
-
 					console.log('更新评定标度范围:', minScale, '至', maxScale);
 				}
 			}
@@ -847,7 +850,7 @@
   };
 
   const diseaseTypeObj = computed(() => {
-    return allDiseaseTypes.find(item => item.name === typePicker.value)
+    return allDiseaseTypes[typeindex.value];
   });
 
   const component = computed(() => {
