@@ -2014,8 +2014,7 @@
 			createBy: "",
 			createTime: openMode.value === 'create' ? formatDateTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.createTime,
 			updateTime: formatDateTime(),
-			id: openMode.value === 'create' ? new Date().getTime() : getCurrentPages()[getCurrentPages().length - 1]
-				.$page?.options?.id,
+			id: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.id,
 			diseaseType: diseaseTypeObj ? {
 				id: diseaseTypeObj.id,
 				code: diseaseTypeObj.code || '',
@@ -2063,7 +2062,7 @@
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			commitType: 1, //0为已提交 1为未提交 2为删除
-			localId: new Date().getTime(),
+			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
 		};
 	}
 
@@ -2120,19 +2119,20 @@
 		// 如果是编辑模式，获取原始数据中的图片和AD图片
 		let originalImages = [];
 		let originalADImages = [];
-		if (options && options.data) {
-			try {
-				const originalData = JSON.parse(decodeURIComponent(options.data));
-				// 将相对路径转为绝对路径
-				originalImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
-					.images) || [];
-				originalADImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
-					.ADImgs) || [];
-			} catch (error) {
-				console.error('解析原始数据失败:', error);
-			}
-		}
-
+    if(openMode.value === 'edit'){
+      if (options && options.data) {
+        try {
+          const originalData = JSON.parse(decodeURIComponent(options.data));
+          // 将相对路径转为绝对路径
+          originalImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+              .images) || [];
+          originalADImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+              .ADImgs) || [];
+        } catch (error) {
+          console.error('解析原始数据失败:', error);
+        }
+      }
+    }
 		// 获取当前文件列表中的图片URL
 		const currentImageUrls = fileList.value.map(img => img.url);
 		const currentADImages = ADImgs.value.map(img => img.src);

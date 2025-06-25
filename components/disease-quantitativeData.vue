@@ -514,9 +514,9 @@
 
   watch (() => crackTypeIndex.value, (newValue) => {
     if(newValue === 5){
-      showColumns.value = ['0', '0', '0', '0', '1', '0', '0', '0']
+      showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
     }else{
-      showColumns.value = ['0', '1', '1', '0', '0', '0', '0', '0']
+      showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
     }
   })
 
