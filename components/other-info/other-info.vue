@@ -59,20 +59,17 @@
 
 	// 分离图片项和文本项
 	const imageItems = computed(() => {
-		return dataArray.value.filter(item => 
-			item.name.includes('照片') || item.name.includes('照')
-		);
+		// 获取前两项作为图片项
+		return dataArray.value.slice(0, 2);
 	});
 
 	const textItems = computed(() => {
-		return dataArray.value.filter(item => 
-			!item.name.includes('照片') && !item.name.includes('照')
-		);
+		// 获取第三项及之后的所有项作为文本项
+		return dataArray.value.slice(2);
 	});
 
 	// 获取图片URL，如果值为"/"或不存在，则使用默认图片
 	const getImageUrl = (value) => {
-    console.log('图片value',  value)
 		if (!value || value === '/') {
 			return '/static/image/disease.png';
 		}
