@@ -340,8 +340,7 @@ const getFilteredDiseasesByType = (type) => {
     }
     // 如果有搜索关键词，还需按关键词过滤
     if (searchText.value) {
-      return (item.description?.includes(searchText.value) || 
-             item.type?.includes(searchText.value));
+      return (item.description?.includes(searchText.value) || item.type?.includes(searchText.value) || item.biObjectName?.includes(searchText.value) ||item.position?.includes(searchText.value));
     }
     return true;
   });

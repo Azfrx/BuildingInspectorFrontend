@@ -300,8 +300,7 @@
 			}
 			// 如果有搜索关键词，再按关键词过滤
 			if (searchText.value) {
-				return item.description?.includes(searchText.value) ||
-					item.type?.includes(searchText.value);
+				return (item.description?.includes(searchText.value) || item.type?.includes(searchText.value) || item.biObjectName?.includes(searchText.value) ||item.position?.includes(searchText.value));
 			}
 
 			return true;
@@ -335,6 +334,13 @@
 
 	const submitZip = async () => {
 		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
+    if(structureStoreInfo.status == true) {
+      uni.showToast({
+        title: '结构信息错误',
+        icon: 'none'
+      });
+      return;
+    }
 		try {
 			// 显示压缩中的加载提示
 			uni.showLoading({

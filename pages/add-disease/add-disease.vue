@@ -2088,6 +2088,7 @@
 				setTimeout(() => {
 					// 清空图片列表
 					fileList.value = [];
+          ADImgs.value = [];
 					console.log('已清空图片列表，保留其他表单数据');
 
 					// 显示提示
