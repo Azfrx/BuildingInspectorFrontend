@@ -19,7 +19,7 @@
 						</view>
 					</view>
 					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontLeft"
-						file-mediatype="image" mode="grid" @select="frontLeftSelect" :auto-upload="false"
+						file-mediatype="image" mode="grid" @select="frontLeftSelect" :auto-upload="false" @delete="deletePhoto('frontLeft')"
 						@success="onUploadSuccess('frontLeft')"></uni-file-picker>
 				</view>
 
@@ -30,7 +30,7 @@
 						</view>
 					</view>
 					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontRight"
-						file-mediatype="image" mode="grid" @select="frontRightSelect" :auto-upload="false"
+						file-mediatype="image" mode="grid" @select="frontRightSelect" :auto-upload="false" @delete="deletePhoto('frontRight')"
 						@success="onUploadSuccess('frontRight')"></uni-file-picker>
 				</view>
 			</view>
@@ -43,7 +43,7 @@
 						</view>
 					</view>
 					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideLeft"
-						file-mediatype="image" mode="grid" @select="sideLeftSelect" :auto-upload="false"
+						file-mediatype="image" mode="grid" @select="sideLeftSelect" :auto-upload="false" @delete="deletePhoto('sideLeft')"
 						@success="onUploadSuccess('sideLeft')"></uni-file-picker>
 				</view>
 
@@ -54,7 +54,7 @@
 						</view>
 					</view>
 					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideRight"
-						file-mediatype="image" mode="grid" @select="sideRightSelect" :auto-upload="false"
+						file-mediatype="image" mode="grid" @select="sideRightSelect" :auto-upload="false" @delete="deletePhoto('sideRight')"
 						@success="onUploadSuccess('sideRight')"></uni-file-picker>
 				</view>
 			</view>
@@ -73,11 +73,11 @@
 		ref,
 		watch
 	} from 'vue';
-	import {
-		getFrontPhoto,
-		getProperty,
-		readBridgeImage
-	} from "@/utils/readJsonNew";
+  import {
+    getFrontPhoto,
+    getProperty,
+    readBridgeImage, removeDiseaseImage
+  } from "@/utils/readJsonNew";
 	import {
 		idStore
 	} from "@/store/idStorage";
@@ -106,10 +106,10 @@
 	const sideRight = ref([]);
 
 	// 用于存储原始图片数据，用于比较是否有变化
-	const originalFrontLeft = ref([]);
+	/*const originalFrontLeft = ref([]);
 	const originalFrontRight = ref([]);
 	const originalSideLeft = ref([]);
-	const originalSideRight = ref([]);
+	const originalSideRight = ref([]);*/
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
@@ -141,7 +141,7 @@
 			});
 
 			// 选择图片后自动保存
-			await autoSavePhotos();
+			await autoSavePhotos('frontLeft');
 		}
 	};
 
@@ -159,7 +159,7 @@
 			});
 
 			// 选择图片后自动保存
-			await autoSavePhotos();
+			await autoSavePhotos('frontRight');
 		}
 	};
 
@@ -177,7 +177,7 @@
 			});
 
 			// 选择图片后自动保存
-			await autoSavePhotos();
+			await autoSavePhotos('sideLeft');
 		}
 	};
 
@@ -195,12 +195,13 @@
 			});
 
 			// 选择图片后自动保存
-			await autoSavePhotos();
+			await autoSavePhotos('sideRight');
 		}
 	};
 
 	// 自动保存图片的方法
-	const autoSavePhotos = async () => {
+	const autoSavePhotos = async (type) => {
+    console.log('自动保存图片:', type)
 		try {
 			// 检查是否有图片需要保存
 			const hasImages = frontLeft.value.length > 0 ||
@@ -219,7 +220,7 @@
 				mask: true
 			});
 
-			const savePhotoData = await createPhotoDate();
+			const savePhotoData = await createPhotoDate(type);
 			console.log('保存的图片json数据:', savePhotoData);
 
 			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
@@ -247,15 +248,54 @@
 		}
 	};
 
-	const createPhotoDate = async () => {
-		const result = {
+	const createPhotoDate = async (type) => {
+/*		const result = {
 			frontLeft: [],
 			frontRight: [],
 			sideLeft: [],
 			sideRight: []
-		};
+		};*/
+    try{
+      const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+      if(type == 'frontLeft'){
+        data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
+            .value.map(img => img.url));
+      }else if(type == 'frontRight'){
+        data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
+            .value.map(img => img.url));
+      }else if(type == 'sideLeft'){
+        data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
+            .value.map(img => img.url));
+      }else if(type == 'sideRight'){
+        data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
+            .value.map(img => img.url));
+      }
+      return data;
+    }catch (error) {
+      console.error('front-photo.json不存在，需要创建json', error);
+      const data = {
+        frontLeft: [],
+        frontRight: [],
+        sideLeft: [],
+        sideRight: []
+      };
+      if(type == 'frontLeft'){
+        data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
+            .value.map(img => img.url));
+      }else if(type == 'frontRight'){
+        data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
+            .value.map(img => img.url));
+      }else if(type == 'sideLeft'){
+        data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
+            .value.map(img => img.url));
+      }else if(type == 'sideRight'){
+        data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
+            .value.map(img => img.url));
+      }
+      return data;
+    }
 
-		try {
+/*		try {
 			// 检查前左侧图片是否有变化
 			if (hasImageChanged(frontLeft.value, originalFrontLeft.value)) {
 				result.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
@@ -319,11 +359,11 @@
 			console.error('创建照片数据失败:', error);
 		}
 
-		return result;
+		return result;*/
 	};
 
 	// 检查图片是否有变化
-	const hasImageChanged = (currentImages, originalImages) => {
+/*	const hasImageChanged = (currentImages, originalImages) => {
 		// 如果长度不同，说明有变化
 		if (currentImages.length !== originalImages.length) {
 			return true;
@@ -338,6 +378,28 @@
 
 		// 没有变化
 		return false;
+	};*/
+
+  const deletePhoto = async (type) => {
+    const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+    if(type === 'frontLeft'){
+      const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
+      await removeDiseaseImage(imagesPaths);
+      data.frontLeft = [];
+    }else if(type === 'frontRight'){
+      const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
+      await removeDiseaseImage(imagesPaths);
+      data.frontRight = [];
+    }else if(type === 'sideLeft'){
+      const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
+      await removeDiseaseImage(imagesPaths);
+      data.sideLeft = [];
+    }else if(type === 'sideRight'){
+      const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
+      await removeDiseaseImage(imagesPaths);
+      data.sideRight = [];
+    }
+    await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
 	};
 
 	const onUploadSuccess = async (type) => {
@@ -370,7 +432,7 @@
 					extname: 'jpg',
 				}));
 				// 保存原始图片数据
-				originalFrontLeft.value = JSON.parse(JSON.stringify(frontLeft.value));
+				// originalFrontLeft.value = JSON.parse(JSON.stringify(frontLeft.value));
 			}
 			if (data.frontRight && Array.isArray(data.frontRight)) {
 				const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
@@ -380,7 +442,7 @@
 					extname: 'jpg',
 				}));
 				// 保存原始图片数据
-				originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
+				// originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
 			}
 			if (data.sideLeft && Array.isArray(data.sideLeft)) {
 				const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
@@ -390,7 +452,7 @@
 					extname: 'jpg',
 				}));
 				// 保存原始图片数据
-				originalSideLeft.value = JSON.parse(JSON.stringify(sideLeft.value));
+				// originalSideLeft.value = JSON.parse(JSON.stringify(sideLeft.value));
 			}
 			if (data.sideRight && Array.isArray(data.sideRight)) {
 				const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
@@ -400,7 +462,7 @@
 					extname: 'jpg',
 				}));
 				// 保存原始图片数据
-				originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
+				// originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
 			}
 
 			// 如果有数据，设置为已提交状态
@@ -416,10 +478,10 @@
 			frontRight.value = [];
 			sideLeft.value = [];
 			sideRight.value = [];
-			originalFrontLeft.value = [];
+/*			originalFrontLeft.value = [];
 			originalFrontRight.value = [];
 			originalSideLeft.value = [];
-			originalSideRight.value = [];
+			originalSideRight.value = [];*/
 			isSubmit.value = false;
 		}
 	};
