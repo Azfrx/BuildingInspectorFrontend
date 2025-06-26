@@ -197,6 +197,9 @@ import { async } from 'rxjs';
 		// console.log("add后的数据",modifiedData);
 		//读取完整数据
 		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
+		
+		// 初始化resultData
+		resultData.value = structureData.value;
 	};
 	// 计算第二个侧边栏的数据
 	const secondLevelItems = computed(() => {
@@ -220,6 +223,10 @@ const refreshData = async () => {
   // 重新获取最新数据
   structureData.value = await getObject(userInfo.username, TaskBridgeId.value);
   console.log('新数据structureData.value', structureData.value)
+  
+  // 同步更新resultData
+  resultData.value = structureData.value;
+  
   // 重新执行警告标志检查
   warningFlag();
   
@@ -255,7 +262,8 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		// submitDataToBackend();
 
 		// 直接存储数据到本地
-		storeDataLocally();
+		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+		console.log('确认后数据已保存到本地:', resultData.value);
 
 		confirmPopup.value.close();
 
@@ -333,6 +341,9 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 				children: data.children
 			}
 		}
+		
+		// 同步更新resultData
+		resultData.value = structureData.value;
 		
 		console.log('更新后的数据:', structureData.value)
 		
@@ -479,36 +490,36 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		editPopup.value.open();
 	};
 
-	const handleDisable = (index) => {
-		console.log('切换状态前:', thirdLevelItems.value[index].status);
-		// 切换状态
-		const currentStatus = thirdLevelItems.value[index].status;
-		// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
-		thirdLevelItems.value[index].status = currentStatus === "0" ? "1" : "0";
-		console.log('切换状态后:', thirdLevelItems.value[index].status);
+	// const handleDisable = (index) => {
+	// 	console.log('切换状态前:', thirdLevelItems.value[index].status);
+	// 	// 切换状态
+	// 	const currentStatus = thirdLevelItems.value[index].status;
+	// 	// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
+	// 	thirdLevelItems.value[index].status = currentStatus === "0" ? "1" : "0";
+	// 	console.log('切换状态后:', thirdLevelItems.value[index].status);
 
-		// 直接更新count字段
-		const item = thirdLevelItems.value[index];
-		item.count = item.status === "0" ? Number(item.quantity || 0) : 0;
+	// 	// 直接更新count字段
+	// 	const item = thirdLevelItems.value[index];
+	// 	item.count = item.status === "0" ? Number(item.quantity || 0) : 0;
 
-		// 不再设置delFlag字段，直接使用status字段
-		console.log(`已更新${item.name}的count为${item.count}, status为${item.status}`);
+	// 	// 不再设置delFlag字段，直接使用status字段
+	// 	console.log(`已更新${item.name}的count为${item.count}, status为${item.status}`);
 
-		// 更新resultData中对应的count字段和status字段
-		updateResultData(item);
+	// 	// 更新resultData中对应的count字段和status字段
+	// 	updateResultData(item);
 
-		// 打印所有第三层构件的name和count
-		console.log('所有第三层构件信息:');
-		thirdLevelItems.value.forEach(item => {
-			console.log(`构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || '0'}`);
-		});
+	// 	// 打印所有第三层构件的name和count
+	// 	console.log('所有第三层构件信息:');
+	// 	thirdLevelItems.value.forEach(item => {
+	// 		console.log(`构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || '0'}`);
+	// 	});
 
-		// 隐藏操作按钮
-		selectedThirdIndex.value = -1;
-		console.log('最终存的resultData.value', resultData.value);
-		// 将数据存储到本地
-		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-	};
+	// 	// 隐藏操作按钮
+	// 	selectedThirdIndex.value = -1;
+	// 	console.log('最终存的resultData.value', resultData.value);
+	// 	// 将数据存储到本地
+	// 	setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+	// };
 
 	const setStatus = (e) => {
 		if (currentEditItem.value) {
@@ -548,6 +559,10 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 			thirdLevelItems.value.forEach(item => {
 				console.log(`构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || '0'}`);
 			});
+			
+			// 保存更新后的数据到本地存储
+			setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+			console.log('数据已保存到本地存储:', resultData.value);
 		}
 		closeEditPopup();
 	};
@@ -609,33 +624,33 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 	};
 
 	// 添加本地存储数据的函数
-	const storeDataLocally = async () => {
-		try {
-			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-				method: 'POST'
-			});
+	// const storeDataLocally = async () => {
+	// 	try {
+	// 		const responseLogin = await uni.request({
+	// 			url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+	// 			method: 'POST'
+	// 		});
 
-			if (!responseLogin.data) {
-				uni.showToast({
-					title: '获取用户信息失败',
-					icon: 'none'
-				});
-				return;
-			}
+	// 		if (!responseLogin.data) {
+	// 			uni.showToast({
+	// 				title: '获取用户信息失败',
+	// 				icon: 'none'
+	// 			});
+	// 			return;
+	// 		}
 
-			// 将数据存储到本地
-			setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-			console.log('已将数据存储到本地:', resultData.value);
+	// 		// 将数据存储到本地
+	// 		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+	// 		console.log('已将数据存储到本地:', resultData.value);
 
-		} catch (error) {
-			console.error('存储数据错误:', error);
-			uni.showToast({
-				title: '存储数据出错，请稍后重试',
-				icon: 'none'
-			});
-		}
-	};
+	// 	} catch (error) {
+	// 		console.error('存储数据错误:', error);
+	// 		uni.showToast({
+	// 			title: '存储数据出错，请稍后重试',
+	// 			icon: 'none'
+	// 		});
+	// 	}
+	// };
 
 	// 添加一个函数来规范化status字段
 	const normalizeStatusFields = (data) => {
