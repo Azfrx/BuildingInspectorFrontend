@@ -491,6 +491,7 @@
 		// 只有当数据加载完成时才读取图片数据
 		await readBridgeImageByJson();
 	});
+
 </script>
 
 <style scoped>
