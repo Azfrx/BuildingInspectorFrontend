@@ -10,9 +10,13 @@ import {
 } from "@/utils/writeNew";
 import {
 	getProject,
+	getTask,
 	getAllFirstLevelDirs,
 	getHadProject
 } from "@/utils/readJsonNew.js";
+import {
+	deleteFolderInApp
+} from "@/utils/deleteFolder.js"
 import {
 	userStore
 } from '@/store/index.js'
@@ -62,6 +66,7 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
 			// console.log('开始获取BuildingId:', projectId);
 			// buildings也就是tasks 每一个桥梁是一个检测任务
 			const buildings = await getBuildingIdByProjectId(projectId, token, username);
+			const localBuildings = await getTask(username, projectId)
 
 			for (const building of buildings) {
 				const buildingId = building.buildingId;
@@ -143,8 +148,8 @@ const filtProjects = (oldProjects, newProjects) => {
 		if (!exists) {
 			console.log("oldProjects[i].id", oldProjects[i].id);
 			//删除项目文件夹
-			// deleteFolderInApp('_doc/' + FILE_NAMING.projectsFolder(username) +
-			// 	'/' + oldProjects[i].id)
+			deleteFolderInApp('_doc/' + FILE_NAMING.projectsFolder(username) +
+				'/' + oldProjects[i].id)
 			oldProjects.splice(i, 1); // 删除不存在的项目
 		}
 	}
@@ -154,8 +159,28 @@ const filtProjects = (oldProjects, newProjects) => {
 		console.log("判断项目", newProject.name)
 		if (!exists) {
 			console.log("添加新项目", newProject.name)
-			oldProjects.push(newProject); // 添加新的项目
+			//修改更新时间，使其一定触发后续更新
+			const newProjectCopy = {
+				...newProject
+			};
+			newProjectCopy.updateTime = "different"
+			oldProjects.push(newProjectCopy); // 添加新的项目
+			// await getNewProject(newProject.id, token, username)
 		}
+	}
+}
+
+const getNewProject = async (projectId, token, username) => {
+	const buildings = await getBuildingIdByProjectId(projectId, token, username);
+	console.log("拥有的buildings", buildings);
+	for (const building of buildings) {
+		const buildingId = building.buildingId;
+		// console.log('开始获取桥梁卡片数据:', buildingId);
+		await propertyRequest(buildingId, token, username);
+		// console.log('开始获取历史病害数据:', buildingId);
+		await diseaseRequest(buildingId, token, username);
+		// console.log('开始获取桥梁构件数据:', buildingId);
+		await getStructureInfoByBuildingId(buildingId, token, username);
 	}
 }
 
