@@ -35,7 +35,7 @@
 							</view>
 						</view>
 					</view>
-					<image class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
+					<image class="image-icon" :src="getImage" mode="aspectFit"></image>
 				</view>
 			</view>
 		</uni-swipe-action-item>
@@ -76,14 +76,20 @@
           </view>
         </view>
       </view>
-      <image class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
+      <image class="image-icon" :src="getImage" mode="aspectFit"></image>
     </view>
   </view>
 
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue';
+import {ref, watch, onMounted, computed} from 'vue';
+import {readDiseaseImages} from "@/utils/readJsonNew";
+import {userStore} from "@/store/index";
+import {idStore} from "@/store/idStorage";
+
+const userInfo = userStore();
+const idStorageInfo = idStore();
 
 // 声明props
 const props = defineProps({
@@ -253,6 +259,15 @@ const swipeChange = (e) => {
 		emit('swipe-opened', props.item.id);
 	}
 };
+
+const getImage = computed(() => {
+  if(props.item.images && props.item.images.length > 0){
+    return readDiseaseImages(userInfo.username, idStorageInfo.buildingId, props.item.images[0]);
+  }else{
+    return '/static/image/disease.png';
+  }
+});
+
 </script>
 
 <style scoped>

@@ -798,7 +798,7 @@
 	// 保存构件名称的父亲，即picker的第二级
 	const parentObjectName = ref(''); // 默认值
 	// 保存构件名称的第一级，即picker的第一级 //上部结构、下部结构、桥面系、附属设施
-	const grandObjectName = ref('');
+	// const grandObjectName = ref('');
 	// 部件类型列表picker中的第二级 - 动态生成
 	const biObjectNameOptions = ref([]);
 	// 缺损类型列表 - 动态生成
@@ -1744,8 +1744,9 @@
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 		const currentId = options?.id;
+    const grandObjectName = diseaseInformationRef.value.component.grandObjectName
 
-		if (!currentId || !grandObjectName.value) {
+		if (!currentId || !grandObjectName) {
 			uni.showToast({
 				title: '无法获取当前病害信息',
 				icon: 'none'
@@ -1755,7 +1756,7 @@
 
 		// 使用uni.$emit发送获取同类型病害列表的请求
 		uni.$emit('getDiseasesOfType', {
-			type: grandObjectName.value,
+      grandObjectName: grandObjectName,
 			currentId: currentId,
 			callback: (diseaseList) => {
 				if (!diseaseList || diseaseList.length === 0) {
@@ -1767,7 +1768,7 @@
 				}
 
 				// 过滤掉已删除的病害
-				const validDiseases = diseaseList.filter(item => !item.isDelete);
+				const validDiseases = diseaseList.filter(item => item.commitType != 2);
 
 				// 找到当前病害的索引
 				const currentIndex = validDiseases.findIndex(item => String(item.id) === String(
@@ -1797,8 +1798,9 @@
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 		const currentId = options?.id;
+    const grandObjectName = diseaseInformationRef.value.component.grandObjectName
 
-		if (!currentId || !grandObjectName.value) {
+		if (!currentId || !grandObjectName) {
 			uni.showToast({
 				title: '无法获取当前病害信息',
 				icon: 'none'
@@ -1808,7 +1810,7 @@
 
 		// 使用uni.$emit发送获取同类型病害列表的请求
 		uni.$emit('getDiseasesOfType', {
-			type: grandObjectName.value,
+      grandObjectName: grandObjectName,
 			currentId: currentId,
 			callback: (diseaseList) => {
 				if (!diseaseList || diseaseList.length === 0) {
@@ -1820,7 +1822,7 @@
 				}
 
 				// 过滤掉已删除的病害
-				const validDiseases = diseaseList.filter(item => !item.isDelete);
+				const validDiseases = diseaseList.filter(item => item.commitType != 2);
 
 				// 找到当前病害的索引
 				const currentIndex = validDiseases.findIndex(item => String(item.id) === String(

@@ -498,17 +498,17 @@
 
 		// 添加获取同类型病害列表的事件监听
 		uni.$on('getDiseasesOfType', (data) => {
-			if (!data || !data.type || !data.callback) {
+			if (!data || !data.grandObjectName || !data.callback) {
 				console.error('获取同类型病害列表参数不完整');
 				return;
 			}
 
 			// 过滤出同类型的病害列表
 			const filteredList = diseaseList.value.filter(item =>
-				item.component?.grandObjectName === data.type
+				item.component?.grandObjectName === data.grandObjectName
 			);
 
-			console.log(`获取${data.type}类型的病害列表，共${filteredList.length}条`);
+			console.log(`获取${data.grandObjectName}类型的病害列表，共${filteredList.length}条`);
 
 			// 通过回调函数返回结果
 			data.callback(filteredList);
