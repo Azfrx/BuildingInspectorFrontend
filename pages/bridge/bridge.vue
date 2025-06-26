@@ -181,19 +181,19 @@
 				});
 			}
 		} catch (error) {
-      // 离线登录逻辑
-      const allUsers = await readUserFolders();
-      for (const user of allUsers) {
-        const hadUsernameArrBySplit = user.split('-');
-        const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
-        if (hadUsername === userInfo.username) {
-          //已存在此用户 去读旧数据
-          console.log("已存在此用户", user);
-          userInfo.setHadUsername(user); // 设置已存在的用户名到store
-          console.log("已存入用户：", userInfo.hadUsername);
-          break;
-        }
-      }
+			// 离线登录逻辑
+			const allUsers = await readUserFolders();
+			for (const user of allUsers) {
+				const hadUsernameArrBySplit = user.split('-');
+				const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
+				if (hadUsername === userInfo.username) {
+					//已存在此用户 去读旧数据
+					console.log("已存在此用户", user);
+					userInfo.setHadUsername(user); // 设置已存在的用户名到store
+					console.log("已存入用户：", userInfo.hadUsername);
+					break;
+				}
+			}
 			console.log('当前无网络，离线模式，读取本地数据', error)
 			uni.showToast({
 				title: '当前无网络，离线模式登录',
@@ -219,16 +219,16 @@
 		}
 	};
 
-  function readUserFolders() {
-    return new Promise((resolve, reject) => {
-      plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
-        entry.createReader().readEntries((entries) => {
-          const folders = entries.filter(e => e.isDirectory);
-          resolve(folders.map(f => f.name));
-        }, reject);
-      }, reject);
-    });
-  }
+	function readUserFolders() {
+		return new Promise((resolve, reject) => {
+			plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+				entry.createReader().readEntries((entries) => {
+					const folders = entries.filter(e => e.isDirectory);
+					resolve(folders.map(f => f.name));
+				}, reject);
+			}, reject);
+		});
+	}
 
 	// 添加计算属性
 	const filteredProjects = computed(() => {
