@@ -178,6 +178,8 @@ import { async } from 'rxjs';
 
 	//初始化数据
 	const init = async () => {
+		console.log('=== init 函数开始执行 ===');
+		
 		// 确保TaskBridgeId已经从URL参数中获取
 		if (bridgeIdFromURL.value) {
 			TaskBridgeId.value = bridgeIdFromURL.value;
@@ -197,9 +199,16 @@ import { async } from 'rxjs';
 		// console.log("add后的数据",modifiedData);
 		//读取完整数据
 		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
+		console.log("最终读取的structureData.value:", structureData.value);
 		
 		// 初始化resultData
 		resultData.value = structureData.value;
+		console.log("初始化后的resultData.value:", resultData.value);
+		
+		// 检查初始警告状态
+		console.log('准备调用 checkAllWarnings...');
+		checkAllWarnings();
+		console.log('checkAllWarnings 调用完成');
 	};
 	// 计算第二个侧边栏的数据
 	const secondLevelItems = computed(() => {
@@ -265,7 +274,6 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
 		console.log('确认后数据已保存到本地:', resultData.value);
 
-		confirmPopup.value.close();
 
 		// 显示确认成功提示
 		uni.showToast({
@@ -333,14 +341,8 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		// 更新数据
 		setObject(userInfo.username, TaskBridgeId.value, data)
 		
-		// 强制更新视图
-		structureData.value = {
-			...structureData.value,
-			data: {
-				...structureData.value.data,
-				children: data.children
-			}
-		}
+		// 强制更新视图 - 直接使用data而不是嵌套结构
+		structureData.value = data;
 		
 		// 同步更新resultData
 		resultData.value = structureData.value;
@@ -421,10 +423,6 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 		console.log(`所有节点的count总和: ${totalCount}`);
 		console.log('更新后的resultData:', resultData.value);
-	};
-
-	const closeConfirmPopup = () => {
-		confirmPopup.value.close();
 	};
 
 	const changeTab = (index) => {
@@ -704,15 +702,12 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		// 如果是第三层节点
 		if (node.diseaseNumber !== undefined && node.count !== undefined) {
 			hasWarning = node.diseaseNumber > node.count;
+			console.log(`第三层节点 ${node.name}: diseaseNumber=${node.diseaseNumber}, count=${node.count}, hasWarning=${hasWarning}`);
 		}
 		// 如果是第一层或第二层节点
 		else if (node.children) {
 			hasWarning = node.children.some(child => hasWarningInChildren(child));
-		}
-		
-		// 如果发现任何警告，更新 structureNumberInfo.status
-		if (hasWarning) {
-			structureNumberInfo.status = true;
+			console.log(`父节点 ${node.name}: 子节点检查完成, hasWarning=${hasWarning}`);
 		}
 		
 		return hasWarning;
@@ -720,18 +715,36 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 	// 添加一个函数来检查整个数据结构是否有警告
 	const checkAllWarnings = () => {
-		if (!structureData.value?.data?.children) return;
+		console.log('=== checkAllWarnings 函数被调用 ===');
+		// 尝试不同的数据结构路径
+		let childrenData = null;
+		if (structureData.value?.children) {
+			childrenData = structureData.value.children;
+			console.log('使用 structureData.value.children');
+		} else if (structureData.value?.data?.children) {
+			childrenData = structureData.value.data.children;
+			console.log('使用 structureData.value.data.children');
+		} else {
+			console.log('checkAllWarnings: 找不到 children 数据');
+			return;
+		}
+		
+		console.log('开始检查警告状态，当前structureNumberInfo.status:', structureNumberInfo.status);
 		
 		// 重置状态
 		structureNumberInfo.status = false;
 		
 		// 检查所有第一层节点
-		const hasAnyWarning = structureData.value.data.children.some(node => hasWarningInChildren(node));
+		const hasAnyWarning = childrenData.some(node => {
+			const hasWarning = hasWarningInChildren(node);
+			console.log(`检查节点 ${node.name}: hasWarning = ${hasWarning}`);
+			return hasWarning;
+		});
 		
-		// 如果没有发现任何警告，确保状态为 false
-		if (!hasAnyWarning) {
-			structureNumberInfo.status = false;
-		}
+		// 设置最终状态
+		structureNumberInfo.status = hasAnyWarning;
+		
+		console.log(`警告检查完成: hasAnyWarning = ${hasAnyWarning}, 最终structureNumberInfo.status = ${structureNumberInfo.status}`);
 	};
 
 	onMounted(async () => {
@@ -950,37 +963,6 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 	.confirm-button-container {
 		margin-left: auto;
-	}
-
-	.confirmPopup-content {
-		padding: 20rpx 10rpx;
-		background-color: #fff;
-		border-radius: 15rpx;
-		width: 300rpx;
-		text-align: center;
-	}
-
-	.confirmPopup-text {
-		font-size: 20rpx;
-		color: #333;
-		margin-bottom: 20rpx;
-		display: block;
-	}
-
-	.confirmPopup-buttons {
-		display: flex;
-		justify-content: space-around;
-	}
-
-	.confirmPopup-buttons-cancel {
-		background: #ffffff;
-		border: 1px solid #0F4687;
-		color: #0F4687;
-	}
-
-	.confirmPopup-buttons-confirm {
-		background-color: #0F4687;
-		color: #fff;
 	}
 
 	.action-buttons {
