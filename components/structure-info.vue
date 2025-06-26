@@ -1096,30 +1096,22 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 	.popup-buttons {
 		display: flex;
-		justify-content: center;
+		justify-content: space-between;
 		gap: 20rpx;
 		margin-top: 30rpx;
 		padding: 0 30rpx 30rpx;
 	}
 
 	.popup-btn {
-		width: 70rpx;
+		flex: 1 1 0;
+		min-width: 80rpx;
 		height: 50rpx;
 		font-size: 20rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
 		border-radius: 10rpx;
-	}
-
-
-	.popup-buttons .popup-btn:first-child {
-		margin-left: 120rpx;
-	}
-
-
-	.popup-buttons .popup-btn:nth-child(2) {
-		margin-left: -80rpx;
+		margin: 0;
 	}
 
 	.cancel-btn {
