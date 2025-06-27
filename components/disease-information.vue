@@ -69,7 +69,7 @@
 					</picker>
 					<text class="picker-icon">&gt;</text>
 
-					<view class="component-name-input" v-show="typePicker === '其他'">
+					<view class="component-name-input" v-show="typePicker.split('#')[1] === '其他'">
 						<input class="component-code-input" v-model="typeInput" placeholder="请输入病害类型"
 							placeholder-style="color: #CCCCCC;" @click.stop />
 						<view class="clear-input" @click.stop="typeInput = '' ">×</view>
@@ -601,7 +601,7 @@
 		}
 
 		// 更新缺损类型选项 - 只提取名称用于显示
-		diseaseTypeOptions.value = allDiseaseTypes.map(item => item.name);
+		diseaseTypeOptions.value = allDiseaseTypes.map(item => `${item.code}#${item.name}`);
 
 		console.log('最终缺损类型选项更新为:', diseaseTypeOptions.value);
 
@@ -610,7 +610,7 @@
 			const index = diseaseTypeOptions.value.findIndex(item => item === type.value);
 			if (index !== -1) {
 				typeindex.value = index;
-				typePicker.value = type.value;
+				typePicker.value = diseaseTypeOptions.value[index];
 				console.log('成功设置病害类型索引:', index);
 			} else {
 				// 如果在新选项中找不到当前病害类型，可能是自定义输入的
@@ -690,15 +690,16 @@
 		const {
 			diseaseTypeInput: diseaseTypeInput,
 			diseaseType: diseaseType,
+			diseaseTypeCode: diseaseTypeCode,
       diseaseTypeId: diseaseTypeId
 		} = diseaseObj;
 		// diseaseTypeOptions.value = typeOptions || [];
 		// const index = diseaseTypeOptions.value.findIndex(item => item === diseaseType);
     const index = allDiseaseTypes.findIndex(item => item.id === diseaseTypeId);
-		typePicker.value = diseaseType;
+		typePicker.value = diseaseTypeCode + '#' + diseaseType;
 		typeindex.value = index;
 		// 如果选择了"其他"，清空typeInput，等待用户输入
-		if (typePicker.value === '其他') {
+		if (typePicker.value.split('#')[1] == '其他') {
 			typeInput.value = diseaseTypeInput;
 		} else {
 			// 否则直接更新type值
@@ -730,26 +731,25 @@
 			typeindex.value = index;
 
 			// 如果选择了"其他"，清空typeInput，等待用户输入
-			if (typePicker.value === '其他') {
+			if (typePicker.value.split('#')[1] == '其他') {
 				typeInput.value = '';
 			} else {
 				// 否则直接更新type值
 				type.value = typePicker.value;
 
 				// 获取选中的病害类型对象
-				// const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
-        const selectedDiseaseType = allDiseaseTypes[typeindex.value];
-        console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
+				const selectedDiseaseType = allDiseaseTypes[typeindex.value];
+				console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
 				if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
 					// 根据maxScale和minScale更新评定标度选项
 					const minScale = parseInt(selectedDiseaseType.minScale) || 1;
 					const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
 
-          uni.$emit('changeScale', {
-            minScale: minScale,
-            maxScale: maxScale
-          });
-          uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
+					uni.$emit('changeScale', {
+						minScale: minScale,
+						maxScale: maxScale
+					});
+					uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
 					console.log('更新评定标度范围:', minScale, '至', maxScale);
 				}
 			}
@@ -760,7 +760,7 @@
 
 	// 监听typePicker和typeInput的变化，更新type
 	watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
-		if (newTypePicker === '其他' && newTypeInput) {
+		if (newTypePicker.split('#')[1] && newTypePicker.split('#')[1].trim() === '其他' && newTypeInput) {
 			type.value = newTypeInput;
 		} else {
 			type.value = newTypePicker;
