@@ -87,18 +87,22 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
 			}
 		}
 	} catch (error) {
-		//本地文件夹为空 全量下载
-		await setProject(username, projectResponse);
-		//所有的项目 每一个项目去获取它下面的任务
-		for (const project of projects) {
-			const projectId = project.id;
-			const buildings = await getBuildingIdByProjectId(projectId, token, username);
-			for (const building of buildings) {
-				const buildingId = building.buildingId;
-				await propertyRequest(buildingId, token, username);
-				await diseaseRequest(buildingId, token, username);
-				await getStructureInfoByBuildingId(buildingId, token, username);
-			}
+		await downloadAllData(username, projectResponse, projects, token)
+	}
+}
+
+export async function downloadAllData(username, projectResponse, projects, token) {
+	//本地文件夹为空 全量下载
+	await setProject(username, projectResponse);
+	//所有的项目 每一个项目去获取它下面的任务
+	for (const project of projects) {
+		const projectId = project.id;
+		const buildings = await getBuildingIdByProjectId(projectId, token, username);
+		for (const building of buildings) {
+			const buildingId = building.buildingId;
+			await propertyRequest(buildingId, token, username);
+			await diseaseRequest(buildingId, token, username);
+			await getStructureInfoByBuildingId(buildingId, token, username);
 		}
 	}
 }

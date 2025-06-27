@@ -1,5 +1,6 @@
 <template>
 	<view class='System'>
+    <LoadingMask v-if="loading" text="正在更新线上完整数据..." />
 		<view class="main">
 			<view class="titleBar">
 				<image src="/static/image/user1.png" class="avatar"></image>
@@ -27,9 +28,15 @@
 		<view class="divider"></view>
 		<view class="versionData">
 			<view class="versionTitle">当前数据包版本</view>
-			<view class="versionNumber">UD-250618-inspector1@znjc</view>
+			<view class="versionNumber">{{currentDataVersion}}</view>
 		</view>
-		<view class="divider"></view>
+    <view class="divider"></view>
+    <view class="inData">
+      <view class="inDataTitle">更新在线数据</view>
+      <button size="default" type="default" class="functionButton" hover-class="is-hover"
+              @click="handleUnpdate">确认更新</button>
+    </view>
+<!--		<view class="divider"></view>
 		<view class="inData">
 			<view class="inDataTitle">本地数据导入</view>
 			<button size="default" type="default" class="functionButton" hover-class="is-hover"
@@ -40,7 +47,7 @@
 			<view class="outDataTitle">本地数据导出</view>
 			<button size="default" type="default" class="functionButton" hover-class="is-hover"
 				@click="handleLogin">数据导出</button>
-		</view>
+		</view>-->
 		<view class="divider"></view>
 		<view class="versionApp">
 			<view class="appTitle">当前应用版本</view>
@@ -78,19 +85,21 @@
 </template>
 
 <script setup>
-	import {
-		onMounted,
-		ref
-	} from 'vue';
-	import {
-		userStore
-	} from '@/store/index.js';
+import {
+  computed,
+  onMounted,
+  ref
+} from 'vue';
 	import {
 		onLoad
 	} from '@dcloudio/uni-app'
 	import {
 		async
 	} from 'rxjs';
+  import {
+    userStore
+  } from '@/store/index.js'
+  import {downloadAllData, getAllDataAndSetToLocal} from '@/utils/request'
 	import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 
 	// 获取用户信息
@@ -115,10 +124,51 @@
 		passwordPopup.value.open();
 	};
 
+  const currentDataVersion = computed(() => {
+    return `UD-${versionNumber.value.split('.')[2]}-${userInfo.username}`
+    })
+
 	// 关闭修改密码弹窗
 	const closePasswordModal = () => {
 		passwordPopup.value.close();
 	};
+
+  const infoData = ref({});
+  const loading = ref(false)
+
+  const handleUnpdate = async () => {
+    infoData.value = userInfo.infoData
+
+    try {
+      if (infoData.value.token) {
+        const getData = async () => {
+          const projectResponse = await uni.request({
+            url: 'http://60.205.13.156:8090/api/project',
+            method: 'GET',
+            header: {
+              'Authorization': `${infoData.value.token}`
+            }
+          });
+          console.log('获取到的项目数据:', projectResponse.data);
+          //所有项目信息
+          const allProjects = projectResponse.data.data.projects || [];
+          loading.value = true
+          await downloadAllData(userInfo.username, projectResponse.data, allProjects, infoData.value.token)
+        };
+        await getData();
+      } else {
+        console.error('未获取到有效token');
+        uni.showToast({
+          title: '登录信息无效，请重新登录',
+          icon: 'none'
+        });
+      }
+    }catch (error){
+      console.error('获取数据失败:', error);
+    }finally {
+      loading.value = false
+    }
+  };
 
 	// 退出登录
 	const handleLogout = async () => {
