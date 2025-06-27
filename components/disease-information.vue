@@ -704,22 +704,22 @@
 		} else {
 			// 否则直接更新type值
 			type.value = typePicker.value;
-			// 获取选中的病害类型对象
-			// const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
-      const selectedDiseaseType = allDiseaseTypes.find(item => item.id === diseaseTypeId);
-			if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
-				// 根据maxScale和minScale更新评定标度选项
-				const minScale = parseInt(selectedDiseaseType.minScale) || 1;
-				const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
-
-				uni.$emit('changeScale', {
-					minScale: minScale,
-					maxScale: maxScale
-				});
-				console.log('更新评定标度范围:', minScale, '至', maxScale);
-        uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
-			}
 		}
+    // 获取选中的病害类型对象
+    // const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
+    const selectedDiseaseType = allDiseaseTypes.find(item => item.id === diseaseTypeId);
+    if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
+      // 根据maxScale和minScale更新评定标度选项
+      const minScale = parseInt(selectedDiseaseType.minScale) || 1;
+      const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
+
+      uni.$emit('changeScale', {
+        minScale: minScale,
+        maxScale: maxScale
+      });
+      console.log('更新评定标度范围:', minScale, '至', maxScale);
+      uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
+    }
 		console.log('病害类型选择变更为:', typePicker.value);
 	}
 
@@ -737,7 +737,7 @@
 				// 否则直接更新type值
 				type.value = typePicker.value;
 
-				// 获取选中的病害类型对象
+				/*// 获取选中的病害类型对象
 				const selectedDiseaseType = allDiseaseTypes[typeindex.value];
 				console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
 				if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
@@ -751,9 +751,23 @@
 					});
 					uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
 					console.log('更新评定标度范围:', minScale, '至', maxScale);
-				}
+				}*/
 			}
+      // 获取选中的病害类型对象
+      const selectedDiseaseType = allDiseaseTypes[typeindex.value];
+      console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
+      if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
+        // 根据maxScale和minScale更新评定标度选项
+        const minScale = parseInt(selectedDiseaseType.minScale) || 1;
+        const maxScale = parseInt(selectedDiseaseType.maxScale) || 4;
 
+        uni.$emit('changeScale', {
+          minScale: minScale,
+          maxScale: maxScale
+        });
+        uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
+        console.log('更新评定标度范围:', minScale, '至', maxScale);
+      }
 			console.log('病害类型选择变更为:', typePicker.value);
 		}
 	}

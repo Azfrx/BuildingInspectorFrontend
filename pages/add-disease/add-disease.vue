@@ -1969,6 +1969,10 @@
 					// area: item.area || '',
 					deformation: item.deformation || '',
 					angle: item.angle || '',
+          areaLength: item.areaLength,
+          areaWidth: item.areaWidth,
+          numeratorRatio: item.numeratorRatio,
+          denominatorRatio: item.denominatorRatio,
 					// percentage: item.percentage || '',
 
 					// 范围模式字段设为空
@@ -1980,14 +1984,10 @@
 					heightDepthRangeEnd: '',
 					crackWidthRangeStart: '',
 					crackWidthRangeEnd: '',
-					areaLength: '',
-					areaWidth: '',
 					deformationRangeStart: '',
 					deformationRangeEnd: '',
 					angleRangeStart: '',
 					angleRangeEnd: '',
-					numeratorRatio: '',
-					denominatorRatio: '',
 
 					// 公共字段
 					/*crackType: crackType.value[item.crackTypeIndex]
