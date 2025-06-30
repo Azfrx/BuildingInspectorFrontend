@@ -357,8 +357,8 @@ export async function readDiseaseCommit(userName, buildingId, yearId) {
 			return false;
 		}
 
-		// 使用some方法检查是否有任何病害的commit_type为1（未提交）
-		const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commitType === 1);
+		// 使用some方法检查是否有任何病害的commit_type为1（未提交）或为2（需要删除）
+		const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commitType === 1 || disease.commitType === 2);
 
 		console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
 		return hasUncommittedDiseases;

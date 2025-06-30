@@ -405,16 +405,21 @@
 			}
 
 			if (responseData && responseData.code === 0) {
-				// 提交成功，将所有commit_type为1的病害记录更新为0
+				// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
 				let hasChanges = false;
-
-				// 遍历diseaseList，将commit_type为1的记录更新为0
-				diseaseList.value.forEach(disease => {
+				const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
+				// 如果有记录被过滤掉，标记为有变化
+				if (filteredDiseaseList.length !== diseaseList.value.length) {
+					hasChanges = true;
+				}
+				
+				filteredDiseaseList.forEach(disease => {
 					if (disease.commitType === 1) {
 						disease.commitType = 0;
 						hasChanges = true;
 					}
 				});
+				diseaseList.value = filteredDiseaseList;
 
 				// 如果有更改，保存更新后的数据
 				if (hasChanges) {
@@ -435,6 +440,7 @@
 						console.error('更新病害提交状态失败:', error);
 					}
 				}
+
 
 				uni.showToast({
 					title: '提交成功',
