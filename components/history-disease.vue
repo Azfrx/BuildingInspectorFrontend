@@ -267,34 +267,21 @@ const copyDisease = () => {
     return newDisease;
   });
   // 一次性添加所有选中的病害
-  Promise.all(copiedDiseases.map(disease => {
-    return new Promise((resolve) => {
-      // disease.nature =  '旧病害';
-      disease.commitType = 1;
-      disease.localId = new Date().getTime();
-      disease.projectId = idStorageInfo.projectId;
-      // 发送添加新病害事件给current-disease组件
-      console.log('发送添加新病害事件给current-disease组件:', disease);
-      uni.$emit('addNewDisease', disease);
-      resolve();
-    });
-  }))
-  .then(() => {
-    // 显示成功提示
-    uni.showToast({
-      title: `成功复制${copiedDiseases.length}条病害到当前病害`,
-      icon: 'success'
-    });
-    // 退出选择模式
-    toggleSelectMode();
-  })
-  .catch(error => {
-    console.error('复制病害失败:', error);
-    uni.showToast({
-      title: '复制失败，请重试',
-      icon: 'none'
-    });
+  copiedDiseases.forEach(disease => {
+    disease.commitType = 1;
+    disease.localId = new Date().getTime();
+    disease.projectId = idStorageInfo.projectId;
+    // 发送添加新病害事件给current-disease组件
+    console.log('发送添加新病害事件给current-disease组件:', disease);
+    uni.$emit('addNewDisease', disease);
   });
+  // 显示成功提示
+  uni.showToast({
+    title: `成功复制${copiedDiseases.length}条病害`,
+    icon: 'success'
+  });
+  // 退出选择模式
+  toggleSelectMode();
 };
 
 // 添加格式化日期时间的辅助函数

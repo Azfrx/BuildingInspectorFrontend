@@ -176,6 +176,21 @@ import { async } from 'rxjs';
 		}
 	});
 
+  // 接收父组件传递的数据加载状态
+  const props = defineProps({
+    activeTabTop: {
+      type: Number,
+      default: 0
+    }
+  });
+
+  watch(() => props.activeTabTop, async (newval, oldval) => {
+    if (newval == 4) {
+      console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+      await init();
+    }
+  })
+
 	//初始化数据
 	const init = async () => {
 		console.log('=== init 函数开始执行 ===');
@@ -702,12 +717,12 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		// 如果是第三层节点
 		if (node.diseaseNumber !== undefined && node.count !== undefined) {
 			hasWarning = node.diseaseNumber > node.count;
-			console.log(`第三层节点 ${node.name}: diseaseNumber=${node.diseaseNumber}, count=${node.count}, hasWarning=${hasWarning}`);
+			// console.log(`第三层节点 ${node.name}: diseaseNumber=${node.diseaseNumber}, count=${node.count}, hasWarning=${hasWarning}`);
 		}
 		// 如果是第一层或第二层节点
 		else if (node.children) {
 			hasWarning = node.children.some(child => hasWarningInChildren(child));
-			console.log(`父节点 ${node.name}: 子节点检查完成, hasWarning=${hasWarning}`);
+			// console.log(`父节点 ${node.name}: 子节点检查完成, hasWarning=${hasWarning}`);
 		}
 		
 		return hasWarning;

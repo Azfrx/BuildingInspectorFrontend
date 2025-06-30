@@ -151,10 +151,10 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('新增病害数据保存成功');
-			uni.showToast({
+			/*uni.showToast({
 				title: '保存成功',
 				icon: 'success'
-			});
+			});*/
       await checkUncommittedDiseases() ;
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
