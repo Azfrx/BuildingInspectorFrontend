@@ -272,6 +272,7 @@ const copyDisease = () => {
       // disease.nature =  '旧病害';
       disease.commitType = 1;
       disease.localId = new Date().getTime();
+      disease.projectId = idStorageInfo.projectId;
       // 发送添加新病害事件给current-disease组件
       console.log('发送添加新病害事件给current-disease组件:', disease);
       uni.$emit('addNewDisease', disease);
