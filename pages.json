@@ -101,6 +101,20 @@
 
 				}
 			}
+		},
+		{
+			"path" : "components/myFilePicker/upload-image",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "components/myFilePicker/upload-file",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
 		}
 	],
 	"globalStyle": {

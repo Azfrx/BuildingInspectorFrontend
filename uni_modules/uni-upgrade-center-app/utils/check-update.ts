@@ -15,9 +15,11 @@ export default function () : Promise<UniUpgradeCenterResult> {
 	return new Promise<UniUpgradeCenterResult>((resolve, reject) => {
 		callCheckVersion().then(async (uniUpgradeCenterResult) => {
 			// NOTE uni-app x 3.96 解构有问题
+			console.log("uniUpgradeCenterResult", uniUpgradeCenterResult);
 			const code = uniUpgradeCenterResult.code
 			const message = uniUpgradeCenterResult.message
 			const url = uniUpgradeCenterResult.url // 安装包下载地址
+			
         // 此处逻辑仅为示例，可自行编写
         if (code > 0) {
           // 腾讯云获取下载链接

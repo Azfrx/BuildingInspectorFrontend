@@ -605,14 +605,17 @@
 					<view class="head-text">
 						病害附件信息
 					</view>
-				</view>
+				</view> 
 
 				<view class="part-UploadImage">
 					<view class="part-title">上传图片</view>
 					<view class="upload-view">
-						<uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
+						<!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
 							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
-							:auto-upload="false"></uni-file-picker>
+							:auto-upload="false"></uni-file-picker> -->
+						<myFilePicker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
+							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
+							:auto-upload="false"></myFilePicker>
 					</view>
 				</view>
 
@@ -779,6 +782,7 @@
 	import DiseaseInformation from "@/components/disease-information.vue";
 	import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
 	import DiseaseDescriptionPart from '@/components/disease-descriptionPart.vue';
+	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 
 	const diseaseInformationRef = ref(null);
 	const diseaseQuantitativeDataRef = ref(null);
@@ -1448,7 +1452,7 @@
 				biObjectName: data.component.biObject.name,
 				parentObjectName: data.component.parentObjectName,
 				grandObjectName: data.component.grandObjectName,
-        biObjectInput: data.biObjectName,
+				biObjectInput: data.biObjectName,
 			})
 		}
 
@@ -1476,8 +1480,8 @@
 			uni.$emit('setDiseaseType', {
 				diseaseTypeInput: data.type,
 				diseaseType: data.diseaseType.name,
-        diseaseTypeCode: data.diseaseType.code,
-        diseaseTypeId: data.diseaseType.id
+				diseaseTypeCode: data.diseaseType.code,
+				diseaseTypeId: data.diseaseType.id
 			})
 			console.log('成功设置病害类型:', data.type);
 		}
@@ -1572,13 +1576,13 @@
 			uni.$emit('setDescriptionByEmit', data.description)
 		}
 
-    if(data.crackType){
-      uni.$emit('setCrackType', data.crackType)
-    }
+		if (data.crackType) {
+			uni.$emit('setCrackType', data.crackType)
+		}
 
-    if(data.developmentTrend){
-      uni.$emit('setDevelopmentTrend', data.developmentTrend)
-    }
+		if (data.developmentTrend) {
+			uni.$emit('setDevelopmentTrend', data.developmentTrend)
+		}
 
 		// 处理diseaseDetails数据
 		if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
@@ -1599,8 +1603,8 @@
 					// 最小值
 					lengthRangeStart: detail.lengthRangeStart || '',
 					lengthRangeEnd: detail.lengthRangeEnd || '',
-/*					widthRangeStart: detail.widthRangeStart || '',
-					widthRangeEnd: detail.widthRangeEnd || '',*/
+					/*					widthRangeStart: detail.widthRangeStart || '',
+										widthRangeEnd: detail.widthRangeEnd || '',*/
 					heightDepthRangeStart: detail.heightDepthRangeStart || '',
 					heightDepthRangeEnd: detail.heightDepthRangeEnd || '',
 					crackWidthRangeStart: detail.crackWidthRangeStart || '',
@@ -1623,9 +1627,9 @@
 					reference2LocationEnd: detail.reference2LocationEnd || '',
 
 					// 裂缝特征和趋势 - 查找索引值
-/*					crackTypeIndex: findIndexByText(crackType.value, detail
-						.crackType) || 0,
-					developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0*/
+					/*					crackTypeIndex: findIndexByText(crackType.value, detail
+											.crackType) || 0,
+										developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0*/
 				};
 
 				// 更新数据列表
@@ -1640,12 +1644,12 @@
 						heightDepth: detail.heightDepth || '',
 						crackWidth: detail.crackWidth || '',
 						areaLength: detail.areaLength || '',
-            areaWidth: detail.areaWidth || '',
+						areaWidth: detail.areaWidth || '',
 						deformation: detail.deformation || '',
 						angle: detail.angle || '',
 						// percentage: detail.percentage || '',
-            numeratorRatio: detail.numeratorRatio || '',
-            denominatorRatio: detail.denominatorRatio || '',
+						numeratorRatio: detail.numeratorRatio || '',
+						denominatorRatio: detail.denominatorRatio || '',
 
 
 						// 参考面信息
@@ -1657,10 +1661,10 @@
 						reference2LocationEnd: detail.reference2LocationEnd || '',
 
 						// 裂缝特征和趋势 - 查找索引值
-/*						crackTypeIndex: findIndexByText(crackType.value, detail
-							.crackType) || 0,
-						developmentTrendIndex: findIndexByText(developmentTrend.value, detail
-							.developmentTrend) || 0*/
+						/*						crackTypeIndex: findIndexByText(crackType.value, detail
+													.crackType) || 0,
+												developmentTrendIndex: findIndexByText(developmentTrend.value, detail
+													.developmentTrend) || 0*/
 					};
 				});
 
@@ -1670,7 +1674,7 @@
 			uni.$emit('setDiseaseDataList', diseaseDataList.value)
 			console.log('成功设置diseaseDetails数据, 条目数量:', diseaseDataList.value.length);
 		}
-    /*else {
+		/*else {
 			// 如果没有diseaseDetails数据，创建默认的单条记录
 			// 检查老的数据格式并转换
 			const defaultData = {
@@ -1745,7 +1749,7 @@
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 		const currentId = options?.id;
-    const grandObjectName = diseaseInformationRef.value.component.grandObjectName
+		const grandObjectName = diseaseInformationRef.value.component.grandObjectName
 
 		if (!currentId || !grandObjectName) {
 			uni.showToast({
@@ -1757,7 +1761,7 @@
 
 		// 使用uni.$emit发送获取同类型病害列表的请求
 		uni.$emit('getDiseasesOfType', {
-      grandObjectName: grandObjectName,
+			grandObjectName: grandObjectName,
 			currentId: currentId,
 			callback: (diseaseList) => {
 				if (!diseaseList || diseaseList.length === 0) {
@@ -1799,7 +1803,7 @@
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
 		const currentId = options?.id;
-    const grandObjectName = diseaseInformationRef.value.component.grandObjectName
+		const grandObjectName = diseaseInformationRef.value.component.grandObjectName
 
 		if (!currentId || !grandObjectName) {
 			uni.showToast({
@@ -1811,7 +1815,7 @@
 
 		// 使用uni.$emit发送获取同类型病害列表的请求
 		uni.$emit('getDiseasesOfType', {
-      grandObjectName: grandObjectName,
+			grandObjectName: grandObjectName,
 			currentId: currentId,
 			callback: (diseaseList) => {
 				if (!diseaseList || diseaseList.length === 0) {
@@ -1929,8 +1933,8 @@
 				// 范围模式字段
 				lengthRangeStart: rangeData.lengthRangeStart || '',
 				lengthRangeEnd: rangeData.lengthRangeEnd || '',
-/*				widthRangeStart: rangeData.widthRangeStart || '',
-				widthRangeEnd: rangeData.widthRangeEnd || '',*/
+				/*				widthRangeStart: rangeData.widthRangeStart || '',
+								widthRangeEnd: rangeData.widthRangeEnd || '',*/
 				heightDepthRangeStart: rangeData.heightDepthRangeStart || '',
 				heightDepthRangeEnd: rangeData.heightDepthRangeEnd || '',
 				crackWidthRangeStart: rangeData.crackWidthRangeStart || '',
@@ -1969,10 +1973,10 @@
 					// area: item.area || '',
 					deformation: item.deformation || '',
 					angle: item.angle || '',
-          areaLength: item.areaLength,
-          areaWidth: item.areaWidth,
-          numeratorRatio: item.numeratorRatio,
-          denominatorRatio: item.denominatorRatio,
+					areaLength: item.areaLength,
+					areaWidth: item.areaWidth,
+					numeratorRatio: item.numeratorRatio,
+					denominatorRatio: item.denominatorRatio,
 					// percentage: item.percentage || '',
 
 					// 范围模式字段设为空
@@ -2015,9 +2019,11 @@
 		// 创建符合要求的病害数据对象
 		return {
 			createBy: "",
-			createTime: openMode.value === 'create' ? formatDateTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.createTime,
+			createTime: openMode.value === 'create' ? formatDateTime() : JSON.parse(decodeURIComponent(
+				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.createTime,
 			updateTime: formatDateTime(),
-			id: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.id,
+			id: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(getCurrentPages()[
+				getCurrentPages().length - 1].$page?.options.data))?.id,
 			diseaseType: diseaseTypeObj ? {
 				id: diseaseTypeObj.id,
 				code: diseaseTypeObj.code || '',
@@ -2038,8 +2044,8 @@
 			participateAssess: diseaseDescriptionPart.value.participateAssess,
 			biObjectId: diseaseInformationRef.value.component.biObject.id,
 			projectId: idStorageInfo.projectId,
-      crackType: diseaseQuantitativeDataRef.value.crackType,
-      developmentTrend: diseaseDescriptionPart.value.developmentTrend,
+			crackType: diseaseQuantitativeDataRef.value.crackType,
+			developmentTrend: diseaseDescriptionPart.value.developmentTrend,
 			biObjectName: diseaseInformationRef.value.getBiObjctName, //使用三级选择或输入框中的值
 			component: diseaseInformationRef.value.component,
 			/*{
@@ -2065,7 +2071,8 @@
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			commitType: 1, //0为已提交 1为未提交 2为删除
-			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
+			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
+				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
 		};
 	}
 
@@ -2091,7 +2098,7 @@
 				setTimeout(() => {
 					// 清空图片列表
 					fileList.value = [];
-          ADImgs.value = [];
+					ADImgs.value = [];
 					console.log('已清空图片列表，保留其他表单数据');
 
 					// 显示提示
@@ -2122,20 +2129,20 @@
 		// 如果是编辑模式，获取原始数据中的图片和AD图片
 		let originalImages = [];
 		let originalADImages = [];
-    if(openMode.value === 'edit'){
-      if (options && options.data) {
-        try {
-          const originalData = JSON.parse(decodeURIComponent(options.data));
-          // 将相对路径转为绝对路径
-          originalImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
-              .images) || [];
-          originalADImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
-              .ADImgs) || [];
-        } catch (error) {
-          console.error('解析原始数据失败:', error);
-        }
-      }
-    }
+		if (openMode.value === 'edit') {
+			if (options && options.data) {
+				try {
+					const originalData = JSON.parse(decodeURIComponent(options.data));
+					// 将相对路径转为绝对路径
+					originalImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+						.images) || [];
+					originalADImages = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+						.ADImgs) || [];
+				} catch (error) {
+					console.error('解析原始数据失败:', error);
+				}
+			}
+		}
 		// 获取当前文件列表中的图片URL
 		const currentImageUrls = fileList.value.map(img => img.url);
 		const currentADImages = ADImgs.value.map(img => img.src);

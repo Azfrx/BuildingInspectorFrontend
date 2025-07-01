@@ -66,7 +66,7 @@ module.exports = async (event, context) => {
 
 	if (appid && appVersion && wgtVersion && platform) {
 		const collection = uniCloud.database().collection(app_version_db_name);
-
+		
 		const record = await collection.where({
 				appid,
 				platform,
