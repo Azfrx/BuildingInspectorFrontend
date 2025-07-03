@@ -58,6 +58,9 @@
 		setDisease,
 		setObject
 	} from '../utils/writeNew.js';
+  import {
+    isPhotoCommmitted, setFrontPhotoCommited
+  } from '../utils/frontPhoto.js';
 	import {
 		userStore
 	} from "@/store";
@@ -87,12 +90,13 @@
 
   const structureStoreInfo = structureStore();
 
-	watch(() => props.activeTabTop, (newval, oldval) => {
-		if (newval == 0) {
-			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
-			readCurrentYearDiseaseDataByJson()
-		}
-	})
+	watch(() => props.activeTabTop, async (newval, oldval) => {
+    if (newval == 0) {
+      console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+      await readCurrentYearDiseaseDataByJson()
+      await checkUncommittedDiseases()
+    }
+  })
 
 	//
 	const readCurrentYearDiseaseDataByJson = async () => {
@@ -440,7 +444,9 @@
 						console.error('更新病害提交状态失败:', error);
 					}
 				}
+        await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
 
+        submitButtonEnabled.value = false;
 
 				uni.showToast({
 					title: '提交成功',
@@ -471,8 +477,11 @@
 		try {
 			const currentYear = new Date().getFullYear().toString();
 			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      const isPhotoCommited = await isPhotoCommmitted(userInfo.username, idStorageInfo.buildingId);
+      const hasUncommmittedPhoto = isPhotoCommited ? false : true;
 			console.log('检查未提交病害结果:', hasUncommittedDiseases);
-			submitButtonEnabled.value = hasUncommittedDiseases;
+      console.log('检查未提交图片结果:', hasUncommmittedPhoto);
+			submitButtonEnabled.value = hasUncommittedDiseases || hasUncommmittedPhoto ;
 		} catch (error) {
 			console.error('检查未提交病害出错:', error);
 			submitButtonEnabled.value = false;

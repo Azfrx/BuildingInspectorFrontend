@@ -18,9 +18,9 @@
 							左正面照
 						</view>
 					</view>
-					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontLeft"
+					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontLeft"
 						file-mediatype="image" mode="grid" @select="frontLeftSelect" :auto-upload="false" @delete="deletePhoto('frontLeft')"
-						@success="onUploadSuccess('frontLeft')"></uni-file-picker>
+						@success="onUploadSuccess('frontLeft')"></my-file-picker>
 				</view>
 
 				<view class="photo-item">
@@ -29,9 +29,9 @@
 							右正面照
 						</view>
 					</view>
-					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontRight"
+					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontRight"
 						file-mediatype="image" mode="grid" @select="frontRightSelect" :auto-upload="false" @delete="deletePhoto('frontRight')"
-						@success="onUploadSuccess('frontRight')"></uni-file-picker>
+						@success="onUploadSuccess('frontRight')"></my-file-picker>
 				</view>
 			</view>
 
@@ -42,9 +42,9 @@
 							左侧面照
 						</view>
 					</view>
-					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideLeft"
+					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideLeft"
 						file-mediatype="image" mode="grid" @select="sideLeftSelect" :auto-upload="false" @delete="deletePhoto('sideLeft')"
-						@success="onUploadSuccess('sideLeft')"></uni-file-picker>
+						@success="onUploadSuccess('sideLeft')"></my-file-picker>
 				</view>
 
 				<view class="photo-item">
@@ -53,9 +53,9 @@
 							右侧面照
 						</view>
 					</view>
-					<uni-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideRight"
+					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideRight"
 						file-mediatype="image" mode="grid" @select="sideRightSelect" :auto-upload="false" @delete="deletePhoto('sideRight')"
-						@success="onUploadSuccess('sideRight')"></uni-file-picker>
+						@success="onUploadSuccess('sideRight')"></my-file-picker>
 				</view>
 			</view>
 
@@ -88,6 +88,8 @@
 		saveBridgeImages,
 		setFrontPhoto
 	} from "@/utils/writeNew";
+  import {setFrontPhotoUnCommited} from "@/utils/frontPhoto";
+  import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 
 	// 接收父组件传递的数据加载状态
 	const props = defineProps({
@@ -224,6 +226,8 @@
 			console.log('保存的图片json数据:', savePhotoData);
 
 			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
+      // await setFrontPhotoUnCommited(userInfo.username, idStorageInfo.buildingId);
+      isSubmit.value = false;
 
 			// 隐藏加载提示
 			uni.hideLoading();
@@ -234,7 +238,7 @@
 				duration: 1500
 			});
 
-			isSubmit.value = true; // 设置为已提交状态
+			// isSubmit.value = true; // 设置为已提交状态
 		} catch (error) {
 			// 隐藏加载提示
 			uni.hideLoading();
@@ -270,6 +274,7 @@
         data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
             .value.map(img => img.url));
       }
+      data.commitType = 0;
       return data;
     }catch (error) {
       console.error('front-photo.json不存在，需要创建json', error);
@@ -277,7 +282,8 @@
         frontLeft: [],
         frontRight: [],
         sideLeft: [],
-        sideRight: []
+        sideRight: [],
+        commitType: 0
       };
       if(type == 'frontLeft'){
         data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
@@ -399,7 +405,9 @@
       await removeDiseaseImage(imagesPaths);
       data.sideRight = [];
     }
+    data.commitType = 0;
     await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
+    isSubmit.value = false;
 	};
 
 	const onUploadSuccess = async (type) => {
@@ -416,7 +424,7 @@
 			duration: 1500
 		});
 
-		isSubmit.value = true; // 设置为已提交状态
+		// isSubmit.value = true; // 设置为已提交状态
 	};
 
 	const readBridgeImageByJson = async () => {
@@ -464,12 +472,13 @@
 				// 保存原始图片数据
 				// originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
 			}
+      if(data.commitType) isSubmit.value = data.commitType ? true : false;
 
 			// 如果有数据，设置为已提交状态
-			if (data.frontLeft?.length || data.frontRight?.length || data.sideLeft?.length || data.sideRight
+			/*if (data.frontLeft?.length || data.frontRight?.length || data.sideLeft?.length || data.sideRight
 				?.length) {
 				isSubmit.value = true;
-			}
+			}*/
 
 		} catch (error) {
 			console.error('读取正立面照失败:', error);

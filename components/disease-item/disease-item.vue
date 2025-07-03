@@ -35,7 +35,7 @@
 							</view>
 						</view>
 					</view>
-					<image class="image-icon" :src="getImage" mode="aspectFit"></image>
+					<image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
 				</view>
 			</view>
 		</uni-swipe-action-item>
@@ -76,7 +76,7 @@
           </view>
         </view>
       </view>
-      <image class="image-icon" :src="getImage" mode="aspectFit"></image>
+      <image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
     </view>
   </view>
 
@@ -260,12 +260,16 @@ const swipeChange = (e) => {
 	}
 };
 
-const getImage = computed(() => {
+/*const getImage = computed(() => {
   if(props.item.images && props.item.images.length > 0){
     return readDiseaseImages(userInfo.username, idStorageInfo.buildingId, props.item.images[0]);
   }else{
     return '/static/image/disease.png';
   }
+});*/
+
+const hasImages = computed(() => {
+  return props.item.images && props.item.images.length > 0;
 });
 
 </script>

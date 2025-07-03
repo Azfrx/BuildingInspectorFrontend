@@ -14,7 +14,7 @@
 			<button class="button-next" @click="nextdisease">下一条</button>
 			<button class="button-delete" @click="deleteDisease">删除</button>
 			<button class="button-save" @click="copyAndAddDisease">复制并新增</button>
-			<button class="button-edit" @click="editDisease">编辑</button>
+			<button class="button-edit" @click="editDisease">保存</button>
 		</view>
 
 		<!-- 历史病害时不显示 -->
