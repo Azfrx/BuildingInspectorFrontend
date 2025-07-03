@@ -35,8 +35,10 @@
 
 <script setup>
 	import {
+		onMounted,
 		ref
 	} from 'vue';
+import checkUpdate from '../../uni_modules/uni-upgrade-center-app/utils/check-update';
 
 	const activeSection = ref('');
 
@@ -52,7 +54,9 @@
 			});
 		}
 	};
-
+	onMounted(() => {
+		checkUpdate();
+	});
 </script>
 
 <style lang="scss" scoped>

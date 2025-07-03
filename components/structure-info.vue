@@ -12,8 +12,8 @@
 		<view class="confirm-row">
 			<span class="confirm-text">结构信息状态：</span>
 			<span class="confirm-status"
-				:style="{color: Number(structureData?.status) === 3 ? '#333': '#f56c6c'}">
-				{{ Number(structureData?.status) === 3 ? '未锁定': '已锁定'}}
+				:style="{color: Number(structureData?.status) === 3 ? '#f56c6c': '#333'}">
+				{{ Number(structureData?.status) === 3 ? '已锁定': '未锁定'}}
 			</span>
 		</view>
 		<!-- 添加侧边栏 -->
@@ -70,7 +70,7 @@
 							<image src="/static/image/RightOutline.svg" class="rightarrow" />
 						</view>
 					</view>
-					<view class="action-buttons" v-if="selectedThirdIndex === index">
+					<view class="action-buttons" v-if="selectedThirdIndex === index && Number(structureData?.status) !== 3">
 						<button @click.stop="handleCancel()">取消</button>
 						<button @click.stop="handleEdit(index, item)">编辑</button>
 					</view>
@@ -302,6 +302,8 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		
 		// 检查所有警告状态
 		checkAllWarnings();
+		//更新编辑状态
+		structureNumberInfo.incrementIsEdit();
 	};
 	const warningFlag = () => {
 		const data = getObject(userInfo.username, TaskBridgeId.value)
@@ -472,6 +474,16 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 	};
 
 	const changeThirdTab = (index) => {
+		// 如果系统处于锁定状态，提示用户并不进行任何操作
+		if (Number(structureData.value?.status) === 3) {
+			uni.showToast({
+				title: '系统已锁定，无法编辑',
+				icon: 'none',
+				duration: 2000
+			});
+			return;
+		}
+		
 		// 如果点击的是当前选中的项，则取消选中
 		if (selectedThirdIndex.value === index) {
 			selectedThirdIndex.value = -1;
@@ -488,6 +500,16 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 	
 	const currentEditDisease = ref()
 	const handleEdit = (index, diseaseItem) => {
+		// 如果系统处于锁定状态，提示用户并不打开编辑弹窗
+		if (Number(structureData.value?.status) === 3) {
+			uni.showToast({
+				title: '系统已锁定，无法编辑',
+				icon: 'none',
+				duration: 2000
+			});
+			return;
+		}
+		
 		diseaseNumber.value = diseaseItem.diseaseNumber
 		currentEditDisease.value = diseaseItem
 		

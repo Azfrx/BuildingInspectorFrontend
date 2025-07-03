@@ -4,9 +4,10 @@ import { ref } from 'vue'
 export const structureStore = defineStore('count', () => {
   // 构件数量是否合法 字段为true表示存在异常
   const status = ref(false)
-  // 添加数据版本号 - 用于追踪数据变化
+  // 更新构件数量
   const dataVersion = ref(0)
-  
+  // 用来标记是否标记过
+  const isEdit = ref(0)
   const setStatus = (bool) => {
     status.value = bool
   }
@@ -15,11 +16,15 @@ export const structureStore = defineStore('count', () => {
   const incrementDataVersion = () => {
     dataVersion.value++
   }
-  
+  const incrementIsEdit = () => {
+    isEdit.value++
+  }
   return {
     status,
     dataVersion, // 导出版本号
+	isEdit,
     setStatus,
-    incrementDataVersion // 导出增加版本号的方法
+    incrementDataVersion, // 导出增加版本号的方法
+	incrementIsEdit
   }
 })
