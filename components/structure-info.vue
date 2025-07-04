@@ -203,6 +203,7 @@ import { async } from 'rxjs';
 		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
 		console.log("structureData.value ",structureData.value);
 		const modifiedData = await addFlagsAndDiseaseNumber(structureData.value,userInfo.username,TaskBridgeId.value);
+		modifiedData.Isedit = false;
 		console.log("添加字段后的数据",modifiedData);
 		setObject(userInfo.username,TaskBridgeId.value,modifiedData)
 		// incrementDiseaseNumber(modifiedData,4490)
@@ -284,6 +285,9 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 		// 不再提交数据到后端
 		// submitDataToBackend();
+
+		// 设置编辑标志为true
+		resultData.value.Isedit = true;
 
 		// 直接存储数据到本地
 		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
@@ -588,6 +592,9 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 			// 更新resultData中对应的count字段
 			updateResultData(originalItem);
+
+			// 设置编辑标志为true
+			resultData.value.Isedit = true;
 
 			// 打印所有第三层构件的name和count
 			console.log('所有第三层构件信息:');

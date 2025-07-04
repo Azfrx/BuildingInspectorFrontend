@@ -479,3 +479,12 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 		return false; // 出错时返回false
 	}
 }
+// 判断是否编辑过 
+ export async function isEdit(userName,buildingId){
+	 const data = await getObject(userName,buildingId);
+	 if(data.isEdit == true){
+		 return true;
+	 }else{
+		 return false;
+	 }
+ }
