@@ -34,6 +34,9 @@
 				<!-- 结构信息内容 -->
 				<structure-info :activeTabTop="activeTab"></structure-info>
 			</view>
+      <view v-show="activeTab === 5">
+        <current-photo :activeTabTop="activeTab"></current-photo>
+      </view>
 		</view>
 	</view>
 </template>
@@ -50,6 +53,7 @@
 		onMounted,
 		onUnmounted
 	} from 'vue';
+  import CurrentPhoto from "@/components/current-photo.vue";
 
 	// 定义导航标签
 	const tabs = ref([{
@@ -66,7 +70,10 @@
 		},
 		{
 			name: '结构信息',
-		}
+		},
+    {
+      name: '现状照'
+    }
 	]);
 
 	// 当前活动标签
@@ -81,8 +88,8 @@
 	const indicatorStyle = computed(() => {
 		const width = 100 / tabs.value.length;
 		return {
-			width: '50rpx', // 固定指示器宽度
-			left: `calc(${width * activeTab.value}% + ${width/2}% - 25px)`, // 将指示器居中
+			width: `${width * 0.6}%`, // 设置为标签宽度的60%
+			left: `calc(${width * activeTab.value}% + ${width/2}% - ${width * 0.3}%)`, // 将指示器居中
 			transform: 'none' // 移除transform
 		};
 	});
