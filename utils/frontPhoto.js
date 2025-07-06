@@ -15,6 +15,10 @@ export async function setFrontPhotoUnCommited(userName, buildingId){
     await setFrontPhoto(userName, buildingId, data);
 }
 export async function isPhotoCommmitted(userName, buildingId){
-    const data = await getFrontPhoto(userName, buildingId);
-    return data.commitType;
+    try{
+        const data = await getFrontPhoto(userName, buildingId);
+        return data.commitType;
+    }catch (e){
+        return 1;
+    }
 }
