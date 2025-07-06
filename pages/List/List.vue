@@ -67,6 +67,11 @@
 		<view class="no-result" v-if="filteredBridges.length === 0">
 			<text>未找到匹配的桥梁</text>
 		</view>
+		<!-- 测试页面 -->
+		<view class="testbutton">
+			<button @click="testButton">跳转test</button>
+		</view>
+		<!-- 测试页面 -->
 	</view>
 </template>
 
@@ -176,7 +181,11 @@
 			url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
 		});
 	}
-
+	const testButton = ()=>{
+		  uni.navigateTo({
+			url: `/pages/test/test?bridgeId=${bridge.buildingId}`
+		  });
+	}
 	// 根据搜索文本过滤桥梁列表
 	const filteredBridges = computed(() => {
 		if (!initTaskData.value || !initTaskData.value.data || !initTaskData.value.data.tasks) {

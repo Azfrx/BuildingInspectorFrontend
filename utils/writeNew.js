@@ -436,4 +436,19 @@ export function setFrontPhoto(userName, buildingId, data) {
     const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
     return setJsonData(path,  data);
 }
+export async function markObjectAsCommitted(userName, buildingId) {
+    try {
+        // 1. 读取现有object数据
+        const data = await getObject(userName, buildingId);
+        
+        // 2. 修改Iscommit标志
+        data.Iscommit = true;
+        
+        // 3. 写回修改后的数据
+        await setObject(userName, buildingId, data);
+        
+    } catch (error) {
+        throw new Error(`Commit operation failed: ${error.message}`);
+    }
+}
 

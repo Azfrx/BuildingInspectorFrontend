@@ -55,7 +55,12 @@
 			<button size="default" type="default" class="functionButton" hover-class="is-hover"
 				@click="onClickUpdate">版本更新</button>
 		</view>
-
+		<!-- 测试页面 -->
+		<view class="testbutton">
+			<button @click="testButton">跳转test</button>
+		</view>
+		<!-- 测试页面 -->
+		
 		<!-- 添加修改密码弹窗 -->
 		<uni-popup ref="passwordPopup" type="center">
 			<view class="password-popup-content">
@@ -135,7 +140,11 @@ import {
 
   const infoData = ref({});
   const loading = ref(false)
-
+  const testButton = ()=>{
+	  uni.navigateTo({
+	  	url: '/pages/test/test'
+	  });
+  }
   const handleUnpdate = async () => {
     infoData.value = userInfo.infoData
 
