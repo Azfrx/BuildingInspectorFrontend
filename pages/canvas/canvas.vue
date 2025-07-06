@@ -216,7 +216,7 @@
 	const kxbTemplateParam1 = ref({
 		logicalWidth: 8,
 		logicalHeight: 8,
-		unit: 'cm',
+		unit: 'm',
 	})
 	//空心板2
 	const kxbTemplateParam2 = ref({
@@ -283,7 +283,7 @@
 		bigBeamNumber: 36,
 		smallBeamNumber: 35,
 		bridgeFu: 'L',
-		unit: 'cm',
+		unit: 'm',
 	})
 	//桥梁2
 	const blmxlTemplateParam2 = ref({
@@ -292,7 +292,7 @@
 		bigBeamNumber: 36,
 		smallBeamNumber: 35,
 		bridgeFu: 'L',
-		unit: 'cm',
+		unit: 'm',
 	})
 	//桥梁3
 	const blmxlTemplateParam3 = ref({
@@ -301,7 +301,7 @@
 		bigBeamNumber: 36,
 		smallBeamNumber: 35,
 		bridgeFu: 'L',
-		unit: 'cm',
+		unit: 'm',
 	})
 	//桥梁4
 	const blmxlTemplateParam4 = ref({
@@ -310,7 +310,7 @@
 		bigBeamNumber: 36,
 		smallBeamNumber: 35,
 		bridgeFu: 'L',
-		unit: 'cm',
+		unit: 'm',
 	})
 	//圆桩墩
 	const yzdTemplateParam1 = ref({

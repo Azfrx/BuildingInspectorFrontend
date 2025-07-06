@@ -8,7 +8,7 @@
 function drawKxbTemplate1(ctx, {
 	logicalWidth = 8,
 	logicalHeight = 8,
-	unit = 'cm',
+	unit = 'm',
 	qt = 0
 }) {
 	const systemInfo = uni.getSystemInfoSync();
