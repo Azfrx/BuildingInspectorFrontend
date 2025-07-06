@@ -275,13 +275,13 @@
 		align-items: center;
 		justify-content: center;
 		position: absolute;
-		top: 3px;
-		right: 3px;
+		top: 0px;
+		right: 0px;
 		height: 26px;
 		width: 26px;
 		border-radius: 50%;
 		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 2;
+		z-index: 10;
 		transform: rotate(-45deg);
 	}
 
