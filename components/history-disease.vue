@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick, watch, onMounted } from 'vue';
+import { ref, reactive, computed, nextTick, watch, onMounted, onUnmounted } from 'vue';
 import { getDisease , getHistoryYear} from '../utils/readJsonNew.js';
 import {saveDiseaseImages, setDisease} from "@/utils/writeNew";
 import {userStore} from "@/store";
@@ -236,50 +236,94 @@ const copyDisease = () => {
     });
     return;
   }
-  // 获取所有年份中选中的病害Add commentMore actions
-  const selectedDiseases = [];
+  
+  // 按年份分组获取选中的病害
+  const selectedDiseasesByYear = {};
   Object.keys(diseaseMap.value).forEach(year => {
     const yearDiseases = diseaseMap.value[year] || [];
     const selected = yearDiseases.filter(item => selectedItems.value.includes(item.id));
-    selectedDiseases.push(...selected);
+    if (selected.length > 0) {
+      selectedDiseasesByYear[year] = selected;
+    }
   });
-  if (selectedDiseases.length === 0) {
+  
+  if (Object.keys(selectedDiseasesByYear).length === 0) {
     uni.showToast({
       title: '获取选中病害数据失败',
       icon: 'none'
     });
     return;
   }
+  
   // 处理选中的病害，更新时间戳等信息
   const currentTime = new Date();
   const currentYear = currentTime.getFullYear().toString();
-  const copiedDiseases = selectedDiseases.map(disease => {
-    // 创建病害的深拷贝，避免修改原始数据
-    const newDisease = JSON.parse(JSON.stringify(disease));
-    // 生成新的ID
-    newDisease.id = new Date().getTime() + Math.floor(Math.random() * 1000);
-    // 更新创建时间和更新时间为当前时间
-    const formattedTime = formatDateTime(currentTime);
-    newDisease.createTime = formattedTime;
-    newDisease.updateTime = formattedTime;
-    // 确保病害没有删除标记
-    delete newDisease.isDelete;
-    return newDisease;
+  const allCopiedDiseases = [];
+  
+  // 遍历每个年份的选中病害
+  Object.keys(selectedDiseasesByYear).forEach(year => {
+    const yearDiseases = selectedDiseasesByYear[year];
+    const copiedDiseases = yearDiseases.map(disease => {
+      // 创建病害的深拷贝，避免修改原始数据
+      const newDisease = JSON.parse(JSON.stringify(disease));
+      // 生成新的ID和localId
+      const localId = new Date().getTime() + Math.floor(Math.random() * 1000);
+      newDisease.id = localId;
+      newDisease.localId = localId;
+      // 更新创建时间和更新时间为当前时间
+      const formattedTime = formatDateTime(currentTime);
+      newDisease.createTime = formattedTime;
+      newDisease.updateTime = formattedTime;
+      newDisease.commitType = 3;
+      newDisease.projectId = idStorageInfo.projectId;
+      // 确保新复制出来的病害的copyId字段为空
+      newDisease.copyId = [];
+      newDisease.historyDiseaseId = disease.id;
+      
+      // 将原始病害添加到allCopiedDiseases以便发送到current-disease
+      allCopiedDiseases.push(newDisease);
+      
+      return {
+        originalDisease: disease,
+        newDisease: newDisease
+      };
+    });
+    
+    // 更新原始病害，添加copyId字段
+    const originalDiseases = diseaseMap.value[year] || [];
+    const updatedDiseases = originalDiseases.map(disease => {
+      const matchedCopy = copiedDiseases.find(item => item.originalDisease.id === disease.id);
+      if (matchedCopy) {
+        // 如果病害已有copyId字段且是数组，则添加新的localId
+        if (disease.copyId && Array.isArray(disease.copyId)) {
+          disease.copyId.push(matchedCopy.newDisease.localId);
+        } else {
+          // 否则创建新的copyId数组
+          disease.copyId = [matchedCopy.newDisease.localId];
+        }
+      }
+      return disease;
+    });
+    
+    // 保存更新后的病害数据到对应年份
+    setDisease(userInfo.username, idStorageInfo.buildingId, year, { 
+      year: year, 
+      diseases: updatedDiseases 
+    });
   });
-  // 一次性添加所有选中的病害
-  copiedDiseases.forEach(disease => {
-    disease.commitType = 1;
-    disease.localId = new Date().getTime();
-    disease.projectId = idStorageInfo.projectId;
-    // 发送添加新病害事件给current-disease组件
+  
+  // 发送添加新病害事件给current-disease组件
+  allCopiedDiseases.forEach(disease => {
     console.log('发送添加新病害事件给current-disease组件:', disease);
     uni.$emit('addNewDisease', disease);
   });
+  
   // 显示成功提示
   uni.showToast({
-    title: `成功复制${copiedDiseases.length}条病害`,
+    title: `成功复制${allCopiedDiseases.length}条病害`,
     icon: 'success'
   });
+  
   // 退出选择模式
   toggleSelectMode();
 };
@@ -381,7 +425,64 @@ onMounted(() => {
   loadDiseaseData();
   // 初始化所有类型为展开状态
   expandAllTypes();
+  
+  // 监听删除病害事件
+  uni.$on('deleteHistoryDiseaseReference', handleDeleteHistoryDiseaseReference);
 });
+
+// 组件卸载时移除事件监听
+onUnmounted(() => {
+  uni.$off('deleteHistoryDiseaseReference');
+});
+
+// 处理删除病害引用
+const handleDeleteHistoryDiseaseReference = async (data) => {
+  if (!data || !data.historyDiseaseId || !data.localId) {
+    console.error('删除历史病害引用数据无效:', data);
+    return;
+  }
+  
+  console.log('接收到删除历史病害引用事件:', data);
+  const { historyDiseaseId, localId } = data;
+  
+  // 遍历所有年份查找对应的历史病害
+  let foundDisease = false;
+  
+  for (const year of Object.keys(diseaseMap.value)) {
+    const yearDiseases = diseaseMap.value[year] || [];
+    const diseaseIndex = yearDiseases.findIndex(disease => disease.id === historyDiseaseId);
+    
+    if (diseaseIndex !== -1) {
+      const disease = yearDiseases[diseaseIndex];
+      
+      // 检查并更新 copyId 字段
+      if (disease.copyId && Array.isArray(disease.copyId)) {
+        const copyIdIndex = disease.copyId.indexOf(localId);
+        if (copyIdIndex !== -1) {
+          // 从 copyId 数组中移除该 localId
+          disease.copyId.splice(copyIdIndex, 1);
+          
+          // 更新数据
+          diseaseMap.value[year] = [...yearDiseases];
+          
+          // 保存更新后的数据
+          await setDisease(userInfo.username, idStorageInfo.buildingId, year, {
+            year: year,
+            diseases: yearDiseases
+          });
+          
+          console.log(`已从历史病害 ID:${historyDiseaseId} 的 copyId 中移除 localId:${localId}`);
+          foundDisease = true;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (!foundDisease) {
+    console.warn(`未找到 ID 为 ${historyDiseaseId} 的历史病害或该病害没有引用 localId:${localId}`);
+  }
+};
 </script>
 
 <style scoped>

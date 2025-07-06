@@ -193,6 +193,21 @@
         await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].biObjectId);
         structureStoreInfo.incrementDataVersion();
 			}
+			
+			// 检查是否有历史病害引用，如果有则发送事件通知 history-disease 组件
+			const diseaseToDelete = diseaseList.value[index];
+			if (diseaseToDelete.historyDiseaseId && diseaseToDelete.localId) {
+				console.log('发送删除历史病害引用事件:', {
+					historyDiseaseId: diseaseToDelete.historyDiseaseId,
+					localId: diseaseToDelete.localId || diseaseToDelete.id
+				});
+				
+				// 发送事件给 history-disease 组件
+				uni.$emit('deleteHistoryDiseaseReference', {
+					historyDiseaseId: diseaseToDelete.historyDiseaseId,
+					localId: diseaseToDelete.localId || diseaseToDelete.id
+				});
+			}
 
 			// 将commit_type置为2表示已删除，而不是直接从数组中移除
 			diseaseList.value[index].commitType = 2;
@@ -214,7 +229,7 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('删除标记保存成功');
-      await checkUncommittedDiseases() ;
+      await checkUncommittedDiseases();
 		} catch (error) {
 			console.error('保存删除失败:', error);
 			uni.showToast({

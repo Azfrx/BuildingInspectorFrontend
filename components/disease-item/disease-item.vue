@@ -35,6 +35,9 @@
 							</view>
 						</view>
 					</view>
+					<view class="status" v-if="item.commitType === 3" style="background-color: #FFD24A; color: #ffffff;">未完成</view>
+					<view class="status" v-else-if="item.commitType === 1" style="background-color: #FF6430; color: #ffffff;">未提交</view>
+					<view class="status" v-else-if="item.commitType === 0" style="background-color: #00B578; color: #ffffff;">已提交</view>
 					<image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
 				</view>
 			</view>
@@ -76,6 +79,7 @@
           </view>
         </view>
       </view>
+      <view class="status" v-if="item.copyId && item.copyId.length > 0" style="background-color: #00B578; color: #ffffff;">已复制</view>
       <image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
     </view>
   </view>
@@ -396,6 +400,17 @@ const hasImages = computed(() => {
 	display: inline-block;
 }
 
+.status {
+	position: absolute;
+	top: 0;
+	right: 45rpx;
+	font-size: 14rpx;
+	color: #999999;
+	padding: 2rpx 6rpx;
+	background-color: #f5f5f5;
+	border-radius: 4rpx;
+}
+
 .image-icon {
 	position: absolute;
 	top: 0;
@@ -403,4 +418,5 @@ const hasImages = computed(() => {
 	width: 25rpx;
 	height: 25rpx;
 }
+
 </style>

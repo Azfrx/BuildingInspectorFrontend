@@ -140,11 +140,23 @@
 					</template>
 					<!-- 普通模式 -->
 					<template v-else>
-						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
+						<view class="quantitative-data-right-value length-input">
+							<input class="quantitative-data-right-value-input" placeholder="请填写L1" type="number"
 								v-model="diseaseData.length1">
 							<!--							<view class="clear-input" @click="diseaseData.length1 = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length1 = ''">
+							</image>
+						</view>
+						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 3 || crackTypeIndex === 4">
+							<input class="quantitative-data-right-value-input" placeholder="请填写L2" type="number"
+								v-model="diseaseData.length2">
+							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length2 = ''">
+							</image>
+						</view>
+						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 4">
+							<input class="quantitative-data-right-value-input" placeholder="请填写L3" type="number"
+								v-model="diseaseData.length3">
+							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length3 = ''">
 							</image>
 						</view>
 					</template>
@@ -583,6 +595,11 @@
 		selectedColumn.value = emitSelectColumn || 0
 		showColumns.value = selectedColumn.value.toString(2).padStart(8, '0').split('').reverse();
 		console.log('showColumns:', showColumns.value)
+    if (crackTypeIndex.value === 5) {
+      showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
+    } else {
+      showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
+    }
 	}
 
 	const setCrackType = (crack) => {
@@ -672,6 +689,8 @@
 				denominatorRatio: firstItem?.denominatorRatio || '',
 				// 保留原有字段为空
 				length1: '',
+        length2: '',
+        length3: '',
 				// width: '',
 				heightDepth: '',
 				crackWidth: '',
@@ -701,6 +720,8 @@
 							reference2LocationEnd: existingData[i].reference2LocationEnd || '',
 							// 使用Min值作为普通模式的值
 							length1: existingData[i].lengthRangeStart || '',
+              length2: existingData[i].lengthRangeEnd || '',
+              length3: existingData[i].lengthRangeEnd || '',
 							// width: existingData[i].widthRangeStart || '',
 							heightDepth: existingData[i].heightDepthRangeStart || '',
 							crackWidth: existingData[i].crackWidthRangeStart || '',
@@ -729,6 +750,8 @@
 						reference2LocationStart: '',
 						reference2LocationEnd: '',
 						length1: '',
+            length2: '',
+            length3: '',
 						// width: '',
 						crackWidth: '',
 						heightDepth: '',
@@ -1142,4 +1165,7 @@
 	.input-text {
 		font-size: 18rpx;
 	}
+  .length-input{
+    margin-left: 10rpx;
+  }
 </style>

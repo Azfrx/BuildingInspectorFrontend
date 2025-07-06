@@ -5,6 +5,7 @@
 		<view class="button-group-add" v-if="openMode === 'create'">
 			<button class="button-savetonext" @click="savetonextdisease">保存并复制到下一条</button>
 			<button class="button-save" @click="savedisease">保存</button>
+      <button class="button-staging" @click="stagingDisease">暂存</button>
 			<button class="button-cancle" @click="canceldisease">取消</button>
 		</view>
 
@@ -14,6 +15,7 @@
 			<button class="button-next" @click="nextdisease">下一条</button>
 			<button class="button-delete" @click="deleteDisease">删除</button>
 			<button class="button-save" @click="copyAndAddDisease">复制并新增</button>
+      <button class="button-staging" @click="stagingDisease">暂存</button>
 			<button class="button-edit" @click="editDisease">保存</button>
 		</view>
 
@@ -1640,6 +1642,8 @@
 					return {
 						useRangeMode: false,
 						length1: detail.length1 || '',
+            length2: detail.length2 || '',
+            length3: detail.length3 || '',
 						// width: detail.width || '',
 						heightDepth: detail.heightDepth || '',
 						crackWidth: detail.crackWidth || '',
@@ -1922,6 +1926,8 @@
 			diseaseDetails.push({
 				// 普通模式字段设为空
 				length1: '',
+        length2: '',
+        length3: '',
 				// width: '',
 				heightDepth: '',
 				crackWidth: '',
@@ -1967,6 +1973,8 @@
 				diseaseDetails.push({
 					// 普通模式字段
 					length1: item.length1 || '',
+          length2: item.length2 || '',
+          length3: item.length3 || '',
 					// width: item.width || '',
 					heightDepth: item.heightDepth || '',
 					crackWidth: item.crackWidth || '',
@@ -2073,6 +2081,8 @@
 			commitType: 1, //0为已提交 1为未提交 2为删除
 			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
+      historyDiseaseId: openMode.value === 'create' ? null : JSON.parse(decodeURIComponent(
+				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.historyDiseaseId,
 		};
 	}
 
@@ -2266,6 +2276,52 @@
 				});
 			});
 	};
+
+  const stagingDisease = () => {
+    // 调用方法创建病害数据对象
+    const diseaseData = createDiseaseData();
+
+    console.log('将要暂存的病害diseaseData', diseaseData);
+
+    // 验证数据完整性
+    if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+      console.log('数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置');
+      uni.hideLoading();
+      uni.showToast({
+        title: '请填写必填项',
+        icon: 'none'
+      });
+      return;
+    }
+    diseaseData.commitType = 3;
+
+    // 显示加载提示
+    uni.showLoading({
+      title: '暂存中...'
+    });
+
+    // 使用公共方法保存图片和更新病害数据
+    saveImagesAndUpdateDisease(diseaseData)
+        .then(() => {
+          uni.hideLoading();
+          uni.showToast({
+            title: '暂存成功',
+            icon: 'success'
+          });
+
+          // 返回上一页
+          setTimeout(() => {
+            uni.navigateBack();
+          }, 500);
+        })
+        .catch(error => {
+          uni.hideLoading();
+          uni.showToast({
+            title: '暂存失败',
+            icon: 'none'
+          });
+        });
+  }
 
 	const canceldisease = () => {
 		uni.navigateBack({
@@ -3080,6 +3136,18 @@
 		align-items: center;
 		/* 垂直居中 */
 	}
+  .button-staging{
+    height: 36rpx;
+    font-size: 16px;
+    background-color: #0F4687;
+    color: #ffffff;
+    margin: 0 10rpx;
+    display: flex;
+    /* 设置为 flex 布局 */
+    justify-content: center;
+    /* 水平居中 */
+    align-items: center;
+  }
 
 	/*picker公用*/
 	.picker-content {
