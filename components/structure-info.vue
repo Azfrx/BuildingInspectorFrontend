@@ -203,7 +203,6 @@ import { async } from 'rxjs';
 		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
 		console.log("structureData.value ",structureData.value);
 		const modifiedData = await addFlagsAndDiseaseNumber(structureData.value,userInfo.username,TaskBridgeId.value);
-		modifiedData.Isedit = false;
 		modifiedData.Iscommit = false;
 		console.log("添加字段后的数据",modifiedData);
 		setObject(userInfo.username,TaskBridgeId.value,modifiedData)
@@ -803,10 +802,6 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 </script>
 
 <style scoped>
-	.active {
-		background-color: #0F4687;
-		/* 选中项背景色 */
-	}
 	.active {
 		background-color: #0F4687;
 		/* 选中项背景色 */

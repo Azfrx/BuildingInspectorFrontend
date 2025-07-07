@@ -480,9 +480,9 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 	}
 }
 // 判断是否编辑过 
- export async function isEdit(userName,buildingId){
+ export async function isCommit(userName,buildingId){
 	 const data = await getObject(userName,buildingId);
-	 if(data.isEdit == true){
+	 if(data.Iscommit == true){
 		 return true;
 	 }else{
 		 return false;
