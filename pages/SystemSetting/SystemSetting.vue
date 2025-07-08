@@ -99,7 +99,7 @@ import {
   import {
     userStore
   } from '@/store/index.js'
-  import {downloadAllData, getAllDataAndSetToLocal} from '@/utils/request'
+  import {downloadProjects, getAllDataAndSetToLocal} from '@/utils/request'
 	import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 
 	// 获取用户信息
@@ -398,7 +398,6 @@ import {
 		console.log('当前版本号:', currentVersion);
 		
 		// 如果需要恢复原有检查逻辑，可以将下面注释取消
-		/*
 		try {
 			// 调用检查更新方法
 			checkUpdate()
@@ -444,7 +443,6 @@ import {
 				duration: 2000
 			});
 		}
-		*/
 	}
 
 	//版本比较函数
