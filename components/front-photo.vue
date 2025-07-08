@@ -492,6 +492,14 @@
 			originalSideLeft.value = [];
 			originalSideRight.value = [];*/
 			isSubmit.value = false;
+      const data = {
+        frontLeft: [],
+        frontRight: [],
+        sideLeft: [],
+        sideRight: [],
+        commitType: 0
+      };
+      await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
 		}
 	};
 

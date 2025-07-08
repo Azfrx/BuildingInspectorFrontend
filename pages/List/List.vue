@@ -56,6 +56,8 @@
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
+						<view class="status" v-if="bridge.isUncommitted" style="background-color: #FF6430; color: #ffffff;">未提交</view>
+						<view class="status" v-else style="background-color: #00B578; color: #ffffff;">已提交</view>
 						<text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
 						<text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
@@ -91,6 +93,7 @@
 	import {
 		idStore
 	} from '../../store/idStorage'
+	import { checkUncommittedBuilding } from '@/utils/isBuildingCommited.js'
 	// 返回上一页
 	const back = () => {
 		uni.navigateBack()
@@ -132,6 +135,15 @@
 		getURLParams();
 		projectInfo.value = await getProject(userInfo.username)
 		initTaskData.value = await getTask(userInfo.username, projectId.value)
+		
+		// 检查每个桥梁的提交状态
+		if (initTaskData.value && initTaskData.value.data && initTaskData.value.data.tasks) {
+			for (let bridge of initTaskData.value.data.tasks) {
+				console.log("检查bridge", bridge)
+				bridge.isUncommitted = await checkUncommittedBuilding(userInfo.username, bridge.buildingId);
+			}
+		}
+		
 		console.log("project", projects.value);
 		console.log("task", tasks.value)
 	};
@@ -361,12 +373,21 @@
 					flex-direction: column;
 					align-items: flex-end;
 					margin-right: 8px;
+					position: relative;
 				}
 
 				.bridge-length {
 					font-size: 18rpx;
 					color: #333;
 					display: block;
+					margin-bottom: 4px;
+				}
+
+				.status {
+					font-size: 14rpx;
+					padding: 2rpx 6rpx;
+					background-color: #f5f5f5;
+					border-radius: 4rpx;
 					margin-bottom: 4px;
 				}
 

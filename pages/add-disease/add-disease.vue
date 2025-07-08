@@ -5,7 +5,7 @@
 		<view class="button-group-add" v-if="openMode === 'create'">
 			<button class="button-savetonext" @click="savetonextdisease">保存并复制到下一条</button>
 			<button class="button-save" @click="savedisease">保存</button>
-      <button class="button-staging" @click="stagingDisease">暂存</button>
+			<button class="button-staging" @click="stagingDisease">暂存</button>
 			<button class="button-cancle" @click="canceldisease">取消</button>
 		</view>
 
@@ -14,12 +14,19 @@
 			<button class="button-before" @click="beforedisease">上一条</button>
 			<button class="button-next" @click="nextdisease">下一条</button>
 			<button class="button-delete" @click="deleteDisease">删除</button>
-			<button class="button-save" @click="copyAndAddDisease">复制并新增</button>
-      <button class="button-staging" @click="stagingDisease">暂存</button>
-			<button class="button-edit" @click="editDisease">保存</button>
+			<button class="button-copyAndTonext" @click="copyAndAddDisease">保存并复制到下一条</button>
+			<button class="button-save" @click="editDisease">保存</button>
+			<button class="button-staging" @click="stagingDisease">暂存</button>
+			<button class="button-cancle" @click="canceldisease">取消</button>
 		</view>
 
-		<!-- 历史病害时不显示 -->
+		<!-- 历史病害时显示 -->
+		<view class="button-group-edit" v-else-if="openMode === 'history'">
+			<button class="button-before" @click="beforeHistoryDisease">上一条</button>
+			<button class="button-next" @click="nextHistoryDisease">下一条</button>
+			<button class="button-copyHistoryDisease" @click="copyHistoryDisease">复制为新病害</button>
+			<button class="button-cancle" @click="canceldisease">取消</button>
+		</view>
 
 
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
@@ -607,7 +614,7 @@
 					<view class="head-text">
 						病害附件信息
 					</view>
-				</view> 
+				</view>
 
 				<view class="part-UploadImage">
 					<view class="part-title">上传图片</view>
@@ -1642,8 +1649,8 @@
 					return {
 						useRangeMode: false,
 						length1: detail.length1 || '',
-            length2: detail.length2 || '',
-            length3: detail.length3 || '',
+						length2: detail.length2 || '',
+						length3: detail.length3 || '',
 						// width: detail.width || '',
 						heightDepth: detail.heightDepth || '',
 						crackWidth: detail.crackWidth || '',
@@ -1926,8 +1933,8 @@
 			diseaseDetails.push({
 				// 普通模式字段设为空
 				length1: '',
-        length2: '',
-        length3: '',
+				length2: '',
+				length3: '',
 				// width: '',
 				heightDepth: '',
 				crackWidth: '',
@@ -1973,8 +1980,8 @@
 				diseaseDetails.push({
 					// 普通模式字段
 					length1: item.length1 || '',
-          length2: item.length2 || '',
-          length3: item.length3 || '',
+					length2: item.length2 || '',
+					length3: item.length3 || '',
 					// width: item.width || '',
 					heightDepth: item.heightDepth || '',
 					crackWidth: item.crackWidth || '',
@@ -2081,7 +2088,7 @@
 			commitType: 1, //0为已提交 1为未提交 2为删除
 			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
-      historyDiseaseId: openMode.value === 'create' ? null : JSON.parse(decodeURIComponent(
+			historyDiseaseId: openMode.value === 'create' ? null : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.historyDiseaseId,
 		};
 	}
@@ -2277,51 +2284,51 @@
 			});
 	};
 
-  const stagingDisease = () => {
-    // 调用方法创建病害数据对象
-    const diseaseData = createDiseaseData();
+	const stagingDisease = () => {
+		// 调用方法创建病害数据对象
+		const diseaseData = createDiseaseData();
 
-    console.log('将要暂存的病害diseaseData', diseaseData);
+		console.log('将要暂存的病害diseaseData', diseaseData);
 
-    // 验证数据完整性
-    if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
-      console.log('数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置');
-      uni.hideLoading();
-      uni.showToast({
-        title: '请填写必填项',
-        icon: 'none'
-      });
-      return;
-    }
-    diseaseData.commitType = 3;
+		// 验证数据完整性
+		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+			console.log('数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置');
+			uni.hideLoading();
+			uni.showToast({
+				title: '请填写必填项',
+				icon: 'none'
+			});
+			return;
+		}
+		diseaseData.commitType = 3;
 
-    // 显示加载提示
-    uni.showLoading({
-      title: '暂存中...'
-    });
+		// 显示加载提示
+		uni.showLoading({
+			title: '暂存中...'
+		});
 
-    // 使用公共方法保存图片和更新病害数据
-    saveImagesAndUpdateDisease(diseaseData)
-        .then(() => {
-          uni.hideLoading();
-          uni.showToast({
-            title: '暂存成功',
-            icon: 'success'
-          });
+		// 使用公共方法保存图片和更新病害数据
+		saveImagesAndUpdateDisease(diseaseData)
+			.then(() => {
+				uni.hideLoading();
+				uni.showToast({
+					title: '暂存成功',
+					icon: 'success'
+				});
 
-          // 返回上一页
-          setTimeout(() => {
-            uni.navigateBack();
-          }, 500);
-        })
-        .catch(error => {
-          uni.hideLoading();
-          uni.showToast({
-            title: '暂存失败',
-            icon: 'none'
-          });
-        });
-  }
+				// 返回上一页
+				setTimeout(() => {
+					uni.navigateBack();
+				}, 500);
+			})
+			.catch(error => {
+				uni.hideLoading();
+				uni.showToast({
+					title: '暂存失败',
+					icon: 'none'
+				});
+			});
+	}
 
 	const canceldisease = () => {
 		uni.navigateBack({
@@ -2382,20 +2389,34 @@
 	}
 
 	const copyAndAddDisease = () => {
-		console.log('复制并新增');
-
 		// 清空图片列表
 		fileList.value = [];
 
 		// 清空AD图片列表
 		ADImgs.value = [];
+		const diseaseData = createDiseaseData();
+		diseaseData.id = new Date().getTime();
+		diseaseData.commitType = 1;
+		diseaseData.localId = new Date().getTime();
+		diseaseData.createTime = formatDateTime();
+		diseaseData.updateTime = formatDateTime();
+		diseaseData.historyDiseaseId = null;
+
+		console.log('保存并复制到下一条');
+
+		/*		// 清空图片列表
+				fileList.value = [];
+
+				// 清空AD图片列表
+				ADImgs.value = [];*/
 
 		// 将编辑模式切换为新增模式
 		openMode.value = 'create';
+		saveImagesAndUpdateDisease(diseaseData)
 
 		// 简单提示
 		uni.showToast({
-			title: '复制成功',
+			title: '保存并复制成功',
 			icon: 'none',
 			duration: 500
 		});
@@ -2446,6 +2467,36 @@
 				});
 			});
 	};
+
+	const copyHistoryDisease = () => {
+		const diseaseData = createDiseaseData();
+		uni.$emit('copyHistoryDisease', diseaseData);
+		uni.navigateBack();
+	}
+
+	const beforeHistoryDisease = () => {
+		// 获取当前病害的ID
+		const currentDiseaseId = JSON.parse(decodeURIComponent(
+			getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.id;
+
+		// 发送事件到history-disease组件，请求上一条病害
+		uni.$emit('navigateHistoryDisease', {
+			action: 'previous',
+			currentId: currentDiseaseId
+		});
+	}
+
+	const nextHistoryDisease = () => {
+		// 获取当前病害的ID
+		const currentDiseaseId = JSON.parse(decodeURIComponent(
+			getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.id;
+
+		// 发送事件到history-disease组件，请求下一条病害
+		uni.$emit('navigateHistoryDisease', {
+			action: 'next',
+			currentId: currentDiseaseId
+		});
+	}
 
 	const handleFileSelect = (e) => {
 		console.log('文件选择事件', e);
@@ -3095,6 +3146,20 @@
 		/* 垂直居中 */
 	}
 
+	.button-copyAndTonext {
+		height: 36rpx;
+		font-size: 16px;
+		background-color: #0F4687;
+		color: #ffffff;
+		margin-left: 0;
+		margin-right: 10rpx;
+		display: flex;
+		/* 设置为 flex 布局 */
+		justify-content: center;
+		/* 水平居中 */
+		align-items: center;
+	}
+
 	.button-savetonext {
 		height: 36rpx;
 		font-size: 16px;
@@ -3136,18 +3201,33 @@
 		align-items: center;
 		/* 垂直居中 */
 	}
-  .button-staging{
-    height: 36rpx;
-    font-size: 16px;
-    background-color: #0F4687;
-    color: #ffffff;
-    margin: 0 10rpx;
-    display: flex;
-    /* 设置为 flex 布局 */
-    justify-content: center;
-    /* 水平居中 */
-    align-items: center;
-  }
+
+	.button-copyHistoryDisease {
+		height: 36rpx;
+		font-size: 16px;
+		background-color: #0F4687;
+		color: #ffffff;
+		margin-right: 0rpx;
+		display: flex;
+		/* 设置为 flex 布局 */
+		justify-content: center;
+		/* 水平居中 */
+		align-items: center;
+	}
+
+	.button-staging {
+		height: 36rpx;
+		font-size: 16px;
+		background-color: #0F4687;
+		color: #ffffff;
+		margin-right: 0;
+		margin-left: 10rpx;
+		display: flex;
+		/* 设置为 flex 布局 */
+		justify-content: center;
+		/* 水平居中 */
+		align-items: center;
+	}
 
 	/*picker公用*/
 	.picker-content {

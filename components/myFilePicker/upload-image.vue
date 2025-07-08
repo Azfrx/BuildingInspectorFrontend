@@ -268,22 +268,22 @@
 		transform: rotate(90deg);
 	}
 
-	.icon-del-box {
-		/* #ifndef APP-NVUE */
-		display: flex;
-		/* #endif */
-		align-items: center;
-		justify-content: center;
-		position: absolute;
-		top: 0px;
-		right: 0px;
-		height: 26px;
-		width: 26px;
-		border-radius: 50%;
-		background-color: rgba(0, 0, 0, 0.5);
-		z-index: 10;
-		transform: rotate(-45deg);
-	}
+  .icon-del-box {
+    /* #ifndef APP-NVUE */
+    display: flex;
+    /* #endif */
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    height: 26px;
+    width: 26px;
+    border-radius: 50%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 2;
+    transform: rotate(-45deg);
+  }
 
 	.icon-del {
 		width: 15px;
