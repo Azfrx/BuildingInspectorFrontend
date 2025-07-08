@@ -23,19 +23,20 @@
 				<history-disease :activeTabTop="activeTab"></history-disease>
 			</view>
 			<view v-show="activeTab === 2">
-				<!-- 桥梁卡片内容 -->
-				<bridge-archive :activeTabTop="activeTab"></bridge-archive>
+        <!-- 正面立照内容 -->
+        <front-photo :activeTabTop="activeTab"></front-photo>
 			</view>
 			<view v-show="activeTab === 3">
-				<!-- 正面立照内容 -->
-				<front-photo :activeTabTop="activeTab"></front-photo>
+        <!-- 现状照 -->
+        <current-photo :activeTabTop="activeTab"></current-photo>
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
 				<structure-info :activeTabTop="activeTab"></structure-info>
 			</view>
       <view v-show="activeTab === 5">
-        <current-photo :activeTabTop="activeTab"></current-photo>
+        <!-- 桥梁卡片内容 -->
+        <bridge-archive :activeTabTop="activeTab"></bridge-archive>
       </view>
 		</view>
 	</view>
@@ -62,17 +63,18 @@
 		{
 			name: '历史病害',
 		},
-		{
-			name: '桥梁卡片',
-		},
+
 		{
 			name: '正立面照',
 		},
+    {
+      name: '现状照'
+    },
 		{
 			name: '结构信息',
 		},
     {
-      name: '现状照'
+      name: '桥梁卡片',
     }
 	]);
 

@@ -84,7 +84,7 @@
 	const idStorageInfo = idStore();
 
 	watch(() => props.activeTabTop, (newval, oldval) => {
-		if (newval == 2) {
+		if (newval == 5) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
 			loadDiseaseData();
 		}

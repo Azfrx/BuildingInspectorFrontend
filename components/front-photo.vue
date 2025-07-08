@@ -118,7 +118,7 @@
 	const userInfo = userStore()
 
 	watch(() => props.activeTabTop, (newval, oldval) => {
-		if (newval == 3) {
+		if (newval == 2) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
 			readBridgeImageByJson();
 		}

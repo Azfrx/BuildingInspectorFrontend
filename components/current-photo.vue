@@ -521,7 +521,7 @@ const props = defineProps({
 });
 
 watch(() => props.activeTabTop, (newval, oldval) => {
-  if (newval == 5) {
+  if (newval == 3) {
     console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
     //Todo 调用初始化方法
 
