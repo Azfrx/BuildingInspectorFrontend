@@ -346,6 +346,7 @@ export function removeDiseaseImage(paths) {
 	});
 }
 
+//是否有未提交病害
 export async function readDiseaseCommit(userName, buildingId, yearId) {
 	try {
 		// 获取病害数据并等待Promise解析
@@ -486,5 +487,28 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 		 return true;
 	 }else{
 		 return false;
+	 }
+ }
+
+ //提交时判断是否有未完成的病害，commitType == 3的病害
+ export async function isUnFinishDisease(userName,buildingId,yearId){
+	 try {
+		 // 获取病害数据并等待Promise解析
+		 const diseaseData = await getDisease(userName, buildingId, yearId);
+
+		 // 检查diseases数组是否存在
+		 if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+			 console.log('没有找到病害数据或数据格式不正确');
+			 return false;
+		 }
+
+		 // 使用some方法检查是否有任何病害的commit_type为3（未完成）
+		 const hasUnFinishDiseases = diseaseData.diseases.some(disease => disease.commitType === 3 );
+
+		 console.log(`检查未完成病害: ${hasUnFinishDiseases ? '有未完成病害' : '没有未完成病害'}`);
+		 return hasUnFinishDiseases;
+	 } catch (error) {
+		 console.error('检查病害完成状态时出错:', error);
+		 return false; // 出错时返回false
 	 }
  }

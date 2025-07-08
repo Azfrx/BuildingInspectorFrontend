@@ -136,6 +136,8 @@
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
 import { async } from 'rxjs';
+  import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
+  import {idStore} from "@/store/idStorage";
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
@@ -152,6 +154,7 @@ import { async } from 'rxjs';
 	//去除msg和code字段的数据
 	const resultData = ref(null);
 	const userInfo = userStore()
+  const idStorageInfo = idStore()
 	const structureNumberInfo = structureStore()
 	// 通过计算属性获取URL中的bridgeId参数
 	const bridgeIdFromURL = computed(() => {
@@ -272,43 +275,45 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
     refreshData();
   }
 });
-	const confirmConfirm = () => {
-		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
-		saveEdit()
+	const confirmConfirm = async () => {
+    // currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
+    saveEdit()
 
-		// handleDisable(Number(currentEditItem.value))
-		// 计算并更新各级count总和
-		calculateAndUpdateCounts();
+    // handleDisable(Number(currentEditItem.value))
+    // 计算并更新各级count总和
+    calculateAndUpdateCounts();
 
-		// 不再设置确认状态为true，允许多次提交
-		// confirmed.value = true;
+    // 不再设置确认状态为true，允许多次提交
+    // confirmed.value = true;
 
-		// 不再提交数据到后端
-		// submitDataToBackend();
+    // 不再提交数据到后端
+    // submitDataToBackend();
 
-		// 设置编辑标志为true
-		resultData.value.Isedit = true;
+    // 设置编辑标志为true
+    resultData.value.Isedit = true;
 
-		// 直接存储数据到本地
-		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-		console.log('确认后数据已保存到本地:', resultData.value);
+    // 直接存储数据到本地
+    setObject(userInfo.username, TaskBridgeId.value, resultData.value);
+    console.log('确认后数据已保存到本地:', resultData.value);
 
 
-		// 显示确认成功提示
-		uni.showToast({
-			title: '构件信息已保存',
-			icon: 'success',
-			duration: 2000
-		});
+    // 显示确认成功提示
+    uni.showToast({
+      title: '构件信息已保存',
+      icon: 'success',
+      duration: 2000
+    });
 
-		// 执行warningFlag检查
-		warningFlag();
-		
-		// 检查所有警告状态
-		checkAllWarnings();
-		//更新编辑状态
-		structureNumberInfo.incrementIsEdit();
-	};
+    // 执行warningFlag检查
+    warningFlag();
+
+    // 检查所有警告状态
+    checkAllWarnings();
+    //更新编辑状态
+    structureNumberInfo.incrementIsEdit();
+    await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+    uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+  };
 	const warningFlag = () => {
 		const data = getObject(userInfo.username, TaskBridgeId.value)
 		if (!data || !data.children) return

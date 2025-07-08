@@ -7,7 +7,7 @@
 					@confirm="search" />
 			</view>
 
-			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交</button>
+			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交检测结果</button>
 			<button class="add-button" @click="addNewDisease">新增病害</button>
 		</view>
 
@@ -44,13 +44,13 @@
 		watch,
 		onUnmounted
 	} from 'vue';
-	import {
-		getDisease,
-		isCommit,
-		isExistDisease,
-		isOnlyDisease,
-		readDiseaseCommit
-	} from '../utils/readJsonNew.js';
+  import {
+    getDisease,
+    isCommit,
+    isExistDisease,
+    isOnlyDisease, isUnFinishDisease,
+    readDiseaseCommit
+  } from '../utils/readJsonNew.js';
 	import {
 		addDiseaseNumber,
 		decreaseDiseaseNumber,
@@ -77,6 +77,7 @@
 	import {
 		structureStore
 	} from "@/store/structureNumberStorage";
+  import {isBuildingCommited, setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -102,7 +103,7 @@
 		if (newval == 0) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
 			await readCurrentYearDiseaseDataByJson()
-			await checkUncommittedDiseases()
+			await checkUncommitted()
 		}
 	})
 
@@ -173,7 +174,16 @@
 				title: '保存成功',
 				icon: 'success'
 			});*/
-			await checkUncommittedDiseases();
+			// await checkUncommittedDiseases();
+      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      if(hasUncommittedDiseases) {
+        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+      }else{
+        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+      }
+      await checkUncommitted();
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
 			uni.showToast({
@@ -244,7 +254,15 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('删除标记保存成功');
-			await checkUncommittedDiseases();
+      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      if(hasUncommittedDiseases) {
+        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+      }else{
+        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+      }
+      await checkUncommitted();
 		} catch (error) {
 			console.error('保存删除失败:', error);
 			uni.showToast({
@@ -310,7 +328,16 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('更新数据保存成功');
-			await checkUncommittedDiseases();
+			// await checkUncommittedDiseases();
+      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      if(hasUncommittedDiseases) {
+        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+      }else{
+        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+      }
+      await checkUncommitted();
 		} catch (error) {
 			console.error('保存更新数据失败:', error);
 			uni.showToast({
@@ -372,6 +399,15 @@
 
 	const submitZip = async () => {
 		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
+    const currentYear = new Date().getFullYear().toString();
+    const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId, currentYear)
+    if(hasUnFinishDisease){
+      uni.showToast({
+        title: '有未完成的病害',
+        icon: 'none'
+      });
+      return;
+    }
 /*		if (structureStoreInfo.status == true) {
 			uni.showToast({
 				title: '结构信息错误',
@@ -479,9 +515,10 @@
 					}
 				}
 				await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
-				await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId)
-
+				await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
 				submitButtonEnabled.value = false;
+        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 
 				uni.showToast({
 					title: '提交成功',
@@ -508,9 +545,9 @@
 	};
 
 	// 检查是否有未提交的病害记录
-	const checkUncommittedDiseases = async () => {
+	const checkUncommitted = async () => {
 		try {
-			const currentYear = new Date().getFullYear().toString();
+			/*const currentYear = new Date().getFullYear().toString();
 			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
 				currentYear);
 			const isPhotoCommited = await isPhotoCommmitted(userInfo.username, idStorageInfo.buildingId);
@@ -519,8 +556,16 @@
 			const hasUnCommitStructure = !isStructureCommited;
 			console.log('检查未提交病害结果:', hasUncommittedDiseases);
 			console.log('检查未提交图片结果:', hasUncommmittedPhoto);
-			console.log('检查未提交结构信息结果:', hasUnCommitStructure)
-			submitButtonEnabled.value = hasUncommittedDiseases || hasUncommmittedPhoto || hasUnCommitStructure;
+			console.log('检查未提交结构信息结果:', hasUnCommitStructure)*/
+      const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+			submitButtonEnabled.value = !isBuildingCommit;
+      /*if(submitButtonEnabled.value) {
+        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+      }else{
+        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+      }*/
 		} catch (error) {
 			console.error('检查未提交病害出错:', error);
 			submitButtonEnabled.value = false;
@@ -530,7 +575,7 @@
 	// 监听diseaseList的变化
 	watch(diseaseList, async () => {
 		console.log('diseaseList发生变化，检查未提交病害');
-		await checkUncommittedDiseases();
+		await checkUncommitted();
 	}, {
 		deep: true
 	}); // 使用deep: true确保监听对象内部属性的变化
@@ -623,7 +668,7 @@
 	}
 
 	.submit-button {
-		margin-left: 100rpx;
+		margin-left: 50rpx;
 		background-color: #0F4687;
 		color: white;
 		font-size: 15rpx;

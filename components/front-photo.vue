@@ -90,6 +90,7 @@
 	} from "@/utils/writeNew";
   import {setFrontPhotoUnCommited} from "@/utils/frontPhoto";
   import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
+  import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 
 	// 接收父组件传递的数据加载状态
 	const props = defineProps({
@@ -228,6 +229,8 @@
 			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
       // await setFrontPhotoUnCommited(userInfo.username, idStorageInfo.buildingId);
       isSubmit.value = false;
+      await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+      uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
 
 			// 隐藏加载提示
 			uni.hideLoading();
@@ -408,6 +411,7 @@
     data.commitType = 0;
     await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
     isSubmit.value = false;
+    await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 	};
 
 	const onUploadSuccess = async (type) => {

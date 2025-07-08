@@ -56,8 +56,8 @@
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-						<view class="status" v-if="bridge.isUncommitted" style="background-color: #FF6430; color: #ffffff;">未提交</view>
-						<view class="status" v-else style="background-color: #00B578; color: #ffffff;">已提交</view>
+						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">已提交</view>
+						<view class="status" v-else style="background-color: #FF6430; color: #ffffff;">未提交</view>
 						<text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
 						<text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
@@ -73,11 +73,11 @@
 </template>
 
 <script setup>
-	import {
-		ref,
-		onMounted,
-		computed
-	} from 'vue'
+import {
+  ref,
+  onMounted,
+  computed, onUnmounted
+} from 'vue'
 	import {
 		getProject,
 		getTask,
@@ -93,7 +93,7 @@
 	import {
 		idStore
 	} from '../../store/idStorage'
-	import { checkUncommittedBuilding } from '@/utils/isBuildingCommited.js'
+  import {setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 	// 返回上一页
 	const back = () => {
 		uni.navigateBack()
@@ -136,24 +136,53 @@
 		projectInfo.value = await getProject(userInfo.username)
 		initTaskData.value = await getTask(userInfo.username, projectId.value)
 		
-		// 检查每个桥梁的提交状态
-		if (initTaskData.value && initTaskData.value.data && initTaskData.value.data.tasks) {
-			for (let bridge of initTaskData.value.data.tasks) {
-				console.log("检查bridge", bridge)
-				bridge.isUncommitted = await checkUncommittedBuilding(userInfo.username, bridge.buildingId);
-			}
-		}
+		// 不再需要检查每个桥梁的提交状态，直接使用bridge.commited字段
 		
 		console.log("project", projects.value);
 		console.log("task", tasks.value)
 	};
+
+  const setBuildingUnCommit = async (buildingId) => {
+    // 找到对应的任务项并设置 commited 字段为 false
+    if (initTaskData.value && initTaskData.value.data && initTaskData.value.data.tasks) {
+      for (let i = 0; i < initTaskData.value.data.tasks.length; i++) {
+        if (initTaskData.value.data.tasks[i].buildingId === buildingId) {
+          initTaskData.value.data.tasks[i].commited = false;
+          break;
+        }
+      }
+    }
+  };
+  const setBuildingCommit = async (buildingId) => {
+    // 找到对应的任务项并设置 commited 字段为 true
+    if (initTaskData.value && initTaskData.value.data && initTaskData.value.data.tasks) {
+      for (let i = 0; i < initTaskData.value.data.tasks.length; i++) {
+        if (initTaskData.value.data.tasks[i].buildingId === buildingId) {
+          initTaskData.value.data.tasks[i].commited = true;
+          break;
+        }
+      }
+    }
+  };
+  const refreshTaskData = async () => {
+    initTaskData.value = await getTask(userInfo.username, projectId.value)
+  }
 
 	// 页面加载时获取数据
 	onMounted(() => {
 		getURLParams();
 		// 然后再调用init或其他初始化函数
 		init();
+    uni.$on('setBuildingUnCommit',setBuildingUnCommit)
+    uni.$on('setBuildingCommit',setBuildingCommit)
+    uni.$on('refreshTaskData',refreshTaskData)
 	})
+
+  onUnmounted(() => {
+    uni.$off('setBuildingUnCommit',setBuildingUnCommit)
+    uni.$off('setBuildingCommit',setBuildingCommit)
+    uni.$off('refreshTaskData',refreshTaskData)
+  })
 	// 添加计算属性来获取当前项目
 	const currentProject = computed(() => {
 		if (!projectInfo.value || !projectInfo.value.data || !projectInfo.value.data.projects) {
