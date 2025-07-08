@@ -1080,7 +1080,6 @@
 		width: 600rpx;
 		height: 300rpx;
 		border-radius: 8rpx;
-		padding: 20rpx 30rpx;
 		box-sizing: border-box;
 		display: flex;
 		flex-direction: column;
@@ -1093,6 +1092,7 @@
 		align-items: center;
 		width: 100%;
 		justify-content: space-between;
+    padding: 0rpx 30rpx;
 	}
 
 	.location-description-popup-input {
@@ -1123,6 +1123,7 @@
 	.location-description-position-popup-input3 {
 		margin-top: 10rpx;
 		font-size: 20rpx;
+    padding: 0rpx 30rpx;
 	}
 
 	.location-description-position-popup-input3-item {
@@ -1167,5 +1168,11 @@
 	}
   .length-input{
     margin-left: 10rpx;
+  }
+  .location-description-position-popup-title{
+    background-color: #BDCBE0;
+    font-size: 20rpx;
+    padding: 8rpx 0rpx;
+    text-align: center; /* 添加水平居中 */
   }
 </style>
