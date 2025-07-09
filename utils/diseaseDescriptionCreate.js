@@ -12,13 +12,13 @@ function generateDiseaseDescription(data) {
 
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
-	let description = `${componentName}#${componentCode}${diseasePosition}${diseaseType}`;
+	let description = `${componentCode}#${componentName}${diseaseType}${count > 0 ? `${count} + 条缺损`: ''}，${diseasePosition}`;
 	let descriptionArr = []
-
+ 
 	if (counts < 10) {
 		const details = defects.map(item => {
 			if(showColumns[0] == 1){ descriptionArr.push(`${item.crackType}裂缝`) }
-			descriptionArr.push(`距${item.reference1Location} ${item.reference1LocationStart}m， 距${item.reference2Location} ${item.reference2LocationStart}m`)
+			descriptionArr.push(`距${item.reference1Location} ${item.reference1LocationStart}m，距${item.reference2Location} ${item.reference2LocationStart}m`)
 			if(showColumns[1] == 1){ descriptionArr.push(`长度：${item.length1}m`) }
 			// if(showColumns[2] == 1){ descriptionArr.push(`长度2：${item.length1}m`) }
 			// if(showColumns[3] == 1){ descriptionArr.push(`长度3：${item.length1}m`) }
