@@ -43,11 +43,17 @@
 				<view v-for="(item, index) in secondLevelItems" :key="index">
 					<myPhotoPicker 
 						v-if="selectedSecondIndex === index"
-						v-model:previewImages="item.photos"
-						@select="handlePhotoChange(item, index)"
+						v-model="item.photos"
+						@select="handlePhotoChange(item)"
 					/>
 				</view>
 			</view>
+<!--      <view class="photo-section">
+					<myPhotoPicker
+						v-model="photos"
+						@select="handlePhotoChange"
+					/>
+			</view>-->
 		</view>
 		
 		<!-- 弹窗 -->
@@ -95,11 +101,11 @@ import {
 		watch,
 		reactive
 	} from 'vue';
-import { getObject } from '../utils/readJsonNew';
+import {getObject, readBridgeImage} from '../utils/readJsonNew';
 import {
 	userStore
 } from '@/store/index.js'
-import {setObject}  from '../utils/writeNew'
+import {saveBridgeImages, setObject} from '../utils/writeNew'
 import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 import myPhotoPicker from './myPhotoPicker.vue';
 
@@ -126,10 +132,14 @@ const ensurePhotoArrays = () => {
 };
 
 // 照片变化处理函数
-const handlePhotoChange = (item, index) => {
-	console.log(`二级菜单 ${index} 的照片已更新`);
-	console.log(item.photos)
-	autoSavePhotos();
+const handlePhotoChange = async (item) => {
+  console.log('item.photos', item.photos);
+  //传入的item.photos是上传图片的临时路径(拍照/从相册选择)
+  //"_doc/uniapp_temp_1752056512594/camera/1752056522301.jpg" 拍照的临时路径
+  ///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/UD25-07-06-inspector1@znjc/building/1837/images/bridge_1752056908276_1.jpg 相册选择的临时路径
+  item.photos = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photos)
+  await autoSavePhotos();
+  item.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photos)
 };
 
 // 检查照片数据结构是否符合myFilePicker组件的要求，并修复图片URL
@@ -267,16 +277,18 @@ const init = async () => {
 		const latestData = await getObject(userInfo.username, TaskBridgeId.value);
 		// 初始化照片数组
 		if (latestData && latestData.children) {
-			latestData.children.forEach(firstLevel => {
+			for (const firstLevel of latestData.children) {
 				if (firstLevel.children) {
-					firstLevel.children.forEach(secondLevel => {
+					for (const secondLevel of firstLevel.children) {
 						if (!secondLevel.photos) {
 							secondLevel.photos = [];
-						}
-					});
-				}
-			});
-		}
+						}else{
+              secondLevel.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, secondLevel.photos);
+            }
+					}
+        }
+			}
+    }
 		structureData.value = latestData;
 		structureData.value.Iscommit = false;
 		console.log("现状照数据 ", structureData.value);

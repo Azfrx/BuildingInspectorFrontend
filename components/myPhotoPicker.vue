@@ -3,7 +3,7 @@
     <!-- 预览区域（点击触发弹窗） -->
     <view class="preview-list">
       <view 
-        v-for="(img, idx) in previewImages" 
+        v-for="(img, idx) in modelValue" 
         :key="idx" 
         class="preview-container"
       >
@@ -60,26 +60,35 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
 
 const props = defineProps({
-  photos: {
+  modelValue: {
     type: Array,
     default: () => []
+  },
+  maxCount: {
+    type: Number,
+    default: 9
   }
 });
-const emit = defineEmits(['update:photos', 'select']);
 
-const previewImages = ref([]);
+const emit = defineEmits(['select', 'update:modelValue']);
+
 const actionSheetVisible = ref(false);
 const photoNumberVisible = ref(false);
 const photoNumber = ref('');
 
 // 显示底部弹出层
 const showActionSheet = () => {
-  console.log('点击了预览区域');
+  if (props.modelValue.length >= props.maxCount) {
+    uni.showToast({
+      title: `最多只能上传${props.maxCount}张图片`,
+      icon: 'none'
+    });
+    return;
+  }
   actionSheetVisible.value = true;
-  console.log('actionSheetVisible:', actionSheetVisible.value);
 };
 
 // 关闭底部弹出层
@@ -160,8 +169,9 @@ const confirmPhotoNumber = () => {
 
 // 处理图片选择成功
 const handleImageSuccess = (filePath) => {
-  previewImages.value.push(filePath);
-  emit('select', filePath); // 新增：触发 select 事件
+  const newImages = [...props.modelValue, filePath];
+  emit('update:modelValue', newImages);
+  emit('select'); // 不传递参数，只触发事件
   uni.showToast({
     title: '图片已选择',
     icon: 'success'
@@ -169,7 +179,9 @@ const handleImageSuccess = (filePath) => {
 };
 
 const deleteImage = (idx) => {
-  previewImages.value.splice(idx, 1);
+  const newImages = [...props.modelValue];
+  newImages.splice(idx, 1);
+  emit('update:modelValue', newImages);
   uni.showToast({ title: '图片已删除', icon: 'success' });
 };
 </script>
