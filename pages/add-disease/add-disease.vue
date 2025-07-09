@@ -1305,7 +1305,6 @@
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
 		// 获取结构数据（先执行，并等待完成）
-		await fetchStructureData();
 
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
@@ -1316,8 +1315,7 @@
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
 			openMode.value = 'edit';
-
-			// 如果传递了数据，则解析并填充表单
+			/*// 如果传递了数据，则解析并填充表单
 			if (options.data) {
 				try {
 					const diseaseData = JSON.parse(decodeURIComponent(options.data));
@@ -1332,10 +1330,10 @@
 						icon: 'none'
 					});
 				}
-			}
+			}*/
 		} else if (options && options.mode === 'history') {
 			openMode.value = 'history';
-			// 如果传递了数据，则解析并填充表单
+			/*// 如果传递了数据，则解析并填充表单
 			if (options.data) {
 				try {
 					const diseaseData = JSON.parse(decodeURIComponent(options.data));
@@ -1350,13 +1348,29 @@
 						icon: 'none'
 					});
 				}
-			}
+			}*/
 			// 非编辑模式，初始化三级选择器
 			// initMultiPickerColumns();
 		} else {
 			openMode.value = 'create';
 		}
+    await fetchStructureData();
+    // 如果传递了数据，则解析并填充表单
+    if (options.data) {
+      try {
+        const diseaseData = JSON.parse(decodeURIComponent(options.data));
+        console.log('接收到的历史病害数据:', diseaseData);
 
+        // 填充表单数据
+        fillFormWithData(diseaseData);
+      } catch (error) {
+        console.error('解析编辑数据失败:', error);
+        uni.showToast({
+          title: '加载编辑数据失败',
+          icon: 'none'
+        });
+      }
+    }
 		// 初始化缺损数据列表
 		// updateDiseaseDataList(quantity.value);
 	});
@@ -2389,12 +2403,14 @@
 	}
 
 	const copyAndAddDisease = () => {
+    const diseaseData = createDiseaseData();
+
+    saveImagesAndUpdateDisease(diseaseData)
 		// 清空图片列表
 		fileList.value = [];
 
 		// 清空AD图片列表
 		ADImgs.value = [];
-		const diseaseData = createDiseaseData();
 		diseaseData.id = new Date().getTime();
 		diseaseData.commitType = 1;
 		diseaseData.localId = new Date().getTime();
@@ -2412,12 +2428,12 @@
 
 		// 将编辑模式切换为新增模式
 		openMode.value = 'create';
-		saveImagesAndUpdateDisease(diseaseData)
+		// saveImagesAndUpdateDisease(diseaseData)
 
 		// 简单提示
 		uni.showToast({
 			title: '保存并复制成功',
-			icon: 'none',
+			icon: 'success',
 			duration: 500
 		});
 	}
