@@ -4,7 +4,7 @@
 		<view class="search-add-container">
 			<view class="view-search-bar">
 				<uni-search-bar class="search-bar" placeholder="搜索词" clearButton="none" cancelButton="none"
-					@confirm="search" />
+					@confirm="search" @input="handleSearchInput" />
 			</view>
 
 			<view class="button-group">
@@ -169,10 +169,14 @@
 		const selectedYear = tabItems.value[activeTab.value];
 		let list = diseaseMap.value[selectedYear] || [];
 		if (searchText.value) {
+			// 将搜索文本按空格分词
+			const keywords = searchText.value.trim().split(/\s+/);
 			list = list.filter(item =>
-				(item.description?.includes(searchText.value) ||
-					item.type?.includes(searchText.value) ||
-					item.component?.grandObjectName?.includes(searchText.value))
+				keywords.some(keyword => 
+					(item.description?.includes(keyword) ||
+					item.type?.includes(keyword) ||
+					item.component?.grandObjectName?.includes(keyword))
+				)
 			);
 		}
 		return list;
@@ -361,6 +365,14 @@
 		expandAllTypes();
 	};
 
+	// 处理搜索输入，实时筛选
+	const handleSearchInput = (e) => {
+		searchText.value = e;
+		console.log('实时搜索内容:', e);
+		closeAllSwipeActions();
+		expandAllTypes();
+	};
+
 	// 切换选项卡
 	const changeTab = (index) => {
 		activeTab.value = index;
@@ -385,9 +397,15 @@
 			}
 			// 如果有搜索关键词，还需按关键词过滤
 			if (searchText.value) {
-				return (item.description?.includes(searchText.value) || item.type?.includes(searchText
-					.value) || item.biObjectName?.includes(searchText.value) || item.position?.includes(
-						searchText.value));
+				// 将搜索文本按空格分词
+				const keywords = searchText.value.trim().split(/\s+/);
+				// 只要满足其中一个关键词就返回true
+				return keywords.some(keyword => 
+					(item.description?.includes(keyword) || 
+					item.type?.includes(keyword) || 
+					item.biObjectName?.includes(keyword) || 
+					item.position?.includes(keyword))
+				);
 			}
 			return true;
 		});

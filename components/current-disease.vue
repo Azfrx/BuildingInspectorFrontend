@@ -4,7 +4,7 @@
 		<view class="search-add-container">
 			<view class="view-search-bar">
 				<uni-search-bar class="search-bar" placeholder="搜索词" clearButton="none" cancelButton="none"
-					@confirm="search" />
+					@confirm="search" @input="handleSearchInput" />
 			</view>
 
 			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交检测结果</button>
@@ -363,9 +363,14 @@
 			}
 			// 如果有搜索关键词，再按关键词过滤
 			if (searchText.value) {
-				return (item.description?.includes(searchText.value) || item.type?.includes(searchText
-						.value) || item.biObjectName?.includes(searchText.value) || item.position
-					?.includes(searchText.value));
+				// 将搜索文本按空格分词
+				const keywords = searchText.value.trim().split(/\s+/);
+				return keywords.some(keyword => 
+					(item.description?.includes(keyword) || 
+					item.type?.includes(keyword) || 
+					item.biObjectName?.includes(keyword) || 
+					item.position?.includes(keyword))
+				);
 			}
 
 			return true;
@@ -377,6 +382,12 @@
 		// 搜索逻辑
 		searchText.value = e.value;
 		console.log('搜索内容:', e);
+	};
+
+	// 处理搜索输入，实时筛选
+	const handleSearchInput = (e) => {
+		searchText.value = e;
+		console.log('实时搜索内容:', e);
 	};
 
 	const changeTab = (index) => {
@@ -614,7 +625,7 @@
 		});
 
 		// 初始检查未提交病害
-		checkUncommittedDiseases();
+		checkUncommitted();
 	});
 
 	// 组件卸载时
