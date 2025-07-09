@@ -28,10 +28,12 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
         const userInfo = userStore()
         let localProjectsAsync = null;
         const allUsers = await readUserFolders();
+			let findUser = false;
         for (const user of allUsers) {
             const hadUsernameArrBySplit = user.split('-');
             const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
             if (hadUsername === username) {
+					findUser = true;
                 //已存在此用户 去读旧数据
                 console.log("已存在此用户", user);
                 userInfo.setHadUsername(user); // 设置已存在的用户名到store
@@ -43,6 +45,9 @@ export async function getAllDataAndSetToLocal(projects, projectResponse, token, 
         if (!localProjectsAsync) {
             localProjectsAsync = await getProject(username)
         }
+		if(findUser===false){
+			username = '';
+			}
         const localProjects = localProjectsAsync.data.projects
         console.log("拿到的用户数据", localProjects);
         //根据新projects过滤本地projects，这里只增删project 注意这里只修改了json文件
