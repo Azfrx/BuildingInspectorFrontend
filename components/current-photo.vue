@@ -148,11 +148,11 @@
 		// 2. 保存图片到本地，转为相对路径存到json
 		item.photos = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photos);
 
-		// 3. 保存结构数据到json
-		await autoSavePhotos();
-
-		// 4. 存储到json后转为绝对路径读取
+		// 3. 转为绝对路径显示
 		item.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photos);
+
+		// 4. 保存结构数据到json
+		await autoSavePhotos();
 
 		// 5. 删除旧的物理文件以避免重复
 		if (oldPhotoPaths.length > 0) {
@@ -190,7 +190,33 @@
 
 	const autoSavePhotos = async () => {
 		try {
+			if (structureData.value && structureData.value.children) {
+				for (const firstLevel of structureData.value.children) {
+					if (firstLevel.children) {
+						for (const secondLevel of firstLevel.children) {
+							if (!secondLevel.photos) {
+								secondLevel.photos = [];
+							} else {
+								secondLevel.photos = await buildingImagesFromAbsoluteToRelative(secondLevel.photos);
+							}
+						}
+					}
+				}
+			}
 			await setObject(userInfo.username, TaskBridgeId.value, structureData.value);
+      if (structureData.value && structureData.value.children) {
+        for (const firstLevel of structureData.value.children) {
+          if (firstLevel.children) {
+            for (const secondLevel of firstLevel.children) {
+              if (!secondLevel.photos) {
+                secondLevel.photos = [];
+              } else {
+                secondLevel.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, secondLevel.photos);
+              }
+            }
+          }
+        }
+      }
 			console.log('照片数据已保存');
 		} catch (error) {
 			console.error('保存照片数据失败:', error);
@@ -296,12 +322,12 @@
 				// 从数据中删除对应的图片记录
 				secondLevelItem.photos.splice(index, 0);
 				// 保存json时将绝对路径转为相对路径存储
-				secondLevelItem.photos = await buildingImagesFromAbsoluteToRelative(secondLevelItem.photos);
+				// secondLevelItem.photos = await buildingImagesFromAbsoluteToRelative(secondLevelItem.photos);
 				// 更新数据
 				await autoSavePhotos();
 				// 读取相对路径为绝对路径
-				secondLevelItem.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value,
-					secondLevelItem.photos)
+				/*secondLevelItem.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value,
+					secondLevelItem.photos)*/
 
 				uni.showToast({
 					title: '删除成功',
@@ -364,7 +390,6 @@
 			}
 			structureData.value = latestData;
 			structureData.value.Iscommit = false;
-			console.log("现状照数据 ", structureData.value);
 			// 这里不要再 autoSavePhotos() 了！
 		} catch (error) {
 			console.error('获取数据失败:', error);
