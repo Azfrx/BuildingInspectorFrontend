@@ -7,11 +7,17 @@
         :key="idx" 
         class="preview-container"
       >
-        <image :src="img" class="preview-image" mode="scaleToFill" />
+        <!-- 添加点击事件预览图片 -->
+        <image 
+          :src="img" 
+          class="preview-image" 
+          mode="aspectFill"
+          @click="previewImage(idx)" 
+        />
         <view class="delete-icon" @click.stop="deleteImage(idx)">×</view>
       </view>
       <!-- 添加按钮 -->
-    <view class="preview-container" @click="showActionSheet">
+      <view class="preview-container" @click="showActionSheet">
         <view class="empty-preview">
           <view class="plus-icon"></view>
         </view>
@@ -56,6 +62,13 @@
       </view>
       <view class="popup-mask" @click="cancelPhotoNumber"></view>
     </view>
+    
+    <!-- 隐藏的canvas，用于生成带数字的图片 -->
+    <canvas 
+      canvas-id="numberCanvas" 
+      class="hidden-canvas"
+      style="position: absolute; left: -9999px; top: -9999px; width: 200px; height: 200px;"
+    ></canvas>
   </view>
 </template>
 
@@ -78,6 +91,15 @@ const emit = defineEmits(['select', 'update:modelValue']);
 const actionSheetVisible = ref(false);
 const photoNumberVisible = ref(false);
 const photoNumber = ref('');
+// 预览图片
+const previewImage = (index) => {
+  uni.previewImage({
+    current: index,
+    urls: props.modelValue,
+    indicator: 'number',
+    loop: true
+  });
+};
 
 // 显示底部弹出层
 const showActionSheet = () => {
@@ -149,16 +171,77 @@ const cancelPhotoNumber = () => {
   photoNumber.value = '';
 };
 
-// 确认照片序号输入
-const confirmPhotoNumber = () => {
-  if (photoNumber.value.trim()) {
-    // 这里可以处理照片序号逻辑
-    console.log('照片序号:', photoNumber.value);
-    uni.showToast({
-      title: `照片序号: ${photoNumber.value}`,
-      icon: 'none'
+// 生成带数字的图片
+const generateNumberedImage = (number) => {
+  return new Promise((resolve) => {
+    // 创建画布上下文
+    const context = uni.createCanvasContext('numberCanvas');
+    const size = 200;
+    
+    // 绘制背景
+    context.setFillStyle('#f0f0f0');
+    context.fillRect(0, 0, size, size);
+    
+    // 绘制数字
+    context.setFillStyle('#333');
+    context.setFontSize(80);
+    context.setTextAlign('center');
+    context.setTextBaseline('middle');
+    context.fillText(number, size / 2, size / 2);
+    
+    // 绘制边框
+    context.setStrokeStyle('#ccc');
+    context.setLineWidth(2);
+    context.strokeRect(0, 0, size, size);
+    
+    // 将画布内容转为图片
+    context.draw(false, () => {
+      uni.canvasToTempFilePath({
+        canvasId: 'numberCanvas',
+        success: (res) => {
+          resolve(res.tempFilePath);
+        },
+        fail: (err) => {
+          console.error('生成数字图片失败:', err);
+          resolve(null);
+        }
+      });
     });
+  });
+};
+// 确认照片序号输入
+const confirmPhotoNumber = async () => {
+  if (photoNumber.value.trim()) {
+    try {
+      // 生成带数字的图片
+      const numberedImagePath = await generateNumberedImage(photoNumber.value);
+      
+      if (numberedImagePath) {
+        // 将生成的图片添加到图片列表中
+        const newImages = [...props.modelValue, numberedImagePath];
+        emit('update:modelValue', newImages);
+        emit('select');
+        
+        uni.showToast({
+          title: `已生成序号${photoNumber.value}的图片`,
+          icon: 'success'
+        });
+      } else {
+        uni.showToast({
+          title: '生成图片失败',
+          icon: 'none'
+        });
+      }
+    } catch (error) {
+      console.error('生成数字图片失败:', error);
+      uni.showToast({
+        title: '生成图片失败',
+        icon: 'none'
+      });
+    }
+    
     photoNumberVisible.value = false;
+    photoNumber.value = '';
   } else {
     uni.showToast({
       title: '请输入照片序号',
@@ -428,5 +511,43 @@ const deleteImage = (idx) => {
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   z-index: -1;
+}
+
+/* 修改图片预览模式为填充 */
+.preview-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 8rpx;
+  object-fit: cover;
+}
+
+/* 调整预览容器尺寸 */
+.preview-container {
+  position: relative;
+  width: 200rpx;
+  height: 200rpx;
+  min-width: 200rpx;
+  min-height: 200rpx;
+  max-width: 200rpx;
+  max-height: 200rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f9f9f9;
+  cursor: pointer;
+  box-sizing: border-box;
+  border-radius: 8rpx;
+  overflow: hidden;
+}
+.image-index {
+  position: absolute;
+  top: 8rpx;
+  left: 8rpx;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 4rpx 10rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  z-index: 2;
 }
 </style>
