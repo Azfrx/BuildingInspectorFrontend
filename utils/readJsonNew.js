@@ -359,7 +359,8 @@ export async function readDiseaseCommit(userName, buildingId, yearId) {
 		}
 
 		// 使用some方法检查是否有任何病害的commit_type为1（未提交）或为2（需要删除）
-		const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commitType === 1 || disease.commitType === 2);
+		const hasUncommittedDiseases = diseaseData.diseases.some(disease => disease.commitType === 1 || disease
+			.commitType === 2);
 
 		console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
 		return hasUncommittedDiseases;
@@ -481,34 +482,46 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 	}
 }
 // 判断是否编辑过 
- export async function isCommit(userName,buildingId){
-	 const data = await getObject(userName,buildingId);
-	 if(data.Iscommit == true){
-		 return true;
-	 }else{
-		 return false;
-	 }
- }
+export async function isCommit(userName, buildingId) {
+	const data = await getObject(userName, buildingId);
+	if (data.Iscommit == true) {
+		return true;
+	} else {
+		return false;
+	}
+}
 
- //提交时判断是否有未完成的病害，commitType == 3的病害
- export async function isUnFinishDisease(userName,buildingId,yearId){
-	 try {
-		 // 获取病害数据并等待Promise解析
-		 const diseaseData = await getDisease(userName, buildingId, yearId);
+//提交时判断是否有未完成的病害，commitType == 3的病害
+export async function isUnFinishDisease(userName, buildingId, yearId) {
+	try {
+		// 获取病害数据并等待Promise解析
+		const diseaseData = await getDisease(userName, buildingId, yearId);
 
-		 // 检查diseases数组是否存在
-		 if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
-			 console.log('没有找到病害数据或数据格式不正确');
-			 return false;
-		 }
+		// 检查diseases数组是否存在
+		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
+			console.log('没有找到病害数据或数据格式不正确');
+			return false;
+		}
 
-		 // 使用some方法检查是否有任何病害的commit_type为3（未完成）
-		 const hasUnFinishDiseases = diseaseData.diseases.some(disease => disease.commitType === 3 );
+		// 使用some方法检查是否有任何病害的commit_type为3（未完成）
+		const hasUnFinishDiseases = diseaseData.diseases.some(disease => disease.commitType === 3);
 
-		 console.log(`检查未完成病害: ${hasUnFinishDiseases ? '有未完成病害' : '没有未完成病害'}`);
-		 return hasUnFinishDiseases;
-	 } catch (error) {
-		 console.error('检查病害完成状态时出错:', error);
-		 return false; // 出错时返回false
-	 }
- }
+		console.log(`检查未完成病害: ${hasUnFinishDiseases ? '有未完成病害' : '没有未完成病害'}`);
+		return hasUnFinishDiseases;
+	} catch (error) {
+		console.error('检查病害完成状态时出错:', error);
+		return false; // 出错时返回false
+	}
+}
+
+//读取绝对路径为相对路径
+export function buildingImagesFromAbsoluteToRelative(absolutePaths) {
+	return absolutePaths.map(path => {
+		const parts = path.split('/building/');
+		if (parts.length < 2) {
+			return '';
+		}
+		console.log('parts', parts);
+		return parts[1]; // 返回'/building/'后面的部分
+	});
+}
