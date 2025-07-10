@@ -595,10 +595,12 @@
 		selectedColumn.value = emitSelectColumn || 0
 		showColumns.value = selectedColumn.value.toString(2).padStart(8, '0').split('').reverse();
 		console.log('showColumns:', showColumns.value)
-    if (crackTypeIndex.value === 5) {
-      showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
-    } else {
-      showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
+    if(showColumns.value[0] == '1'){
+      if (crackTypeIndex.value === 5) {
+        showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
+      } else {
+        showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
+      }
     }
 	}
 
