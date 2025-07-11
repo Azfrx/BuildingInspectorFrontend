@@ -265,31 +265,32 @@
 
 <style scoped>
 	.photo-picker {
-		padding: 20rpx;
-		height: 100vh;
+		padding: 10rpx;
 		box-sizing: border-box;
 		position: relative;
+		width: 100%;
 	}
 
 	.preview-list {
 		display: flex;
-		flex-wrap: wrap;
-		gap: 20rpx;
+		flex-direction: row;
+		flex-wrap: wrap; /* 改回换行 */
+		gap: 10rpx;
 		justify-content: flex-start;
-		/* 关键：左对齐 */
-		margin-top: 30rpx;
+		width: 100%; /* 固定宽度 */
+		margin-top: 10rpx;
 	}
 
 	.preview-container {
 		border: none;
-		border-radius: 0;
+		border-radius: 8rpx;
 		padding: 0;
-		width: 200px;
-		height: 200px;
-		min-width: 200px;
-		min-height: 200px;
-		max-width: 200px;
-		max-height: 200px;
+		width: calc(50% - 10rpx); /* 一行两个，考虑间距 */
+		height: 220rpx;
+		min-width: calc(50% - 10rpx);
+		min-height: 220rpx;
+		max-width: calc(50% - 10rpx);
+		max-height: 220rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -297,7 +298,7 @@
 		cursor: pointer;
 		box-sizing: border-box;
 		position: relative;
-		/* Added for delete icon positioning */
+		margin-bottom: 10rpx;
 	}
 
 	.preview-image {
@@ -350,17 +351,17 @@
 
 	.delete-icon {
 		position: absolute;
-		top: 0;
-		right: 0;
+		top: -15px;
+		right: -15px;
 		background-color: rgba(0, 0, 0, 0.5);
 		color: white;
-		width: 40rpx;
-		height: 40rpx;
+		width: 30px;
+		height: 30px;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 30rpx;
+		font-size: 16px;
 		z-index: 1;
 		cursor: pointer;
 	}

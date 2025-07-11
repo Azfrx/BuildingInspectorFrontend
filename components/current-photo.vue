@@ -40,7 +40,7 @@
 			<!-- 照片区域 - 为每个二级菜单项绑定独立的照片选择器 -->
 			<view class="photo-section">
 				<view v-for="(item, index) in secondLevelItems" :key="index">
-					<myPhotoPicker v-if="selectedSecondIndex === index" v-model="item.photos"
+					<myPhotoPicker v-if="selectedSecondIndex === index" v-model="item.photo"
 						@select="handlePhotoChange(item)" @delete="handleDeletePhoto" />
 				</view>
 			</view>
@@ -114,7 +114,7 @@
 	const userInfo = userStore()
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
-	const photos = ref([]);
+	const photo = ref([]);
 	const show = ref(false);
 	// 确保每个二级菜单项都有独立的照片数组
 	const ensurePhotoArrays = () => {
@@ -123,8 +123,8 @@
 		structureData.value.children.forEach(firstLevel => {
 			if (firstLevel.children) {
 				firstLevel.children.forEach(secondLevel => {
-					if (!secondLevel.photos) {
-						secondLevel.photos = [];
+					if (!secondLevel.photo) {
+						secondLevel.photo = [];
 					}
 				});
 			}
@@ -133,23 +133,23 @@
 
 	// 照片变化处理函数
 	const handlePhotoChange = async (item) => {
-		console.log('item.photos', item.photos);
+		console.log('item.photos', item.photo);
 
 		// 1. 先获取当前item中已有的图片的绝对路径（除了最新添加的图片）
 		let oldPhotoPaths = [];
-		if (item.photos.length > 1) {
+		if (item.photo.length > 1) {
 			// 获取除了最后一个新添加图片外的所有图片
-			oldPhotoPaths = item.photos.slice(0, item.photos.length - 1);
+			oldPhotoPaths = item.photo.slice(0, item.photo.length - 1);
 		}
 
 		//传入的item.photos是上传图片的临时路径(拍照/从相册选择)
 		//"_doc/uniapp_temp_1752056512594/camera/1752056522301.jpg" 拍照的临时路径
 		///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/UD25-07-06-inspector1@znjc/building/1837/images/bridge_1752056908276_1.jpg 相册选择的临时路径
 		// 2. 保存图片到本地，转为相对路径存到json
-		item.photos = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photos);
+		item.photo = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photo);
 
 		// 3. 转为绝对路径显示
-		item.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photos);
+		item.photo = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photo);
 
 		// 4. 保存结构数据到json
 		await autoSavePhotos();
@@ -194,10 +194,10 @@
 				for (const firstLevel of structureData.value.children) {
 					if (firstLevel.children) {
 						for (const secondLevel of firstLevel.children) {
-							if (!secondLevel.photos) {
-								secondLevel.photos = [];
+							if (!secondLevel.photo) {
+								secondLevel.photo = [];
 							} else {
-								secondLevel.photos = await buildingImagesFromAbsoluteToRelative(secondLevel.photos);
+								secondLevel.photo = await buildingImagesFromAbsoluteToRelative(secondLevel.photo);
 							}
 						}
 					}
@@ -208,10 +208,10 @@
         for (const firstLevel of structureData.value.children) {
           if (firstLevel.children) {
             for (const secondLevel of firstLevel.children) {
-              if (!secondLevel.photos) {
-                secondLevel.photos = [];
+              if (!secondLevel.photo) {
+                secondLevel.photo = [];
               } else {
-                secondLevel.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value, secondLevel.photos);
+                secondLevel.photo = await readBridgeImage(userInfo.username, TaskBridgeId.value, secondLevel.photo);
               }
             }
           }
@@ -233,11 +233,11 @@
 		if (!firstLevelItem || !firstLevelItem.children) return;
 
 		const secondLevelItem = firstLevelItem.children[selectedSecondIndex.value];
-		if (!secondLevelItem || !secondLevelItem.photos) return;
+		if (!secondLevelItem || !secondLevelItem.photo) return;
 
-		const deletedPhoto = secondLevelItem.photos[index];
+		const deletedPhoto = secondLevelItem.photo[index];
 		if (deletedPhoto) {
-			secondLevelItem.photos.splice(index, 1);
+			secondLevelItem.photo.splice(index, 1);
 			structureData.value = JSON.parse(JSON.stringify(structureData.value));
 			await autoSavePhotos();
 
@@ -268,8 +268,8 @@
 			const secondLevelItem = firstLevelItem.children[selectedSecondIndex.value];
 			if (!secondLevelItem) return;
 
-			if (!secondLevelItem.photos) {
-				secondLevelItem.photos = [];
+			if (!secondLevelItem.photo) {
+				secondLevelItem.photo = [];
 			}
 
 			const newPhotos = e.tempFiles.map(file => {
@@ -283,7 +283,7 @@
 				};
 			});
 
-			secondLevelItem.photos = [...(secondLevelItem.photos || []), ...newPhotos];
+			secondLevelItem.photo = [...(secondLevelItem.photo || []), ...newPhotos];
 			structureData.value = JSON.parse(JSON.stringify(structureData.value));
 
 			await autoSavePhotos();
@@ -292,7 +292,7 @@
 
 	// 添加hasPhotos函数来检查菜单项是否有照片
 	const hasPhotos = (item) => {
-		if (item.photos && item.photos.length > 0) {
+		if (item.photo && item.photo.length > 0) {
 			return true;
 		}
 
@@ -320,7 +320,7 @@
 
 			if (result.success) {
 				// 从数据中删除对应的图片记录
-				secondLevelItem.photos.splice(index, 0);
+				secondLevelItem.photo.splice(index, 0);
 				// 保存json时将绝对路径转为相对路径存储
 				// secondLevelItem.photos = await buildingImagesFromAbsoluteToRelative(secondLevelItem.photos);
 				// 更新数据
@@ -378,11 +378,11 @@
 				for (const firstLevel of latestData.children) {
 					if (firstLevel.children) {
 						for (const secondLevel of firstLevel.children) {
-							if (!secondLevel.photos) {
-								secondLevel.photos = [];
+							if (!secondLevel.photo) {
+								secondLevel.photo = [];
 							} else {
-								secondLevel.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value,
-									secondLevel.photos);
+								secondLevel.photo = await readBridgeImage(userInfo.username, TaskBridgeId.value,
+									secondLevel.photo);
 							}
 						}
 					}
@@ -590,6 +590,8 @@
 		flex: 1;
 		padding: 20rpx;
 		overflow-y: auto;
+		width: calc(100% - 254rpx); /* 减去两个sidebar的宽度 */
+		box-sizing: border-box;
 	}
 
 	/* 弹窗样式 */
@@ -723,5 +725,7 @@
 		flex: 1;
 		padding: 20rpx;
 		overflow-y: auto;
+		width: calc(100% - 254rpx); /* 减去两个sidebar的宽度 */
+		box-sizing: border-box;
 	}
 </style>

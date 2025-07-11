@@ -157,7 +157,7 @@ import {
           //所有项目信息
           const allProjects = projectResponse.data.data.projects || [];
           loading.value = true
-          await downloadAllData(userInfo.username, projectResponse.data, allProjects, infoData.value.token)
+          await downloadProjects(userInfo.username, projectResponse.data, allProjects, infoData.value.token)
         };
         await getData();
       } else {
