@@ -622,9 +622,8 @@
 						<!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
 							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
 							:auto-upload="false"></uni-file-picker> -->
-						<myFilePicker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
-							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
-							:auto-upload="false"></myFilePicker>
+						<my-photo-picker class="photo-select" v-model="fileList" @select="handleFileSelect" 
+							@delete="handleFileDelete" :limit="9"></my-photo-picker>
 					</view>
 				</view>
 
@@ -792,6 +791,7 @@
 	import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
 	import DiseaseDescriptionPart from '@/components/disease-descriptionPart.vue';
 	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
+	import MyPhotoPicker from '@/components/myPhotoPicker.vue';
 
 	const diseaseInformationRef = ref(null);
 	const diseaseQuantitativeDataRef = ref(null);
@@ -1731,12 +1731,7 @@
 			console.log('开始处理图片数据......:', data.images);
 			const imagesPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
 			console.log('处理后的图片路径:', imagesPaths);
-			fileList.value = imagesPaths.map((url, index) => ({
-				name: `图片${index + 1}`,
-				url: url,
-				extname: 'jpg',
-				size: 0
-			}));
+			fileList.value = imagesPaths;
 		}
 
 		// AD图片
@@ -2175,7 +2170,8 @@
 			}
 		}
 		// 获取当前文件列表中的图片URL
-		const currentImageUrls = fileList.value.map(img => img.url);
+		// myPhotoPicker组件的fileList直接存储图片路径字符串
+		const currentImageUrls = fileList.value;
 		const currentADImages = ADImgs.value.map(img => img.src);
 
 		try {
@@ -2514,109 +2510,18 @@
 		});
 	}
 
-	const handleFileSelect = (e) => {
-		console.log('文件选择事件', e);
-		// 确保fileList被正确更新
-		if (e && e.tempFiles && e.tempFiles.length > 0) {
-			console.log('选择的文件数量:', e.tempFiles.length);
-
-			// 将tempFiles的信息直接更新到fileList
-			const newFiles = e.tempFiles.map(file => {
-				return {
-					name: file.name,
-					url: file.url || file.path || (file.file && file.file.path) ||
-						(file.image && file.image.location) || file.tempFilePath,
-					extname: file.extname || 'jpg',
-					size: file.size || 0,
-					// 保存原始文件信息，以备后用
-					originalFile: file
-				};
-			});
-
-			// 更新fileList，添加新选择的文件
-			// 注意：这里我们假设每次选择都是添加新文件，而不是替换
-			// 如果需要替换，请取消下面的注释，使用newFiles替换fileList
-			// fileList.value = newFiles;
-
-			newFiles.forEach(file => {
-				// 检查是否已存在相同文件
-				const existingIndex = fileList.value.findIndex(f =>
-					f.name === file.name || f.url === file.url);
-				if (existingIndex === -1) {
-					fileList.value.push(file);
-				} else {
-					// 如果已存在，替换它
-					fileList.value[existingIndex] = file;
-				}
-			});
-
-			// 强制更新fileList引用，确保视图更新
-			fileList.value = [...fileList.value];
-
-			// 打印更新后的文件列表
-			console.log('更新后的fileList:', fileList.value);
-
-			// 检查路径
-			const paths = getImagePaths(fileList.value);
-			console.log('当前有效路径数:', paths.length);
-		}
+	const handleFileSelect = () => {
+		console.log('图片选择完成');
+		// myPhotoPicker组件通过v-model直接更新了fileList数组
+		// 这里不需要像之前那样从事件中提取数据
+		console.log('当前图片列表:', fileList.value);
 	}
 
 	const handleFileDelete = (e) => {
-		console.log('文件删除事件', e);
-
-		// 如果uni-file-picker组件已经使用v-model绑定了fileList，它会自动处理删除
-		// 下面的代码是为了保险起见，确保fileList正确更新
-
-		if (e && e.tempFile && e.tempFile.name) {
-			// 从fileList中移除被删除的文件
-			const fileName = e.tempFile.name;
-			fileList.value = fileList.value.filter(file => file.name !== fileName);
-			console.log('删除后的文件列表:', fileList.value);
-		} else if (e && e.index !== undefined && e.index >= 0) {
-			// 如果提供了索引，根据索引删除
-			fileList.value.splice(e.index, 1);
-			console.log('删除后的文件列表:', fileList.value);
-		}
-	}
-
-	// 处理并获取临时图片路径
-	const getImagePaths = (fileListData) => {
-		const paths = [];
-
-		if (!fileListData || !Array.isArray(fileListData) || fileListData.length === 0) {
-			console.log('文件列表为空');
-			return paths;
-		}
-
-		console.log('处理文件列表:', fileListData);
-
-		// 提取路径
-		fileListData.forEach((file, index) => {
-			// 尝试多种可能的属性获取路径
-			let path = '';
-
-			if (file.url) {
-				path = file.url;
-			} else if (file.path) {
-				path = file.path;
-			} else if (file.tempFilePath) {
-				path = file.tempFilePath;
-			} else if (file.file && file.file.path) {
-				path = file.file.path;
-			} else if (file.image && file.image.location) {
-				path = file.image.location;
-			}
-
-			if (path) {
-				console.log(`文件[${index}]有效路径:`, path);
-				paths.push(path);
-			} else {
-				console.warn(`文件[${index}]没有有效路径:`, file);
-			}
-		});
-
-		return paths;
+		console.log('图片删除事件', e);
+		// myPhotoPicker组件通过v-model直接更新了fileList数组
+		// 这里可以进行一些额外的处理，如果需要的话
+		console.log('删除后的图片列表:', fileList.value);
 	}
 
 	const onClickTemplate = (templateIndex) => {
@@ -3261,7 +3166,8 @@
 		flex-direction: column;
 		border-bottom: 1px solid #EEEEEE;
 		padding: 12rpx 16rpx;
-		height: 200rpx;
+		min-height: 200rpx;
+		height: auto;
 	}
 
 	.part-title {
@@ -3273,7 +3179,26 @@
 		margin-top: 10rpx;
 	}
 
-	.file-picker {}
+	.photo-select {
+		margin-top: 10rpx;
+		height: auto;
+		min-height: 100rpx;
+		background-color: transparent;
+	}
+	
+	/* 覆盖myPhotoPicker组件中的图片容器尺寸 */
+	.photo-select::v-deep .preview-container {
+		width: 160rpx;
+		height: 160rpx;
+		min-width: 160rpx;
+		min-height: 160rpx;
+		max-width: 160rpx;
+		max-height: 160rpx;
+	}
+
+	.file-picker {
+		width: 100%;
+	}
 
 	.part-ADImages {
 		display: flex;
@@ -3784,5 +3709,10 @@
 		color: #333333;
 		font-size: 20rpx;
 		font-weight: bold;
+	}
+
+	/* 调整图片列表的间距 */
+	.photo-select::v-deep .preview-list {
+		gap: 15rpx;
 	}
 </style>

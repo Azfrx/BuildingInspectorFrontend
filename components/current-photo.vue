@@ -165,29 +165,6 @@
 		}
 	};
 
-	// 检查照片数据结构是否符合myFilePicker组件的要求，并修复图片URL
-	const ensureValidPhotoStructure = (photos) => {
-		if (!Array.isArray(photos)) return [];
-
-		return photos.map(photo => {
-			if (typeof photo !== 'object') return null;
-
-			let url = photo.url || '';
-
-			if (url && !url.startsWith('http') && !url.startsWith('file://') && !url.startsWith('data:')) {
-				if (!url.startsWith('/')) {
-					url = '/' + url;
-				}
-			}
-
-			return {
-				name: photo.name || 'photo.jpg',
-				url: url,
-				extname: photo.extname || 'jpg',
-			};
-		}).filter(photo => photo !== null);
-	};
-
 	const autoSavePhotos = async () => {
 		try {
 			if (structureData.value && structureData.value.children) {
@@ -590,8 +567,6 @@
 		flex: 1;
 		padding: 20rpx;
 		overflow-y: auto;
-		width: calc(100% - 254rpx); /* 减去两个sidebar的宽度 */
-		box-sizing: border-box;
 	}
 
 	/* 弹窗样式 */
@@ -725,7 +700,5 @@
 		flex: 1;
 		padding: 20rpx;
 		overflow-y: auto;
-		width: calc(100% - 254rpx); /* 减去两个sidebar的宽度 */
-		box-sizing: border-box;
 	}
 </style>

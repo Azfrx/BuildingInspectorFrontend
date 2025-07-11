@@ -7,8 +7,8 @@
 				<image :src="img" class="preview-image" mode="aspectFill" @click="previewImage(idx)" />
 				<view class="delete-icon" @click.stop="deleteImage(idx)">×</view>
 			</view>
-			<!-- 添加按钮 -->
-			<view class="preview-container" @click="showActionSheet">
+			<!-- 添加按钮，仅在未达到上限时显示 -->
+			<view v-if="modelValue.length < limit" class="preview-container" @click="showActionSheet">
 				<view class="empty-preview">
 					<view class="plus-icon"></view>
 				</view>
@@ -50,8 +50,11 @@
 		</view>
 
 		<!-- 隐藏的canvas，用于生成带数字的图片 -->
-		<canvas canvas-id="numberCanvas" class="hidden-canvas"
+		<canvas :canvas-id="canvasId" class="hidden-canvas"
 			style="position: absolute; left: -9999px; top: -9999px; width: 200px; height: 200px;"></canvas>
+		<!-- 备用canvas -->
+		<canvas canvas-id="fallbackCanvas" class="hidden-canvas"
+			style="position: absolute; left: -9999px; top: -9999px; width: 100px; height: 100px;"></canvas>
 	</view>
 </template>
 
@@ -66,9 +69,9 @@
 			type: Array,
 			default: () => []
 		},
-		maxCount: {
+		limit: {
 			type: Number,
-			default: 9
+			default: 20
 		}
 	});
 
@@ -89,9 +92,9 @@
 
 	// 显示底部弹出层
 	const showActionSheet = () => {
-		if (props.modelValue.length >= props.maxCount) {
+		if (props.modelValue.length >= props.limit) {
 			uni.showToast({
-				title: `最多只能上传${props.maxCount}张图片`,
+				title: `最多只能上传${props.limit}张图片`,
 				icon: 'none'
 			});
 			return;
@@ -157,51 +160,107 @@
 		photoNumber.value = '';
 	};
 
+	// 为每个组件实例生成唯一的Canvas ID
+	const canvasId = ref(`numberCanvas_${Date.now()}_${Math.floor(Math.random() * 1000)}`);
+
 	// 生成带数字的图片
 	const generateNumberedImage = (number) => {
 		return new Promise((resolve) => {
-			// 创建画布上下文
-			const context = uni.createCanvasContext('numberCanvas');
-			const size = 200;
+			try {
+				// 创建画布上下文
+				const context = uni.createCanvasContext(canvasId.value);
+				const size = 200;
 
-			// 绘制背景
+				// 绘制背景
+				context.setFillStyle('#f0f0f0');
+				context.fillRect(0, 0, size, size);
+
+				// 绘制数字
+				context.setFillStyle('#333');
+				context.setFontSize(80);
+				context.setTextAlign('center');
+				context.setTextBaseline('middle');
+				context.fillText(number, size / 2, size / 2);
+
+				// 绘制边框
+				context.setStrokeStyle('#ccc');
+				context.setLineWidth(2);
+				context.strokeRect(0, 0, size, size);
+
+				// 将画布内容转为图片
+				context.draw(false, () => {
+					uni.canvasToTempFilePath({
+						canvasId: canvasId.value,
+						success: (res) => {
+							console.log('生成图片成功', res.tempFilePath);
+							resolve(res.tempFilePath);
+						},
+						fail: (err) => {
+							console.error('生成数字图片失败:', err);
+							// 失败时尝试创建一个备用的纯色图片
+							createFallbackImage(number).then(fallbackPath => {
+								resolve(fallbackPath);
+							});
+						}
+					});
+				});
+			} catch (error) {
+				console.error('Canvas创建失败:', error);
+				// 出错时创建备用图片
+				createFallbackImage(number).then(fallbackPath => {
+					resolve(fallbackPath);
+				});
+			}
+		});
+	};
+
+	// 创建备用图片（当Canvas方法失败时使用）
+	const createFallbackImage = (number) => {
+		return new Promise((resolve) => {
+			// 使用uni-app提供的绘制API创建一个简单的带数字的图片
+			const context = uni.createCanvasContext('fallbackCanvas');
+			const size = 100;
+			
 			context.setFillStyle('#f0f0f0');
 			context.fillRect(0, 0, size, size);
-
-			// 绘制数字
+			
 			context.setFillStyle('#333');
-			context.setFontSize(80);
+			context.setFontSize(40);
 			context.setTextAlign('center');
 			context.setTextBaseline('middle');
-			context.fillText(number, size / 2, size / 2);
-
-			// 绘制边框
-			context.setStrokeStyle('#ccc');
-			context.setLineWidth(2);
-			context.strokeRect(0, 0, size, size);
-
-			// 将画布内容转为图片
-			context.draw(false, () => {
+			context.fillText(number, size/2, size/2);
+			
+			context.draw(true, () => {
 				uni.canvasToTempFilePath({
-					canvasId: 'numberCanvas',
+					canvasId: 'fallbackCanvas',
 					success: (res) => {
+						console.log('备用图片生成成功', res.tempFilePath);
 						resolve(res.tempFilePath);
 					},
-					fail: (err) => {
-						console.error('生成数字图片失败:', err);
+					fail: () => {
+						// 如果备用方法也失败，返回null
+						console.error('备用图片也生成失败');
 						resolve(null);
 					}
 				});
 			});
 		});
 	};
+
 	// 确认照片序号输入
 	const confirmPhotoNumber = async () => {
 		if (photoNumber.value.trim()) {
 			try {
+				uni.showLoading({
+					title: '正在生成图片...'
+				});
+				
 				// 生成带数字的图片
 				const numberedImagePath = await generateNumberedImage(photoNumber.value);
+				console.log('numberedImagePath', numberedImagePath);
 
+				uni.hideLoading();
+				
 				if (numberedImagePath) {
 					// 将生成的图片添加到图片列表中
 					const newImages = [...props.modelValue, numberedImagePath];
@@ -219,6 +278,7 @@
 					});
 				}
 			} catch (error) {
+				uni.hideLoading();
 				console.error('生成数字图片失败:', error);
 				uni.showToast({
 					title: '生成图片失败',
@@ -265,32 +325,28 @@
 
 <style scoped>
 	.photo-picker {
-		padding: 10rpx;
 		box-sizing: border-box;
 		position: relative;
-		width: 100%;
 	}
 
 	.preview-list {
 		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap; /* 改回换行 */
-		gap: 10rpx;
+		flex-wrap: wrap;
+		gap: 20rpx;
 		justify-content: flex-start;
-		width: 100%; /* 固定宽度 */
-		margin-top: 10rpx;
+		/* 关键：左对齐 */
 	}
 
 	.preview-container {
 		border: none;
-		border-radius: 8rpx;
+		border-radius: 0;
 		padding: 0;
-		width: calc(50% - 10rpx); /* 一行两个，考虑间距 */
-		height: 220rpx;
-		min-width: calc(50% - 10rpx);
-		min-height: 220rpx;
-		max-width: calc(50% - 10rpx);
-		max-height: 220rpx;
+		width: 200px;
+		height: 200px;
+		min-width: 200px;
+		min-height: 200px;
+		max-width: 200px;
+		max-height: 200px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -298,7 +354,7 @@
 		cursor: pointer;
 		box-sizing: border-box;
 		position: relative;
-		margin-bottom: 10rpx;
+		/* Added for delete icon positioning */
 	}
 
 	.preview-image {
@@ -351,17 +407,17 @@
 
 	.delete-icon {
 		position: absolute;
-		top: -15px;
-		right: -15px;
+		top: 0;
+		right: 0;
 		background-color: rgba(0, 0, 0, 0.5);
 		color: white;
-		width: 30px;
-		height: 30px;
+		width: 40rpx;
+		height: 40rpx;
 		border-radius: 50%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		font-size: 16px;
+		font-size: 30rpx;
 		z-index: 1;
 		cursor: pointer;
 	}

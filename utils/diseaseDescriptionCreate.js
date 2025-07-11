@@ -12,7 +12,7 @@ function generateDiseaseDescription(data) {
 
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
-	let description = `${componentCode}#${componentName}${diseaseType}${count > 0 ? `${count} + 条缺损`: ''}，${diseasePosition}，`;
+	let description = `${componentCode}#${componentName}${diseaseType}${count > 0 ? `${count}条缺损`: ''}，${diseasePosition}，`;
 	if(showColumns[0] == 1) description += `${crackType}裂缝`;
 	let descriptionArr = []
  
