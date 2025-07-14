@@ -6,7 +6,7 @@
 			</view>
 		</view>
 
-		<view class="quantitative-data">
+		<view class="quantitative-data" v-show="showColumns[10] == 1">
 			<view class="quantitative-data-left">
 				<text class="picker-must">*</text>
 				<view>缺损数量</view>
@@ -44,7 +44,7 @@
 			</view>
 
 
-			<view class="location-description">
+			<view class="location-description" v-show="showColumns[8] == 1">
 				<view class="location-description-left">
 					据参考面1位置
 				</view>
@@ -78,7 +78,7 @@
 				</view>
 			</view>
 
-			<view class="location-description">
+			<view class="location-description" v-show="showColumns[9] == 1">
 				<view class="location-description-left">
 					据参考面2位置
 				</view>
@@ -574,9 +574,9 @@
 
 	watch(() => crackTypeIndex.value, (newValue) => {
 		if (newValue === 5) {
-			showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
+			showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0', '1', '1', '1', '0']
 		} else {
-			showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
+			showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0', '1', '1', '1', '0']
 		}
 	})
 
@@ -593,13 +593,13 @@
 	const setSelectColumn = (emitSelectColumn) => {
 		console.log('setSelectColumn:', emitSelectColumn)
 		selectedColumn.value = emitSelectColumn || 0
-		showColumns.value = selectedColumn.value.toString(2).padStart(8, '0').split('').reverse();
+		showColumns.value = selectedColumn.value.toString(2).padStart(12, '0').split('').reverse();
 		console.log('showColumns:', showColumns.value)
     if(showColumns.value[0] == '1'){
       if (crackTypeIndex.value === 5) {
-        showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0']
+        showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0', '1', '1', '1', '0']
       } else {
-        showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0']
+        showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0', '1', '1', '1', '0']
       }
     }
 	}

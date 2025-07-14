@@ -53,7 +53,7 @@
 		</view>
 
 		<!-- 弹窗 -->
-		<view v-if="show" class="popup-overlay">
+<!--		<view v-if="show" class="popup-overlay">
 			<view class="edit-popup-content">
 				<view class="popup-title">照片序号</view>
 
@@ -80,8 +80,9 @@
 					<view class="btn confirm-btn" @click="confirm">确定</view>
 				</view>
 			</view>
-		</view>
+		</view>-->
 	</view>
+
 </template>
 
 <script setup>
@@ -107,6 +108,8 @@
 	} from '../utils/writeNew'
 	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 	import myPhotoPicker from './myPhotoPicker.vue';
+  import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
+  import {idStore} from "@/store/idStorage";
 
 	//桥梁id
 	const TaskBridgeId = ref(0)
@@ -116,6 +119,7 @@
 	const selectedSecondIndex = ref(0);
 	const photo = ref([]);
 	const show = ref(false);
+  const idStorageInfo = idStore()
 	// 确保每个二级菜单项都有独立的照片数组
 	const ensurePhotoArrays = () => {
 		if (!structureData.value?.children) return;
@@ -194,6 +198,8 @@
           }
         }
       }
+      await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+      uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
 			console.log('照片数据已保存');
 		} catch (error) {
 			console.error('保存照片数据失败:', error);
@@ -202,68 +208,6 @@
 				icon: 'error',
 				duration: 1500
 			});
-		}
-	};
-
-	const deletePhoto = async (index) => {
-		const firstLevelItem = structureData.value.children[selectedIndex.value];
-		if (!firstLevelItem || !firstLevelItem.children) return;
-
-		const secondLevelItem = firstLevelItem.children[selectedSecondIndex.value];
-		if (!secondLevelItem || !secondLevelItem.photo) return;
-
-		const deletedPhoto = secondLevelItem.photo[index];
-		if (deletedPhoto) {
-			secondLevelItem.photo.splice(index, 1);
-			structureData.value = JSON.parse(JSON.stringify(structureData.value));
-			await autoSavePhotos();
-
-			uni.showToast({
-				title: '删除成功',
-				icon: 'success',
-				duration: 1500
-			});
-		}
-	};
-
-	const onUploadSuccess = async () => {
-		console.log('上传成功');
-		await autoSavePhotos();
-
-		uni.showToast({
-			title: '保存成功',
-			icon: 'success',
-			duration: 1500
-		});
-	};
-
-	const photoSelect = async (e) => {
-		if (e && e.tempFiles && e.tempFiles.length > 0) {
-			const firstLevelItem = structureData.value.children[selectedIndex.value];
-			if (!firstLevelItem || !firstLevelItem.children) return;
-
-			const secondLevelItem = firstLevelItem.children[selectedSecondIndex.value];
-			if (!secondLevelItem) return;
-
-			if (!secondLevelItem.photo) {
-				secondLevelItem.photo = [];
-			}
-
-			const newPhotos = e.tempFiles.map(file => {
-				const url = file.url || file.path || (file.file && file.file.path) ||
-					(file.image && file.image.location) || file.tempFilePath;
-
-				return {
-					name: file.name || 'photo.jpg',
-					url: url,
-					extname: file.extname || 'jpg',
-				};
-			});
-
-			secondLevelItem.photo = [...(secondLevelItem.photo || []), ...newPhotos];
-			structureData.value = JSON.parse(JSON.stringify(structureData.value));
-
-			await autoSavePhotos();
 		}
 	};
 
