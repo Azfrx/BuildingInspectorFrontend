@@ -2,7 +2,7 @@
 import {userStore} from "@/store";
 
 const DOC_BASE_PATH = '_doc/';
-import { getObject } from './readJsonNew';
+import {getAllFirstLevelDirs, getObject} from './readJsonNew';
 import { trackPath } from './reviseJson';
 
 // 获取当前日期字符串 (格式: YY-MM-DD)
@@ -65,8 +65,11 @@ async function setJsonData(path, data) {
 }
 
 // 对外接口（仅使用userName）
-export function setProject(userName, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
+export async function setProject(userName, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    // 构建项目文件路径
+    const path = DOC_BASE_PATH + `${matchedDir}/project/projects.json`;
     trackPath(path);
     return setJsonData(path, data);
 }
@@ -78,26 +81,39 @@ export function coverProject(userName, data, oldProjectUsername) {
     return setJsonData(path, data);
 }
 
-export function setTask(userName, projectId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.task(userName, projectId);
+export async function setTask(userName, projectId, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    // 构建项目文件路径
+    const path = DOC_BASE_PATH + `${matchedDir}/project/${projectId}/task.json`;
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setProperty(userName, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.property(userName, buildingId);
+export async function setProperty(userName, buildingId, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    // 构建项目文件路径
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/property.json`;
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setObject(userName, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.object(userName, buildingId);
+export async function setObject(userName, buildingId, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    // 构建项目文件路径
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/object.json`;
     trackPath(path);
     return setJsonData(path, data);
 }
 
-export function setDisease(userName, buildingId, yearId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
+export async function setDisease(userName, buildingId, yearId, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    // 构建项目文件路径
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
+    // const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
     trackPath(path);
     return setJsonData(path, data);
 }
@@ -213,15 +229,18 @@ export function decreaseDiseaseNumber(userName, buildingId, nameOne, nameTwo, id
     return setJsonData(path, data);
 }
 // 保存图片到与JSON文件同级目录
-export function saveDiseaseImages(userName, buildingId, tempImagePaths) {
-    console.log('保存的图片tempImagePaths:',  tempImagePaths)
+export async function saveDiseaseImages(userName, buildingId, tempImagePaths) {
+    console.log('保存的图片tempImagePaths:', tempImagePaths)
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
     return new Promise((resolve, reject) => {
         // 构建目标目录路径
-        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userName, buildingId);
+        // const targetDirPath = DOC_BASE_PATH + FILE_NAMING.diseaseImages(userName, buildingId);
+        const targetDirPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/images`;
         // 确保目录存在
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
             // 创建目录
-            fs.root.getDirectory(targetDirPath, { create: true }, dirEntry => {
+            fs.root.getDirectory(targetDirPath, {create: true}, dirEntry => {
 
                 // 保存所有图片
                 const savePromises = tempImagePaths.map((tempPath, index) => {
@@ -305,16 +324,19 @@ export function saveDiseaseImages(userName, buildingId, tempImagePaths) {
     });
 }
 
-export function saveBridgeImages(userName, buildingId, tempImagePaths) {
-    console.log('保存的图片tempImagePaths:',  tempImagePaths)
+export async function saveBridgeImages(userName, buildingId, tempImagePaths) {
+    console.log('保存的图片tempImagePaths:', tempImagePaths)
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
     return new Promise((resolve, reject) => {
         // 构建目标目录路径
-        const targetDirPath = DOC_BASE_PATH + FILE_NAMING.bridgeImages(userName, buildingId);
+        // const targetDirPath = DOC_BASE_PATH + FILE_NAMING.bridgeImages(userName, buildingId);
+        const targetDirPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/images`;
 
         // 确保目录存在
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
             // 创建目录
-            fs.root.getDirectory(targetDirPath, { create: true }, dirEntry => {
+            fs.root.getDirectory(targetDirPath, {create: true}, dirEntry => {
 
                 // 保存所有图片
                 const savePromises = tempImagePaths.map((tempPath, index) => {
@@ -415,26 +437,33 @@ export function saveBridgeImage(userName, buildingId, tempImagePath) {
     });
 }
 
-export function saveBridgeZip(userName, buildingId){
+export async function saveBridgeZip(userName, buildingId) {
     //void plus.zip.compress(src, zipfile, successCB, errorCB);
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
     return new Promise((resolve, reject) => {
-        const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));
-        const zipfile = plus.io.convertLocalFileSystemURL( DOC_BASE_PATH + getUserDir(userName) + '/building/' + buildingId);
+        // const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));//DOC_BASE_PATH + `${matchedDir}/building/${buildingId}`;
+        const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + `${matchedDir}/building/${buildingId}`);
+        // const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + getUserDir(userName) + '/building/' + buildingId);
+        const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + `${matchedDir}` + '/building/' + buildingId);
         plus.zip.compress(src, zipfile,
-            function() {
+
+            function () {
                 console.log("Compress success!");
                 resolve(zipfile + '.zip');
             },
-            function(error) {
+            function (error) {
                 console.log("Compress error:", error);
                 reject(error);
-        });
+            });
     });
 }
 
-export function setFrontPhoto(userName, buildingId, data) {
-    const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
-    return setJsonData(path,  data);
+export async function setFrontPhoto(userName, buildingId, data) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/frontPhoto.json`;
+    return setJsonData(path, data);
 }
 export async function markObjectAsCommitted(userName, buildingId) {
     try {
@@ -451,4 +480,45 @@ export async function markObjectAsCommitted(userName, buildingId) {
         throw new Error(`Commit operation failed: ${error.message}`);
     }
 }
+
+async function findMatchingULDirectory(userName) {
+    try {
+        // 获取_doc目录下的所有子目录
+        const allDirs = await getAllFirstLevelDirs();
+
+        // 首先检查是否有project目录（优先使用）
+        if (allDirs.includes('project')) {
+            console.log('找到project目录，直接使用');
+            return 'project';
+        }
+
+        // 如果没有project目录，查找以UD开头的目录
+        const ulDirs = allDirs.filter(dir => dir.startsWith('UL'));
+        console.log('找到UL开头的目录:', ulDirs);
+
+        // 遍历UD目录，查找匹配当前用户名的目录
+        for (const dir of ulDirs) {
+            // 提取目录名中的用户名部分（最后一个'-'后面的内容）
+            const lastDashIndex = dir.lastIndexOf('-');
+            if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
+                const dirUsername = dir.substring(lastDashIndex + 1);
+                console.log(`目录 ${dir} 中的用户名: ${dirUsername}`);
+
+                // 检查提取的用户名是否与当前用户名匹配
+                if (userName && dirUsername === userName) {
+                    console.log('找到匹配的用户目录:', dir);
+                    return dir;
+                }
+            }
+        }
+
+        // 如果没有找到匹配的目录，返回null
+        console.log('未找到匹配的目录，将使用默认路径');
+        return null;
+    } catch (error) {
+        console.error('查找匹配目录时出错:', error);
+        return null;
+    }
+}
+
 
