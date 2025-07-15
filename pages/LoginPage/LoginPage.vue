@@ -60,6 +60,7 @@
 	import {
 		idStore
 	} from '../../store/idStorage';
+	import { setRootDir } from '../../utils/write';
 	const username = ref('');
 	const password = ref('');
 	const userInfo = userStore()
@@ -139,18 +140,31 @@
 					infoData: response.data,
 				})
 				idInfo.setUserId(response.data.userId)
-				// // 将allUserInfo写入本地
-				// const mockUserId = 1
-				// const mockData = ref({
-				// 	"msg": "登录成功,请妥善保管您的token信息",
-				// 	"code": 0,
-				// 	"token": response.data.token,
-				// 	"userId":"1",
-				// 	"userName":"张三",
-				// 	"userDept":"武汉交投公司"
-				// 			})
-				//  setAllUserInfo(mockData.value.userId,mockData.value)
-				// setAllUserInfo(response.data.userId,response.data)
+				
+				// 调用setRootDir方法创建根目录
+				try {
+					console.log('开始调用setRootDir创建根目录');
+					const rootDir = await setRootDir();
+					console.log('根目录创建成功，返回结果:', JSON.stringify(rootDir));
+					
+					// 检查返回的目录对象
+					if (rootDir && rootDir.fullPath) {
+						console.log('创建的目录路径:', rootDir.fullPath);
+						console.log('创建的目录名称:', rootDir.name);
+					} else {
+						console.warn('根目录创建成功但返回对象不完整:', rootDir);
+					}
+				} catch (error) {
+					console.error('创建根目录失败，错误详情:', error);
+					// 尝试显示更详细的错误信息
+					if (error.message) {
+						console.error('错误信息:', error.message);
+					}
+					if (error.stack) {
+						console.error('错误堆栈:', error.stack);
+					}
+				}
+				
 				console.log('登录成功，准备跳转');
 				uni.navigateTo({
 					url: '/pages/home/home'
@@ -219,6 +233,9 @@
 					password: password.value,
 					infoData: currentAccountInfo,
 				})
+				
+				// 离线登录不调用setRootDir方法创建根目录
+				
 				// 登录成功，跳转到bridge页面
 				uni.navigateTo({
 					url: '/pages/home/home'

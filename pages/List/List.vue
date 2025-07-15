@@ -17,7 +17,7 @@
 				</view>
 				<view class="info-row">
 					<text>项目单位: {{currentProject.ownerDept?.deptName || ''}}</text>
-					<text>检测数量: {{initTaskData?.data?.tasks?.length || 0}}</text>
+					<text>检测数量: {{initTaskData?.tasks?.length || 0}}</text>
 				</view>
 				<view class="info-row">
 					<text>检测年度: {{currentProject.year || ''}}年度</text>
@@ -115,31 +115,116 @@ import {
 	const tasks = ref([])
 	// 初始化时获取projectId参数
 	const getURLParams = () => {
-		const pages = getCurrentPages();
-		if (pages.length > 0) {
-			const currentPage = pages[pages.length - 1];
-			const options = currentPage.$page?.options;
-
-			if (options && options.projectId) {
-				projectId.value = options.projectId;
-				console.log('接收到的项目ID:', projectId.value);
-			} else {
-				console.log('未接收到项目ID，使用默认值:', projectId.value);
+		try {
+			console.log('开始获取URL参数');
+			
+			// 首先检查store中是否已有projectId
+			const storeProjectId = idInfo.projectId?.value;
+			if (storeProjectId) {
+				console.log('从store中获取到projectId:', storeProjectId);
+				projectId.value = storeProjectId;
+				return;
 			}
+			
+			// 尝试从URL获取
+			const pages = getCurrentPages();
+			if (pages.length > 0) {
+				const currentPage = pages[pages.length - 1];
+				console.log('当前页面:', currentPage.$page);
+				
+				// 检查options
+				if (currentPage.$page?.options) {
+					const options = currentPage.$page.options;
+					console.log('页面options:', options);
+					
+					if (options.projectId) {
+						projectId.value = options.projectId;
+						console.log('从URL options获取到projectId:', projectId.value);
+						return;
+					}
+				}
+				
+				// 尝试从路由中获取
+				if (currentPage.$page?.fullPath) {
+					const fullPath = currentPage.$page.fullPath;
+					console.log('页面fullPath:', fullPath);
+					
+					// 解析URL参数
+					const match = fullPath.match(/projectId=([^&]+)/);
+					if (match && match[1]) {
+						projectId.value = match[1];
+						console.log('从URL fullPath解析到projectId:', projectId.value);
+						return;
+					}
+				}
+			}
+			
+			console.log('未从URL获取到projectId，使用默认值:', projectId.value);
+		} catch (error) {
+			console.error('获取URL参数时出错:', error);
+			console.log('使用默认projectId:', projectId.value);
 		}
 	};
 
 	//初始化数据
 	const init = async () => {
-		// 先确保已经获取了URL参数
-		getURLParams();
-		projectInfo.value = await getProject(userInfo.username)
-		initTaskData.value = await getTask(userInfo.username, projectId.value)
-		
-		// 不再需要检查每个桥梁的提交状态，直接使用bridge.commited字段
-		
-		console.log("project", projects.value);
-		console.log("task", tasks.value)
+		try {
+			// 先确保已经获取了URL参数
+			getURLParams();
+			console.log('初始化数据，当前projectId:', projectId.value);
+			
+			// 获取项目数据
+			try {
+				projectInfo.value = await getProject(userInfo.username);
+				console.log('获取到项目数据:', JSON.stringify(projectInfo.value));
+			} catch (projectError) {
+				console.error('获取项目数据失败:', projectError);
+				projectInfo.value = { data: { projects: [] } }; // 设置默认值
+			}
+			
+			// 获取任务数据
+			try {
+				console.log('开始获取任务数据，projectId:', projectId.value);
+				initTaskData.value = await getTask(userInfo.username, projectId.value);
+				console.log('获取到任务数据:', JSON.stringify(initTaskData.value));
+				
+				// 检查任务数据结构
+				if (!initTaskData.value) {
+					console.warn('任务数据为空');
+					initTaskData.value = { tasks: [] };
+				} 
+				// 如果没有tasks数组但有data.tasks数组
+				else if (!Array.isArray(initTaskData.value.tasks) && initTaskData.value.data && Array.isArray(initTaskData.value.data.tasks)) {
+					console.log('任务数据使用嵌套结构，转换为直接结构');
+					// 转换为直接结构，以兼容模板中的使用
+					initTaskData.value = {
+						projectId: initTaskData.value.data.projectId || projectId.value,
+						tasks: initTaskData.value.data.tasks
+					};
+				}
+				// 如果没有任何任务数组
+				else if (!Array.isArray(initTaskData.value.tasks)) {
+					console.warn('无法识别的任务数据结构');
+					initTaskData.value.tasks = [];
+				}
+				
+				console.log('处理后的任务数量:', initTaskData.value.tasks.length);
+			} catch (taskError) {
+				console.error('获取任务数据失败:', taskError);
+				// 初始化默认的任务数据结构
+				initTaskData.value = { 
+					projectId: projectId.value,
+					tasks: [] 
+				};
+			}
+		} catch (error) {
+			console.error('初始化数据过程中发生错误:', error);
+		} finally {
+			console.log('初始化完成，当前数据状态:');
+			console.log('- projectInfo:', projectInfo.value ? '已加载' : '未加载');
+			console.log('- initTaskData:', initTaskData.value ? '已加载' : '未加载');
+			console.log('- 任务数量:', initTaskData.value?.data?.tasks?.length || 0);
+		}
 	};
 
   const setBuildingUnCommit = async (buildingId) => {
@@ -166,17 +251,28 @@ import {
   };
   const refreshTaskData = async () => {
     initTaskData.value = await getTask(userInfo.username, projectId.value)
+	console.log("initTaskData---------------------------------------------------------",initTaskData.value);
   }
 
 	// 页面加载时获取数据
-	onMounted(() => {
+	onMounted(async () => {
+		console.log('页面加载，开始初始化');
+		
+		// 首先获取URL参数
 		getURLParams();
-		// 然后再调用init或其他初始化函数
-		init();
-    uni.$on('setBuildingUnCommit',setBuildingUnCommit)
-    uni.$on('setBuildingCommit',setBuildingCommit)
-    uni.$on('refreshTaskData',refreshTaskData)
-	})
+		console.log('初始化后的projectId:', projectId.value);
+		
+		// 然后初始化数据
+		await init();
+		console.log('数据初始化完成');
+		
+		// 注册事件监听
+		uni.$on('setBuildingUnCommit', setBuildingUnCommit);
+		uni.$on('setBuildingCommit', setBuildingCommit);
+		uni.$on('refreshTaskData', refreshTaskData);
+		
+		console.log('页面初始化完成');
+	});
 
   onUnmounted(() => {
     uni.$off('setBuildingUnCommit',setBuildingUnCommit)
@@ -185,13 +281,58 @@ import {
   })
 	// 添加计算属性来获取当前项目
 	const currentProject = computed(() => {
-		if (!projectInfo.value || !projectInfo.value.data || !projectInfo.value.data.projects) {
+		console.log('计算currentProject，projectInfo值:', JSON.stringify(projectInfo.value));
+		
+		// 检查projectInfo是否有数据
+		if (!projectInfo.value) {
+			console.log('projectInfo为空');
+			
+			// 从任务数据中提取项目信息作为备选
+			if (initTaskData.value?.tasks?.length > 0 && initTaskData.value.tasks[0].project) {
+				console.log('从任务数据中提取项目信息');
+				return initTaskData.value.tasks[0].project;
+			}
+			
 			return {};
 		}
-
-		// 查找与当前projectId匹配的项目
-		const project = projectInfo.value.data.projects.find(p => p.id == projectId.value);
-		return project || projectInfo.value.data.projects[0] || {}; // 如果找不到，返回第一个项目或空对象
+		
+		// 检查projectInfo.data的结构
+		if (projectInfo.value.data && projectInfo.value.data.projects) {
+			console.log('使用projectInfo.data.projects结构');
+			// 新格式：{data: {projects: [...]}}
+			const project = projectInfo.value.data.projects.find(p => String(p.id) === String(projectId.value));
+			console.log('找到的项目:', project ? JSON.stringify(project) : '未找到');
+			
+			if (project) return project;
+			
+			// 如果找不到匹配的项目，但有项目列表，返回第一个
+			if (projectInfo.value.data.projects.length > 0) {
+				return projectInfo.value.data.projects[0];
+			}
+		} 
+		// 检查projectInfo.projects的结构
+		else if (projectInfo.value.projects && Array.isArray(projectInfo.value.projects)) {
+			console.log('使用projectInfo.projects结构');
+			// 旧格式：{projects: [...]}
+			const project = projectInfo.value.projects.find(p => String(p.id) === String(projectId.value));
+			console.log('找到的项目:', project ? JSON.stringify(project) : '未找到');
+			
+			if (project) return project;
+			
+			// 如果找不到匹配的项目，但有项目列表，返回第一个
+			if (projectInfo.value.projects.length > 0) {
+				return projectInfo.value.projects[0];
+			}
+		}
+		
+		// 从任务数据中提取项目信息作为备选
+		if (initTaskData.value?.tasks?.length > 0 && initTaskData.value.tasks[0].project) {
+			console.log('从任务数据中提取项目信息');
+			return initTaskData.value.tasks[0].project;
+		}
+		
+		console.log('未找到有效的项目数据');
+		return {}; // 如果找不到，返回空对象
 	});
 	// 根据桥梁类型获取对应图标
 	//Bug3 ---图标的对应规则未知
@@ -220,25 +361,54 @@ import {
 
 	// 根据搜索文本过滤桥梁列表
 	const filteredBridges = computed(() => {
-		if (!initTaskData.value || !initTaskData.value.data || !initTaskData.value.data.tasks) {
+		// 检查任务数据是否存在
+		if (!initTaskData.value) {
+			console.log('filteredBridges: initTaskData为空');
 			return [];
 		}
-
-		if (!searchText.value) {
-			return initTaskData.value.data.tasks;
+		
+		// 检查数据结构
+		let tasks = [];
+		
+		// 适配不同的数据结构
+		if (Array.isArray(initTaskData.value.tasks)) {
+			// 直接结构: {tasks: [...]}
+			tasks = initTaskData.value.tasks;
+			console.log('filteredBridges: 使用直接数据结构，任务数量:', tasks.length);
+		} else if (initTaskData.value.data && Array.isArray(initTaskData.value.data.tasks)) {
+			// 嵌套结构: {data: {tasks: [...]}}
+			tasks = initTaskData.value.data.tasks;
+			console.log('filteredBridges: 使用嵌套数据结构，任务数量:', tasks.length);
+		} else {
+			console.warn('filteredBridges: 无法识别的数据结构:', initTaskData.value);
+			return [];
 		}
-
+		
+		// 如果没有搜索文本，返回所有任务
+		if (!searchText.value) {
+			return tasks;
+		}
+		
+		// 根据搜索文本过滤
 		const searchLower = searchText.value.toLowerCase();
-		return initTaskData.value.data.tasks.filter(bridge => {
-			return (bridge.building?.name && bridge.building.name.toLowerCase().includes(searchLower)) ||
-				(bridge.building?.buildingCode && bridge.building.buildingCode.toLowerCase().includes(
-					searchLower)) ||
-				(bridge.building?.routeName && bridge.building.routeName.toLowerCase().includes(
-					searchLower)) ||
-				(bridge.building?.bridgePileNumber && bridge.building.bridgePileNumber.toLowerCase()
-					.includes(searchLower));
+		return tasks.filter(bridge => {
+			try {
+				// 安全地访问属性，避免undefined错误
+				const name = bridge?.building?.name || '';
+				const code = bridge?.building?.buildingCode || '';
+				const routeName = bridge?.building?.routeName || '';
+				const pileNumber = bridge?.building?.bridgePileNumber || '';
+				
+				return name.toLowerCase().includes(searchLower) || 
+					   code.toLowerCase().includes(searchLower) || 
+					   routeName.toLowerCase().includes(searchLower) || 
+					   pileNumber.toLowerCase().includes(searchLower);
+			} catch (error) {
+				console.error('过滤桥梁时出错:', error, bridge);
+				return false; // 出错时排除该项
+			}
 		});
-	})
+	});
 
 	// 处理搜索输入
 	const handleSearch = () => {

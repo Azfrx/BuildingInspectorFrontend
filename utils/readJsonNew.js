@@ -31,51 +31,140 @@ function getUserDir(userName) {
 
 // 路径生成规则（基于userName）
 export const FILE_NAMING = {
-	project: userName => `${getUserDir(userName)}/project/projects.json`,
-	projectWithDate: userNameWithDate => `${userNameWithDate}/project/projects.json`,
-	projectsFolder: userName => `${getUserDir(userName)}/project`,
-	task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
-	taskWithDate: (userNameWithDate, projectId) => `${userNameWithDate}/project/${projectId}/task.json`,
-	property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
+	project: userName => `project/projects.json`,
+	projectWithDate: userNameWithDate => `project/projects.json`,
+	projectsFolder: userName => `project`,
+	task: (userName, projectId) => `project/${projectId}/task.json`,
+	taskWithDate: (userNameWithDate, projectId) => `project/${projectId}/task.json`,
+	property: (userName, buildingId) => `building/${buildingId}/property.json`,
 	disease: (userName, buildingId, yearId) =>
-		`${getUserDir(userName)}/building/${buildingId}/disease/${yearId}.json`,
-	Object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
+		`building/${buildingId}/disease/${yearId}.json`,
+	Object: (userName, buildingId) => `building/${buildingId}/object.json`,
 	// 新增用户信息路径规则
-	user: userName => `${getUserDir(userName)}/user.json`,
-	historyYear: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/disease`,
-	AllUserInfo: userName => `${getUserDir(userName)}/AllUserInfo.json`,
-	frontPhoto: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/frontPhoto.json`,
+	user: userName => `user.json`,
+	historyYear: (userName, buildingId) => `building/${buildingId}/disease`,
+	AllUserInfo: userName => `AllUserInfo.json`,
+	frontPhoto: (userName, buildingId) => `building/${buildingId}/frontPhoto.json`,
 };
 
 // 核心文件读取方法
 async function getJsonData(path) {
-	return new Promise((resolve, reject) => {
-		plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-			fs.root.getFile(path, {
-				create: false
-			}, fileEntry => {
-				fileEntry.file(file => {
-					const reader = new plus.io.FileReader();
-					reader.onload = () => {
-						try {
-							resolve(JSON.parse(reader.result));
-						} catch (e) {
-							reject(`JSON解析失败: ${path}`);
-						}
-					};
-					reader.onerror = () => reject(`文件读取失败: ${path}`);
-					reader.readAsText(file);
-				}, reject);
-			}, reject);
-		}, reject);
-	});
+  return new Promise((resolve, reject) => {
+    console.log('开始读取文件:', path);
+    plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+      console.log('文件系统获取成功');
+      fs.root.getFile(path, {
+        create: false
+      }, fileEntry => {
+        console.log('文件条目获取成功:', path);
+        fileEntry.file(file => {
+          console.log('文件对象获取成功，大小:', file.size);
+          const reader = new plus.io.FileReader();
+          reader.onload = () => {
+            try {
+              console.log('文件读取成功，内容长度:', reader.result.length);
+              resolve(JSON.parse(reader.result));
+            } catch (e) {
+              console.error('JSON解析失败:', e);
+              reject(`JSON解析失败: ${path}, 错误: ${e.message}`);
+            }
+          };
+          reader.onerror = (e) => {
+            console.error('文件读取失败:', e);
+            reject(`文件读取失败: ${path}, 错误: ${e.message || '未知错误'}`);
+          };
+          reader.readAsText(file);
+        }, err => {
+          console.error('获取文件对象失败:', err);
+          reject(`获取文件对象失败: ${path}, 错误: ${err.message || '未知错误'}`);
+        });
+      }, err => {
+        console.error('获取文件条目失败:', err);
+        reject(`获取文件条目失败: ${path}, 错误: ${err.message || '未知错误'}`);
+      });
+    }, err => {
+      console.error('获取文件系统失败:', err);
+      reject(`获取文件系统失败: ${path}, 错误: ${err.message || '未知错误'}`);
+    });
+  });
 }
 
-// 对外接口（全部基于userName）
-export function getProject(userName) {
-	const path = DOC_BASE_PATH + FILE_NAMING.project(userName);
-	trackPath(path);
-	return getJsonData(path);
+// 辅助函数：查找匹配的目录
+async function findMatchingDirectory(userName) {
+  try {
+    // 获取_doc目录下的所有子目录
+    const allDirs = await getAllFirstLevelDirs();
+    
+    // 首先检查是否有project目录（优先使用）
+    if (allDirs.includes('project')) {
+      console.log('找到project目录，直接使用');
+      return 'project';
+    }
+    
+    // 如果没有project目录，查找以UD开头的目录
+    const udDirs = allDirs.filter(dir => dir.startsWith('UD'));
+    console.log('找到UD开头的目录:', udDirs);
+    
+    // 遍历UD目录，查找匹配当前用户名的目录
+    for (const dir of udDirs) {
+      // 提取目录名中的用户名部分（最后一个'-'后面的内容）
+      const lastDashIndex = dir.lastIndexOf('-');
+      if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
+        const dirUsername = dir.substring(lastDashIndex + 1);
+        console.log(`目录 ${dir} 中的用户名: ${dirUsername}`);
+        
+        // 检查提取的用户名是否与当前用户名匹配
+        if (userName && dirUsername === userName) {
+          console.log('找到匹配的用户目录:', dir);
+          return dir;
+        }
+      }
+    }
+    
+    // 如果没有找到匹配的目录，返回null
+    console.log('未找到匹配的目录，将使用默认路径');
+    return null;
+  } catch (error) {
+    console.error('查找匹配目录时出错:', error);
+    return null;
+  }
+}
+
+// 修改getProject函数，使用辅助函数
+export async function getProject(userName) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    // 构建项目文件路径
+   const projectPath = DOC_BASE_PATH + matchedDir + '/project/projects.json';
+    console.log('最终使用的项目文件路径:', projectPath);
+    trackPath(projectPath);
+    
+    try {
+      // 读取项目文件
+      return await getJsonData(projectPath);
+    } catch (readError) {
+      console.error('读取项目文件失败:', readError);
+      // 返回默认的项目数据结构
+      return {
+        code: 0,
+        msg: "success",
+        data: {
+          projects: []
+        }
+      };
+    }
+  } catch (error) {
+    console.error('获取项目数据失败:', error);
+    // 返回默认的项目数据结构
+    return {
+      code: 0,
+      msg: "success",
+      data: {
+        projects: []
+      }
+    };
+  }
 }
 
 //此username是带日期的
@@ -84,46 +173,211 @@ export function getHadProject(userNameWithDate) {
 	return getJsonData(path);
 }
 
-export function getTask(userName, projectId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.task(userName, projectId);
-	trackPath(path);
-	return getJsonData(path);
+// 修改getTask函数，使用辅助函数
+export async function getTask(userName, projectId) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 构建任务文件路径
+    let taskPath;
+    if (matchedDir === 'project') {
+      // 如果是project目录，直接使用
+      taskPath = DOC_BASE_PATH + `project/${projectId}/task.json`;
+    } else if (matchedDir) {
+      // 如果找到匹配的用户目录，使用该目录
+      taskPath = DOC_BASE_PATH + `${matchedDir}/project/${projectId}/task.json`;
+    } else {
+      // 如果没有找到匹配的目录，尝试使用默认路径
+      taskPath = DOC_BASE_PATH + `project/${projectId}/task.json`;
+    }
+    
+    console.log('任务文件路径:', taskPath);
+    trackPath(taskPath);
+    
+    try {
+      // 读取任务文件
+      return await getJsonData(taskPath);
+    } catch (readError) {
+      console.error('读取任务文件失败:', readError);
+      // 返回默认的任务数据结构
+      return {
+        code: 0,
+        msg: "success",
+        data: {
+          tasks: []
+        }
+      };
+    }
+  } catch (error) {
+    console.error('获取任务数据失败:', error);
+    // 返回默认的任务数据结构
+    return {
+      code: 0,
+      msg: "success",
+      data: {
+        tasks: []
+      }
+    };
+  }
 }
 
-export function getTaskByHadUsername(hadUsername, projectId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.taskWithDate(hadUsername, projectId);
-	trackPath(path);
-	return getJsonData(path);
+// 修改getTaskByHadUsername函数
+export async function getTaskByHadUsername(hadUsername, projectId) {
+  try {
+    // 这个函数已经有明确的目录名，直接使用
+    const path = DOC_BASE_PATH + `${hadUsername}/project/${projectId}/task.json`;
+    trackPath(path);
+    
+    try {
+      return await getJsonData(path);
+    } catch (readError) {
+      console.error('读取指定用户任务文件失败:', readError);
+      // 返回默认的任务数据结构
+      return {
+        code: 0,
+        msg: "success",
+        data: {
+          tasks: []
+        }
+      };
+    }
+  } catch (error) {
+    console.error('获取指定用户任务数据失败:', error);
+    // 返回默认的任务数据结构
+    return {
+      code: 0,
+      msg: "success",
+      data: {
+        tasks: []
+      }
+    };
+  }
 }
 
-export function getProperty(userName, buildingId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.property(userName, buildingId);
-	trackPath(path);
-	return getJsonData(path);
+export async function getProperty(userName, buildingId) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 构建属性文件路径
+    let propertyPath;
+    if (matchedDir === 'project') {
+      // 如果是project目录，使用默认building路径
+      propertyPath = DOC_BASE_PATH + `building/${buildingId}/property.json`;
+    } else if (matchedDir) {
+      // 如果找到匹配的用户目录，使用该目录
+      propertyPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/property.json`;
+    } else {
+      // 如果没有找到匹配的目录，尝试使用默认路径
+      propertyPath = DOC_BASE_PATH + `building/${buildingId}/property.json`;
+    }
+    
+    console.log('属性文件路径:', propertyPath);
+    trackPath(propertyPath);
+    
+    // 读取属性文件
+    return await getJsonData(propertyPath);
+  } catch (error) {
+    console.error('获取属性数据失败:', error);
+    throw error;
+  }
 }
 
-export function getDisease(userName, buildingId, yearId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.disease(userName, buildingId, yearId);
-	trackPath(path);
-	return getJsonData(path);
+export async function getDisease(userName, buildingId, yearId) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 构建病害文件路径
+    let diseasePath;
+    if (matchedDir === 'project') {
+      // 如果是project目录，使用默认building路径
+      diseasePath = DOC_BASE_PATH + `building/${buildingId}/disease/${yearId}.json`;
+    } else if (matchedDir) {
+      // 如果找到匹配的用户目录，使用该目录
+      diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
+    } else {
+      // 如果没有找到匹配的目录，尝试使用默认路径
+      diseasePath = DOC_BASE_PATH + `building/${buildingId}/disease/${yearId}.json`;
+    }
+    
+    console.log('病害文件路径:', diseasePath);
+    trackPath(diseasePath);
+    
+    // 读取病害文件
+    return await getJsonData(diseasePath);
+  } catch (error) {
+    console.error('获取病害数据失败:', error);
+    throw error;
+  }
 }
 
 export async function getObject(userName, buildingId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.Object(userName, buildingId);
-	trackPath(path);
-	return await getJsonData(path);
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 构建对象文件路径
+    let objectPath;
+    if (matchedDir === 'project') {
+      // 如果是project目录，使用默认building路径
+      objectPath = DOC_BASE_PATH + `building/${buildingId}/object.json`;
+    } else if (matchedDir) {
+      // 如果找到匹配的用户目录，使用该目录
+      objectPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/object.json`;
+    } else {
+      // 如果没有找到匹配的目录，尝试使用默认路径
+      objectPath = DOC_BASE_PATH + `building/${buildingId}/object.json`;
+    }
+    
+    console.log('对象文件路径:', objectPath);
+    trackPath(objectPath);
+    
+    // 读取对象文件
+    return await getJsonData(objectPath);
+  } catch (error) {
+    console.error('获取对象数据失败:', error);
+    throw error;
+  }
 }
 
-export function getAllUserInfo(userName) {
-	const path = DOC_BASE_PATH + FILE_NAMING.AllUserInfo(userName);
-	trackPath(path);
-	return getJsonData(path);
+export async function getAllUserInfo(userName) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 构建用户信息文件路径
+    let userInfoPath;
+    if (matchedDir === 'project') {
+      // 如果是project目录，使用默认路径
+      userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
+    } else if (matchedDir) {
+      // 如果找到匹配的用户目录，使用该目录
+      userInfoPath = DOC_BASE_PATH + `${matchedDir}/AllUserInfo.json`;
+    } else {
+      // 如果没有找到匹配的目录，尝试使用默认路径
+      userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
+    }
+    
+    console.log('用户信息文件路径:', userInfoPath);
+    trackPath(userInfoPath);
+    
+    // 读取用户信息文件
+    return await getJsonData(userInfoPath);
+  } catch (error) {
+    console.error('获取用户信息数据失败:', error);
+    throw error;
+  }
 }
 
 // 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
 export async function getHistoryYear(userName, buildingId) {
+	// 查找匹配的目录
+	const matchedDir = await findMatchingDirectory(userName);
 	// 1. 构建目标目录路径
-	const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
+	const dirPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease`;//building/${buildingId}/disease
+	// const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
 	console.log(`历史病害目标目录: ${dirPath}`)
 
 	// 2. 获取目录下的文件列表
@@ -174,40 +428,96 @@ export function listDirectoryFiles(path) {
 }
 
 // 将图片相对路径转为绝对路径进行读取
-export function readDiseaseImages(userName, buildingId, relativePaths) {
-	// 处理数组情况
-	if (Array.isArray(relativePaths)) {
-		return relativePaths.map(path => {
-			const fullPath = DOC_BASE_PATH + getUserDir(userName) + '/building/' +
-				path; //`${userId}/building/${buildingId}/disease/images`,
-			//转为本地绝对路径
-			return plus.io.convertLocalFileSystemURL(fullPath);
-		});
-	} else {
-		// 保持原有单个路径的处理逻辑
-		const path = DOC_BASE_PATH + getUserDir(userName) + '/building/' + relativePaths;
-		//转为本地绝对路径
-		const imagePath = plus.io.convertLocalFileSystemURL(path);
-		return imagePath;
-	}
+export async function readDiseaseImages(userName, buildingId, relativePaths) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 处理数组情况
+    if (Array.isArray(relativePaths)) {
+      return Promise.all(relativePaths.map(async (path) => {
+        let fullPath;
+        if (matchedDir === 'project') {
+          // 如果是project目录，使用默认building路径
+          fullPath = DOC_BASE_PATH + 'building/' + path;
+        } else if (matchedDir) {
+          // 如果找到匹配的用户目录，使用该目录
+          fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + path;
+        } else {
+          // 如果没有找到匹配的目录，尝试使用默认路径
+          fullPath = DOC_BASE_PATH + 'building/' + path;
+        }
+        
+        // 转为本地绝对路径
+        return plus.io.convertLocalFileSystemURL(fullPath);
+      }));
+    } else {
+      // 保持原有单个路径的处理逻辑
+      let fullPath;
+      if (matchedDir === 'project') {
+        // 如果是project目录，使用默认building路径
+        fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+      } else if (matchedDir) {
+        // 如果找到匹配的用户目录，使用该目录
+        fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + relativePaths;
+      } else {
+        // 如果没有找到匹配的目录，尝试使用默认路径
+        fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+      }
+      
+      // 转为本地绝对路径
+      return plus.io.convertLocalFileSystemURL(fullPath);
+    }
+  } catch (error) {
+    console.error('读取病害图片失败:', error);
+    throw error;
+  }
 }
 
-export function readBridgeImage(userName, buildingId, relativePaths) {
-	// 处理数组情况
-	if (Array.isArray(relativePaths)) {
-		return relativePaths.map(path => {
-			const fullPath = DOC_BASE_PATH + getUserDir(userName) + '/building/' +
-				path; //`${buildingId}/images/${fileName}`;
-			//转为本地绝对路径
-			return plus.io.convertLocalFileSystemURL(fullPath);
-		});
-	} else {
-		// 保持原有单个路径的处理逻辑
-		const path = DOC_BASE_PATH + getUserDir(userName) + '/building/' + relativePaths;
-		//转为本地绝对路径
-		const imagePath = plus.io.convertLocalFileSystemURL(path);
-		return imagePath;
-	}
+export async function readBridgeImage(userName, buildingId, relativePaths) {
+  try {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    
+    // 处理数组情况
+    if (Array.isArray(relativePaths)) {
+      return Promise.all(relativePaths.map(async (path) => {
+        let fullPath;
+        if (matchedDir === 'project') {
+          // 如果是project目录，使用默认building路径
+          fullPath = DOC_BASE_PATH + 'building/' + path;
+        } else if (matchedDir) {
+          // 如果找到匹配的用户目录，使用该目录
+          fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + path;
+        } else {
+          // 如果没有找到匹配的目录，尝试使用默认路径
+          fullPath = DOC_BASE_PATH + 'building/' + path;
+        }
+        
+        // 转为本地绝对路径
+        return plus.io.convertLocalFileSystemURL(fullPath);
+      }));
+    } else {
+      // 保持原有单个路径的处理逻辑
+      let fullPath;
+      if (matchedDir === 'project') {
+        // 如果是project目录，使用默认building路径
+        fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+      } else if (matchedDir) {
+        // 如果找到匹配的用户目录，使用该目录
+        fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + relativePaths;
+      } else {
+        // 如果没有找到匹配的目录，尝试使用默认路径
+        fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+      }
+      
+      // 转为本地绝对路径
+      return plus.io.convertLocalFileSystemURL(fullPath);
+    }
+  } catch (error) {
+    console.error('读取桥梁图片失败:', error);
+    throw error;
+  }
 }
 //读取所有一级子目录
 export function getAllFirstLevelDirs() {
