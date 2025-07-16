@@ -460,7 +460,7 @@ export function listDirectoryFiles(path) {
 export async function readDiseaseImages(userName, buildingId, relativePaths) {
   try {
     // 查找匹配的目录
-    const matchedDir = await findMatchingDirectory(userName);
+    const matchedDir = await findMatchingULDirectory(userName);
     
     // 处理数组情况
     if (Array.isArray(relativePaths)) {
@@ -503,10 +503,57 @@ export async function readDiseaseImages(userName, buildingId, relativePaths) {
   }
 }
 
+export async function readDiseaseUDImages(userName, buildingId, relativePaths) {
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingDirectory(userName);
+
+        // 处理数组情况
+        if (Array.isArray(relativePaths)) {
+            return Promise.all(relativePaths.map(async (path) => {
+                let fullPath;
+                if (matchedDir === 'project') {
+                    // 如果是project目录，使用默认building路径
+                    fullPath = DOC_BASE_PATH + 'building/' + path;
+                } else if (matchedDir) {
+                    // 如果找到匹配的用户目录，使用该目录
+                    fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + path;
+                } else {
+                    // 如果没有找到匹配的目录，尝试使用默认路径
+                    fullPath = DOC_BASE_PATH + 'building/' + path;
+                }
+
+                // 转为本地绝对路径
+                return plus.io.convertLocalFileSystemURL(fullPath);
+            }));
+        } else {
+            // 保持原有单个路径的处理逻辑
+            let fullPath;
+            if (matchedDir === 'project') {
+                // 如果是project目录，使用默认building路径
+                fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+            } else if (matchedDir) {
+                // 如果找到匹配的用户目录，使用该目录
+                fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + relativePaths;
+            } else {
+                // 如果没有找到匹配的目录，尝试使用默认路径
+                fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+            }
+
+            // 转为本地绝对路径
+            return plus.io.convertLocalFileSystemURL(fullPath);
+        }
+    } catch (error) {
+        console.error('读取病害图片失败:', error);
+        throw error;
+    }
+}
+
+//从UL中读取图片
 export async function readBridgeImage(userName, buildingId, relativePaths) {
   try {
     // 查找匹配的目录
-    const matchedDir = await findMatchingDirectory(userName);
+    const matchedDir = await findMatchingULDirectory(userName);
     
     // 处理数组情况
     if (Array.isArray(relativePaths)) {
@@ -548,6 +595,55 @@ export async function readBridgeImage(userName, buildingId, relativePaths) {
     throw error;
   }
 }
+
+//从UD中读取图片
+export async function readBridgeUDImage(userName, buildingId, relativePaths){
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingDirectory(userName);
+
+        // 处理数组情况
+        if (Array.isArray(relativePaths)) {
+            return Promise.all(relativePaths.map(async (path) => {
+                let fullPath;
+                if (matchedDir === 'project') {
+                    // 如果是project目录，使用默认building路径
+                    fullPath = DOC_BASE_PATH + 'building/' + path;
+                } else if (matchedDir) {
+                    // 如果找到匹配的用户目录，使用该目录
+                    fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + path;
+                } else {
+                    // 如果没有找到匹配的目录，尝试使用默认路径
+                    fullPath = DOC_BASE_PATH + 'building/' + path;
+                }
+
+                // 转为本地绝对路径
+                return plus.io.convertLocalFileSystemURL(fullPath);
+            }));
+        } else {
+            // 保持原有单个路径的处理逻辑
+            let fullPath;
+            if (matchedDir === 'project') {
+                // 如果是project目录，使用默认building路径
+                fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+            } else if (matchedDir) {
+                // 如果找到匹配的用户目录，使用该目录
+                fullPath = DOC_BASE_PATH + `${matchedDir}/building/` + relativePaths;
+            } else {
+                // 如果没有找到匹配的目录，尝试使用默认路径
+                fullPath = DOC_BASE_PATH + 'building/' + relativePaths;
+            }
+
+            // 转为本地绝对路径
+            return plus.io.convertLocalFileSystemURL(fullPath);
+        }
+    } catch (error) {
+        console.error('读取桥梁图片失败:', error);
+        throw error;
+    }
+}
+
+
 //读取所有一级子目录
 export function getAllFirstLevelDirs() {
 	return new Promise((resolve, reject) => {
@@ -576,10 +672,12 @@ export function getAllFirstLevelDirs() {
 	});
 }
 
-export function getFrontPhoto(userName, buildingId) {
-	const path = DOC_BASE_PATH + FILE_NAMING.frontPhoto(userName, buildingId);
-	trackPath(path);
-	return getJsonData(path);
+export async function getFrontPhoto(userName, buildingId) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingULDirectory(userName);
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/frontPhoto.json`;
+    trackPath(path);
+    return getJsonData(path);
 }
 
 export function removeDiseaseImage(paths) {
@@ -689,7 +787,7 @@ export function removeDiseaseImage(paths) {
 export async function readDiseaseCommit(userName, buildingId, yearId) {
 	try {
 		// 获取病害数据并等待Promise解析
-		const diseaseData = await getDisease(userName, buildingId, yearId);
+		const diseaseData = await getULDisease(userName, buildingId, yearId);
 
 		// 检查diseases数组是否存在
 		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
@@ -715,7 +813,7 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId) {
 
 	try {
 		// 获取当前年份的病害数据
-		const diseaseData = await getDisease(userName, buildingId, currentYear);
+		const diseaseData = await getULDisease(userName, buildingId, currentYear);
 
 		// 检查数据是否有效
 		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
@@ -834,7 +932,7 @@ export async function isCommit(userName, buildingId) {
 export async function isUnFinishDisease(userName, buildingId, yearId) {
 	try {
 		// 获取病害数据并等待Promise解析
-		const diseaseData = await getDisease(userName, buildingId, yearId);
+		const diseaseData = await getULDisease(userName, buildingId, yearId);
 
 		// 检查diseases数组是否存在
 		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
@@ -863,4 +961,101 @@ export function buildingImagesFromAbsoluteToRelative(absolutePaths) {
 		console.log('parts', parts);
 		return parts[1]; // 返回'/building/'后面的部分
 	});
+}
+
+//读取UL下的数据
+async function findMatchingULDirectory(userName) {
+    try {
+        // 获取_doc目录下的所有子目录
+        const allDirs = await getAllFirstLevelDirs();
+
+        // 首先检查是否有project目录（优先使用）
+        if (allDirs.includes('project')) {
+            console.log('找到project目录，直接使用');
+            return 'project';
+        }
+
+        // 如果没有project目录，查找以UD开头的目录
+        const ulDirs = allDirs.filter(dir => dir.startsWith('UL'));
+        console.log('找到UL开头的目录:', ulDirs);
+
+        // 遍历UD目录，查找匹配当前用户名的目录
+        for (const dir of ulDirs) {
+            // 提取目录名中的用户名部分（最后一个'-'后面的内容）
+            const lastDashIndex = dir.lastIndexOf('-');
+            if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
+                const dirUsername = dir.substring(lastDashIndex + 1);
+                console.log(`目录 ${dir} 中的用户名: ${dirUsername}`);
+
+                // 检查提取的用户名是否与当前用户名匹配
+                if (userName && dirUsername === userName) {
+                    console.log('找到匹配的用户目录:', dir);
+                    return dir;
+                }
+            }
+        }
+
+        // 如果没有找到匹配的目录，返回null
+        console.log('未找到匹配的目录，将使用默认路径');
+        return null;
+    } catch (error) {
+        console.error('查找匹配目录时出错:', error);
+        return null;
+    }
+}
+
+//UL下的病害json
+export async function getULDisease(userName, buildingId, yearId){
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingULDirectory(userName);
+
+        // 构建病害文件路径
+        const diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
+
+        trackPath(diseasePath);
+
+        // 读取病害文件
+        return await getJsonData(diseasePath);
+    } catch (error) {
+        console.error('获取病害数据失败:', error);
+        throw error;
+    }
+}
+//UL下的正立面照
+export async function getULFrontPhoto(userName, buildingId){
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingULDirectory(userName);
+
+        // 构建病害文件路径
+        const diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/frontPhoto.json`;
+
+        trackPath(diseasePath);
+
+        // 读取病害文件
+        return await getJsonData(diseasePath);
+    } catch (error) {
+        console.error('获取正立面照数据失败:', error);
+        throw error;
+    }
+}
+
+//UL下的task.json
+export async function getULTask(userName, projectId){
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingULDirectory(userName);
+
+        // 构建病害文件路径
+        const diseasePath = DOC_BASE_PATH + `${matchedDir}/project/${projectId}/task.json`;
+
+        trackPath(diseasePath);
+
+        // 读取病害文件
+        return await getJsonData(diseasePath);
+    } catch (error) {
+        console.error('获取UL中task数据失败:', error);
+        throw error;
+    }
 }

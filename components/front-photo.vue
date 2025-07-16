@@ -449,7 +449,7 @@
 			console.log('获取正立面照数据成功:', data);
 			// 处理图片数据
 			if (data.frontLeft && Array.isArray(data.frontLeft)) {
-				frontLeft.value = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft)
+				frontLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft)
 				// 保存原始图片数据
 				// originalFrontLeft.value = JSON.parse(JSON.stringify(frontLeft.value));
 			}
@@ -460,7 +460,7 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-				sideRight.value = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight)
+				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight)
 				// 保存原始图片数据
 				// originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
 			}
@@ -471,7 +471,7 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-				sideLeft.value = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft)
+				sideLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft)
 				// 保存原始图片数据
 				// originalSideLeft.value = JSON.parse(JSON.stringify(sideLeft.value));
 			}
@@ -482,7 +482,7 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-				sideRight.value = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight)
+				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight)
 				// 保存原始图片数据
 				// originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
 			}

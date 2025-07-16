@@ -45,23 +45,17 @@
 		onUnmounted
 	} from 'vue';
   import {
-    getDisease,
-    isCommit,
+    getULDisease,
     isExistDisease,
     isOnlyDisease, isUnFinishDisease,
     readDiseaseCommit
   } from '../utils/readJsonNew.js';
 	import {
-		addDiseaseNumber,
-		decreaseDiseaseNumber,
 		markObjectAsCommitted,
 		saveBridgeZip,
-		saveDiseaseImages,
 		setDisease,
-		setObject
 	} from '../utils/writeNew.js';
 	import {
-		isPhotoCommmitted,
 		setFrontPhotoCommited
 	} from '../utils/frontPhoto.js';
 	import {
@@ -74,9 +68,9 @@
 		decrementDiseaseNumber,
 		incrementDiseaseNumber
 	} from "@/utils/diseaseNumber";
-	import {
+/*	import {
 		structureStore
-	} from "@/store/structureNumberStorage";
+	} from "@/store/structureNumberStorage";*/
   import {isBuildingCommited, setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 
 	const props = defineProps({
@@ -97,7 +91,7 @@
 
 	const idStorageInfo = idStore();
 
-	const structureStoreInfo = structureStore();
+	// const structureStoreInfo = structureStore();
 
 	watch(() => props.activeTabTop, async (newval, oldval) => {
 		if (newval == 0) {
@@ -113,7 +107,7 @@
 			const currentYear = new Date().getFullYear().toString();
 
 			// 调用getDisease获取当前年份数据
-			const yearData = await getDisease(userInfo.username, idStorageInfo.buildingId, currentYear);
+			const yearData = await getULDisease(userInfo.username, idStorageInfo.buildingId, currentYear);
 			console.log(`获取到${currentYear}年病害数据:`, yearData);
 
 			// 直接使用diseases数组
@@ -163,7 +157,7 @@
 			if (isExist === false) {
 				console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 				await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.biObjectId);
-				structureStoreInfo.incrementDataVersion();
+				// structureStoreInfo.incrementDataVersion();
 			}
 
 			// 调用setDisease方法保存数据
@@ -179,10 +173,11 @@
       if(hasUncommittedDiseases) {
         await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
         uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }else{
+      }
+      /*else{
         await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
         uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }
+      }*/
       await checkUncommitted();
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
@@ -216,7 +211,7 @@
 				console.log('该构件只有这一个病害，需要减少病害构件数量,deleteData', diseaseList.value[index])
 				await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index]
 					.biObjectId);
-				structureStoreInfo.incrementDataVersion();
+				// structureStoreInfo.incrementDataVersion();
 			}
 
 			// 检查是否有历史病害引用，如果有则发送事件通知 history-disease 组件
@@ -296,7 +291,7 @@
 					console.log('该构件只有这一个病害，需要减少病害构件数量')
 					await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
 						index].component.biObjectId);
-					structureStoreInfo.incrementDataVersion();
+					// structureStoreInfo.incrementDataVersion();
 				}
 				const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, updatedDisease
 					.component.name);
@@ -304,7 +299,7 @@
 					console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 					await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease
 						.component.biObjectId);
-					structureStoreInfo.incrementDataVersion();
+					// structureStoreInfo.incrementDataVersion();
 				}
 			}
 
@@ -333,10 +328,11 @@
       if(hasUncommittedDiseases) {
         await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
         uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }else{
+      }
+      /*else{
         await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
         uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }
+      }*/
       await checkUncommitted();
 		} catch (error) {
 			console.error('保存更新数据失败:', error);
@@ -592,41 +588,42 @@
 	}); // 使用deep: true确保监听对象内部属性的变化
 
 	// 组件挂载时
-	onMounted(() => {
-		console.log('current-disease组件挂载，准备加载数据');
-		// 加载数据
-		loadCurrentYearDiseaseData();
+	onMounted( () => {
+    console.log('current-disease组件挂载，准备加载数据');
+    // 加载数据
+    loadCurrentYearDiseaseData();
+    console.log('diseaseList', diseaseList.value)
 
-		// 添加新增病害事件监听
-		uni.$on('addNewDisease', addNewDiseaseData);
+    // 添加新增病害事件监听
+    uni.$on('addNewDisease', addNewDiseaseData);
 
-		// 添加删除病害事件监听
-		uni.$on('deleteDisease', handleDeleteDisease);
+    // 添加删除病害事件监听
+    uni.$on('deleteDisease', handleDeleteDisease);
 
-		// 添加更新病害事件监听
-		uni.$on('updateDisease', handleUpdateDisease);
+    // 添加更新病害事件监听
+    uni.$on('updateDisease', handleUpdateDisease);
 
-		// 添加获取同类型病害列表的事件监听
-		uni.$on('getDiseasesOfType', (data) => {
-			if (!data || !data.grandObjectName || !data.callback) {
-				console.error('获取同类型病害列表参数不完整');
-				return;
-			}
+    // 添加获取同类型病害列表的事件监听
+    uni.$on('getDiseasesOfType', (data) => {
+      if (!data || !data.grandObjectName || !data.callback) {
+        console.error('获取同类型病害列表参数不完整');
+        return;
+      }
 
-			// 过滤出同类型的病害列表
-			const filteredList = diseaseList.value.filter(item =>
-				item.component?.grandObjectName === data.grandObjectName
-			);
+      // 过滤出同类型的病害列表
+      const filteredList = diseaseList.value.filter(item =>
+          item.component?.grandObjectName === data.grandObjectName
+      );
 
-			console.log(`获取${data.grandObjectName}类型的病害列表，共${filteredList.length}条`);
+      console.log(`获取${data.grandObjectName}类型的病害列表，共${filteredList.length}条`);
 
-			// 通过回调函数返回结果
-			data.callback(filteredList);
-		});
+      // 通过回调函数返回结果
+      data.callback(filteredList);
+    });
 
-		// 初始检查未提交病害
-		checkUncommitted();
-	});
+    // 初始检查未提交病害
+    checkUncommitted();
+  });
 
 	// 组件卸载时
 	onUnmounted(() => {

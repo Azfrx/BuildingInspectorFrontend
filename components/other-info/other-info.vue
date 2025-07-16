@@ -29,7 +29,7 @@
 		ref,
 		computed
 	} from "vue";
-  import {readBridgeImage} from "@/utils/readJsonNew";
+  import {readBridgeImage, readBridgeUDImage} from "@/utils/readJsonNew";
   import {userStore} from "@/store";
   import {idStore} from "@/store/idStorage";
 
@@ -73,7 +73,7 @@
 		if (!value || value === '/') {
 			return '/static/image/disease.png';
 		}
-		return readBridgeImage(userInfo.username, idStorageInfo.buildingId, value);
+		return readBridgeUDImage(userInfo.username, idStorageInfo.buildingId, value);
 	};
 
 	// 点击预览图片

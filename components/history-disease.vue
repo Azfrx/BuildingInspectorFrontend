@@ -64,10 +64,10 @@
 		onMounted,
 		onUnmounted
 	} from 'vue';
-	import {
-		getDisease,
-		getHistoryYear
-	} from '../utils/readJsonNew.js';
+  import {
+    getDisease,
+    getHistoryYear, getULDisease
+  } from '../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages,
 		setDisease
@@ -126,11 +126,11 @@
 			// 清空现有数据
 			diseaseMap.value = {};
 
-			// 依次读取各年份数据
+			// 依次读取各年份数据 UD
 			for (const year of years) {
 				try {
 					const yearData = await getDisease(userInfo.username, idStorageInfo.buildingId, year);
-					console.log(`获取到${year}年病害数据:`, yearData);
+					console.log(`获取到${year}年UD病害数据:`, yearData);
 
 					// 直接按年份存储
 					if (yearData && yearData.diseases && yearData.diseases.length > 0) {
@@ -139,8 +139,37 @@
 						diseaseMap.value[year] = [];
 					}
 				} catch (yearError) {
-					console.warn(`获取${year}年数据失败:`, yearError);
+					console.warn(`获取${year}年UD数据失败:`, yearError);
 					diseaseMap.value[year] = [];
+				}
+			}
+			
+			//依次读取各年份数据 UL
+			for(const year of years){
+				try{
+					const yearData = await getULDisease(userInfo.username, idStorageInfo.buildingId, year);
+					console.log(`获取到${year}年UL病害数据:`, yearData);
+					
+					if(yearData && yearData.diseases && yearData.diseases.length > 0){
+						// 获取当前年份的UD数据
+						const currentYearDiseases = diseaseMap.value[year] || [];
+						
+						// 合并UL数据到UD数据中
+						yearData.diseases.forEach(ulDisease => {
+							// 查找对应ID的UD数据
+							const existingDiseaseIndex = currentYearDiseases.findIndex(disease => disease.id === ulDisease.id);
+							
+							if (existingDiseaseIndex !== -1) {
+								// 如果找到匹配的UD数据，更新copyId字段
+								currentYearDiseases[existingDiseaseIndex].copyId = ulDisease.copyId;
+							}
+						});
+						
+						// 更新合并后的数据
+						diseaseMap.value[year] = currentYearDiseases;
+					}
+				}catch(yearError){
+					console.warn(`获取${year}年UL数据失败:`, yearError);
 				}
 			}
 
@@ -325,7 +354,10 @@
 			// 保存更新后的病害数据到对应年份
 			setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 				year: year,
-				diseases: updatedDiseases
+				diseases: updatedDiseases.map(disease => ({
+					id: disease.id,
+					copyId: disease.copyId
+				}))
 			});
 		});
 
@@ -524,7 +556,10 @@
 				// 保存更新后的病害数据到对应年份
 				await setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 					year: year,
-					diseases: yearDiseases
+					diseases: yearDiseases.map(disease => ({
+						id: disease.id,
+						copyId: disease.copyId
+					}))
 				});
 
 				foundOriginalDisease = true;
@@ -577,7 +612,10 @@
 						// 保存更新后的数据
 						await setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 							year: year,
-							diseases: yearDiseases
+							diseases: yearDiseases.map(disease => ({
+								id: disease.id,
+								copyId: disease.copyId
+							}))
 						});
 
 						console.log(`已从历史病害 ID:${historyDiseaseId} 的 copyId 中移除 localId:${localId}`);

@@ -25,12 +25,24 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
     const taskData = await getTask(username, projectId);
     
     // 找到对应的任务项并设置 commited 字段为 false
-    if (taskData && taskData.data && taskData.data.tasks) {
-        const tasks = taskData.data.tasks;
+    if (taskData && taskData.tasks) {
+        const tasks = taskData.tasks;
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
                 tasks[i].commited = false;
-                break;
+                tasks[i] = {
+                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: false
+                };
+            }else{
+                tasks[i] = {
+                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: tasks[i].commited
+                };
             }
         }
     }
@@ -42,12 +54,23 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
     const taskData = await getTask(username, projectId);
 
     // 找到对应的任务项并设置 commited 字段为 true
-    if (taskData && taskData.data && taskData.data.tasks) {
-        const tasks = taskData.data.tasks;
+    if (taskData && taskData.tasks) {
+        const tasks = taskData.tasks;
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
-                tasks[i].commited = true;
-                break;
+                tasks[i] = {
+                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: true
+                };
+            }else{
+                tasks[i] = {
+                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: tasks[i].commited
+                };
             }
         }
     }
