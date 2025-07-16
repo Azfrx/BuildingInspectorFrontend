@@ -145,14 +145,14 @@
 				try {
 					console.log('开始调用setRootDir创建根目录');
 					const rootDir = await setRootDir();
-					console.log('根目录创建成功，返回结果:', JSON.stringify(rootDir));
+					console.log('根目录创建成功');
 					
 					// 检查返回的目录对象
 					if (rootDir && rootDir.fullPath) {
 						console.log('创建的目录路径:', rootDir.fullPath);
 						console.log('创建的目录名称:', rootDir.name);
 					} else {
-						console.warn('根目录创建成功但返回对象不完整:', rootDir);
+						console.warn('根目录创建成功但返回对象不完整');
 					}
 				} catch (error) {
 					console.error('创建根目录失败，错误详情:', error);

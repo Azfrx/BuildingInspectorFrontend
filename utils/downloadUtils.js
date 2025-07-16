@@ -1,6 +1,9 @@
  // downloadUtils.js
  import { ref } from 'vue';
- 
+ import {userStore} from '@/store/index'
+ // 导入writeObjectJson函数
+ import { writeObjectJson } from './write.js';
+
  // 全局配置
  const HOST = '60.205.13.156';
  const PORT = 8090;
@@ -155,6 +158,148 @@ export async function directDownload(url, packageSize) {
   });
 }
 
+// 新增：将UD目录下的object.json文件复制到UL目录
+export async function copyUDToULObjectJson() {
+  const userInfo = userStore();
+  const udPath = userInfo.UDPath;
+  const ulPath = userInfo.ULPath;
+  
+  console.log('复制object.json文件，当前路径信息:', { udPath, ulPath });
+  
+  // 严格检查UDPath和ULPath是否存在
+  if (!udPath || !ulPath) {
+    console.error('UDPath或ULPath为空，无法复制文件', { udPath, ulPath });
+    return { success: false, message: 'UDPath或ULPath为空，请确保已正确设置路径' };
+  }
+  
+  console.log(`开始从UD目录复制object.json文件到UL目录，UD路径: ${udPath}, UL路径: ${ulPath}`);
+  
+  try {
+    // 1. 检查UD目录下的building目录
+    const udBuildingPath = `_doc/${udPath}/building`;
+    
+    // 检查UD/building目录是否存在
+    const udBuildingExists = await new Promise((resolve) => {
+      plus.io.resolveLocalFileSystemURL(udBuildingPath, () => resolve(true), () => resolve(false));
+    });
+    
+    if (!udBuildingExists) {
+      console.log(`${udBuildingPath} 目录不存在，无需复制`);
+      return { success: true, message: 'building目录不存在，无需复制' };
+    }
+    
+    // 确保UL/building目录存在
+    const ulBuildingPath = `_doc/${ulPath}/building`;
+    const ulBuildingExists = await new Promise((resolve) => {
+      plus.io.resolveLocalFileSystemURL(ulBuildingPath, () => resolve(true), () => resolve(false));
+    });
+    
+    if (!ulBuildingExists) {
+      console.log(`${ulBuildingPath} 目录不存在，创建目录`);
+      await new Promise((resolve, reject) => {
+        plus.io.resolveLocalFileSystemURL(`_doc/${ulPath}`, (entry) => {
+          entry.getDirectory('building', { create: true }, (dirEntry) => {
+            console.log('UL/building目录创建成功');
+            resolve(dirEntry);
+          }, (err) => {
+            console.error('创建UL/building目录失败:', err);
+            reject(err);
+          });
+        }, (err) => {
+          console.error(`解析_doc/${ulPath}目录失败:`, err);
+          reject(err);
+        });
+      });
+    }
+    
+    // 2. 获取building目录下的所有buildingId目录
+    const buildingDirs = await new Promise((resolve, reject) => {
+      plus.io.resolveLocalFileSystemURL(udBuildingPath, (entry) => {
+        entry.createReader().readEntries((entries) => {
+          const dirs = entries.filter(e => e.isDirectory);
+          resolve(dirs);
+        }, (err) => {
+          console.error('读取building目录失败:', err);
+          reject(err);
+        });
+      }, (err) => {
+        console.error('解析building目录失败:', err);
+        reject(err);
+      });
+    });
+    
+    console.log(`找到 ${buildingDirs.length} 个buildingId目录`);
+    
+    // 3. 遍历每个buildingId目录，读取object.json文件并写入UL目录
+    let copiedCount = 0;
+    let errorCount = 0;
+    
+    for (const buildingDir of buildingDirs) {
+      const buildingId = buildingDir.name;
+      const objectJsonPath = `${udBuildingPath}/${buildingId}/object.json`;
+      
+      try {
+        // 4. 读取object.json文件内容
+        const objectJsonContent = await new Promise((resolve, reject) => {
+          plus.io.resolveLocalFileSystemURL(objectJsonPath, (fileEntry) => {
+            fileEntry.file((file) => {
+              const reader = new plus.io.FileReader();
+              reader.onloadend = function(e) {
+                try {
+                  const content = JSON.parse(this.result);
+                  resolve(content);
+                } catch (parseError) {
+                  console.error(`解析object.json文件失败: ${objectJsonPath}`, parseError);
+                  reject(parseError);
+                }
+              };
+              reader.onerror = function(e) {
+                console.error(`读取object.json文件失败: ${objectJsonPath}`, e);
+                reject(e);
+              };
+              reader.readAsText(file);
+            }, (err) => {
+              console.error(`获取文件对象失败: ${objectJsonPath}`, err);
+              reject(err);
+            });
+          }, (err) => {
+            console.error(`解析文件路径失败: ${objectJsonPath}`, err);
+            reject(err);
+          });
+        });
+        
+        console.log(`成功读取 ${objectJsonPath} 文件内容:`, objectJsonContent);
+        
+        // 5. 使用writeObjectJson将数据写入UL目录
+        await writeObjectJson(buildingId, objectJsonContent);
+        console.log(`成功将buildingId=${buildingId}的object.json写入UL目录`);
+        
+        copiedCount++;
+      } catch (error) {
+        console.error(`处理 buildingId=${buildingId} 时出错:`, error);
+        errorCount++;
+      }
+    }
+    
+    console.log(`复制完成，成功: ${copiedCount}，失败: ${errorCount}`);
+    return { 
+      success: true, 
+      message: `复制完成，成功: ${copiedCount}，失败: ${errorCount}`,
+      copiedCount,
+      errorCount
+    };
+  } catch (error) {
+    console.error('复制object.json文件过程中出错:', error);
+    return { success: false, message: error.message || '复制过程中出错' };
+  }
+}
+
+// 新增：将UD目录下的object.json文件复制到UL目录下
+export async function copyObjectJsonFiles() {
+  // 调用新实现的函数
+  return copyUDToULObjectJson();
+}
+
 export function useDownloader() {
    const downloadProgress = ref(0); // 下载进度
    const unzipProgress = ref(0);   // 解压进度
@@ -235,6 +380,36 @@ export function useDownloader() {
                    console.log('目录不为空，解压已成功');
                    // 发送解压完成事件
                    uni.$emit('unzip-completed');
+                   
+                   // 生成UD目录名并存储到UDPath
+                   const useInfo = userStore();
+                   const username = useInfo.username;
+                   if (username) {
+                     const now = new Date();
+                     const timestamp = 
+                       now.getFullYear().toString() +
+                       (now.getMonth() + 1).toString().padStart(2, '0') +
+                       now.getDate().toString().padStart(2, '0') +
+                       now.getHours().toString().padStart(2, '0') +
+                       now.getMinutes().toString().padStart(2, '0') +
+                       now.getSeconds().toString().padStart(2, '0');
+                     
+                     const dirName = `UD${timestamp}-${username}`;
+                     useInfo.UDPath = dirName;
+                     console.log('已将目录名存储到UDPath:', dirName);
+                     
+                     // 同时设置ULPath，确保两个路径都存在
+                     const ulDirName = `UL-${timestamp}-${username}`;
+                     useInfo.setULPath(ulDirName);
+                     console.log('已将目录名存储到ULPath:', ulDirName);
+                     
+                     // 不再自动创建UL目录，只设置ULPath
+                     // 需要使用UL目录时会通过setRootDir函数创建
+                     console.log('解压成功，已设置ULPath，不自动创建UL目录');
+                   } else {
+                     console.log('未获取到用户名，无法设置UDPath和ULPath');
+                   }
+                   
                    resolve();
                  } else {
                    console.error('解压后目录为空，可能失败');
@@ -277,6 +452,34 @@ export function useDownloader() {
                    clearTimeout(forceCompleteTimeoutId);
                    clearInterval(checkInterval);
                    uni.$emit('unzip-completed');
+                   
+                   // 生成UD目录名并存储到UDPath
+                   const useInfo = userStore();
+                   const username = useInfo.username;
+                   if (username) {
+                     const now = new Date();
+                     const timestamp = 
+                       now.getFullYear().toString() +
+                       (now.getMonth() + 1).toString().padStart(2, '0') +
+                       now.getDate().toString().padStart(2, '0') +
+                       now.getHours().toString().padStart(2, '0') +
+                       now.getMinutes().toString().padStart(2, '0') +
+                       now.getSeconds().toString().padStart(2, '0');
+                     
+                     const dirName = `UD${timestamp}-${username}`;
+                     useInfo.UDPath = dirName;
+                     console.log('已将目录名存储到UDPath:', dirName);
+                     
+                     // 同时设置ULPath，确保两个路径都存在
+                     const ulDirName = `UL-${timestamp}-${username}`;
+                     useInfo.setULPath(ulDirName);
+                     console.log('已将目录名存储到ULPath:', ulDirName);
+                     
+                     // 不再自动创建UL目录，只设置ULPath
+                     // 需要使用UL目录时会通过setRootDir函数创建
+                     console.log('轮询检查发现关键目录，已设置ULPath，不自动创建UL目录');
+                   }
+                   
                    resolve();
                  }
                } else if (checkCount >= maxChecks) {
@@ -313,6 +516,34 @@ export function useDownloader() {
                  clearTimeout(forceCompleteTimeoutId);
                  clearInterval(checkInterval);
                  uni.$emit('unzip-completed');
+                 
+                 // 生成UD目录名并存储到UDPath
+                 const useInfo = userStore();
+                 const username = useInfo.username;
+                 if (username) {
+                   const now = new Date();
+                   const timestamp = 
+                     now.getFullYear().toString() +
+                     (now.getMonth() + 1).toString().padStart(2, '0') +
+                     now.getDate().toString().padStart(2, '0') +
+                     now.getHours().toString().padStart(2, '0') +
+                     now.getMinutes().toString().padStart(2, '0') +
+                     now.getSeconds().toString().padStart(2, '0');
+                   
+                   const dirName = `UD${timestamp}-${username}`;
+                   useInfo.UDPath = dirName;
+                   console.log('已将目录名存储到UDPath:', dirName);
+                   
+                   // 同时设置ULPath，确保两个路径都存在
+                   const ulDirName = `UL-${timestamp}-${username}`;
+                   useInfo.setULPath(ulDirName);
+                   console.log('已将目录名存储到ULPath:', ulDirName);
+                   
+                   // 不再自动创建UL目录，只设置ULPath
+                   // 需要使用UL目录时会通过setRootDir函数创建
+                   console.log('解压进度100%，已设置ULPath，不自动创建UL目录');
+                 }
+                 
                  resolve();
                }
              } else {
@@ -327,6 +558,34 @@ export function useDownloader() {
                clearTimeout(forceCompleteTimeoutId);
                clearInterval(checkInterval);
                isResolved = true;
+               
+               // 生成UD目录名并存储到UDPath
+               const useInfo = userStore();
+               const username = useInfo.username;
+               if (username) {
+                 const now = new Date();
+                 const timestamp = 
+                   now.getFullYear().toString() +
+                   (now.getMonth() + 1).toString().padStart(2, '0') +
+                   now.getDate().toString().padStart(2, '0') +
+                   now.getHours().toString().padStart(2, '0') +
+                   now.getMinutes().toString().padStart(2, '0') +
+                   now.getSeconds().toString().padStart(2, '0');
+                 
+                 const dirName = `UD${timestamp}-${username}`;
+                 useInfo.UDPath = dirName;
+                 console.log('已将目录名存储到UDPath:', dirName);
+                 
+                 // 同时设置ULPath，确保两个路径都存在
+                 const ulDirName = `UL-${timestamp}-${username}`;
+                 useInfo.setULPath(ulDirName);
+                 console.log('已将目录名存储到ULPath:', ulDirName);
+                 
+                 // 不再自动创建UL目录，只设置ULPath
+                 // 需要使用UL目录时会通过setRootDir函数创建
+                 console.log('解压完成回调触发，已设置ULPath，不自动创建UL目录');
+               }
+               
                resolve();
              }
            },
@@ -564,6 +823,9 @@ export function useDownloader() {
           uni.$emit('unzip-completed');
           clearTimeout(timeoutId);
           isResolved = true;
+          
+          // 不再自动复制object.json文件
+          
           resolve(targetDir);
         },
         (err) => {

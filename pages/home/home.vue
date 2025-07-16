@@ -31,11 +31,13 @@
 			</view>
 			
 			<!-- 测试按钮 -->
-<!--			<view class="test-button-container">-->
-<!--				<button class="test-button" @click="testWriteObjectJson">测试创建桥梁对象</button>-->
-<!--			</view>-->
-<!--		</view>-->
-<!--	</view>-->
+			<!--
+			<view class="test-button-container">
+				<button class="test-button" @click="testWriteObjectJson">测试创建桥梁对象</button>
+			</view>
+			-->
+		</view>
+	</view>
 </template>
 
 <script setup>

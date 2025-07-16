@@ -128,14 +128,17 @@
 	import {
 		userStore
 	} from '@/store/index.js'
+	import { idStore } from '../store/idStorage';
 	import {
 		structureStore
 	} from '../store/structureNumberStorage';
+	import { getObjectUL,readDiseaseComponentUL } from '../utils/readUL';
 	import { getObject,readDiseaseComponent } from '../utils/readJsonNew';
 	import {setObject}  from '../utils/writeNew'
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
 import { async } from 'rxjs';
+import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
@@ -152,6 +155,7 @@ import { async } from 'rxjs';
 	//去除msg和code字段的数据
 	const resultData = ref(null);
 	const userInfo = userStore()
+	const idInfo = idStore()
 	const structureNumberInfo = structureStore()
 	// 通过计算属性获取URL中的bridgeId参数
 	const bridgeIdFromURL = computed(() => {
@@ -198,55 +202,127 @@ import { async } from 'rxjs';
 		// 确保TaskBridgeId已经从URL参数中获取
 		if (bridgeIdFromURL.value) {
 			TaskBridgeId.value = bridgeIdFromURL.value;
+		} else if (idInfo.buildingId && idInfo.buildingId.value) {
+			// 如果URL中没有，尝试从store中获取
+			TaskBridgeId.value = idInfo.buildingId.value;
+			console.log('从store中获取到buildingId:', TaskBridgeId.value);
+		}
+		
+		console.log('使用的桥梁ID:', TaskBridgeId.value);
+		
+		if (!TaskBridgeId.value || TaskBridgeId.value === 0) {
+			console.error('未能获取有效的桥梁ID，无法加载数据');
+			uni.showToast({
+				title: '未能获取桥梁信息',
+				icon: 'none',
+				duration: 2000
+			});
+			return;
 		}
 
-		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
-		console.log("structureData.value ",structureData.value);
-		const modifiedData = await addFlagsAndDiseaseNumber(structureData.value,userInfo.username,TaskBridgeId.value);
-		// modifiedData.Iscommit = false;
-		// console.log("添加字段后的数据",modifiedData);
-		// setObject(userInfo.username,TaskBridgeId.value,modifiedData)
-		// incrementDiseaseNumber(modifiedData,4490)
-		// incrementDiseaseNumber(modifiedData,4491)
-		// incrementDiseaseNumber(modifiedData,4491)
-		// incrementDiseaseNumber(modifiedData,4492)
-		// incrementDiseaseNumber(modifiedData,4492)
-		// incrementDiseaseNumber(modifiedData,4492)
-		// console.log("add后的数据",modifiedData);
-		//读取完整数据
-		structureData.value = await getObject(userInfo.username,TaskBridgeId.value)
-		console.log("最终读取的structureData.value:", structureData.value);
-		
-		// 初始化resultData
-		resultData.value = structureData.value;
-		console.log("初始化后的resultData.value:", resultData.value);
-		
-		// 检查初始警告状态
-		console.log('准备调用 checkAllWarnings...');
-		checkAllWarnings();
-		console.log('checkAllWarnings 调用完成');
+		try {
+			// 从UL目录读取数据
+			console.log('尝试从UL目录读取数据，参数:', userInfo.username, TaskBridgeId.value);
+			structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
+			console.log("从UL目录读取的数据:", structureData.value);
+			
+			// 如果数据为空，尝试从store中获取buildingId再次尝试
+			if (!structureData.value || !structureData.value.children || structureData.value.children.length === 0) {
+				console.log("UL目录中没有找到有效的结构数据，尝试使用store中的buildingId");
+				
+				if (idInfo.buildingId && idInfo.buildingId.value && idInfo.buildingId.value !== TaskBridgeId.value) {
+					TaskBridgeId.value = idInfo.buildingId.value;
+					console.log('使用store中的buildingId重试:', TaskBridgeId.value);
+					structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
+					console.log("使用store中buildingId重新读取的数据:", structureData.value);
+				}
+			}
+			
+			// 添加标志和病害数量
+			if (structureData.value && structureData.value.children && structureData.value.children.length > 0) {
+				const modifiedData = await addFlagsAndDiseaseNumber(structureData.value, userInfo.username, TaskBridgeId.value);
+				
+				// 读取完整数据
+				structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
+				console.log("最终读取的structureData.value:", structureData.value);
+				
+				// 初始化resultData
+				resultData.value = structureData.value;
+				console.log("初始化后的resultData.value:", resultData.value);
+				
+				// 检查初始警告状态
+				console.log('准备调用 checkAllWarnings...');
+				checkAllWarnings();
+				console.log('checkAllWarnings 调用完成');
+			} else {
+				console.error('无法获取有效的结构数据');
+				uni.showToast({
+					title: '无法获取结构数据',
+					icon: 'none',
+					duration: 2000
+				});
+			}
+		} catch (error) {
+			console.error('初始化数据时出错:', error);
+			uni.showToast({
+				title: '加载数据出错',
+				icon: 'none',
+				duration: 2000
+			});
+		}
 	};
 	// 计算第二个侧边栏的数据
 	const secondLevelItems = computed(() => {
-		if (!structureData.value?.children?.[selectedIndex.value]?.children) {
+		if (!structureData.value) {
+			console.log('secondLevelItems: structureData为空');
 			return [];
 		}
-		return structureData.value.children[selectedIndex.value].children;
+		
+		// 检查直接结构
+		if (structureData.value.children && 
+			structureData.value.children[selectedIndex.value] && 
+			structureData.value.children[selectedIndex.value].children) {
+			return structureData.value.children[selectedIndex.value].children;
+		}
+		
+		// 检查嵌套结构
+		if (structureData.value.data && 
+			structureData.value.data.children && 
+			structureData.value.data.children[selectedIndex.value] && 
+			structureData.value.data.children[selectedIndex.value].children) {
+			return structureData.value.data.children[selectedIndex.value].children;
+		}
+		
+		console.log('secondLevelItems: 找不到有效的子节点');
+		return [];
 	});
 
 	// 计算第三个侧边栏的数据
 	const thirdLevelItems = computed(() => {
-		// 检查第二层选中项是否存在且有children属性
-		if (!secondLevelItems.value?.[selectedSecondIndex.value]?.children) {
+		// 如果第二层数据为空，直接返回空数组
+		if (!secondLevelItems.value || secondLevelItems.value.length === 0) {
+			console.log('thirdLevelItems: secondLevelItems为空');
 			return [];
 		}
+		
+		// 检查第二层选中项是否存在且有children属性
+		if (!secondLevelItems.value[selectedSecondIndex.value]) {
+			console.log('thirdLevelItems: 第二层选中项不存在');
+			return [];
+		}
+		
+		if (!secondLevelItems.value[selectedSecondIndex.value].children) {
+			console.log('thirdLevelItems: 第二层选中项没有children属性');
+			return [];
+		}
+		
 		return secondLevelItems.value[selectedSecondIndex.value].children;
 	});
 
 // 刷新数据的函数
 const refreshData = async () => {
   // 重新获取最新数据
-  structureData.value = await getObject(userInfo.username, TaskBridgeId.value);
+  structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
   console.log('新数据structureData.value', structureData.value)
   
   // 同步更新resultData
@@ -272,7 +348,7 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
     refreshData();
   }
 });
-	const confirmConfirm = () => {
+	const confirmConfirm = async () => {
 		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
 
@@ -308,6 +384,8 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		checkAllWarnings();
 		//更新编辑状态
 		structureNumberInfo.incrementIsEdit();
+		await setBuildingCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
+		uni.$emit('setBuildingUnCommit',idInfo.buildingId)
 	};
 	const warningFlag = () => {
 		const data = getObject(userInfo.username, TaskBridgeId.value)
@@ -452,7 +530,23 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		selectedThirdIndex.value = -1; // 重置第三个侧边栏的选中状态
 
 		// 添加防御性检查
-		const firstLevelItem = structureData.value?.data?.children?.[index];
+		if (!structureData.value) {
+			console.error('structureData为空，无法选择第一层结构');
+			return;
+		}
+		
+		// 检查正确的数据结构路径
+		let firstLevelItem = null;
+		
+		// 直接结构: structureData.value.children
+		if (structureData.value.children && structureData.value.children[index]) {
+			firstLevelItem = structureData.value.children[index];
+		} 
+		// 嵌套结构: structureData.value.data.children
+		else if (structureData.value.data && structureData.value.data.children && structureData.value.data.children[index]) {
+			firstLevelItem = structureData.value.data.children[index];
+		}
+		
 		if (firstLevelItem) {
 			console.log('选中的第一层结构:', firstLevelItem.name);
 		} else {
@@ -745,12 +839,19 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		
 		// 如果是第三层节点
 		if (node.diseaseNumber !== undefined && node.count !== undefined) {
-			hasWarning = node.diseaseNumber > node.count;
-			// console.log(`第三层节点 ${node.name}: diseaseNumber=${node.diseaseNumber}, count=${node.count}, hasWarning=${hasWarning}`);
+			// 确保使用数字进行比较
+			const diseaseNumber = Number(node.diseaseNumber) || 0;
+			const count = Number(node.count) || 0;
+			hasWarning = diseaseNumber > count;
+			// console.log(`第三层节点 ${node.name}: diseaseNumber=${diseaseNumber}, count=${count}, hasWarning=${hasWarning}`);
 		}
 		// 如果是第一层或第二层节点
-		else if (node.children) {
-			hasWarning = node.children.some(child => hasWarningInChildren(child));
+		else if (node.children && Array.isArray(node.children)) {
+			// 安全地遍历子节点
+			hasWarning = node.children.some(child => {
+				if (!child) return false;
+				return hasWarningInChildren(child);
+			});
 			// console.log(`父节点 ${node.name}: 子节点检查完成, hasWarning=${hasWarning}`);
 		}
 		
@@ -760,16 +861,27 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 	// 添加一个函数来检查整个数据结构是否有警告
 	const checkAllWarnings = () => {
 		console.log('=== checkAllWarnings 函数被调用 ===');
+		
+		if (!structureData.value) {
+			console.log('checkAllWarnings: structureData为空');
+			return;
+		}
+		
 		// 尝试不同的数据结构路径
 		let childrenData = null;
-		if (structureData.value?.children) {
+		
+		// 直接结构: structureData.value.children
+		if (structureData.value.children && Array.isArray(structureData.value.children)) {
 			childrenData = structureData.value.children;
-			console.log('使用 structureData.value.children');
-		} else if (structureData.value?.data?.children) {
+			console.log('使用 structureData.value.children，长度:', childrenData.length);
+		} 
+		// 嵌套结构: structureData.value.data.children
+		else if (structureData.value.data && structureData.value.data.children && 
+				 Array.isArray(structureData.value.data.children)) {
 			childrenData = structureData.value.data.children;
-			console.log('使用 structureData.value.data.children');
+			console.log('使用 structureData.value.data.children，长度:', childrenData.length);
 		} else {
-			console.log('checkAllWarnings: 找不到 children 数据');
+			console.log('checkAllWarnings: 找不到有效的 children 数据');
 			return;
 		}
 		
@@ -780,8 +892,10 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		
 		// 检查所有第一层节点
 		const hasAnyWarning = childrenData.some(node => {
+			if (!node) return false;
+			
 			const hasWarning = hasWarningInChildren(node);
-			console.log(`检查节点 ${node.name}: hasWarning = ${hasWarning}`);
+			console.log(`检查节点 ${node.name || '未命名'}: hasWarning = ${hasWarning}`);
 			return hasWarning;
 		});
 		

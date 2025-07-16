@@ -6,18 +6,12 @@ export const structureStore = defineStore('count', () => {
   const status = ref(false)
   // 更新构件数量
   const dataVersion = ref(0)
-  // 用来标记是否标记过
-  const isEdit = ref(0)
   const setStatus = (bool) => {
     status.value = bool
   }
-  
   // 增加版本号 - 当diseaseNumber被修改时调用
   const incrementDataVersion = () => {
     dataVersion.value++
-  }
-  const incrementIsEdit = () => {
-    isEdit.value++
   }
   return {
     status,

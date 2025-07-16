@@ -101,7 +101,16 @@ async function findMatchingDirectory(userName) {
       return 'project';
     }
     
-    // 如果没有project目录，查找以UD开头的目录
+    // 获取用户信息store
+    const userInfo = userStore();
+    
+    // 优先使用UDPath（用于读取数据）
+    if (userInfo.UDPath && allDirs.includes(userInfo.UDPath)) {
+      console.log('使用store中保存的UDPath:', userInfo.UDPath);
+      return userInfo.UDPath;
+    }
+    
+    // 查找以UD开头的目录（用于读取数据）
     const udDirs = allDirs.filter(dir => dir.startsWith('UD'));
     console.log('找到UD开头的目录:', udDirs);
     
@@ -115,17 +124,19 @@ async function findMatchingDirectory(userName) {
         
         // 检查提取的用户名是否与当前用户名匹配
         if (userName && dirUsername === userName) {
-          console.log('找到匹配的用户目录:', dir);
+          console.log('找到匹配的UD用户目录:', dir);
+          userInfo.setUDPath(dir);
+          console.log('UDPath:', userInfo.UDPath);
           return dir;
         }
       }
     }
     
-    // 如果没有找到匹配的目录，返回null
-    console.log('未找到匹配的目录，将使用默认路径');
+    // 如果没有找到匹配的UD目录，返回null
+    console.log('未找到匹配的UD目录，将使用默认路径');
     return null;
   } catch (error) {
-    console.error('查找匹配目录时出错:', error);
+    console.error('查找匹配UD目录时出错:', error);
     return null;
   }
 }
@@ -135,8 +146,10 @@ export async function getProject(userName) {
   try {
     // 查找匹配的目录
     const matchedDir = await findMatchingDirectory(userName);
+    
     // 构建项目文件路径
-   const projectPath = DOC_BASE_PATH + matchedDir + '/project/projects.json';
+	const projectPath = DOC_BASE_PATH + matchedDir + '/project/projects.json';
+    
     console.log('最终使用的项目文件路径:', projectPath);
     trackPath(projectPath);
     
@@ -180,17 +193,7 @@ export async function getTask(userName, projectId) {
     const matchedDir = await findMatchingDirectory(userName);
     
     // 构建任务文件路径
-    let taskPath;
-    if (matchedDir === 'project') {
-      // 如果是project目录，直接使用
-      taskPath = DOC_BASE_PATH + `project/${projectId}/task.json`;
-    } else if (matchedDir) {
-      // 如果找到匹配的用户目录，使用该目录
-      taskPath = DOC_BASE_PATH + `${matchedDir}/project/${projectId}/task.json`;
-    } else {
-      // 如果没有找到匹配的目录，尝试使用默认路径
-      taskPath = DOC_BASE_PATH + `project/${projectId}/task.json`;
-    }
+	const  taskPath = DOC_BASE_PATH + `${matchedDir}/project/${projectId}/task.json`;
     
     console.log('任务文件路径:', taskPath);
     trackPath(taskPath);
@@ -261,26 +264,31 @@ export async function getProperty(userName, buildingId) {
     const matchedDir = await findMatchingDirectory(userName);
     
     // 构建属性文件路径
-    let propertyPath;
-    if (matchedDir === 'project') {
-      // 如果是project目录，使用默认building路径
-      propertyPath = DOC_BASE_PATH + `building/${buildingId}/property.json`;
-    } else if (matchedDir) {
-      // 如果找到匹配的用户目录，使用该目录
-      propertyPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/property.json`;
-    } else {
-      // 如果没有找到匹配的目录，尝试使用默认路径
-      propertyPath = DOC_BASE_PATH + `building/${buildingId}/property.json`;
-    }
+    const propertyPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/property.json`;
     
     console.log('属性文件路径:', propertyPath);
     trackPath(propertyPath);
     
-    // 读取属性文件
-    return await getJsonData(propertyPath);
+    try {
+      // 读取属性文件
+      return await getJsonData(propertyPath);
+    } catch (readError) {
+      console.log('属性文件不存在，返回默认数据结构:', readError);
+      // 返回默认的属性数据结构
+      return {
+        code: 0,
+        msg: "success",
+        data: {}
+      };
+    }
   } catch (error) {
     console.error('获取属性数据失败:', error);
-    throw error;
+    // 返回默认的属性数据结构，而不是抛出错误
+    return {
+      code: 0,
+      msg: "success",
+      data: {}
+    };
   }
 }
 
@@ -290,26 +298,31 @@ export async function getDisease(userName, buildingId, yearId) {
     const matchedDir = await findMatchingDirectory(userName);
     
     // 构建病害文件路径
-    let diseasePath;
-    if (matchedDir === 'project') {
-      // 如果是project目录，使用默认building路径
-      diseasePath = DOC_BASE_PATH + `building/${buildingId}/disease/${yearId}.json`;
-    } else if (matchedDir) {
-      // 如果找到匹配的用户目录，使用该目录
-      diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
-    } else {
-      // 如果没有找到匹配的目录，尝试使用默认路径
-      diseasePath = DOC_BASE_PATH + `building/${buildingId}/disease/${yearId}.json`;
-    }
+    const diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
     
     console.log('病害文件路径:', diseasePath);
     trackPath(diseasePath);
     
-    // 读取病害文件
-    return await getJsonData(diseasePath);
+    try {
+      // 读取病害文件
+      return await getJsonData(diseasePath);
+    } catch (readError) {
+      console.log('病害文件不存在，返回默认数据结构:', readError);
+      // 返回默认的病害数据结构
+      return {
+        code: 0,
+        msg: "success",
+        diseases: []
+      };
+    }
   } catch (error) {
     console.error('获取病害数据失败:', error);
-    throw error;
+    // 返回默认的病害数据结构，而不是抛出错误
+    return {
+      code: 0,
+      msg: "success",
+      diseases: []
+    };
   }
 }
 
@@ -319,93 +332,109 @@ export async function getObject(userName, buildingId) {
     const matchedDir = await findMatchingDirectory(userName);
     
     // 构建对象文件路径
-    let objectPath;
-    if (matchedDir === 'project') {
-      // 如果是project目录，使用默认building路径
-      objectPath = DOC_BASE_PATH + `building/${buildingId}/object.json`;
-    } else if (matchedDir) {
-      // 如果找到匹配的用户目录，使用该目录
-      objectPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/object.json`;
-    } else {
-      // 如果没有找到匹配的目录，尝试使用默认路径
-      objectPath = DOC_BASE_PATH + `building/${buildingId}/object.json`;
-    }
+    const objectPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/object.json`;
     
     console.log('对象文件路径:', objectPath);
     trackPath(objectPath);
     
-    // 读取对象文件
-    return await getJsonData(objectPath);
+    try {
+      // 读取对象文件
+      return await getJsonData(objectPath);
+    } catch (readError) {
+      console.log('对象文件不存在，返回默认数据结构:', readError);
+      // 返回默认的对象数据结构
+      return {
+        code: 0,
+        msg: "success",
+        buildingId: buildingId,
+        Iscommit: false
+      };
+    }
   } catch (error) {
     console.error('获取对象数据失败:', error);
-    throw error;
+    // 返回默认的对象数据结构，而不是抛出错误
+    return {
+      code: 0,
+      msg: "success",
+      buildingId: buildingId,
+      Iscommit: false
+    };
   }
 }
 
-export async function getAllUserInfo(userName) {
-  try {
-    // 查找匹配的目录
-    const matchedDir = await findMatchingDirectory(userName);
+// export async function getAllUserInfo(userName) {
+//   try {
+//     // 查找匹配的目录
+//     const matchedDir = await findMatchingDirectory(userName);
     
-    // 构建用户信息文件路径
-    let userInfoPath;
-    if (matchedDir === 'project') {
-      // 如果是project目录，使用默认路径
-      userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
-    } else if (matchedDir) {
-      // 如果找到匹配的用户目录，使用该目录
-      userInfoPath = DOC_BASE_PATH + `${matchedDir}/AllUserInfo.json`;
-    } else {
-      // 如果没有找到匹配的目录，尝试使用默认路径
-      userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
-    }
+//     // 构建用户信息文件路径
+//     let userInfoPath;
+//     if (matchedDir === 'project') {
+//       // 如果是project目录，使用默认路径
+//       userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
+//     } else if (matchedDir) {
+//       // 如果找到匹配的用户目录，使用该目录
+//       userInfoPath = DOC_BASE_PATH + `${matchedDir}/AllUserInfo.json`;
+//     } else {
+//       // 如果没有找到匹配的目录，尝试使用默认路径
+//       userInfoPath = DOC_BASE_PATH + 'AllUserInfo.json';
+//     }
     
-    console.log('用户信息文件路径:', userInfoPath);
-    trackPath(userInfoPath);
+//     console.log('用户信息文件路径:', userInfoPath);
+//     trackPath(userInfoPath);
     
-    // 读取用户信息文件
-    return await getJsonData(userInfoPath);
-  } catch (error) {
-    console.error('获取用户信息数据失败:', error);
-    throw error;
-  }
-}
+//     // 读取用户信息文件
+//     return await getJsonData(userInfoPath);
+//   } catch (error) {
+//     console.error('获取用户信息数据失败:', error);
+//     throw error;
+//   }
+// }
 
 // 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
 export async function getHistoryYear(userName, buildingId) {
-	// 查找匹配的目录
-	const matchedDir = await findMatchingDirectory(userName);
-	// 1. 构建目标目录路径
-	const dirPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease`;//building/${buildingId}/disease
-	// const dirPath = DOC_BASE_PATH + FILE_NAMING.historyYear(userName, buildingId);
-	console.log(`历史病害目标目录: ${dirPath}`)
+	try {
+		// 查找匹配的目录
+		const matchedDir = await findMatchingDirectory(userName);
+		// 1. 构建目标目录路径
+		const dirPath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease`;
+		console.log(`历史病害目标目录: ${dirPath}`);
 
-	// 2. 获取目录下的文件列表
-	const files = await listDirectoryFiles(dirPath);
+		try {
+			// 2. 获取目录下的文件列表
+			const files = await listDirectoryFiles(dirPath);
 
-	// 3. 过滤出年份JSON文件 (格式: YYYY.json)
-	const yearFiles = files.filter(file =>
-		file.name && /^\d{4}\.json$/.test(file.name)
-	);
+			// 3. 过滤出年份JSON文件 (格式: YYYY.json)
+			const yearFiles = files.filter(file =>
+				file.name && /^\d{4}\.json$/.test(file.name)
+			);
 
-	// 4. 提取年份字符串（保留原始格式）
-	const years = yearFiles.map(file =>
-		file.name.split('.')[0] // 直接返回字符串
-	);
+			// 4. 提取年份字符串（保留原始格式）
+			const years = yearFiles.map(file =>
+				file.name.split('.')[0] // 直接返回字符串
+			);
 
-	// 5. 获取当前年份字符串
-	const currentYear = String(new Date().getFullYear());
+			// 5. 获取当前年份字符串
+			const currentYear = String(new Date().getFullYear());
 
-	// 6. 过滤掉当前年份并倒序排序
-	const filteredYears = years
-		.filter(year => year !== currentYear) // 字符串比较
-		.sort((a, b) => {
-			// 转换为数字进行比较，但保持返回字符串
-			return Number(b) - Number(a); // 从大到小排序
-		});
+			// 6. 过滤掉当前年份并倒序排序
+			const filteredYears = years
+				.filter(year => year !== currentYear) // 字符串比较
+				.sort((a, b) => {
+					// 转换为数字进行比较，但保持返回字符串
+					return Number(b) - Number(a); // 从大到小排序
+				});
 
-	console.log(`找到历史年份: ${filteredYears.join(',')}`);
-	return filteredYears;
+			console.log(`找到历史年份: ${filteredYears.join(',')}`);
+			return filteredYears;
+		} catch (error) {
+			console.log('读取历史年份目录失败，返回空数组:', error);
+			return [];
+		}
+	} catch (error) {
+		console.error('获取历史年份时出错:', error);
+		return []; // 出错时返回空数组
+	}
 }
 
 // 辅助方法：列出目录中的文件

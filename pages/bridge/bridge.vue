@@ -87,7 +87,6 @@
 		watch
 	} from 'vue';
 	import {
-		getAllUserInfo,
 		getProject,
 		getTask,
 		getTaskByHadUsername
@@ -116,7 +115,8 @@
 		useDownloader,
 		testDataPackageAPI,
 		directDownload,
-		parsePackageSize
+		parsePackageSize,
+		copyObjectJsonFiles
 	} from '@/utils/downloadUtils.js';
 	import {
 		createUserDataStructure,
@@ -126,6 +126,8 @@
 	import {
 		deleteFolderInApp
 	} from '@/utils/deleteFolder.js';
+	// 导入saveZipAndStorePath函数
+	import { saveZipAndStorePath } from '@/utils/write.js';
 	
 	// 引入下载器
 	const { downloadProgress, unzipProgress, downloadAndUnzip } = useDownloader();
@@ -192,6 +194,7 @@
 			// });
 			infoData.value = userInfo.infoData
 			console.log('用户信息:', infoData.value);
+			console.log("ULPath",userInfo.ULPath);
 			// const token = responseLogin.data.token
 			// infoData.value = responseLogin.data;
 
@@ -255,7 +258,7 @@
 														hasValidData = true;
 														console.log('找到匹配的用户目录:', item.name);
 														// 设置已有用户名到store
-														userInfo.setHadUsername(item.name);
+														userInfo.setUDPath(item.name);
 														break;
 													}
 												}
@@ -347,6 +350,8 @@
 								uni.$off('unzip-completed');
 								showDownloadProgress.value = false;
 								showUnzipProgress.value = false;
+								
+								// 不再自动复制object.json文件
 							});
 							
 							// 添加超时处理
@@ -422,6 +427,8 @@
 								showDownloadProgress.value = false;
 								showUnzipProgress.value = false;
 								uni.hideLoading();
+								
+								// 不再自动复制object.json文件
 							} catch (downloadError) {
 								console.error('下载出错，尝试直接获取数据:', downloadError);
 								
@@ -467,7 +474,7 @@
 																	if (currentUsername && dirUsername === currentUsername) {
 																		console.log('找到匹配的用户目录:', item.name);
 																		// 设置已有用户名到store
-																		userInfo.setHadUsername(item.name);
+																		userInfo.setUDPath(item.name);
 																		foundMatchingUserDir = true;
 																		break;
 																	}
@@ -490,6 +497,10 @@
 												version: 'local'
 											};
 											hasLocalData = true;
+											
+											// 本地数据有效，尝试复制object.json文件
+											console.log('本地数据有效，不再自动复制object.json文件');
+											// 移除自动复制代码
 										} else {
 											console.log('未找到与当前用户匹配的本地数据');
 											// 本地无数据，尝试直接下载
@@ -632,6 +643,10 @@
 														tempPath,
 														version: apiResult.data.version
 													};
+													
+													// 解压完成后，复制object.json文件
+													console.log('直接下载解压完成，不再自动复制object.json文件');
+													// 移除自动复制代码
 												} catch (directError) {
 													console.error('直接下载或解压失败:', directError);
 													throw directError;
@@ -679,6 +694,10 @@
 							};
 							hasLocalData = true;
 						}
+					} else {
+						// 如果已经有本地数据，尝试复制object.json文件
+						console.log('使用本地数据，不再自动复制object.json文件');
+						// 移除自动复制代码
 					}
 					
 					console.log('数据包已下载并解压到:', result.targetDir);
@@ -759,6 +778,10 @@
 				title: '当前无网络，离线模式登录',
 				icon: 'none'
 			});
+			
+			// 离线模式下也尝试复制object.json文件
+			console.log('离线模式，不再自动复制object.json文件');
+			// 移除自动复制代码
 		} finally {
 			try {
 				//不论有没有网，都从本地读取project
@@ -1011,6 +1034,37 @@
 		}
 	});
 
+	// 添加一个函数，用于设置UDPath
+	const setUDPathFromDir = (dirName) => {
+    if (!dirName) return;
+    
+    try {
+        console.log('尝试设置UDPath，目录名:', dirName);
+        // 提取目录名，如果是完整路径
+        const parts = dirName.split('/');
+        const name = parts[parts.length - 1];
+        
+        // 检查是否是UD开头的目录
+        if (name && name.startsWith('UD')) {
+            console.log('找到UD目录:', name);
+            userInfo.setUDPath(name);
+            console.log('UDPath已设置为:', name);
+        } else {
+            console.log('目录不是UD开头，尝试创建UD目录');
+            // 如果不是UD开头的目录，可以创建一个
+            saveZipAndStorePath('_doc/' + name, 'package.zip')
+                .then(result => {
+                    console.log('UDPath设置成功:', result.dirPath);
+                })
+                .catch(error => {
+                    console.error('设置UDPath失败:', error);
+                });
+        }
+    } catch (error) {
+        console.error('设置UDPath时出错:', error);
+    }
+};
+
 	onMounted(async () => {
 		await init();
 		
@@ -1022,6 +1076,12 @@
 		watch(unzipProgress, (newValue) => {
 			uni.$emit('unzip-progress', { progress: newValue });
 		});
+		
+		// 检查UDPath是否为空，如果为空则尝试设置
+		if (!userInfo.UDPath && userInfo.ULPath) {
+			console.log('UDPath为空，尝试从ULPath设置:', userInfo.ULPath);
+			setUDPathFromDir(userInfo.ULPath);
+		}
 	});
 
 	const handleRadioChange = (e) => {

@@ -100,12 +100,30 @@ export async function setProperty(userName, buildingId, data) {
 }
 
 export async function setObject(userName, buildingId, data) {
-    // 查找匹配的目录
-    const matchedDir = await findMatchingULDirectory(userName);
-    // 构建项目文件路径
-    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/object.json`;
-    trackPath(path);
-    return setJsonData(path, data);
+    try {
+        // 查找匹配的目录
+        const matchedDir = await findMatchingULDirectory(userName);
+        if (!matchedDir) {
+            throw new Error('无法找到或创建有效的UL目录');
+        }
+        
+        // 构建项目文件路径
+        const objectPath = `${matchedDir}/building/${buildingId}/object.json`;
+        const fullPath = DOC_BASE_PATH + objectPath;
+        console.log('准备写入对象文件路径:', fullPath);
+        
+        // 确保目录结构存在
+        await ensureDirectoryExists(`${DOC_BASE_PATH}${matchedDir}/building/${buildingId}`);
+        
+        // 写入数据
+        trackPath(fullPath);
+        await setJsonData(fullPath, data);
+        console.log('对象数据写入成功:', fullPath);
+        return true;
+    } catch (error) {
+        console.error('写入对象数据失败:', error);
+        throw error;
+    }
 }
 
 export async function setDisease(userName, buildingId, yearId, data) {
@@ -485,18 +503,22 @@ async function findMatchingULDirectory(userName) {
     try {
         // 获取_doc目录下的所有子目录
         const allDirs = await getAllFirstLevelDirs();
+        console.log('所有目录:', allDirs);
 
-        // 首先检查是否有project目录（优先使用）
-        if (allDirs.includes('project')) {
-            console.log('找到project目录，直接使用');
-            return 'project';
+        // 获取用户信息store
+        const userInfo = userStore();
+        
+        // 优先使用ULPath（如果已经在store中设置）
+        if (userInfo.ULPath && allDirs.includes(userInfo.ULPath)) {
+            console.log('使用store中保存的ULPath:', userInfo.ULPath);
+            return userInfo.ULPath;
         }
 
-        // 如果没有project目录，查找以UD开头的目录
+        // 如果没有project目录，查找以UL开头的目录
         const ulDirs = allDirs.filter(dir => dir.startsWith('UL'));
         console.log('找到UL开头的目录:', ulDirs);
 
-        // 遍历UD目录，查找匹配当前用户名的目录
+        // 遍历UL目录，查找匹配当前用户名的目录
         for (const dir of ulDirs) {
             // 提取目录名中的用户名部分（最后一个'-'后面的内容）
             const lastDashIndex = dir.lastIndexOf('-');
@@ -506,19 +528,101 @@ async function findMatchingULDirectory(userName) {
 
                 // 检查提取的用户名是否与当前用户名匹配
                 if (userName && dirUsername === userName) {
-                    console.log('找到匹配的用户目录:', dir);
+                    console.log('找到匹配的UL用户目录:', dir);
+                    userInfo.setULPath(dir); // 保存到store中
                     return dir;
                 }
             }
         }
 
-        // 如果没有找到匹配的目录，返回null
-        console.log('未找到匹配的目录，将使用默认路径');
-        return null;
+        // 如果没有找到匹配的UL目录，尝试查找对应的UD目录
+        const udDirs = allDirs.filter(dir => dir.startsWith('UD'));
+        console.log('找到UD开头的目录:', udDirs);
+        
+        // 遍历UD目录，查找匹配当前用户名的目录
+        for (const dir of udDirs) {
+            const lastDashIndex = dir.lastIndexOf('-');
+            if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
+                const dirUsername = dir.substring(lastDashIndex + 1);
+                
+                // 如果找到匹配的UD目录，创建对应的UL目录
+                if (userName && dirUsername === userName) {
+                    // 创建对应的UL目录名称
+                    const ulDir = 'UL' + dir.substring(2); // 替换UD为UL
+                    console.log('未找到UL目录，但找到了对应的UD目录，创建UL目录:', ulDir);
+                    
+                    // 创建UL目录
+                    try {
+                        await createDirectory(DOC_BASE_PATH + ulDir);
+                        console.log('成功创建UL目录:', ulDir);
+                        userInfo.setULPath(ulDir); // 保存到store中
+                        return ulDir;
+                    } catch (error) {
+                        console.error('创建UL目录失败:', error);
+                    }
+                }
+            }
+        }
+
+        // 如果没有找到匹配的目录，创建新的UL目录
+        const newULDir = `UL${getCurrentDateStr()}-${userName}`;
+        console.log('未找到任何匹配目录，创建新的UL目录:', newULDir);
+        
+        try {
+            await createDirectory(DOC_BASE_PATH + newULDir);
+            console.log('成功创建新的UL目录:', newULDir);
+            userInfo.setULPath(newULDir); // 保存到store中
+            return newULDir;
+        } catch (error) {
+            console.error('创建新的UL目录失败:', error);
+            return null;
+        }
     } catch (error) {
-        console.error('查找匹配目录时出错:', error);
+        console.error('查找匹配UL目录时出错:', error);
         return null;
     }
+}
+
+// 辅助函数：创建目录
+function createDirectory(path) {
+    return new Promise((resolve, reject) => {
+        plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
+            fs.root.getDirectory(path, { create: true }, dirEntry => {
+                console.log('目录创建成功:', path);
+                resolve(dirEntry);
+            }, error => {
+                console.error('目录创建失败:', error);
+                reject(error);
+            });
+        }, error => {
+            console.error('获取文件系统失败:', error);
+            reject(error);
+        });
+    });
+}
+
+// 辅助函数：确保目录存在，如果不存在则创建
+async function ensureDirectoryExists(path) {
+    console.log('确保目录存在:', path);
+    const parts = path.split('/').filter(Boolean);
+    let currentPath = '';
+    
+    // 逐级创建目录
+    for (let i = 0; i < parts.length; i++) {
+        currentPath += '/' + parts[i];
+        try {
+            await createDirectory(currentPath);
+        } catch (error) {
+            // 如果目录已存在，忽略错误
+            if (error.code !== 12) {
+                console.error(`创建目录 ${currentPath} 失败:`, error);
+                throw error;
+            }
+        }
+    }
+    
+    console.log('目录结构已确保存在:', path);
+    return true;
 }
 
 

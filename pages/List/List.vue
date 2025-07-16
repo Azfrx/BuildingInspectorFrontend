@@ -83,9 +83,12 @@ import {
 		getTask,
 		getTaskByHadUsername,
 		getHadProject,
+		getObject
 	} from '@/utils/readJsonNew.js'
+	import { getObjectUL } from '../../utils/readUL' 
 	import {
-		setTask
+		setTask,
+		setObject
 	} from '../../utils/writeNew'
 	import {
 		userStore
@@ -347,11 +350,64 @@ import {
 	}
 
 	// 跳转到详情页
-	const goToDetail = (bridge) => {
+	const goToDetail = async (bridge) => {
+		// 确保 bridge 和 buildingId 有效
+		if (!bridge || !bridge.buildingId) {
+			console.error('无效的桥梁数据或buildingId:', bridge);
+			uni.showToast({
+				title: '无效的桥梁数据',
+				icon: 'none',
+				duration: 2000
+			});
+			return;
+		}
+		
+		console.log('跳转到桥梁详情，buildingId:', bridge.buildingId);
+		
 		// 将buildingId存储到store中
 		idInfo.setBuildingId({
 			value: bridge.buildingId
 		});
+		console.log('已将buildingId存储到store:', idInfo.buildingId);
+
+		// 在跳转前，检查并复制数据从UD到UL目录
+		try {
+			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
+			// 尝试从UL目录读取数据
+			const structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
+			
+			// 如果从UL目录读不到数据（没有数据或只有默认空数据）
+			if (!structureData || !structureData.children || structureData.children.length === 0) {
+				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
+				
+				// 从UD目录读取数据
+				console.log('尝试从UD目录读取object.json，参数:', userInfo.username, bridge.buildingId);
+				const udData = await getObject(userInfo.username, idInfo.buildingId);
+				
+				if (udData && udData.children && udData.children.length > 0) {
+					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
+					
+					// 将UD目录的数据保存到UL目录
+					console.log('将object.json数据保存到UL目录，参数:', userInfo.username, bridge.buildingId);
+					await setObject(userInfo.username, idInfo.buildingId, udData);
+					console.log("object.json数据已从UD目录复制到UL目录");
+					
+					// 验证数据是否成功保存
+					const verifyData = await getObjectUL(userInfo.username, idInfo.buildingId);
+					if (verifyData && verifyData.children && verifyData.children.length > 0) {
+						console.log("验证成功：object.json数据已正确保存到UL目录");
+					} else {
+						console.error("验证失败：object.json数据未能正确保存到UL目录");
+					}
+				} else {
+					console.log("UD目录中也没有有效的object.json数据");
+				}
+			} else {
+				console.log("UL目录已有有效的object.json数据，无需复制");
+			}
+		} catch (error) {
+			console.error("处理object.json数据时出错:", error);
+		}
 
 		// 导航到桥梁疾病页面
 		uni.navigateTo({

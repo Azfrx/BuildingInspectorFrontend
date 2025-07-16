@@ -1,108 +1,108 @@
+// 导入读写操作的工具函数
 import {
-    saveBridgeImage,
-    saveDiseaseImages,
-    setDisease,
-    setProperty,
-    setTask,
-    setObject,
-    setProject,
-    coverProject
+    saveBridgeImage,      // 保存桥梁图片
+    saveDiseaseImages,    // 保存病害图片
+    setDisease,           // 写入病害数据
+    setProperty,          // 写入桥梁属性
+    setTask,              // 写入任务数据
+    setObject,            // 写入构件数据
+    setProject,           // 写入项目数据
+    coverProject          // 覆盖项目数据
 } from "@/utils/writeNew";
 import {
-    getProject,
-    getTask,
-    getAllFirstLevelDirs,
-    getHadProject
+    getProject,          // 读取项目数据
+    getTask,             // 读取任务数据
+    getAllFirstLevelDirs,// 获取一级目录列表
+    getHadProject        // 获取已有项目
 } from "@/utils/readJsonNew.js";
-import {
-    deleteFolderInApp
-} from "@/utils/deleteFolder.js"
-import {
-    userStore
-} from '@/store/index.js'
+import { deleteFolderInApp } from "@/utils/deleteFolder.js" // 删除文件夹
+import { userStore } from '@/store/index.js' // 用户状态管理
 
-
+// 主同步函数：将服务器数据同步到本地
 export async function getAllDataAndSetToLocal(projects, projectResponse, token, username) {
-    //获取本地所有project
     try {
         const userInfo = userStore()
         let localProjectsAsync = null;
+        // 1. 读取所有用户目录
         const allUsers = await readUserFolders();
-			let findUser = false;
+        let findUser = false;
+        
+        // 2. 检查当前用户是否已存在
         for (const user of allUsers) {
             const hadUsernameArrBySplit = user.split('-');
             const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
             if (hadUsername === username) {
-					findUser = true;
-                //已存在此用户 去读旧数据
-                console.log("已存在此用户", user);
-                userInfo.setHadUsername(user); // 设置已存在的用户名到store
-                console.log("已存入用户：", userInfo.hadUsername);
+                findUser = true;
+                // 已存在用户：读取旧数据
+                userInfo.setHadUsername(user); 
                 localProjectsAsync = await getHadProject(user);
                 break;
             }
         }
+        
+        // 3. 获取本地项目数据
         if (!localProjectsAsync) {
             localProjectsAsync = await getProject(username)
         }
-		if(findUser===false){
-			username = '';
-			}
+        if(findUser===false){
+            username = ''; // 新用户处理
+        }
         const localProjects = localProjectsAsync.data.projects
-        console.log("拿到的用户数据", localProjects);
-        //根据新projects过滤本地projects，这里只增删project 注意这里只修改了json文件
+        
+        // 4. 过滤项目（增删同步）
         filtProjects(localProjects, projects)
 
-        //判断是否已存在project.json，如果不存在则创建一个新的json文件，在当前日期的目录中
+        // 5. 创建/更新项目JSON
         await createProjectJson(username, projectResponse);
-        //所有的项目 每一个项目去获取它下面的任务
+        
+        // 6. 遍历所有项目
         for (const project of projects) {
             const projectId = project.id;
-
-            // 查找本地是否已有该项目
+            
+            // 检查项目是否需要更新
             const localProject = localProjects.find(p => p.id === projectId);
-
-            // 如果本地有这个项目，且 updateTime 一致，则跳过更新
             if (localProject && localProject.updateTime === project.updateTime) {
-                console.log(`项目 ${project.name} 未更新，跳过数据请求`);
-                continue;
+                continue; // 跳过未更新的项目
             }
-            console.log(`项目 ${project.name} 更新，请求新数据`);
-            // console.log('开始获取BuildingId:', projectId);
-            // buildings也就是tasks 每一个桥梁是一个检测任务
+            
+            // 7. 获取项目下的桥梁任务
             const buildings = await getBuildingIdByProjectId(projectId, token, username);
             const localBuildings = await getTask(username, projectId)
-
+            
+            // 8. 遍历桥梁任务
             for (const building of buildings) {
                 const buildingId = building.buildingId;
-                //对比updatetime
+                
+                // 检查桥梁是否需要更新
                 const localBuilding = localBuildings.find(b => b.buildingId === buildingId);
                 if (localBuilding && localBuilding.updateTime === building.updateTime) {
-                    console.log(`Building ${buildingId} 未更新，跳过`);
-                    continue;
+                    continue; // 跳过未更新的桥梁
                 }
-                console.log(`Building ${buildingId} 有更新，开始请求数据`);
-
-                // console.log('开始获取桥梁卡片数据:', buildingId);
-                await propertyRequest(buildingId, token, username);
-                // console.log('开始获取历史病害数据:', buildingId);
-                await diseaseRequest(buildingId, token, username);
-                // console.log('开始获取桥梁构件数据:', buildingId);
-                await getStructureInfoByBuildingId(buildingId, token, username);
+                
+                // 9. 更新桥梁数据
+                await propertyRequest(buildingId, token, username);   // 属性数据
+                await diseaseRequest(buildingId, token, username);   // 病害数据
+                await getStructureInfoByBuildingId(buildingId, token, username); // 构件数据
             }
         }
     } catch (error) {
+        // 异常处理：全量下载
         await downloadProjects(username, projectResponse, projects, token)
     }
 }
 
+// 全量下载项目数据
 export async function downloadProjects(username, projectResponse, projects, token) {
-    //本地文件夹为空 全量下载
+    // 1. 保存项目数据
     await setProject(username, projectResponse);
-    //所有的项目 每一个项目去获取它下面的任务
+    
+    // 2. 遍历所有项目
     for (const project of projects) {
         const projectId = project.id;
+        // 3. 获取项目下的桥梁
         const buildings = await getBuildingIdByProjectId(projectId, token, username);
+        
+        // 4. 下载每个桥梁的数据
         for (const building of buildings) {
             const buildingId = building.buildingId;
             await propertyRequest(buildingId, token, username);
@@ -112,255 +112,182 @@ export async function downloadProjects(username, projectResponse, projects, toke
     }
 }
 
+// 创建/更新项目JSON文件
 const createProjectJson = async (username, projectResponse) => {
-    // 获取一级目录数组
     const fileArray = await getAllFirstLevelDirs();
     let oldProjectUsername = null;
-    // 遍历数组检查是否已存在用户目录
+    
+    // 1. 检查用户目录是否存在
     for (let i = 0; i < fileArray.length; i++) {
         const dir = fileArray[i];
-        const name = extractUserNameFromDir(dir); // 从目录名中提取用户名
+        const name = extractUserNameFromDir(dir); // 提取用户名
         if (name === username) {
             oldProjectUsername = fileArray[i];
-            break; // 找到匹配项，跳出循环
+            break;
         }
     }
+    
+    // 2. 目录处理
     if (!oldProjectUsername) {
-        // 如果不存在用户目录，则新建
+        // 新用户：创建目录
         await setProject(username, projectResponse);
-        console.log(`创建新项目目录: ${username}`);
     } else {
-        // 如果已存在用户目录，则覆写
+        // 老用户：覆盖数据
         await coverProject(username, projectResponse, oldProjectUsername);
-        console.log(`已存在项目目录，覆写: ${username}`);
-        console.log("oldProjectUsername是什么", oldProjectUsername);
     }
 }
 
-// 从目录名中提取用户名
+// 从目录名提取用户名 (格式: UD日期-用户名)
 function extractUserNameFromDir(dirName) {
-    // 检查目录名格式是否符合 UD日期-用户名
     if (dirName && dirName.startsWith('UD') && dirName.includes('-')) {
-        // 获取最后一个'-'后面的内容作为用户名
         const lastDashIndex = dirName.lastIndexOf('-');
-        if (lastDashIndex !== -1 && lastDashIndex < dirName.length - 1) {
+        if (lastDashIndex !== -1) {
             return dirName.substring(lastDashIndex + 1);
         }
     }
-    return ''; // 如果格式不符，返回空字符串
+    return '';
 }
 
+// 项目过滤与同步
 const filtProjects = async (oldProjects, newProjects) => {
-    //线上有但是本地没有的项目以一个新数组的形式返回
     const toAddProject = []
+    
+    // 1. 删除本地多余项目
     for (let i = oldProjects.length - 1; i >= 0; i--) {
-        const oldProject = oldProjects[i];
-        const exists = newProjects.some(newProject => newProject.id === oldProject.id);
-        if (!exists) {
-            console.log("oldProjects[i].id", oldProjects[i].id);
-            //删除项目文件夹
-            deleteFolderInApp('_doc/' + FILE_NAMING.projectsFolder(username) +
-                '/' + oldProjects[i].id)
-            oldProjects.splice(i, 1); // 删除不存在的项目
+        if (!newProjects.some(p => p.id === oldProjects[i].id)) {
+            deleteFolderInApp('_doc/' + FILE_NAMING.projectsFolder(username) + '/' + oldProjects[i].id)
+            oldProjects.splice(i, 1);
         }
     }
-
+    
+    // 2. 识别新增项目
     for (const newProject of newProjects) {
-        const exists = oldProjects.some(oldProject => oldProject.id === newProject.id);
-        console.log("判断项目", newProject.name)
-        if (!exists) {
-            console.log("添加新项目", newProject.name)
-            toAddProject.push(newProject); // 在返回值中添加新的项目，去下载
-            oldProjects.push(newProjectCopy); // 往json中添加新的项目条目，防止重复
-            // //修改更新时间，使其一定触发后续更新
-            // const newProjectCopy = {
-            //     ...newProject
-            // };
-            // newProjectCopy.updateTime = "different"
-            // oldProjects.push(newProjectCopy); // 添加新的项目
+        if (!oldProjects.some(p => p.id === newProject.id)) {
+            toAddProject.push(newProject);
+            oldProjects.push({...newProject}); // 添加到本地列表
         }
     }
-    console.log("新增的项目数量为：", toAddProject.length);
+    
+    // 3. 下载新增项目
     await downloadProjects(username, projectResponse, toAddProject, token);
 }
 
+// 获取单个项目数据
 const getNewProject = async (projectId, token, username) => {
     const buildings = await getBuildingIdByProjectId(projectId, token, username);
-    console.log("拥有的buildings", buildings);
     for (const building of buildings) {
         const buildingId = building.buildingId;
-        // console.log('开始获取桥梁卡片数据:', buildingId);
         await propertyRequest(buildingId, token, username);
-        // console.log('开始获取历史病害数据:', buildingId);
         await diseaseRequest(buildingId, token, username);
-        // console.log('开始获取桥梁构件数据:', buildingId);
         await getStructureInfoByBuildingId(buildingId, token, username);
     }
 }
 
+// 获取项目下的桥梁列表
 const getBuildingIdByProjectId = async (projectId, token, username) => {
     try {
         const response = await uni.request({
             url: `http://60.205.13.156:8090/api/project/${projectId}/task`,
             method: 'GET',
-            header: {
-                'Authorization': `${token}`
-            }
+            header: { 'Authorization': `${token}` }
         });
+        
         if (response.data.code === 0) {
-            setTask(username, projectId, response.data)
+            setTask(username, projectId, response.data) // 保存到本地
             return response.data.data.tasks
         } else {
-            uni.showToast({
-                title: response.data.msg || '获取BuildingId失败',
-                icon: 'none'
-            });
+            uni.showToast({ title: '获取桥梁列表失败', icon: 'none' });
         }
     } catch (error) {
-        console.error('获取BuildingId失败:', error);
-        uni.showToast({
-            title: '获取BuildingId失败，请稍后重试',
-            icon: 'none'
-        });
+        console.error('获取桥梁列表失败:', error);
     }
 }
 
+// 获取桥梁属性数据
 export async function propertyRequest(buildingId, token, username) {
     try {
         const response = await uni.request({
             url: `http://60.205.13.156:8090/api/building/${buildingId}/property`,
             method: 'GET',
-            header: {
-                'Authorization': `${token}`
-            }
+            header: { 'Authorization': `${token}` }
         });
 
         if (response.data.code === 0) {
             const bridgedata = response.data.data;
-            // bridgedata.images.side = await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.side);
-            // bridgedata.images.front =  await saveBridgeImages(userInfo.username, buildingId.value, bridgedata.images.front);
-            if (bridgedata.property.children[7].children[0].value !== '/') {
-                try {
-                    const savedImageUrl = await saveBridgeImage(username, buildingId, bridgedata
-                        .property.children[7].children[0].value);
-                    if (savedImageUrl) {
-                        bridgedata.property.children[7].children[0].value = savedImageUrl;
-                    } else {
-                        console.error('保存图片1失败: 返回的URL为空');
-                    }
-                } catch (error) {
-                    console.error('保存图片1出错:', error);
-                    // 保留原始值，避免字段消失
+            
+            // 处理并保存两张桥梁图片
+            const imgFields = bridgedata.property.children[7].children;
+            for (let i = 0; i < 2; i++) {
+                if (imgFields[i].value !== '/') {
+                    const savedUrl = await saveBridgeImage(username, buildingId, imgFields[i].value);
+                    if (savedUrl) imgFields[i].value = savedUrl;
                 }
             }
-            if (bridgedata.property.children[7].children[1].value !== '/') {
-                try {
-                    const savedImageUrl = await saveBridgeImage(username, buildingId, bridgedata
-                        .property.children[7].children[1].value);
-                    if (savedImageUrl) {
-                        bridgedata.property.children[7].children[1].value = savedImageUrl;
-                    } else {
-                        console.error('保存图片2失败: 返回的URL为空');
-                    }
-                } catch (error) {
-                    console.error('保存图片2出错:', error);
-                    // 保留原始值，避免字段消失
-                }
-            }
-            await setProperty(username, buildingId, bridgedata);
-        } else {
-            uni.showToast({
-                title: response.data.msg || `保存桥梁卡片${buildingId}图片失败`,
-                icon: 'none'
-            });
+            
+            await setProperty(username, buildingId, bridgedata); // 保存属性数据
         }
     } catch (error) {
-        console.error('获取桥梁卡片数据失败:', error);
-        uni.showToast({
-            title: '获取桥梁卡片数据失败，请稍后重试',
-            icon: 'none'
-        });
+        console.error('获取桥梁属性失败:', error);
     }
 }
 
+// 获取病害数据
 export async function diseaseRequest(buildingId, token, username) {
-    console.log('开始从后端获取历史病害数据...........');
     try {
         const response = await uni.request({
-            //桥梁id改为全局
             url: `http://60.205.13.156:8090/api/building/${buildingId}/disease`,
             method: 'GET',
-            header: {
-                'Authorization': `${token}`
-            }
+            header: { 'Authorization': `${token}` }
         });
-        console.log('从后端接口获取到的历史病害数据:', response.data.data);
+        
         if (response.data.code === 0) {
+            const currentYear = new Date().getFullYear();
+            
             for (const yearDisease of response.data.data) {
-                const year = yearDisease.year;
-                const currentYear = new Date().getFullYear();
-                if (year !== currentYear) {
-                    // 遍历diseases数组
+                // 排除当前年份数据
+                if (yearDisease.year !== currentYear) {
+                    // 处理病害图片
                     for (const disease of yearDisease.diseases) {
-                        // 处理images列表
-                        if (disease.images && Array.isArray(disease.images)) {
-                            disease.images = await saveDiseaseImages(username, buildingId, disease
-                                .images);
+                        if (disease.images) {
+                            disease.images = await saveDiseaseImages(username, buildingId, disease.images);
                         }
-
-                        // 处理ADImgs列表
-                        if (disease.ADImgs && Array.isArray(disease.ADImgs)) {
-                            disease.ADImgs = await saveDiseaseImages(username, buildingId, disease
-                                .ADImgs);
+                        if (disease.ADImgs) {
+                            disease.ADImgs = await saveDiseaseImages(username, buildingId, disease.ADImgs);
                         }
                     }
-                    //调用接口将数据存在本地(disease)
-                    await setDisease(username, buildingId, year, yearDisease)
+                    // 按年份保存病害数据
+                    await setDisease(username, buildingId, yearDisease.year, yearDisease)
                 }
             }
-        } else {
-            uni.showToast({
-                title: response.data.msg || '获取历史病害数据失败',
-                icon: 'none'
-            });
         }
     } catch (error) {
-        console.error('获取历史病害数据失败:', error);
+        console.error('获取病害数据失败:', error);
     }
 }
 
+// 获取桥梁构件数据
 const getStructureInfoByBuildingId = async (buildingId, token, username) => {
     try {
         const response = await uni.request({
-            //寫死 因爲只有55是最新數據
             url: `http://60.205.13.156:8090/api/building/${buildingId}/object`,
             method: 'GET',
-            header: {
-                'Authorization': `${token}`
-            }
+            header: { 'Authorization': `${token}` }
         });
+        
         if (response.data.code === 0) {
-            //将数据存在本地 提交前初始化数据
-            setObject(username, buildingId, response.data.data);
-        } else {
-            uni.showToast({
-                title: response.data.msg || '获取桥梁构件数据失败',
-                icon: 'none'
-            });
+            setObject(username, buildingId, response.data.data); // 保存构件数据
         }
     } catch (error) {
-        console.error('获取桥梁构件数据失败:', error);
-        uni.showToast({
-            title: '获取桥梁构件数据失败，请稍后重试',
-            icon: 'none'
-        });
+        console.error('获取构件数据失败:', error);
     }
 }
 
+// 读取用户目录列表
 function readUserFolders() {
     return new Promise((resolve, reject) => {
         plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
             entry.createReader().readEntries((entries) => {
+                // 过滤并返回目录名称
                 const folders = entries.filter(e => e.isDirectory);
                 resolve(folders.map(f => f.name));
             }, reject);
