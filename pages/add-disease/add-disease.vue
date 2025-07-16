@@ -2411,41 +2411,41 @@
 		});
 	}
 
-	const copyAndAddDisease = () => {
+	const copyAndAddDisease = async () => {
     const diseaseData = createDiseaseData();
 
-    saveImagesAndUpdateDisease(diseaseData)
-		// 清空图片列表
-		fileList.value = [];
+    await saveImagesAndUpdateDisease(diseaseData)
+    // 清空图片列表
+    fileList.value = [];
 
-		// 清空AD图片列表
-		ADImgs.value = [];
-		diseaseData.id = new Date().getTime();
-		diseaseData.commitType = 1;
-		diseaseData.localId = new Date().getTime();
-		diseaseData.createTime = formatDateTime();
-		diseaseData.updateTime = formatDateTime();
-		diseaseData.historyDiseaseId = null;
+    // 清空AD图片列表
+    ADImgs.value = [];
+    diseaseData.id = new Date().getTime();
+    diseaseData.commitType = 1;
+    diseaseData.localId = new Date().getTime();
+    diseaseData.createTime = formatDateTime();
+    diseaseData.updateTime = formatDateTime();
+    diseaseData.historyDiseaseId = null;
 
-		console.log('保存并复制到下一条');
+    console.log('保存并复制到下一条');
 
-		/*		// 清空图片列表
-				fileList.value = [];
+    /*		// 清空图片列表
+        fileList.value = [];
 
-				// 清空AD图片列表
-				ADImgs.value = [];*/
+        // 清空AD图片列表
+        ADImgs.value = [];*/
 
-		// 将编辑模式切换为新增模式
-		openMode.value = 'create';
-		// saveImagesAndUpdateDisease(diseaseData)
+    // 将编辑模式切换为新增模式
+    openMode.value = 'create';
+    // saveImagesAndUpdateDisease(diseaseData)
 
-		// 简单提示
-		uni.showToast({
-			title: '保存并复制成功',
-			icon: 'success',
-			duration: 500
-		});
-	}
+    // 简单提示
+    uni.showToast({
+      title: '保存并复制成功',
+      icon: 'success',
+      duration: 500
+    });
+  }
 
 	const editDisease = () => {
 		console.log('编辑');
