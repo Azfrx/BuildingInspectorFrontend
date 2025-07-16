@@ -1,5 +1,5 @@
 // 检查是否有未提交的病害记录
-import {getTask, isCommit, readDiseaseCommit} from "@/utils/readJsonNew";
+import {getTask, getULTask, isCommit, readDiseaseCommit} from "@/utils/readJsonNew";
 import {isPhotoCommmitted} from "@/utils/frontPhoto";
 import {setTask} from "@/utils/writeNew";
 
@@ -79,15 +79,16 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
 }
 
 export async function isBuildingCommited (username,projectId,buildingId) {
-    const taskData = await getTask(username, projectId);
+    const taskData = await getULTask(username, projectId);
 
-    // 找到对应的任务项并设置 commited 字段为 false
-    if (taskData && taskData.data && taskData.data.tasks) {
-        const tasks = taskData.data.tasks;
+    // 找到对应的任务项并获取 commited 字段
+    if (taskData && taskData && taskData.tasks) {
+        const tasks = taskData.tasks;
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
-                if(tasks[i].commited) return tasks[i].commited;
-                else return false;
+                return tasks[i].commited;
+                /*if(tasks[i].commited) return tasks[i].commited;
+                else return false;*/
             }
         }
     }
