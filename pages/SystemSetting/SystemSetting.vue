@@ -27,8 +27,12 @@
 		</view> -->
 		<view class="divider"></view>
 		<view class="versionData">
-			<view class="versionTitle">当前数据包版本</view>
+			<view class="versionTitle">当前本地数据包版本</view>
 			<view class="versionNumber">{{currentDataVersion}}</view>
+		</view>
+		<view class="versionData">
+			<view class="versionTitle">当前下载数据包版本</view>
+			<view class="versionNumber">{{currentDataVersionD}}</view>
 		</view>
     <view class="divider"></view>
     <view class="inData">
@@ -124,10 +128,9 @@ import {
 		passwordPopup.value.open();
 	};
 
-  const currentDataVersion = computed(() => {
-    return `UD-${versionNumber.value.split('.')[2]}-${userInfo.username}`
-    })
-
+  const currentDataVersion = userInfo.ULPath;
+  
+ const currentDataVersionD = userInfo.UDPath;
 	// 关闭修改密码弹窗
 	const closePasswordModal = () => {
 		passwordPopup.value.close();

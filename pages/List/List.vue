@@ -186,7 +186,6 @@
 			// 获取项目数据
 			try {
 				projectInfo.value = await getProject(userInfo.username);
-				console.log('获取到项目数据:', JSON.stringify(projectInfo.value));
 			} catch (projectError) {
 				console.error('获取项目数据失败:', projectError);
 				projectInfo.value = {
@@ -198,7 +197,6 @@
 
 			// 获取任务数据
 			try {
-				console.log('开始获取任务数据，projectId:', projectId.value);
 				initTaskData.value = await getTask(userInfo.username, projectId.value);
 				try {
 					initTaskULData.value = await getULTask(userInfo.username, projectId.value)
@@ -305,7 +303,6 @@
 				} else {
 					console.log('没有可用的UL任务数据或数据结构不正确');
 				}
-				console.log('获取到任务数据:', JSON.stringify(initTaskData.value));
 			} catch (taskError) {
 				console.error('获取任务数据失败:', taskError);
 				// 初始化默认的任务数据结构
@@ -378,7 +375,6 @@
 	})
 	// 添加计算属性来获取当前项目
 	const currentProject = computed(() => {
-		console.log('计算currentProject，projectInfo值:', projectInfo.value);
 
 		// 检查projectInfo是否有数据
 		if (!projectInfo.value) {
@@ -409,10 +405,8 @@
 		}
 		// 检查projectInfo.projects的结构
 		else if (projectInfo.value.projects && Array.isArray(projectInfo.value.projects)) {
-			console.log('使用projectInfo.projects结构');
 			// 旧格式：{projects: [...]}
 			const project = projectInfo.value.projects.find(p => String(p.id) === String(projectId.value));
-			console.log('找到的项目:', project ? JSON.stringify(project) : '未找到');
 
 			if (project) return project;
 
@@ -481,13 +475,16 @@
 				// 从UD目录读取数据
 				console.log('尝试从UD目录读取object.json，参数:', userInfo.username, bridge.buildingId);
 				const udData = await getObject(userInfo.username, idInfo.buildingId);
-
+				console.log("udData0:", udData);
 				if (udData && udData.children && udData.children.length > 0) {
 					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
 
 					// 将UD目录的数据保存到UL目录
 					console.log('将object.json数据保存到UL目录，参数:', userInfo.username, bridge.buildingId);
+					udData.warning = false;
+					udData.commit = 2
 					await setObject(userInfo.username, idInfo.buildingId, udData);
+					console.log("udData:", udData);
 					console.log("object.json数据已从UD目录复制到UL目录");
 
 					// 验证数据是否成功保存

@@ -48,6 +48,21 @@
 			</view>
 			<view class="popup-mask" @click="cancelPhotoNumber"></view>
 		</view>
+		
+		<!-- 画线编辑弹窗 -->
+		<view class="drawing-popup" v-if="drawingVisible">
+			<view class="drawing-content">
+				<view class="popup-title">在图片上标记</view>
+				<view class="canvas-container">
+					<canvas canvas-id="drawingCanvas" class="drawing-canvas" 
+						@touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"></canvas>
+				</view>
+				<view class="popup-buttons">
+					<view class="btn cancel-btn" @click="cancelDrawing">取消</view>
+					<view class="btn confirm-btn" @click="confirmDrawing">确定</view>
+				</view>
+			</view>
+		</view>
 
 		<!-- 隐藏的canvas，用于生成带数字的图片 -->
 		<canvas :canvas-id="canvasId" class="hidden-canvas"
@@ -80,6 +95,15 @@
 	const actionSheetVisible = ref(false);
 	const photoNumberVisible = ref(false);
 	const photoNumber = ref('');
+	
+	// 绘画相关变量
+	const drawingVisible = ref(false);
+	const currentEditingImage = ref('');
+	const lastPoint = ref({ x: 0, y: 0 });
+	const isDrawing = ref(false);
+	const imageInfo = ref(null);
+	const drawingPoints = ref([]);
+	
 	// 预览图片
 	const previewImage = (index) => {
 		uni.previewImage({
@@ -115,7 +139,20 @@
 			sourceType: ['camera'],
 			sizeType: ['compressed'],
 			success: (res) => {
-				handleImageSuccess(res.tempFilePaths[0]);
+				// 显示绘画编辑界面
+				currentEditingImage.value = res.tempFilePaths[0];
+				// 获取图片信息
+				uni.getImageInfo({
+					src: currentEditingImage.value,
+					success: (info) => {
+						imageInfo.value = info;
+						showDrawingEditor();
+					},
+					fail: (err) => {
+						console.error('获取图片信息失败:', err);
+						handleImageSuccess(currentEditingImage.value);
+					}
+				});
 			},
 			fail: (err) => {
 				console.error('拍照失败:', err);
@@ -135,7 +172,20 @@
 			sourceType: ['album'],
 			sizeType: ['compressed'],
 			success: (res) => {
-				handleImageSuccess(res.tempFilePaths[0]);
+				// 显示绘画编辑界面
+				currentEditingImage.value = res.tempFilePaths[0];
+				// 获取图片信息
+				uni.getImageInfo({
+					src: currentEditingImage.value,
+					success: (info) => {
+						imageInfo.value = info;
+						showDrawingEditor();
+					},
+					fail: (err) => {
+						console.error('获取图片信息失败:', err);
+						handleImageSuccess(currentEditingImage.value);
+					}
+				});
 			},
 			fail: (err) => {
 				console.error('选择照片失败:', err);
@@ -143,6 +193,142 @@
 					title: '选择照片失败',
 					icon: 'none'
 				});
+			}
+		});
+	};
+	
+	// 显示绘画编辑器
+	const showDrawingEditor = () => {
+		drawingVisible.value = true;
+		drawingPoints.value = [];
+		// 在下一个事件循环中初始化画布
+		setTimeout(() => {
+			initDrawingCanvas();
+		}, 100);
+	};
+
+	// 初始化绘画画布
+	const initDrawingCanvas = () => {
+		if (!imageInfo.value) return;
+		
+		const context = uni.createCanvasContext('drawingCanvas');
+		
+		// 先绘制原图
+		context.drawImage(currentEditingImage.value, 0, 0, imageInfo.value.width, imageInfo.value.height);
+		
+		// 设置默认样式 - 红色线条
+		context.setStrokeStyle('#FF0000');
+		context.setLineWidth(3);
+		context.draw();
+	};
+	
+	// 触摸开始事件
+	const touchStart = (e) => {
+		isDrawing.value = true;
+		lastPoint.value = {
+			x: e.touches[0].x,
+			y: e.touches[0].y
+		};
+		
+		// 记录起始点
+		drawingPoints.value.push({
+			type: 'start',
+			x: lastPoint.value.x,
+			y: lastPoint.value.y
+		});
+	};
+
+	// 触摸移动事件
+	const touchMove = (e) => {
+		if (!isDrawing.value) return;
+		
+		const currentPoint = {
+			x: e.touches[0].x,
+			y: e.touches[0].y
+		};
+		
+		// 记录移动点
+		drawingPoints.value.push({
+			type: 'move',
+			x: currentPoint.x,
+			y: currentPoint.y
+		});
+		
+		// 重新绘制整个画布
+		redrawCanvas();
+		
+		// 更新上一点位置
+		lastPoint.value = currentPoint;
+	};
+	
+	// 重新绘制画布
+	const redrawCanvas = () => {
+		if (!imageInfo.value) return;
+		
+		const context = uni.createCanvasContext('drawingCanvas');
+		
+		// 先绘制原图
+		context.drawImage(currentEditingImage.value, 0, 0, imageInfo.value.width, imageInfo.value.height);
+		
+		// 设置线条样式
+		context.setStrokeStyle('#FF0000');
+		context.setLineWidth(3);
+		context.setLineCap('round');
+		context.setLineJoin('round');
+		
+		// 绘制所有记录的线条
+		let startPoint = null;
+		
+		for (const point of drawingPoints.value) {
+			if (point.type === 'start') {
+				startPoint = point;
+				context.beginPath();
+				context.moveTo(point.x, point.y);
+			} else if (point.type === 'move' && startPoint) {
+				context.lineTo(point.x, point.y);
+				context.stroke();
+				context.beginPath();
+				context.moveTo(point.x, point.y);
+			}
+		}
+		
+		context.draw();
+	};
+
+	// 触摸结束事件
+	const touchEnd = () => {
+		isDrawing.value = false;
+	};
+
+	// 取消绘画
+	const cancelDrawing = () => {
+		drawingVisible.value = false;
+		currentEditingImage.value = '';
+		imageInfo.value = null;
+		drawingPoints.value = [];
+	};
+
+	// 确认绘画
+	const confirmDrawing = () => {
+		// 将画布内容转为图片
+		uni.canvasToTempFilePath({
+			canvasId: 'drawingCanvas',
+			success: (res) => {
+				// 将绘制好的图片添加到图片列表
+				handleImageSuccess(res.tempFilePath);
+				drawingVisible.value = false;
+				currentEditingImage.value = '';
+				imageInfo.value = null;
+				drawingPoints.value = [];
+			},
+			fail: (err) => {
+				console.error('保存绘画失败:', err);
+				// 如果转换失败，使用原图
+				handleImageSuccess(currentEditingImage.value);
+				drawingVisible.value = false;
+				currentEditingImage.value = '';
+				imageInfo.value = null;
+				drawingPoints.value = [];
 			}
 		});
 	};
@@ -606,6 +792,45 @@
 		padding: 4rpx 10rpx;
 		border-radius: 20rpx;
 		font-size: 22rpx;
+		z-index: 2;
+	}
+	
+	/* 绘画编辑弹窗样式 */
+	.drawing-popup {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		z-index: 2000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0, 0, 0, 0.5);
+	}
+
+	.drawing-content {
+		background-color: white;
+		border-radius: 16rpx;
+		padding: 40rpx;
+		width: 90%;
+		max-width: 700rpx;
+	}
+
+	.canvas-container {
+		position: relative;
+		width: 100%;
+		height: 600rpx;
+		margin-bottom: 20rpx;
+		border: 2rpx solid #ddd;
+	}
+
+	.drawing-canvas {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
 		z-index: 2;
 	}
 </style>

@@ -61,7 +61,6 @@ export function saveData(data) {
 
 // 路径记录器（不修改原读取方法）
 export function trackPath(path) {
-  console.log('设置文件路径:', path);
   __currentFilePath = path;
 }
 

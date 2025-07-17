@@ -50,40 +50,30 @@ export const FILE_NAMING = {
 // 核心文件读取方法
 async function getJsonData(path) {
   return new Promise((resolve, reject) => {
-    console.log('开始读取文件:', path);
     plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-      console.log('文件系统获取成功');
       fs.root.getFile(path, {
         create: false
       }, fileEntry => {
-        console.log('文件条目获取成功:', path);
         fileEntry.file(file => {
-          console.log('文件对象获取成功，大小:', file.size);
           const reader = new plus.io.FileReader();
           reader.onload = () => {
             try {
-              console.log('文件读取成功，内容长度:', reader.result.length);
               resolve(JSON.parse(reader.result));
             } catch (e) {
-              console.error('JSON解析失败:', e);
               reject(`JSON解析失败: ${path}, 错误: ${e.message}`);
             }
           };
           reader.onerror = (e) => {
-            console.error('文件读取失败:', e);
             reject(`文件读取失败: ${path}, 错误: ${e.message || '未知错误'}`);
           };
           reader.readAsText(file);
         }, err => {
-          console.error('获取文件对象失败:', err);
           reject(`获取文件对象失败: ${path}, 错误: ${err.message || '未知错误'}`);
         });
       }, err => {
-        console.error('获取文件条目失败:', err);
         reject(`获取文件条目失败: ${path}, 错误: ${err.message || '未知错误'}`);
       });
     }, err => {
-      console.error('获取文件系统失败:', err);
       reject(`获取文件系统失败: ${path}, 错误: ${err.message || '未知错误'}`);
     });
   });
@@ -977,7 +967,6 @@ async function findMatchingULDirectory(userName) {
 
         // 如果没有project目录，查找以UD开头的目录
         const ulDirs = allDirs.filter(dir => dir.startsWith('UL'));
-        console.log('找到UL开头的目录:', ulDirs);
 
         // 遍历UD目录，查找匹配当前用户名的目录
         for (const dir of ulDirs) {

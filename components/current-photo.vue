@@ -102,6 +102,7 @@
 	import {
 		userStore
 	} from '@/store/index.js'
+	import { getObjectUL } from '../utils/readUL';
 	import {
 		saveBridgeImages,
 		setObject
@@ -293,7 +294,7 @@
 			TaskBridgeId.value = bridgeIdFromURL.value;
 		}
 		try {
-			const latestData = await getObject(userInfo.username, TaskBridgeId.value);
+			const latestData = await getObjectUL(userInfo.username, TaskBridgeId.value);
 			// 初始化照片数组
 			if (latestData && latestData.children) {
 				for (const firstLevel of latestData.children) {
@@ -377,11 +378,15 @@
 		}
 	});
 
-	watch(() => props.activeTabTop, (newval) => {
-		if (newval == 3) {
-			console.log('当前activeTabTop为：', newval)
-		}
-	})
+	watch(() => props.activeTabTop, async (newval, oldval) => {
+	    if (newval == 3) {
+	      console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+	      // 添加延时确保页面已完全显示
+	      setTimeout(async () => {
+	        await init();
+	      }, 300);
+	    }
+	  }, { immediate: true }) // 添加immediate:true确保首次加载时也会执行
 </script>
 
 <style scoped>

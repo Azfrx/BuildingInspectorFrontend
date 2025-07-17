@@ -1,12 +1,11 @@
-// 文档基础路径
-const DOC_BASE_PATH = '_doc/';
 import {
 	trackPath
 } from './reviseJson';
 import {
 	userStore
-} from '@/store/index.js'
-
+} from '@/store/index.js';
+// 文档基础路径
+const DOC_BASE_PATH = '_doc/'
 // 获取当前日期字符串 (格式: YY-MM-DD)
 function getCurrentDateStr() {
 	const now = new Date();
@@ -50,40 +49,30 @@ export const FILE_NAMING = {
 // 核心文件读取方法
 async function getJsonData(path) {
   return new Promise((resolve, reject) => {
-    console.log('开始读取文件:', path);
     plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-      console.log('文件系统获取成功');
       fs.root.getFile(path, {
         create: false
       }, fileEntry => {
-        console.log('文件条目获取成功:', path);
         fileEntry.file(file => {
-          console.log('文件对象获取成功，大小:', file.size);
           const reader = new plus.io.FileReader();
           reader.onload = () => {
             try {
-              console.log('文件读取成功，内容长度:', reader.result.length);
               resolve(JSON.parse(reader.result));
             } catch (e) {
-              console.error('JSON解析失败:', e);
               reject(`JSON解析失败: ${path}, 错误: ${e.message}`);
             }
           };
           reader.onerror = (e) => {
-            console.error('文件读取失败:', e);
             reject(`文件读取失败: ${path}, 错误: ${e.message || '未知错误'}`);
           };
           reader.readAsText(file);
         }, err => {
-          console.error('获取文件对象失败:', err);
-          reject(`获取文件对象失败: ${path}, 错误: ${err.message || '未知错误'}`);
+          reject(`获取文件对象失败: ${path}, 错误: ${err.message || '未知错误'}`)
         });
       }, err => {
-        console.error('获取文件条目失败:', err);
         reject(`获取文件条目失败: ${path}, 错误: ${err.message || '未知错误'}`);
       });
     }, err => {
-      console.error('获取文件系统失败:', err);
       reject(`获取文件系统失败: ${path}, 错误: ${err.message || '未知错误'}`);
     });
   });
@@ -94,14 +83,12 @@ async function findMatchingDirectoryUL(userName) {
   try {
     // 获取_doc目录下的所有子目录
     const allDirs = await getAllFirstLevelDirs();
-    console.log('所有目录:', allDirs);
     
     // 获取用户信息store
     const userInfo = userStore();
     
     // 优先使用ULPath（用于读取数据）
     if (userInfo.ULPath && allDirs.includes(userInfo.ULPath)) {
-      console.log('使用store中保存的ULPath:', userInfo.ULPath);
       return userInfo.ULPath;
     }
     
@@ -295,8 +282,6 @@ export async function getDisease(userName, buildingId, yearId) {
     
     // 构建病害文件路径
     const diseasePath = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/disease/${yearId}.json`;
-    
-    console.log('病害文件路径:', diseasePath);
     trackPath(diseasePath);
     
     try {
@@ -745,7 +730,6 @@ export async function readDiseaseComponentUL(userName, buildingId, biObjectId) {
 			}
 		});
 
-		console.log(`biObjectId ${biObjectId} 下不重复的code数量: ${count}`);
 		return count;
 
 	} catch (error) {

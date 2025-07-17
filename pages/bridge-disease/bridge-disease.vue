@@ -84,6 +84,13 @@
 	// 切换标签的方法
 	const switchTab = (index) => {
 		activeTab.value = index;
+		
+		// 当切换到结构信息标签时，发送页面显示事件
+		if (index === 4) {
+			setTimeout(() => {
+				uni.$emit('pageShow');
+			}, 100);
+		}
 	};
 
 	// 计算滑动指示器的样式

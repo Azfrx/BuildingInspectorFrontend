@@ -716,7 +716,7 @@
 					
 					// 显示下载成功提示
 					uni.showToast({
-						title: hasLocalData ? '本地数据加载成功' : '数据包下载成功',
+						title: hasLocalData ? '数据加载成功' : '数据下载成功',
 						icon: 'success',
 						duration: 2000
 					});

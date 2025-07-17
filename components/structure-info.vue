@@ -1,12 +1,3 @@
-<!-- 
- 桥梁结构树
- author:ykx
- date:2025.6.3
- Bug  2 +
- Q json没有 无法处理2个按钮的功能
- 构件数量存在哪个字段 
- 确定构件信息需要处理哪些逻辑
- -->
 <template>
 	<view class="container">
 		<view class="confirm-row">
@@ -20,26 +11,29 @@
 		<view class="content-layout">
 			<!-- 第一个侧边栏 -->
 			<view class="sidebar">
-				<view v-for="(item, index) in structureData?.children || []" :key="index"
+				<view v-for="(item, index) in (structureData?.children || [])" :key="index"
 					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
 					<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
 						style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
 					<view class="treeName sidebar-item-content">
-						{{item.name || '未命名'}}
+						{{item?.name || '未命名'}}
 					</view>
+				</view>
+				<view v-if="!structureData?.children || structureData.children.length === 0" class="no-data-tip">
+					数据加载中...
 				</view>
 			</view>
 
 			<!-- 第二个侧边栏 -->
 			<view class="sidebar second-sidebar">
-				<view v-if="secondLevelItems.length > 0">
+				<view v-if="secondLevelItems && secondLevelItems.length > 0">
 					<view v-for="(item, index) in secondLevelItems" :key="index"
 						:class="['sidebar-item', selectedSecondIndex === index ? 'active' : '']"
 						@click="changeSecondTab(index)">
 						<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
 							style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
 						<view class="treeName sidebar-item-content">
-							{{item.name || '未命名'}}
+							{{item?.name || '未命名'}}
 						</view>
 					</view>
 				</view>
@@ -49,22 +43,22 @@
 			</view>
 
 			<!-- 第三个侧边栏 -->
-			<view class="sidebar third-sidebar" v-if="thirdLevelItems.length > 0">
+			<view class="sidebar third-sidebar" v-if="thirdLevelItems && thirdLevelItems.length > 0">
 				<view v-for="(item, index) in thirdLevelItems" :key="index"
 					:class="['sidebar-item', selectedThirdIndex === index ? 'active' : '']"
 					@click="changeThirdTab(index)">
 					<view class="sidebar-item-content">
 						<text class="item-name"
-							:class="{ 'disabled-text': item.status === '1' }">{{item.name || '未命名'}}</text>
+							:class="{ 'disabled-text': item?.status === '1' }">{{item?.name || '未命名'}}</text>
 						<view class="item-info-right">
 							<view class="counterNumber">
 								<text class="item-quantity">
-									<span class="rightcount">病害构件数量</span>{{item.diseaseNumber||0}}</text>
-								<text v-if="item.status === '0'" class="item-quantity">
-									<image v-if="item.diseaseNumber>item.count" src="@/static/image/warning.png"
+									<span class="rightcount">病害构件数量</span>{{item?.diseaseNumber || 0}}</text>
+								<text v-if="item?.status === '0'" class="item-quantity">
+									<image v-if="(item?.diseaseNumber || 0) > (item?.count || 0)" src="@/static/image/warning.png"
 										style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
 									<span class="rightcount2">构件数量</span>
-									{{ item.count || 0 }}
+									{{ item?.count || 0 }}
 								</text>
 							</view>
 							<image src="/static/image/RightOutline.svg" class="rightarrow" />
@@ -137,7 +131,7 @@
 	import {setObject}  from '../utils/writeNew'
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
-import { async } from 'rxjs';
+import { hasWarning, readWarning } from '../utils/warning';
 import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
@@ -145,6 +139,7 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const selectedThirdIndex = ref(-1);
 	const editPopup = ref(null);
 	const currentEditItem = ref(null);
+	const globalWarning = ref(false);
 	const currentEditItemBoolean = computed(() => {
 		return currentEditItem.value.status === '0' ? true : false
 	})
@@ -156,7 +151,7 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const resultData = ref(null);
 	const userInfo = userStore()
 	const idInfo = idStore()
-	const structureNumberInfo = structureStore()
+	// const structureNumberInfo = structureStore()
 	// 通过计算属性获取URL中的bridgeId参数
 	const bridgeIdFromURL = computed(() => {
 		const pages = getCurrentPages();
@@ -191,13 +186,21 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
   watch(() => props.activeTabTop, async (newval, oldval) => {
     if (newval == 4) {
       console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
-      await init();
+      // 添加延时确保页面已完全显示
+      setTimeout(async () => {
+        await init();
+      }, 300);
     }
-  })
+  }, { immediate: true }) // 添加immediate:true确保首次加载时也会执行
 
-	//初始化数据
-	const init = async () => {
-		console.log('=== init 函数开始执行 ===');
+	// 修改init函数，添加重试机制
+	const init = async (retryCount = 0) => {
+		console.log('=== init 函数开始执行 ===', '重试次数:', retryCount);
+		
+		// 初始化数据结构，防止渲染错误
+		if (!structureData.value) {
+			structureData.value = { children: [] };
+		}
 		
 		// 确保TaskBridgeId已经从URL参数中获取
 		if (bridgeIdFromURL.value) {
@@ -212,6 +215,11 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 		
 		if (!TaskBridgeId.value || TaskBridgeId.value === 0) {
 			console.error('未能获取有效的桥梁ID，无法加载数据');
+			if (retryCount < 3) { // 最多重试3次
+				console.log(`将在1秒后进行第${retryCount + 1}次重试...`);
+				setTimeout(() => init(retryCount + 1), 1000);
+				return;
+			}
 			uni.showToast({
 				title: '未能获取桥梁信息',
 				icon: 'none',
@@ -223,47 +231,81 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 		try {
 			// 从UL目录读取数据
 			console.log('尝试从UL目录读取数据，参数:', userInfo.username, TaskBridgeId.value);
-			structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
-			console.log("从UL目录读取的数据:", structureData.value);
+			const tempData = await getObjectUL(userInfo.username, TaskBridgeId.value);
+			
+			// 确保数据有效
+			if (tempData && (tempData.children || (tempData.data && tempData.data.children))) {
+				structureData.value = tempData;
+				console.log("从UL目录读取的数据:", structureData.value);
+			} else {
+				console.log("从UL目录读取的数据无效或为空");
+			}
 			
 			// 如果数据为空，尝试从store中获取buildingId再次尝试
 			if (!structureData.value || !structureData.value.children || structureData.value.children.length === 0) {
-				console.log("UL目录中没有找到有效的结构数据，尝试使用store中的buildingId");
+		
 				
 				if (idInfo.buildingId && idInfo.buildingId.value && idInfo.buildingId.value !== TaskBridgeId.value) {
 					TaskBridgeId.value = idInfo.buildingId.value;
-					console.log('使用store中的buildingId重试:', TaskBridgeId.value);
-					structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
-					console.log("使用store中buildingId重新读取的数据:", structureData.value);
+
+					const storeData = await getObjectUL(userInfo.username, TaskBridgeId.value);
+					
+					// 确保数据有效
+					if (storeData && (storeData.children || (storeData.data && storeData.data.children))) {
+						structureData.value = storeData;
+						console.log("使用store中buildingId重新读取的数据:", structureData.value);
+					} else {
+						console.log("使用store中buildingId重新读取的数据无效或为空");
+					}
 				}
+				
+				// 如果仍然没有数据，延迟重试
+				// if ((!structureData.value || !structureData.value.children || structureData.value.children.length === 0) && retryCount < 3) {
+				// 	console.log(`数据仍然为空，将在1秒后进行第${retryCount + 1}次重试...`);
+				// 	setTimeout(() => init(retryCount + 1), 1000);
+				// 	return;
+				// }
 			}
 			
 			// 添加标志和病害数量
 			if (structureData.value && structureData.value.children && structureData.value.children.length > 0) {
-				const modifiedData = await addFlagsAndDiseaseNumber(structureData.value, userInfo.username, TaskBridgeId.value);
-				
-				// 读取完整数据
-				structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
-				console.log("最终读取的structureData.value:", structureData.value);
-				
-				// 初始化resultData
-				resultData.value = structureData.value;
-				console.log("初始化后的resultData.value:", resultData.value);
-				
-				// 检查初始警告状态
-				console.log('准备调用 checkAllWarnings...');
-				checkAllWarnings();
-				console.log('checkAllWarnings 调用完成');
+				try {
+					
+					const modifiedData = await addFlagsAndDiseaseNumber(structureData.value, userInfo.username, TaskBridgeId.value);
+					
+					// 读取完整数据
+					const finalData = await getObjectUL(userInfo.username, TaskBridgeId.value);
+					if (finalData && (finalData.children || (finalData.data && finalData.data.children))) {
+						structureData.value = finalData;
+						console.log("最终读取的structureData.value:", structureData.value);
+					}
+					
+					// 初始化resultData
+					resultData.value = structureData.value;
+					console.log("初始化后的resultData.value:", resultData.value);
+					
+					// 检查初始警告状态
+					console.log('准备检查全局警告状态...');
+					await checkAndSetGlobalWarning();
+					console.log('全局警告状态检查完成');
+				} catch (error) {
+					console.error('处理标志和病害数量时出错:', error);
+				}
 			} else {
-				console.error('无法获取有效的结构数据');
-				uni.showToast({
-					title: '无法获取结构数据',
-					icon: 'none',
-					duration: 2000
-				});
+				// uni.showToast({
+				// 	title: '无法获取结构数据',
+				// 	icon: 'none',
+				// 	duration: 2000
+				// });
 			}
 		} catch (error) {
 			console.error('初始化数据时出错:', error);
+			// 如果发生错误，尝试重试
+			if (retryCount < 3) {
+				console.log(`发生错误，将在1秒后进行第${retryCount + 1}次重试...`);
+				setTimeout(() => init(retryCount + 1), 1000);
+				return;
+			}
 			uni.showToast({
 				title: '加载数据出错',
 				icon: 'none',
@@ -280,17 +322,19 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 		
 		// 检查直接结构
 		if (structureData.value.children && 
+			Array.isArray(structureData.value.children) &&
 			structureData.value.children[selectedIndex.value] && 
 			structureData.value.children[selectedIndex.value].children) {
-			return structureData.value.children[selectedIndex.value].children;
+			return structureData.value.children[selectedIndex.value].children || [];
 		}
 		
 		// 检查嵌套结构
 		if (structureData.value.data && 
 			structureData.value.data.children && 
+			Array.isArray(structureData.value.data.children) &&
 			structureData.value.data.children[selectedIndex.value] && 
 			structureData.value.data.children[selectedIndex.value].children) {
-			return structureData.value.data.children[selectedIndex.value].children;
+			return structureData.value.data.children[selectedIndex.value].children || [];
 		}
 		
 		console.log('secondLevelItems: 找不到有效的子节点');
@@ -300,7 +344,7 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	// 计算第三个侧边栏的数据
 	const thirdLevelItems = computed(() => {
 		// 如果第二层数据为空，直接返回空数组
-		if (!secondLevelItems.value || secondLevelItems.value.length === 0) {
+		if (!secondLevelItems.value || !Array.isArray(secondLevelItems.value) || secondLevelItems.value.length === 0) {
 			console.log('thirdLevelItems: secondLevelItems为空');
 			return [];
 		}
@@ -316,7 +360,7 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 			return [];
 		}
 		
-		return secondLevelItems.value[selectedSecondIndex.value].children;
+		return secondLevelItems.value[selectedSecondIndex.value].children || [];
 	});
 
 // 刷新数据的函数
@@ -343,11 +387,11 @@ const refreshData = async () => {
 };
 
 // 监听版本号变化
-watch(() => structureNumberInfo.dataVersion, (newVal) => {
-  if (newVal > 0) {
-    refreshData();
-  }
-});
+// watch(() => structureNumberInfo.dataVersion, (newVal) => {
+//   if (newVal > 0) {
+//     refreshData();
+//   }
+// });
 	const confirmConfirm = async () => {
 		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
@@ -379,79 +423,90 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 
 		// 执行warningFlag检查
 		warningFlag();
-		
-		// 检查所有警告状态
-		checkAllWarnings();
+
+		// 设置全局警告标志
+		await setGlobalWarningFlag();
 		//更新编辑状态
-		structureNumberInfo.incrementIsEdit();
+		// structureNumberInfo.incrementIsEdit();
 		await setBuildingCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
 		uni.$emit('setBuildingUnCommit',idInfo.buildingId)
 	};
 	const warningFlag = () => {
-		const data = getObject(userInfo.username, TaskBridgeId.value)
-		if (!data || !data.children) return
-
-		console.log('开始检查前的数据:', data)
-
-		// 递归函数，返回是否设置了flag
-		const traverse = (node, level) => {
-			if (!node) return false
-			
-			let hasWarning = false
-			
-			// 如果是第三层，检查diseaseNumber和count
-			if (level === 3) {
-				console.log('第三层节点:', node.name, 'diseaseNumber:', node.diseaseNumber, 'count:', node.count)
-				if (node.diseaseNumber > node.count) {
-					node.flag = true
-					console.log('设置警告:', node.name, 'flag:', node.flag)
-					return true
-				} else {
-					node.flag = false
-					return false
-				}
+		try {
+			const data = getObject(userInfo.username, TaskBridgeId.value)
+			if (!data || !data.children || !Array.isArray(data.children)) {
+				console.warn('warningFlag: 数据结构不完整或无效');
+				return;
 			}
-			
-			// 遍历子节点
-			if (node.children) {
-				for (const child of node.children) {
-					if (traverse(child, level + 1)) {
-						hasWarning = true
+
+			console.log('开始检查前的数据:', data)
+
+			// 递归函数，返回是否设置了flag
+			const traverse = (node, level) => {
+				if (!node) return false
+				
+				let hasWarning = false
+				
+				// 如果是第三层，检查diseaseNumber和count
+				if (level === 3) {
+					const diseaseNumber = Number(node.diseaseNumber || 0);
+					const count = Number(node.count || 0);
+					console.log('第三层节点:', node.name, 'diseaseNumber:', diseaseNumber, 'count:', count)
+					if (diseaseNumber > count) {
+						node.flag = true
+						console.log('设置警告:', node.name, 'flag:', node.flag)
+						return true
+					} else {
+						node.flag = false
+						return false
 					}
 				}
+				
+				// 遍历子节点
+				if (node.children && Array.isArray(node.children)) {
+					for (const child of node.children) {
+						if (child && traverse(child, level + 1)) {
+							hasWarning = true
+						}
+					}
+				}
+				
+				// 如果子节点有warning，当前节点也设置flag
+				if (hasWarning) {
+					node.flag = true
+					console.log('父节点设置警告:', node.name, 'flag:', node.flag)
+				} else {
+					node.flag = false
+				}
+				
+				return hasWarning
 			}
 			
-			// 如果子节点有warning，当前节点也设置flag
-			if (hasWarning) {
-				node.flag = true
-				console.log('父节点设置警告:', node.name, 'flag:', node.flag)
-			} else {
-				node.flag = false
+			// 从第一层开始遍历
+			for (const firstLevel of data.children) {
+				if (firstLevel) {
+					traverse(firstLevel, 1)
+				}
 			}
 			
-			return hasWarning
+			// 更新数据
+			setObject(userInfo.username, TaskBridgeId.value, data)
+			
+			// 强制更新视图 - 直接使用data而不是嵌套结构
+			structureData.value = data;
+			
+			// 同步更新resultData
+			resultData.value = structureData.value;
+			
+			console.log('更新后的数据:', structureData.value)
+			
+			// 强制更新视图
+			nextTick(() => {
+				console.log('视图更新后的数据:', structureData.value)
+			})
+		} catch (error) {
+			console.error('warningFlag函数执行出错:', error);
 		}
-		
-		// 从第一层开始遍历
-		for (const firstLevel of data.children) {
-			traverse(firstLevel, 1)
-		}
-		
-		// 更新数据
-		setObject(userInfo.username, TaskBridgeId.value, data)
-		
-		// 强制更新视图 - 直接使用data而不是嵌套结构
-		structureData.value = data;
-		
-		// 同步更新resultData
-		resultData.value = structureData.value;
-		
-		console.log('更新后的数据:', structureData.value)
-		
-		// 强制更新视图
-		nextTick(() => {
-			console.log('视图更新后的数据:', structureData.value)
-		})
 	}
 	//判断第三层数据是否有warning
 	const warningThree = (obj) => {
@@ -687,8 +742,8 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 			// 更新resultData中对应的count字段
 			updateResultData(originalItem);
 
-			// 设置编辑标志为true
-			resultData.value.Isedit = true;
+			// // 设置编辑标志为true
+			// resultData.value.Isedit = true;
 
 			// 打印所有第三层构件的name和count
 			console.log('所有第三层构件信息:');
@@ -831,31 +886,34 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		console.log('已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
 	};
 
-	// 添加检查子节点是否有警告的函数
+	// 优化后的警告检查函数 - 只检查是否有警告，不遍历所有节点
 	const hasWarningInChildren = (node) => {
-		if (!node) return false;
-		
-		let hasWarning = false;
-		
-		// 如果是第三层节点
-		if (node.diseaseNumber !== undefined && node.count !== undefined) {
-			// 确保使用数字进行比较
-			const diseaseNumber = Number(node.diseaseNumber) || 0;
-			const count = Number(node.count) || 0;
-			hasWarning = diseaseNumber > count;
-			// console.log(`第三层节点 ${node.name}: diseaseNumber=${diseaseNumber}, count=${count}, hasWarning=${hasWarning}`);
+		// 直接返回全局警告状态
+		return globalWarning.value;
+	};
+
+	// 检查并设置全局警告状态
+	const checkAndSetGlobalWarning = async () => {
+		try {
+			// 读取全局警告状态
+			const hasGlobalWarning = await readWarning(userInfo.username, TaskBridgeId.value);
+			globalWarning.value = hasGlobalWarning;
+			console.log('全局警告状态:', hasGlobalWarning);
+		} catch (error) {
+			console.error('检查全局警告状态失败:', error);
+			globalWarning.value = false;
 		}
-		// 如果是第一层或第二层节点
-		else if (node.children && Array.isArray(node.children)) {
-			// 安全地遍历子节点
-			hasWarning = node.children.some(child => {
-				if (!child) return false;
-				return hasWarningInChildren(child);
-			});
-			// console.log(`父节点 ${node.name}: 子节点检查完成, hasWarning=${hasWarning}`);
+	};
+
+	// 当发现有警告时设置全局警告标志
+	const setGlobalWarningFlag = async () => {
+		try {
+			await hasWarning(userInfo.username, TaskBridgeId.value);
+			globalWarning.value = true;
+			console.log('已设置全局警告标志');
+		} catch (error) {
+			console.error('设置全局警告标志失败:', error);
 		}
-		
-		return hasWarning;
 	};
 
 	// 添加一个函数来检查整个数据结构是否有警告
@@ -882,27 +940,33 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 			console.log('使用 structureData.value.data.children，长度:', childrenData.length);
 		} else {
 			console.log('checkAllWarnings: 找不到有效的 children 数据');
+			// structureNumberInfo.status = false; // 确保状态被重置
 			return;
 		}
 		
-		console.log('开始检查警告状态，当前structureNumberInfo.status:', structureNumberInfo.status);
+		// console.log('开始检查警告状态，当前structureNumberInfo.status:', structureNumberInfo.status);
 		
 		// 重置状态
-		structureNumberInfo.status = false;
+		// structureNumberInfo.status = false;
 		
-		// 检查所有第一层节点
-		const hasAnyWarning = childrenData.some(node => {
-			if (!node) return false;
+		try {
+			// 检查所有第一层节点
+			const hasAnyWarning = childrenData.some(node => {
+				if (!node) return false;
+				
+				const hasWarning = hasWarningInChildren(node);
+				console.log(`检查节点 ${node.name || '未命名'}: hasWarning = ${hasWarning}`);
+				return hasWarning;
+			});
 			
-			const hasWarning = hasWarningInChildren(node);
-			console.log(`检查节点 ${node.name || '未命名'}: hasWarning = ${hasWarning}`);
-			return hasWarning;
-		});
-		
-		// 设置最终状态
-		structureNumberInfo.status = hasAnyWarning;
-		
-		console.log(`警告检查完成: hasAnyWarning = ${hasAnyWarning}, 最终structureNumberInfo.status = ${structureNumberInfo.status}`);
+			// 设置最终状态
+			// structureNumberInfo.status = hasAnyWarning;
+			
+			// console.log(`警告检查完成: hasAnyWarning = ${hasAnyWarning}, 最终structureNumberInfo.status = ${structureNumberInfo.status}`);
+		} catch (error) {
+			console.error('检查警告状态时出错:', error);
+			// structureNumberInfo.status = false; // 确保状态被重置
+		}
 	};
 
 	onMounted(async () => {
@@ -911,7 +975,21 @@ watch(() => structureNumberInfo.dataVersion, (newVal) => {
 		if (bridgeIdFromURL.value) {
 			TaskBridgeId.value = bridgeIdFromURL.value;
 		}
-		 await init();
+		await init();
+		
+		// 监听页面显示事件
+		uni.$on('pageShow', async () => {
+			console.log('页面显示事件触发，重新加载数据');
+			await init();
+		});
+	});
+	
+	// 添加页面卸载时的清理
+	import { onUnmounted } from 'vue';
+	
+	onUnmounted(() => {
+		// 移除页面显示事件监听
+		uni.$off('pageShow');
 	});
 </script>
 
