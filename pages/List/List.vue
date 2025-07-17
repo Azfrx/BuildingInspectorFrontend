@@ -21,7 +21,7 @@
 				</view>
 				<view class="info-row">
 					<text>检测年度: {{currentProject.year || ''}}年度</text>
-					<text>起止时间: {{currentProject.createTime || ''}}</text>
+					<text>起止时间: {{ formatDate(currentProject.startDate) || '' }}至{{ formatDate(currentProject.endDate) || '' }}</text>
 				</view>
 				<view class="info-row">
 					<text>检测单位: {{currentProject.dept?.deptName || ''}}</text>
@@ -56,9 +56,9 @@
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">
-							已提交</view>
-						<view class="status" v-else style="background-color: #FF6430; color: #ffffff;">未提交</view>
+<!--						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">
+							已提交</view>-->
+						<view class="status" v-if="bridge.commited === 0" style="background-color: #FF6430; color: #ffffff;">未提交</view>
 						<text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
 						<text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
@@ -214,7 +214,7 @@
 							updatetime: task.updatetime || new Date().toISOString(),
 							id: task.id,
 							buildingId: task.buildingId,
-							commited: false
+							commited: 2//0 未提交 1 提交 2 未保存数据
 						}));
 
 						// 创建UL任务数据对象
@@ -325,22 +325,22 @@
 	};
 
 	const setBuildingUnCommit = async (buildingId) => {
-		// 找到对应的任务项并设置 commited 字段为 false
+		// 找到对应的任务项并设置 commited 字段为 0 未提交
 		if (initTaskData.value && initTaskData.value.tasks) {
 			for (let i = 0; i < initTaskData.value.tasks.length; i++) {
 				if (initTaskData.value.tasks[i].buildingId === buildingId) {
-					initTaskData.value.tasks[i].commited = false;
+					initTaskData.value.tasks[i].commited = 0;
 					break;
 				}
 			}
 		}
 	};
 	const setBuildingCommit = async (buildingId) => {
-		// 找到对应的任务项并设置 commited 字段为 true
+		// 找到对应的任务项并设置 commited 字段为 1 已提交
 		if (initTaskData.value && initTaskData.value.tasks) {
 			for (let i = 0; i < initTaskData.value.tasks.length; i++) {
 				if (initTaskData.value.tasks[i].buildingId === buildingId) {
-					initTaskData.value.tasks[i].commited = true;
+					initTaskData.value.tasks[i].commited = 1;
 					break;
 				}
 			}
@@ -378,7 +378,7 @@
 	})
 	// 添加计算属性来获取当前项目
 	const currentProject = computed(() => {
-		console.log('计算currentProject，projectInfo值:', JSON.stringify(projectInfo.value));
+		console.log('计算currentProject，projectInfo值:', projectInfo.value);
 
 		// 检查projectInfo是否有数据
 		if (!projectInfo.value) {
@@ -564,6 +564,15 @@
 		console.log('搜索关键词:', searchText.value);
 		// 由于使用了计算属性filteredBridges，无需在这里手动过滤
 	}
+  const formatDate = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const year = date.getFullYear().toString().slice(-2); // 取后两位作为 yy
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1并补零
+    const day = String(date.getDate()).padStart(2, '0'); // 日期补零
+    return `${year}-${month}-${day}`;
+  };
+
 </script>
 
 <style lang="scss">

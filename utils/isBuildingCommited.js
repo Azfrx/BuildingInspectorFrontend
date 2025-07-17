@@ -24,17 +24,16 @@ export async function  checkUncommittedBuilding (username,buildingId) {
 export async function setBuildingUnCommitted (username,projectId,buildingId) {
     const taskData = await getTask(username, projectId);
     
-    // 找到对应的任务项并设置 commited 字段为 false
+    // 找到对应的任务项并设置 commited 字段为 0
     if (taskData && taskData.tasks) {
         const tasks = taskData.tasks;
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
-                tasks[i].commited = false;
                 tasks[i] = {
                     updatetime: tasks[i].updatetime || new Date().toISOString(),
                     id: tasks[i].id,
                     buildingId: tasks[i].buildingId,
-                    commited: false
+                    commited: 0
                 };
             }else{
                 tasks[i] = {
@@ -53,7 +52,7 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
 export async function setBuildingCommitted (username,projectId,buildingId) {
     const taskData = await getTask(username, projectId);
 
-    // 找到对应的任务项并设置 commited 字段为 true
+    // 找到对应的任务项并设置 commited 字段为 1
     if (taskData && taskData.tasks) {
         const tasks = taskData.tasks;
         for (let i = 0; i < tasks.length; i++) {
@@ -62,7 +61,7 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
                     updatetime: tasks[i].updatetime || new Date().toISOString(),
                     id: tasks[i].id,
                     buildingId: tasks[i].buildingId,
-                    commited: true
+                    commited: 1
                 };
             }else{
                 tasks[i] = {

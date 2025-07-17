@@ -7,7 +7,7 @@
 			<view class="title">
 				<view class="status-text">
 					正立面照状态:
-					<text :class="{ 'not-submitted': !isSubmit }">{{ isSubmit ? '已提交' : '未提交' }}</text>
+					<text :class="{ 'not-submitted': isSubmit == 0 }">{{ isSubmit === 0 ? '未提交' : isSubmit === 1 ? '已提交' : '/' }}</text>
 				</view>
 			</view>
 
@@ -110,7 +110,7 @@
 	});
 
 	// 是否从json中读取数据
-	const isSubmit = ref(false);
+	const isSubmit = ref(2);
 
 	const frontLeft = ref([]);
 	const frontRight = ref([]);
@@ -240,7 +240,7 @@
 
 			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, savePhotoData);
 			// await setFrontPhotoUnCommited(userInfo.username, idStorageInfo.buildingId);
-			isSubmit.value = false;
+			isSubmit.value = 0;
 			await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 			uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
 
@@ -253,7 +253,7 @@
 				duration: 1500
 			});
 
-			// isSubmit.value = true; // 设置为已提交状态
+			// isSubmit.value = 1; // 设置为已提交状态
 		} catch (error) {
 			// 隐藏加载提示
 			uni.hideLoading();
@@ -404,26 +404,27 @@
 	const deletePhoto = async (type) => {
 		const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
 		if (type === 'frontLeft') {
-			const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
+			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.frontLeft = [];
 		} else if (type === 'frontRight') {
-			const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
+			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
 			await removeDiseaseImage(imagesPaths);
 			data.frontRight = [];
 		} else if (type === 'sideLeft') {
-			const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
+			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.sideLeft = [];
 		} else if (type === 'sideRight') {
-			const imagesPaths = readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
+			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
 			await removeDiseaseImage(imagesPaths);
 			data.sideRight = [];
 		}
 		data.commitType = 0;
 		await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
-		isSubmit.value = false;
+		isSubmit.value = 0;
 		await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+    uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId);
 	};
 
 	const onUploadSuccess = async (type) => {
@@ -486,7 +487,7 @@
 				// 保存原始图片数据
 				// originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
 			}
-			if (data.commitType) isSubmit.value = data.commitType ? true : false;
+			if (data.commitType !== 2) isSubmit.value = data.commitType;
 
 			// 如果有数据，设置为已提交状态
 			/*if (data.frontLeft?.length || data.frontRight?.length || data.sideLeft?.length || data.sideRight
@@ -505,13 +506,13 @@
 						originalFrontRight.value = [];
 						originalSideLeft.value = [];
 						originalSideRight.value = [];*/
-			isSubmit.value = false;
+			isSubmit.value = 2;
 			const data = {
 				frontLeft: [],
 				frontRight: [],
 				sideLeft: [],
 				sideRight: [],
-				commitType: 0
+				commitType: 2 //0未提交 1已提交 2没存图片
 			};
 			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
 		}

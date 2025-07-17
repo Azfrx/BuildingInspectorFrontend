@@ -522,8 +522,18 @@
 					}
 				}
 				await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
+        // 更新加载提示为上传中
+        uni.showLoading({
+          title: '正在提交',
+          mask: true
+        });
 				await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
 				submitButtonEnabled.value = false;
+        // 更新加载提示为上传中
+        uni.showLoading({
+          title: '正在提交',
+          mask: true
+        });
         await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
         uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 
@@ -565,7 +575,9 @@
 			console.log('检查未提交图片结果:', hasUncommmittedPhoto);
 			console.log('检查未提交结构信息结果:', hasUnCommitStructure)*/
       const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-			submitButtonEnabled.value = !isBuildingCommit;
+      if(isBuildingCommit === 0) submitButtonEnabled.value = true;
+      else submitButtonEnabled.value = false;
+			// submitButtonEnabled.value = !isBuildingCommit;
       /*if(submitButtonEnabled.value) {
         await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
         uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)

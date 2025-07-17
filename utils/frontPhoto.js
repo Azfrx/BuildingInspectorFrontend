@@ -19,6 +19,6 @@ export async function isPhotoCommmitted(userName, buildingId){
         const data = await getFrontPhoto(userName, buildingId);
         return data.commitType;
     }catch (e){
-        return 1;
+        return 2;
     }
 }
