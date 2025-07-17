@@ -73,6 +73,7 @@
 	} from "@/store/structureNumberStorage";*/
   import {isBuildingCommited, setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
   import {setCommit1} from "@/utils/CurrentPhoto";
+  import {readWarning} from "@/utils/warning";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -408,6 +409,10 @@
 	const submitZip = async () => {
 		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
     const currentYear = new Date().getFullYear().toString();
+    uni.showLoading({
+      title: '正在提交',
+      mask: true
+    });
     const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId, currentYear)
     if(hasUnFinishDisease){
       uni.showToast({
@@ -416,13 +421,18 @@
       });
       return;
     }
-/*		if (structureStoreInfo.status == true) {
-			uni.showToast({
-				title: '结构信息错误',
-				icon: 'none'
-			});
-			return;
-		}*/
+    uni.showLoading({
+      title: '正在提交',
+      mask: true
+    });
+    const warning = await readWarning(userInfo.username, idStorageInfo.buildingId);
+    if(warning === true) {
+      uni.showToast({
+        title: '结构信息错误',
+        icon: 'none'
+      });
+      return;
+    }
 		try {
 			// 显示压缩中的加载提示
 			uni.showLoading({
