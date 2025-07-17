@@ -72,6 +72,7 @@
 		structureStore
 	} from "@/store/structureNumberStorage";*/
   import {isBuildingCommited, setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
+  import {setCommit1} from "@/utils/CurrentPhoto";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -527,15 +528,20 @@
           title: '正在提交',
           mask: true
         });
-				await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
-				submitButtonEnabled.value = false;
+				// await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
         // 更新加载提示为上传中
+        uni.showLoading({
+          title: '正在提交',
+          mask: true
+        });
+        await setCommit1(userInfo.username, idStorageInfo.buildingId)
         uni.showLoading({
           title: '正在提交',
           mask: true
         });
         await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
         uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+        submitButtonEnabled.value = false;
 
 				uni.showToast({
 					title: '提交成功',

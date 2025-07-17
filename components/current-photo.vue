@@ -3,8 +3,8 @@
 		<!-- 状态栏 -->
 		<view class="confirm-row">
 			<span class="confirm-text">结构信息状态：</span>
-			<span class="confirm-status" :style="{color: Number(structureData?.Iscommit) === true ? '#f56c6c': '#333'}">
-				{{ Number(structureData?.Iscommit) === 3 ? '已提交': '未提交'}}
+			<span class="confirm-status" :style="{color: isCommit === 0 ? '#f56c6c': '#333'}">
+				{{ isCommit === 0 ? '未提交' : isCommit === 1 ? '已提交' : '/' }}
 			</span>
 		</view>
 
@@ -111,6 +111,7 @@
 	import myPhotoPicker from './myPhotoPicker.vue';
   import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
   import {idStore} from "@/store/idStorage";
+  import {setCommit0} from "@/utils/CurrentPhoto";
 
 	//桥梁id
 	const TaskBridgeId = ref(0)
@@ -121,6 +122,7 @@
 	const photo = ref([]);
 	const show = ref(false);
   const idStorageInfo = idStore()
+  const isCommit = ref(2)
 	// 确保每个二级菜单项都有独立的照片数组
 	const ensurePhotoArrays = () => {
 		if (!structureData.value?.children) return;
@@ -201,6 +203,8 @@
       }
       await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
       uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+      isCommit.value = 0;
+      await setCommit0(userInfo.username, idStorageInfo.buildingId)
 			console.log('照片数据已保存');
 		} catch (error) {
 			console.error('保存照片数据失败:', error);
@@ -311,7 +315,9 @@
 				}
 			}
 			structureData.value = latestData;
-			structureData.value.Iscommit = false;
+			if(structureData.value.commit !== undefined){
+        isCommit.value = structureData.value.commit;
+      }
 			// 这里不要再 autoSavePhotos() 了！
 		} catch (error) {
 			console.error('获取数据失败:', error);
