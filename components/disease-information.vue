@@ -134,7 +134,7 @@
         <view class="popup-input1">
           <text class="popup-input1-title">当前编号</text>
           <view class="popup-input1-input">
-            <input type="text" placeholder="请填写" class="" v-model="componentCodePopupInput" />
+            <input type="text" placeholder="请填写" class="" v-model="componentCodePopupInput" placeholder-style="color: #CCCCCC;" />
             <image src="/static/image/clear.png" class="clear-icon" @click.stop="componentCodePopupInput = '' "></image>
           </view>
         </view>
@@ -146,17 +146,17 @@
               <text class="picker-icon">&gt;</text>
             </picker>
             <view class="popup-input2-secondPart">
-              <input type="text" v-model="codeSecondPart" placeholder="0">
+              <input type="number" v-model="codeSecondPart" placeholder="0" placeholder-style="color: #CCCCCC;">
               <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeSecondPart = '' "></image>
             </view>
             <text>-</text>
             <view class="popup-input2-thirdPart">
-              <input type="text" v-model="codeThirdPart" placeholder="0">
+              <input type="number" v-model="codeThirdPart" placeholder="0" placeholder-style="color: #CCCCCC;">
               <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeThirdPart = '' "></image>
             </view>
             <text>-</text>
             <view class="popup-input2-forthPart">
-              <input type="text" v-model="codeFourthPart" placeholder="0"></input>
+              <input type="number" v-model="codeFourthPart" placeholder="0" placeholder-style="color: #CCCCCC;"></input>
               <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeFourthPart = '' "></image>
             </view>
           </view>
@@ -242,7 +242,7 @@
 
   //构件编号弹窗里的输入框
   const componentCodePopupInput=ref('');
-  const codePicker = ref(['L', 'R', '无']);
+  const codePicker = ref(['L', 'R', '无前缀']);
   const codeFirstPart = ref('');
   const codeSecondPart = ref('');
   const codeThirdPart = ref('');
@@ -304,24 +304,41 @@
       [codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart],
       () => {
         console.log('input2变化:', codeFirstPart.value, codeSecondPart.value, codeThirdPart.value, codeFourthPart.value)
-        // 过滤出有值的部分
-        const parts = [
-          codeSecondPart.value || '',
-          codeThirdPart.value || '',
-          codeFourthPart.value || ''
-        ].filter(part => part !== '');
 
-        // 根据填写的部分数量决定是否添加'-'
-        let formattedParts = '';
-        if (parts.length === 1) {
-          // 只填写了一个部分，不使用'-'
-          formattedParts = parts[0];
-        } else {
-          // 填写了多个部分，使用'-'连接
-          formattedParts = parts.join('-');
+        // 构建各部分并根据前置条件添加分隔符
+        const parts = [];
+
+        // 处理第二部分（codeSecondPart）
+        if (codeSecondPart.value !== '') {
+          parts.push(codeSecondPart.value);
         }
+
+        // 处理第三部分（codeThirdPart），如果前面有有效部分则加'-'
+        if (codeThirdPart.value !== '') {
+          if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '') {
+            parts.push('-' + codeThirdPart.value);
+          } else {
+            parts.push(codeThirdPart.value);
+          }
+        }
+
+        // 处理第四部分（codeFourthPart），如果前面有有效部分则加'-'
+        if (codeFourthPart.value !== '') {
+          if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '' || codeThirdPart.value !== '') {
+            parts.push('-' + codeFourthPart.value);
+          } else {
+            parts.push(codeFourthPart.value);
+          }
+        }
+
+        // 拼接格式化部分
+        const formattedParts = parts.join('');
         console.log('formattedParts', formattedParts)
-        componentCodePopupInput.value = (codeFirstPart.value === '无' ? '' : codeFirstPart.value) + (formattedParts ? formattedParts : '');
+
+        // 设置最终的输入框值
+        componentCodePopupInput.value =
+          (codeFirstPart.value === '无前缀' ? '' : codeFirstPart.value) +
+          (formattedParts ? formattedParts : '');
       }
   )
 
@@ -1231,6 +1248,7 @@
   .popup-input2-firstPart-picker{
     flex: 1;
     margin-right: 20rpx;
+    white-space: nowrap;/* 不换行 */
   }
   .popup-input2-secondPart{
     border: 1px solid #ccc;
