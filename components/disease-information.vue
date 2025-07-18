@@ -37,8 +37,8 @@
 		</view>
 
 
-		<!-- 替换原来的构件编号picker为input输入框 -->
-		<view class="picker">
+		<!-- 替换原来的构件编号input输入框 -->
+<!--		<view class="picker">
 			<view class="picker-titleAndContent">
 				<view class="picker-left">
 					<text class="picker-must">*</text>
@@ -49,12 +49,29 @@
 				<view class="input-right">
 					<input class="component-code-input" v-model="componentCodeInput" placeholder="请输入构件编号"
 						placeholder-style="color: #CCCCCC;" />
-					<!--					<view class="clear-input" @click=" componentCodeInput = ''">×</view>-->
+					&lt;!&ndash;					<view class="clear-input" @click=" componentCodeInput = ''">×</view>&ndash;&gt;
 					<image src="/static/image/clear.png" class="clear-icon" @click.stop="componentCodeInput = '' ">
 					</image>
 				</view>
 			</view>
-		</view>
+		</view>-->
+
+    <view class="picker" @click="openComponentCodePopup">
+      <view class="picker-titleAndContent">
+        <view class="picker-left">
+          <text class="picker-must">*</text>
+          <view class="picker-title">
+            构件编号
+          </view>
+        </view>
+        <view class="picker-right">
+          <view class="picker-content" :style="componentCodeInput === '' ? 'color: #CCCCCC;' : ''" @click="">
+            {{ componentCodeInput || '请输入构件编号'}}
+          </view>
+          <text class="picker-icon">&gt;</text>
+        </view>
+      </view>
+    </view>
 
 		<!-- 修改病害类型选择器 -->
 		<view class="picker">
@@ -110,6 +127,46 @@
 				</view>
 			</view>
 		</view>
+
+    <uni-popup ref="componentCodePopup" type="center" @change="handlePopupChange">
+      <view class="componentCode-popup-content">
+        <view class="popup-title">编辑构件编号</view>
+        <view class="popup-input1">
+          <text class="popup-input1-title">当前编号</text>
+          <view class="popup-input1-input">
+            <input type="text" placeholder="请填写" class="" v-model="componentCodePopupInput" />
+            <image src="/static/image/clear.png" class="clear-icon" @click.stop="componentCodePopupInput = '' "></image>
+          </view>
+        </view>
+        <view class="popup-input2">
+          <text class="popup-input2-title">格式输入</text>
+          <view class="popup-input2-input">
+            <picker class="popup-input2-firstPart" :range="codePicker" @change="onCodeChange">
+              <view class="popup-input2-firstPart-picker" :style="!codeFirstPart ? 'color: #CCCCCC;' : ''">{{codeFirstPart || 'L'}}</view>
+              <text class="picker-icon">&gt;</text>
+            </picker>
+            <view class="popup-input2-secondPart">
+              <input type="text" v-model="codeSecondPart" placeholder="0">
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeSecondPart = '' "></image>
+            </view>
+            <text>-</text>
+            <view class="popup-input2-thirdPart">
+              <input type="text" v-model="codeThirdPart" placeholder="0">
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeThirdPart = '' "></image>
+            </view>
+            <text>-</text>
+            <view class="popup-input2-forthPart">
+              <input type="text" v-model="codeFourthPart" placeholder="0"></input>
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeFourthPart = '' "></image>
+            </view>
+          </view>
+        </view>
+        <view class="popup-button">
+          <button class="popup-button-cancel" @click="closeComponentCodePopup">取消</button>
+          <button class="popup-button-confirm" @click="confirmComponentCode">确定</button>
+        </view>
+      </view>
+    </uni-popup>
 	</view>
 </template>
 
@@ -183,6 +240,16 @@
 	]);
 	const typeMultiIndex = ref([0, 0, 0]);
 
+  //构件编号弹窗里的输入框
+  const componentCodePopupInput=ref('');
+  const codePicker = ref(['L', 'R', '无']);
+  const codeFirstPart = ref('');
+  const codeSecondPart = ref('');
+  const codeThirdPart = ref('');
+  const codeFourthPart = ref('');
+  //构件编号弹窗
+  const componentCodePopup = ref(null);
+
 	// 使用watch监听prop变化
 	watch(() => props.structureData, (newVal) => {
 		console.log('structureData 更新:', newVal)
@@ -194,6 +261,69 @@
 		immediate: true,
 		deep: true
 	})
+
+  //打开构件编号弹窗
+  const openComponentCodePopup = () => {
+    componentCodePopup.value.open();
+    componentCodePopupInput.value = componentCodeInput.value;
+  }
+  //关闭构件编号弹窗
+  const handlePopupChange = () => {
+      codeFirstPart.value = '';
+      codeSecondPart.value = '';
+      codeThirdPart.value = '';
+      codeFourthPart.value = '';
+      componentCodePopupInput.value = '';
+  }
+  // 构件编号弹窗选择L R
+  const onCodeChange = (e) => {
+    const index = e.detail.value;
+    codeFirstPart.value = codePicker.value[index];
+  }
+  // 构件编号弹窗确定
+  const confirmComponentCode = () => {
+    componentCodeInput.value = componentCodePopupInput.value;
+    closeComponentCodePopup();
+    codeFirstPart.value = '';
+    codeSecondPart.value = '';
+    codeThirdPart.value = '';
+    codeFourthPart.value = '';
+    componentCodePopupInput.value = '';
+  }
+  // 构件编号弹窗取消
+  const closeComponentCodePopup = () => {
+    componentCodePopup.value.close();
+    codeFirstPart.value = '';
+    codeSecondPart.value = '';
+    codeThirdPart.value = '';
+    codeFourthPart.value = '';
+    componentCodePopupInput.value = '';
+  }
+  // 监听 input2 的四个部分，只要有变化就自动拼接
+  watch(
+      [codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart],
+      () => {
+        console.log('input2变化:', codeFirstPart.value, codeSecondPart.value, codeThirdPart.value, codeFourthPart.value)
+        // 过滤出有值的部分
+        const parts = [
+          codeSecondPart.value || '',
+          codeThirdPart.value || '',
+          codeFourthPart.value || ''
+        ].filter(part => part !== '');
+
+        // 根据填写的部分数量决定是否添加'-'
+        let formattedParts = '';
+        if (parts.length === 1) {
+          // 只填写了一个部分，不使用'-'
+          formattedParts = parts[0];
+        } else {
+          // 填写了多个部分，使用'-'连接
+          formattedParts = parts.join('-');
+        }
+        console.log('formattedParts', formattedParts)
+        componentCodePopupInput.value = (codeFirstPart.value === '无' ? '' : codeFirstPart.value) + (formattedParts ? formattedParts : '');
+      }
+  )
 
 	// 添加onMounted处理可能的初始值
 	onMounted(() => {
@@ -1038,5 +1168,122 @@
     height: 14rpx;
     opacity: 0.5;
     flex-shrink: 0;
+  }
+  .componentCode-popup-content {
+    background-color: #fff;
+    width: 500rpx;
+    height: 250rpx;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+  }
+  .popup-title{
+    background-color: #BDCBE0;
+    font-size: 20rpx;
+    padding: 8rpx 0rpx;
+    text-align: center; /* 添加水平居中 */
+  }
+  .popup-input1 {
+    display: flex;
+    align-items: center;
+    padding: 10px 10rpx;
+  }
+
+  .popup-input1-title {
+    font-size: 20rpx;
+  }
+
+  .popup-input1-input {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-left: 10rpx;
+  }
+
+  .popup-input1-input input {
+    flex: 1;
+    padding: 5px;
+  }
+  .popup-input2{
+    display: flex;
+    align-items: center;
+    padding: 10px 10rpx;
+  }
+  .popup-input2-title {
+    font-size: 20rpx;
+  }
+  .popup-input2-input {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    margin-left: 10rpx;
+    font-size: 20rpx;
+  }
+  .popup-input2-firstPart {
+    border: 1px solid #ccc;
+    display: flex;
+    padding: 4rpx 10px;
+    align-items: center;
+  }
+  .popup-input2-firstPart-picker{
+    flex: 1;
+    margin-right: 20rpx;
+  }
+  .popup-input2-secondPart{
+    border: 1px solid #ccc;
+    display: flex;
+    margin: 0 10rpx;
+    padding: 5rpx 10px;
+    align-items: center;
+  }
+  .popup-input2-thirdPart{
+    border: 1px solid #ccc;
+    display: flex;
+    margin: 0 10rpx;
+    padding: 5rpx 10px;
+    align-items: center;
+  }
+  .popup-input2-forthPart{
+    border: 1px solid #ccc;
+    display: flex;
+    margin-left: 10rpx;
+    padding: 5rpx 10px;
+    align-items: center;
+  }
+  .popup-button{
+    display: flex;
+    align-items: center;
+    margin-top: 30rpx;
+  }
+  .popup-button button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 20rpx;
+    padding: 8rpx 8rpx;
+    line-height: normal; /* 避免行高影响字体样式 */
+  }
+
+  .popup-button-cancel {
+    background-color: #fff;
+    color: #1677FF;
+    border: 1px solid #1677FF;
+    font-size: 20rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .popup-button-confirm{
+    background-color: #1677FF;
+    color: #fff;
+  }
+
+  .clear-icon {
+    width: 20px;
+    height: 20px;
   }
 </style>
