@@ -30,7 +30,18 @@ export const userStore = defineStore('user', () => {
 	const setHadUsername = (username) => {
 		hadUsername.value = username
 	}
-	
+
+	// 清理用户数据的方法
+	const clearUserData = () => {
+		console.log('清理用户数据');
+		username.value = '';
+		password.value = '';
+		infoData.value = '';
+		UDPath.value = '';
+		ULPath.value = '';
+		hadUsername.value = '';
+	}
+
 	return {
 		username,
 		password,
@@ -42,6 +53,7 @@ export const userStore = defineStore('user', () => {
 		setULPath,
 		hadUsername,
 		setHadUsername,
+		clearUserData,
 	}
 })
 //store旨在存储全局数据，让不同组件可以随时访问，而不必层层传递 props 或 emit

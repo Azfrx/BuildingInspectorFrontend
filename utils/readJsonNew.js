@@ -80,7 +80,7 @@ async function getJsonData(path) {
 }
 
 // 辅助函数：查找匹配的目录
-async function findMatchingDirectory(userName) {
+export async function findMatchingDirectory(userName) {
   try {
     // 获取_doc目录下的所有子目录
     const allDirs = await getAllFirstLevelDirs();

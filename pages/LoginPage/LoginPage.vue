@@ -124,6 +124,9 @@
 
 		loading.value = true;
 
+		// 登录前先清理之前的用户数据
+		userInfo.clearUserData();
+
 		try {
 			// 在线登录逻辑
 			const response = await uni.request({

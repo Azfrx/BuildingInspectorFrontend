@@ -102,7 +102,7 @@
 				<view class="popup-buttons">
 					<button class="popup-btn cancel-btn" @click="closeEditPopup">取消</button>
 					<!-- <button class="popup-btn confirm-btn" @click="saveEdit">确定</button> -->
-					<button class="popup-btn confirm-btn" @click="confirmConfirm">确定</button>
+					<button class="popup-btn confirm-btn" @click="confirmConfirm(currentEditItem.quantity)">确定</button>
 				</view>
 			</view>
 		</uni-popup>
@@ -131,7 +131,7 @@
 	import {setObject}  from '../utils/writeNew'
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
-import { hasWarning, readWarning } from '../utils/warning';
+import { setWarning, readWarning } from '../utils/warning';
 import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
@@ -283,7 +283,12 @@ import { setBuildingCommitted } from '../utils/isBuildingCommited';
 					// 初始化resultData
 					resultData.value = structureData.value;
 					console.log("初始化后的resultData.value:", resultData.value);
-					
+
+					// 执行警告标志检查
+					console.log('准备执行警告标志检查...');
+					await warningFlag();
+					console.log('警告标志检查完成');
+
 					// 检查初始警告状态
 					console.log('准备检查全局警告状态...');
 					await checkAndSetGlobalWarning();
@@ -368,21 +373,21 @@ const refreshData = async () => {
   // 重新获取最新数据
   structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
   console.log('新数据structureData.value', structureData.value)
-  
+
   // 同步更新resultData
   resultData.value = structureData.value;
-  
+
   // 重新执行警告标志检查
-  warningFlag();
-  
+  await warningFlag();
+
   // 检查所有警告状态
   checkAllWarnings();
-  
+
   // 重置选中状态
   selectedIndex.value = 0;
   selectedSecondIndex.value = 0;
   selectedThirdIndex.value = -1;
-  
+
   console.log('数据已刷新');
 };
 
@@ -392,7 +397,7 @@ const refreshData = async () => {
 //     refreshData();
 //   }
 // });
-	const confirmConfirm = async () => {
+	const confirmConfirm = async (quantity) => {
 		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
 
@@ -407,7 +412,13 @@ const refreshData = async () => {
 		// submitDataToBackend();
 
 		// 设置编辑标志为true
-		resultData.value.Isedit = true;
+		// resultData.value.Isedit = true;
+/* 		console.log('resultDate',resultData.value)
+		console.log("selectedIndex.value",selectedIndex.value);
+		console.log("selectedSecondIndex.value",selectedSecondIndex.value);
+		console.log("selectedThirdIndex.value",selectedThirdIndex.value); */
+		resultData.value.children[selectedIndex.value].children[ selectedSecondIndex.value].children[selectedThirdIndex.value].count = quantity
+		selectedThirdIndex.value = -1
 
 		// 直接存储数据到本地
 		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
@@ -421,19 +432,17 @@ const refreshData = async () => {
 			duration: 2000
 		});
 
-		// 执行warningFlag检查
-		warningFlag();
-
-		// 设置全局警告标志
-		await setGlobalWarningFlag();
+		// 执行warningFlag检查（现在包含设置全局警告标志）
+		await warningFlag();
 		//更新编辑状态
 		// structureNumberInfo.incrementIsEdit();
 		await setBuildingCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
 		uni.$emit('setBuildingUnCommit',idInfo.buildingId)
 	};
-	const warningFlag = () => {
+	const warningFlag = async () => {
+		console.log('进入warning');
 		try {
-			const data = getObject(userInfo.username, TaskBridgeId.value)
+			const data = resultData.value;
 			if (!data || !data.children || !Array.isArray(data.children)) {
 				console.warn('warningFlag: 数据结构不完整或无效');
 				return;
@@ -441,12 +450,14 @@ const refreshData = async () => {
 
 			console.log('开始检查前的数据:', data)
 
+			let hasAnyWarning = false; // 跟踪是否有任何警告
+
 			// 递归函数，返回是否设置了flag
 			const traverse = (node, level) => {
 				if (!node) return false
-				
+
 				let hasWarning = false
-				
+
 				// 如果是第三层，检查diseaseNumber和count
 				if (level === 3) {
 					const diseaseNumber = Number(node.diseaseNumber || 0);
@@ -455,13 +466,14 @@ const refreshData = async () => {
 					if (diseaseNumber > count) {
 						node.flag = true
 						console.log('设置警告:', node.name, 'flag:', node.flag)
+						hasAnyWarning = true; // 标记有警告
 						return true
 					} else {
 						node.flag = false
 						return false
 					}
 				}
-				
+
 				// 遍历子节点
 				if (node.children && Array.isArray(node.children)) {
 					for (const child of node.children) {
@@ -470,36 +482,43 @@ const refreshData = async () => {
 						}
 					}
 				}
-				
+
 				// 如果子节点有warning，当前节点也设置flag
 				if (hasWarning) {
 					node.flag = true
-					console.log('父节点设置警告:', node.name, 'flag:', node.flag)
+					console.log('父节点设置警告:', node.name, 'level:', level, 'flag:', node.flag)
 				} else {
 					node.flag = false
+					console.log('父节点无警告:', node.name, 'level:', level, 'flag:', node.flag)
 				}
-				
+
 				return hasWarning
 			}
-			
+
 			// 从第一层开始遍历
 			for (const firstLevel of data.children) {
 				if (firstLevel) {
 					traverse(firstLevel, 1)
 				}
 			}
-			
+
 			// 更新数据
-			setObject(userInfo.username, TaskBridgeId.value, data)
-			
+			await setObject(userInfo.username, TaskBridgeId.value, data)
+
 			// 强制更新视图 - 直接使用data而不是嵌套结构
 			structureData.value = data;
-			
+
 			// 同步更新resultData
 			resultData.value = structureData.value;
-			
+
 			console.log('更新后的数据:', structureData.value)
-			
+
+			// 如果有任何警告，设置全局警告标志
+			if (hasAnyWarning) {
+				console.log('检测到警告，设置全局警告标志');
+				await setGlobalWarningFlag();
+			}
+
 			// 强制更新视图
 			nextTick(() => {
 				console.log('视图更新后的数据:', structureData.value)
@@ -643,6 +662,7 @@ const refreshData = async () => {
 		} else {
 			selectedThirdIndex.value = index;
 		}
+		console.log("selectedThirdIndex.value",selectedThirdIndex.value);
 		console.log('选中的第三层结构:', thirdLevelItems.value[index]);
 	};
 
@@ -761,7 +781,7 @@ const refreshData = async () => {
 	const closeEditPopup = () => {
 		editPopup.value.close();
 		// 隐藏操作按钮
-		selectedThirdIndex.value = -1;
+		// selectedThirdIndex.value = -1;
 	};
 	// 添加更新resultData的函数
 	const updateResultData = (updatedItem) => {
@@ -886,10 +906,28 @@ const refreshData = async () => {
 		console.log('已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
 	};
 
-	// 优化后的警告检查函数 - 只检查是否有警告，不遍历所有节点
+	// 检查特定节点是否有警告标志
 	const hasWarningInChildren = (node) => {
-		// 直接返回全局警告状态
-		return globalWarning.value;
+		if (!node) {
+			return false;
+		}
+
+		// 检查当前节点是否有flag标志
+		if (node.flag === true) {
+			console.log(`节点 ${node.name || '未命名'} 有警告标志`);
+			return true;
+		}
+
+		// 递归检查子节点
+		if (node.children && Array.isArray(node.children)) {
+			const hasChildWarning = node.children.some(child => hasWarningInChildren(child));
+			if (hasChildWarning) {
+				console.log(`节点 ${node.name || '未命名'} 的子节点有警告`);
+			}
+			return hasChildWarning;
+		}
+
+		return false;
 	};
 
 	// 检查并设置全局警告状态
@@ -908,7 +946,7 @@ const refreshData = async () => {
 	// 当发现有警告时设置全局警告标志
 	const setGlobalWarningFlag = async () => {
 		try {
-			await hasWarning(userInfo.username, TaskBridgeId.value);
+			await setWarning(userInfo.username, TaskBridgeId.value);
 			globalWarning.value = true;
 			console.log('已设置全局警告标志');
 		} catch (error) {

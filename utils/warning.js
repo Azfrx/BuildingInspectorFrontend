@@ -1,6 +1,6 @@
 import { getObjectUL } from "./readUL";
 import { setObject } from "./writeNew";
-export async function hasWarning(username, buildingId){
+export async function setWarning(username, buildingId){
 	const data = await getObjectUL(username,buildingId)
 	data.warning = true;
 	await setObject(username, buildingId, data);

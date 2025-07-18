@@ -303,10 +303,27 @@ export async function copyObjectJsonFiles() {
 export function useDownloader() {
    const downloadProgress = ref(0); // 下载进度
    const unzipProgress = ref(0);   // 解压进度
+   const currentTaskId = ref(null); // 当前任务ID
+
+   // 重置进度状态
+   const resetProgress = () => {
+     downloadProgress.value = 0;
+     unzipProgress.value = 0;
+     currentTaskId.value = null;
+   };
  
    // 主方法：获取URL -> 下载 -> 解压
    const downloadAndUnzip = async (token) => {
      try {
+       // 生成新的任务ID
+       const taskId = Date.now();
+       currentTaskId.value = taskId;
+       console.log('开始新的下载任务，任务ID:', taskId);
+
+       // 重置进度状态
+       resetProgress();
+       currentTaskId.value = taskId;
+
        // 1. 获取带token的压缩包信息
        console.log('步骤1: 开始获取压缩包信息...');
        const response = await fetchDataPackage(token);
@@ -337,7 +354,7 @@ export function useDownloader() {
        
        // 3. 下载压缩包
        console.log('步骤3: 开始下载压缩包...');
-       const tempPath = await downloadFile(downloadUrl, parsedSize);
+       const tempPath = await downloadFile(downloadUrl, parsedSize, taskId);
        console.log('下载完成，临时文件路径:', tempPath);
        
        // 检查文件是否存在
@@ -502,11 +519,17 @@ export function useDownloader() {
            tempPath,
            '_doc/',
            (progress) => {
+             // 检查任务ID，确保只处理当前任务的进度
+             if (currentTaskId.value !== taskId) {
+               console.log('忽略过期任务的解压进度');
+               return;
+             }
+
              // 更新解压进度
              if (progress && progress.loaded && progress.total && progress.total > 0) {
                unzipProgress.value = Math.floor((progress.loaded / progress.total) * 100);
                // 发送解压进度事件
-               uni.$emit('unzip-progress', { progress: unzipProgress.value });
+               uni.$emit('unzip-progress', { progress: unzipProgress.value, taskId: taskId });
                console.log('解压进度:', unzipProgress.value);
                
                // 如果进度达到100%，也可以认为解压已完成
@@ -515,7 +538,7 @@ export function useDownloader() {
                  isResolved = true;
                  clearTimeout(forceCompleteTimeoutId);
                  clearInterval(checkInterval);
-                 uni.$emit('unzip-completed');
+                 uni.$emit('unzip-completed', { taskId: taskId });
                  
                  // 生成UD目录名并存储到UDPath
                  const useInfo = userStore();
@@ -552,9 +575,15 @@ export function useDownloader() {
            },
            () => {
              console.log('解压完成回调被触发');
+             // 检查任务ID，确保只处理当前任务
+             if (currentTaskId.value !== taskId) {
+               console.log('忽略过期任务的解压完成事件');
+               return;
+             }
+
              // 解压完成时发送事件
              if (!isResolved) {
-               uni.$emit('unzip-completed');
+               uni.$emit('unzip-completed', { taskId: taskId });
                clearTimeout(forceCompleteTimeoutId);
                clearInterval(checkInterval);
                isResolved = true;
@@ -691,10 +720,11 @@ export function useDownloader() {
    };
  
    // 步骤3：下载文件
-   const downloadFile = (url, packageSize) => {
+   const downloadFile = (url, packageSize, taskId) => {
      return new Promise((resolve, reject) => {
        console.log('开始下载文件:', url);
        console.log('传入的包大小原始值:', packageSize);
+       console.log('任务ID:', taskId);
        
        // 检查URL格式
        if (!url.startsWith('http')) {
@@ -761,6 +791,12 @@ export function useDownloader() {
          // 监听进度
          if (task && typeof task.onProgressUpdate === 'function') {
            task.onProgressUpdate((e) => {
+             // 检查任务ID，确保只处理当前任务的进度
+             if (currentTaskId.value !== taskId) {
+               console.log('忽略过期任务的下载进度，当前任务ID:', currentTaskId.value, '事件任务ID:', taskId);
+               return;
+             }
+
              // 如果接收到实际的总大小，就使用实际值，否则使用解析后的大小
              const totalSize = e.totalBytesExpectedToWrite > 0 ? e.totalBytesExpectedToWrite : TOTAL_FILE_SIZE;
              // 计算下载百分比
@@ -768,13 +804,14 @@ export function useDownloader() {
              // 更新进度值
              downloadProgress.value = progress;
              // 发送进度事件，包含详细信息
-             uni.$emit('download-progress', { 
+             uni.$emit('download-progress', {
                progress,
                packageSize: TOTAL_FILE_SIZE,
                bytesWritten: e.totalBytesWritten,
-               bytesExpected: totalSize
+               bytesExpected: totalSize,
+               taskId: taskId
              });
-             
+
              console.log(`下载进度: ${progress.toFixed(2)}%, 已下载: ${(e.totalBytesWritten / (1024 * 1024)).toFixed(2)}MB / ${(totalSize / (1024 * 1024)).toFixed(2)}MB`);
            });
          } else {
@@ -1117,6 +1154,8 @@ export function useDownloader() {
    return {
      downloadProgress,
      unzipProgress,
-     downloadAndUnzip
+     downloadAndUnzip,
+     resetProgress,
+     currentTaskId
    };
  }
