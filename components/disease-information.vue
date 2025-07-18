@@ -1274,10 +1274,10 @@
   .popup-button{
     display: flex;
     align-items: center;
+    justify-content: center;
     margin-top: 30rpx;
   }
   .popup-button button {
-    display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
@@ -1294,10 +1294,12 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    margin-right: 10rpx;
   }
   .popup-button-confirm{
     background-color: #1677FF;
     color: #fff;
+    margin-left: 10rpx;
   }
 
   .clear-icon {
