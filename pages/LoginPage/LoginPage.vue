@@ -113,6 +113,61 @@
 		showPassword.value = !showPassword.value;
 	};
 
+	// 离线登录时设置本地路径
+	const setOfflineUserPaths = async (username) => {
+		return new Promise((resolve) => {
+			console.log('开始检查离线用户的本地路径，用户名:', username);
+
+			plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+				entry.createReader().readEntries((entries) => {
+					console.log('检查_doc/目录内容，寻找用户目录:');
+
+					// 查找匹配当前用户的UD目录
+					const udDirs = entries
+						.filter(e => e.isDirectory && e.name.startsWith('UD'))
+						.filter(e => e.name.includes(username))
+						.sort((a, b) => b.name.localeCompare(a.name)); // 最新的在前
+
+					// 查找匹配当前用户的UL目录
+					const ulDirs = entries
+						.filter(e => e.isDirectory && e.name.startsWith('UL'))
+						.filter(e => e.name.includes(username))
+						.sort((a, b) => b.name.localeCompare(a.name)); // 最新的在前
+
+					let hasData = false;
+
+					if (udDirs.length > 0) {
+						const latestUDDir = udDirs[0].name;
+						console.log('找到匹配用户的UD目录:', latestUDDir);
+						userInfo.setUDPath(latestUDDir);
+						hasData = true;
+					} else {
+						console.log('未找到匹配用户的UD目录');
+					}
+
+					if (ulDirs.length > 0) {
+						const latestULDir = ulDirs[0].name;
+						console.log('找到匹配用户的UL目录:', latestULDir);
+						userInfo.setULPath(latestULDir);
+						hasData = true;
+					} else {
+						console.log('未找到匹配用户的UL目录');
+					}
+
+					console.log('离线登录路径设置完成，UDPath:', userInfo.UDPath, 'ULPath:', userInfo.ULPath);
+					console.log('是否找到数据:', hasData);
+					resolve({ hasData });
+				}, (err) => {
+					console.error('读取_doc/目录失败:', err);
+					resolve({ hasData: false }); // 失败时返回无数据
+				});
+			}, (err) => {
+				console.error('解析_doc/目录失败:', err);
+				resolve({ hasData: false }); // 失败时返回无数据
+			});
+		});
+	};
+
 	const handleLogin = async () => {
 		if (!username.value || !password.value) {
 			uni.showToast({
@@ -236,9 +291,42 @@
 					password: password.value,
 					infoData: currentAccountInfo,
 				})
-				
-				// 离线登录不调用setRootDir方法创建根目录
-				
+
+				// 离线登录时也需要设置本地路径
+				try {
+					console.log('离线登录：开始检查和设置本地路径');
+					const pathResult = await setOfflineUserPaths(username.value);
+
+					if (!pathResult.hasData) {
+						// 没有找到数据包，提示用户需要联网下载
+						uni.showModal({
+							title: '本地无数据',
+							content: '检测到本地没有数据包，请先联网登录下载数据包后再使用离线模式。',
+							showCancel: false,
+							confirmText: '确定',
+							success: () => {
+								// 清理用户数据，返回登录页面
+								userInfo.clearUserData();
+								console.log('用户确认后返回登录页面');
+							}
+						});
+						return; // 不继续登录流程
+					}
+				} catch (error) {
+					console.error('离线登录：设置本地路径失败:', error);
+					// 设置路径失败，也提示用户需要联网
+					uni.showModal({
+						title: '数据检查失败',
+						content: '无法检查本地数据，请先联网登录下载数据包。',
+						showCancel: false,
+						confirmText: '确定',
+						success: () => {
+							userInfo.clearUserData();
+						}
+					});
+					return;
+				}
+
 				// 登录成功，跳转到bridge页面
 				uni.navigateTo({
 					url: '/pages/home/home'

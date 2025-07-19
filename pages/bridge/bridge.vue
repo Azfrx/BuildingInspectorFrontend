@@ -137,6 +137,7 @@
 	const showUnzipProgress = ref(false);
 	const packageSize = ref(null); // 添加包大小变量
 	const isDownloading = ref(false);
+	const hasCheckedVersion = ref(false); // 添加版本检查标志
 	
 	// 获取当前日期字符串 (格式: YY-MM-DD)
 	function getCurrentDateStr() {
@@ -242,8 +243,14 @@
 	
 	const handleUnpdate = async () => {
 	  try {
+	    // 防止重复检查版本
+	    if (hasCheckedVersion.value) {
+	      console.log('已经检查过版本，跳过重复检查');
+	      return;
+	    }
+
 	    infoData.value = userInfo.infoData;
-	
+
 	    if (!infoData.value.token) {
 	      uni.showToast({
 	        title: '登录信息无效，请重新登录',
@@ -251,7 +258,7 @@
 	      });
 	      return;
 	    }
-	
+
 	    // loading.value = true;
 	
 	    // 1.根据url版本号与本地UD目录的版本号的相对大小来判断是否有更新内容
@@ -275,19 +282,64 @@
 	    console.log('压缩包URL:', url);
 	    console.log('包大小:', apiPackageSize);
 	
-	    const dirNew = version;
+	    // 处理服务器版本格式：移除.zip后缀
+	    const dirNew = version.endsWith('.zip') ? version.slice(0, -4) : version;
 	    const dirOld = userInfo.UDPath;
 	    console.log('本地数据包版本:', dirOld);
-	
+	    console.log('服务器数据包版本(原始):', version);
+	    console.log('服务器数据包版本(处理后):', dirNew);
+
+	    // 如果本地版本为空，说明是首次安装，需要下载数据包
+	    if (!dirOld) {
+	      console.log('本地版本为空，首次安装，需要下载数据包');
+
+	      // 显示下载确认对话框
+	      const confirmResult = await new Promise((resolve) => {
+	        uni.showModal({
+	          title: '需要下载数据包',
+	          content: `检测到当前用户需要下载数据包 ${dirNew}，是否立即下载？`,
+	          success: (res) => {
+	            resolve(res.confirm);
+	          },
+	          fail: () => {
+	            resolve(false);
+	          }
+	        });
+	      });
+
+	      if (confirmResult) {
+	        // 开始下载和解压，传递处理后的版本名（不含.zip）
+	        await downloadAndUnzipPackage(url, apiPackageSize, dirNew);
+	        // 只有下载成功后才标记已检查过版本
+	        hasCheckedVersion.value = true;
+	      } else {
+	        // 用户拒绝下载，不标记已检查，下次进入还能重新提示
+	        console.log('用户拒绝下载数据包');
+	      }
+	      return;
+	    }
+	    console.log('版本类型检查:', {
+	      dirOldType: typeof dirOld,
+	      dirNewType: typeof dirNew,
+	      dirOldLength: dirOld ? dirOld.length : 0,
+	      dirNewLength: dirNew ? dirNew.length : 0
+	    });
+
 	    // 如果本地版本小于获取的版本 触发更新
-	    if (!dirOld || compareUDDirectories(dirNew, dirOld)) {
+	    // 添加额外检查：确保版本确实不同
+	    const needsUpdate = !dirOld || compareUDDirectories(dirNew, dirOld);
+	    console.log('是否需要更新:', needsUpdate);
+
+	    if (needsUpdate) {
 	      console.log('检测到新版本，开始下载更新...');
-	
-	      // 显示确认对话框
+	      console.log('新版本:', dirNew);
+	      console.log('本地版本:', dirOld);
+
+	      // 显示确认对话框，包含版本信息
 	      const confirmResult = await new Promise((resolve) => {
 	        uni.showModal({
 	          title: '发现新版本',
-	          // content: `检测到新的数据包版本 ${version}，是否立即更新？`,
+	          content: `检测到新的数据包版本 ${dirNew}，是否立即更新？`,
 	          success: (res) => {
 	            resolve(res.confirm);
 	          },
@@ -298,23 +350,33 @@
 	      });
 	
 	      if (confirmResult) {
-	        // 开始下载和解压
-	        await downloadAndUnzipPackage(url, apiPackageSize, version);
+	        // 开始下载和解压，传递处理后的版本名（不含.zip）
+	        await downloadAndUnzipPackage(url, apiPackageSize, dirNew);
 	      }
 	    } else {
+	      console.log('当前已是最新版本，无需更新');
 	      // uni.showToast({
 	      //   title: '已是最新版本',
 	      //   icon: 'success',
 	      //   duration: 2000
 	      // });
 	    }
+
+	    // 标记已检查过版本
+	    hasCheckedVersion.value = true;
 	  } catch (error) {
 	    console.error('检查更新失败:', error);
-	    uni.showModal({
-	      title: '检查更新失败',
-	      content: error.message || '检查更新时发生错误，请稍后重试',
-	      showCancel: false
-	    });
+	    // 即使检查失败也标记为已检查，避免重复弹窗
+	    hasCheckedVersion.value = true;
+
+	    // 只有在网络错误或服务器错误时才显示错误弹窗
+	    if (error.message && !error.message.includes('无效的目录格式')) {
+	      uni.showModal({
+	        title: '检查更新失败',
+	        content: error.message || '检查更新时发生错误，请稍后重试',
+	        showCancel: false
+	      });
+	    }
 	  } finally {
 	    loading.value = false;
 	  }
@@ -322,25 +384,47 @@
 	
 	// 判断目录1是否大于目录2
 	function compareUDDirectories(dir1, dir2) {
+	    console.log('比较版本:', { dir1, dir2 });
+
+	    // 如果本地版本为空，则需要更新
+	    if (!dir2) {
+	        console.log('本地版本为空，需要更新');
+	        return true;
+	    }
+
+	    // 如果两个版本相同，则不需要更新
+	    if (dir1 === dir2) {
+	        console.log('版本相同，不需要更新');
+	        return false;
+	    }
+
 	    // 定义正则表达式匹配目录中的时间戳部分（14位数字）
 	    const timestampRegex = /UD-(\d{14})-/;
-	    
+
 	    // 从第一个目录名中提取时间戳
 	    const match1 = dir1.match(timestampRegex);
 	    if (!match1 || !match1[1]) {
-	        throw new Error(`无效的目录格式: ${dir1}`);
+	        console.warn(`无效的新版本目录格式: ${dir1}，使用字符串比较`);
+	        // 如果格式不匹配，使用字符串比较作为后备方案
+	        return dir1 > dir2;
 	    }
 	    const timestamp1 = match1[1];
-	    
+
 	    // 从第二个目录名中提取时间戳
 	    const match2 = dir2.match(timestampRegex);
 	    if (!match2 || !match2[1]) {
-	        throw new Error(`无效的目录格式: ${dir2}`);
+	        console.warn(`无效的本地版本目录格式: ${dir2}，使用字符串比较`);
+	        // 如果格式不匹配，使用字符串比较作为后备方案
+	        return dir1 > dir2;
 	    }
 	    const timestamp2 = match2[1];
-	    
+
+	    console.log('时间戳比较:', { timestamp1, timestamp2 });
+
 	    // 比较两个时间戳字符串（直接字符串比较即可，因为它们都是固定长度的数字）
-	    return timestamp1 > timestamp2;
+	    const result = timestamp1 > timestamp2;
+	    console.log('比较结果:', result);
+	    return result;
 	}
 	
 	// 重置下载状态
@@ -708,7 +792,90 @@
 	    });
 	  });
 	};
-	
+
+	// 初始化本地路径
+	const initializeLocalPaths = async () => {
+	  try {
+	    console.log('开始初始化本地路径...');
+	    console.log('当前用户:', userInfo.username);
+
+	    // 检查UDPath是否匹配当前用户，如果不匹配则重置
+	    if (userInfo.UDPath) {
+	      const currentUsername = userInfo.username;
+	      if (currentUsername && !userInfo.UDPath.includes(currentUsername)) {
+	        console.log('UDPath不匹配当前用户，重置UDPath:', userInfo.UDPath);
+	        userInfo.setUDPath(''); // 重置UDPath
+	        hasCheckedVersion.value = false; // 重置版本检查标志
+	      } else {
+	        console.log('UDPath匹配当前用户:', userInfo.UDPath);
+	        return;
+	      }
+	    }
+
+	    // 检查本地是否有UD目录
+	    await new Promise((resolve) => {
+	      plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+	        entry.createReader().readEntries((entries) => {
+	          console.log('检查_doc/目录内容，寻找UD目录:');
+
+	          // 查找UD开头的目录
+	          const udDirs = entries
+	            .filter(e => e.isDirectory && e.name.startsWith('UD'))
+	            .sort((a, b) => {
+	              // 按目录名排序，最新的在前
+	              return b.name.localeCompare(a.name);
+	            });
+
+	          if (udDirs.length > 0) {
+	            const latestDir = udDirs[0].name;
+	            console.log('找到最新的UD目录:', latestDir);
+
+	            // 检查目录是否包含当前用户名
+	            const currentUsername = userInfo.username;
+	            let matchedDir = null;
+
+	            // 优先查找匹配当前用户名的目录
+	            if (currentUsername) {
+	              for (const dir of udDirs) {
+	                if (dir.name.includes(currentUsername)) {
+	                  matchedDir = dir.name;
+	                  console.log('找到匹配当前用户的UD目录:', matchedDir);
+	                  break;
+	                }
+	              }
+	            }
+
+	            // 如果没找到匹配的，不设置UDPath，让系统识别为需要下载
+	            if (!matchedDir) {
+	              console.log('未找到匹配当前用户的目录，当前用户需要下载数据包');
+	              // 不设置UDPath，让handleUnpdate识别为需要下载
+	            } else {
+	              userInfo.setUDPath(matchedDir);
+	            }
+	          } else {
+	            console.log('未找到UD目录，可能是首次安装');
+	            // 不设置UDPath，让handleUnpdate识别为首次安装
+	          }
+
+	          resolve();
+	        }, (err) => {
+	          console.error('读取_doc/目录失败:', err);
+	          console.log('_doc/目录可能不存在或为空，首次安装');
+	          resolve();
+	        });
+	      }, (err) => {
+	        console.error('解析_doc/目录失败:', err);
+	        console.log('_doc/目录不存在，首次安装');
+	        resolve();
+	      });
+	    });
+
+	    console.log('本地路径初始化完成，当前UDPath:', userInfo.UDPath);
+	  } catch (error) {
+	    console.error('初始化本地路径失败:', error);
+	  }
+	};
+
 	//初始化数据
 	const init = async () => {
 		try {
@@ -720,15 +887,12 @@
 			infoData.value = userInfo.infoData
 			console.log('用户信息:', infoData.value);
 			console.log("ULPath",userInfo.ULPath);
-			// const token = responseLogin.data.token
-			// infoData.value = responseLogin.data;
+			console.log("UDPath",userInfo.UDPath);
 
-			// 获取并存储用户目录
-			// if (userInfo.username) {
-			// 	dir.value = getUserDir(userInfo.username);
-			// 	console.log('当前用户目录:', dir.value);
-			// 	idInfo.setDir(dir.value)
-			// }
+			// 在检查版本更新之前，先尝试设置本地的UDPath
+			await initializeLocalPaths();
+
+			// 然后再检查版本更新
 			await handleUnpdate()
 
 			if (infoData.value.token) {
@@ -1288,6 +1452,8 @@
 		} catch (error) {
 			// 离线登录逻辑
 			const allUsers = await readUserFolders();
+			let foundUserData = false;
+
 			for (const user of allUsers) {
 				const hadUsernameArrBySplit = user.split('-');
 				const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
@@ -1296,9 +1462,36 @@
 					console.log("已存在此用户", user);
 					userInfo.setHadUsername(user); // 设置已存在的用户名到store
 					console.log("已存入用户：", userInfo.hadUsername);
+
+					// 离线模式下也设置UDPath，用于版本比较
+					if (user.startsWith('UD')) {
+						console.log("离线模式：设置UDPath为", user);
+						userInfo.setUDPath(user);
+					}
+					foundUserData = true;
 					break;
 				}
 			}
+
+			if (!foundUserData) {
+				// 没有找到当前用户的数据，提示需要联网下载
+				console.log('离线模式：未找到当前用户的数据包');
+				uni.showModal({
+					title: '本地无数据',
+					content: '检测到本地没有当前用户的数据包，请先联网登录下载数据包后再使用离线模式。',
+					showCancel: false,
+					confirmText: '返回登录',
+					success: () => {
+						// 清理用户数据，返回登录页面
+						userInfo.clearUserData();
+						uni.reLaunch({
+							url: '/pages/LoginPage/LoginPage'
+						});
+					}
+				});
+				return; // 不继续执行后续逻辑
+			}
+
 			console.log('当前无网络，离线模式，读取本地数据', error)
 			uni.showToast({
 				title: '当前无网络，离线模式登录',
@@ -1561,48 +1754,55 @@
 	});
 
 	// 添加一个函数，用于设置UDPath
-	const setUDPathFromDir = (dirName) => {
-    if (!dirName) return;
+// 	const setUDPathFromDir = (dirName) => {
+//     if (!dirName) return;
     
-    try {
-        console.log('尝试设置UDPath，目录名:', dirName);
-        // 提取目录名，如果是完整路径
-        const parts = dirName.split('/');
-        const name = parts[parts.length - 1];
+//     try {
+//         console.log('尝试设置UDPath，目录名:', dirName);
+//         // 提取目录名，如果是完整路径
+//         const parts = dirName.split('/');
+//         const name = parts[parts.length - 1];
         
-        // 检查是否是UD开头的目录
-        if (name && name.startsWith('UD')) {
-            console.log('找到UD目录:', name);
-            userInfo.setUDPath(name);
-            console.log('UDPath已设置为:', name);
-        } else {
-            console.log('目录不是UD开头，尝试创建UD目录');
-            // 如果不是UD开头的目录，可以创建一个
-            saveZipAndStorePath('_doc/' + name, 'package.zip')
-                .then(result => {
-                    console.log('UDPath设置成功:', result.dirPath);
-                })
-                .catch(error => {
-                    console.error('设置UDPath失败:', error);
-                });
-        }
-    } catch (error) {
-        console.error('设置UDPath时出错:', error);
-    }
-};
+//         // 检查是否是UD开头的目录
+//         if (name && name.startsWith('UD')) {
+//             console.log('找到UD目录:', name);
+//             userInfo.setUDPath(name);
+//             console.log('UDPath已设置为:', name);
+//         } else {
+//             console.log('目录不是UD开头，尝试创建UD目录');
+//             // 如果不是UD开头的目录，可以创建一个
+//             saveZipAndStorePath('_doc/' + name, 'package.zip')
+//                 .then(result => {
+//                     console.log('UDPath设置成功:', result.dirPath);
+//                 })
+//                 .catch(error => {
+//                     console.error('设置UDPath失败:', error);
+//                 });
+//         }
+//     } catch (error) {
+//         console.error('设置UDPath时出错:', error);
+//     }
+// };
 
 	onMounted(async () => {
+		// 重置版本检查标志，允许重新检查
+		hasCheckedVersion.value = false;
+
+		console.log('Bridge页面加载，当前用户:', userInfo.username);
+		console.log('当前UDPath:', userInfo.UDPath);
+		console.log('当前ULPath:', userInfo.ULPath);
+
 		await init();
-		
+
 		// 设置进度监听
 		watch(downloadProgress, (newValue) => {
 			uni.$emit('download-progress', { progress: newValue });
 		});
-		
+
 		watch(unzipProgress, (newValue) => {
 			uni.$emit('unzip-progress', { progress: newValue });
 		});
-		
+
 		// 检查UDPath是否为空，如果为空则尝试设置
 		if (!userInfo.UDPath && userInfo.ULPath) {
 			console.log('UDPath为空，尝试从ULPath设置:', userInfo.ULPath);
