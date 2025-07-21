@@ -1195,6 +1195,7 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
   .popup-title{
     background-color: #BDCBE0;
