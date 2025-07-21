@@ -94,10 +94,14 @@
 				</view>
 				<view class="edit-row">
 					<text class="edit-label">构件数量</text>
-					<uni-easyinput v-model="currentEditItem.quantity" type="number" placeholder="请输入数量" clearSize="40"
+<!--					<uni-easyinput v-model="currentEditItem.quantity" type="number" placeholder="请输入数量" clearSize="40"
 						class="quantity-input" :inputStyle="{ fontSize: '18rpx' }"
 						:placeholderStyle="'font-size: 20rpx;'">
-					</uni-easyinput>
+					</uni-easyinput>-->
+          <view class="component-number">
+            <input type="number" v-model="currentEditItem.quantity" class="input-text" placeholder="请输入数量" placeholder-style="color: #CCCCCC;">
+            <image src="/static/image/clear.png" class="clear-icon" @click="currentEditItem.quantity = '' "></image>
+          </view>
 				</view>
 				<view class="popup-buttons">
 					<button class="popup-btn cancel-btn" @click="closeEditPopup">取消</button>
@@ -1425,4 +1429,18 @@ const refreshData = async () => {
 		color: #999;
 		font-size: 24rpx;
 	}
+  .input-text{
+    font-size:18rpx
+  }
+  .component-number {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1rpx solid #EEEEEE;
+    padding: 4rpx 4rpx;
+  }
+  .clear-icon{
+    width: 18rpx;
+    height: 18rpx;
+  }
 </style>

@@ -925,6 +925,7 @@
 				console.log('更新评定标度范围:', minScale, '至', maxScale);
 			}
 			console.log('病害类型选择变更为:', typePicker.value);
+      uni.$emit('clearDiseaseData')
 		}
 	}
 
@@ -1303,7 +1304,7 @@
   }
 
   .clear-icon {
-    width: 20px;
-    height: 20px;
+    width: 18rpx;
+    height: 18rpx;
   }
 </style>
