@@ -30,7 +30,7 @@ function getUserDir(userName) {
 // 路径生成规则（不再依赖userId）
 const FILE_NAMING = {
     project: userName => `${getUserDir(userName)}/project/projects.json`,
-	coverProject: userName => `${userName}/project/projects.json`,
+    coverProject: userName => `${userName}/project/projects.json`,
     task: (userName, projectId) => `${getUserDir(userName)}/project/${projectId}/task.json`,
     property: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/property.json`,
     object: (userName, buildingId) => `${getUserDir(userName)}/building/${buildingId}/object.json`,
@@ -564,25 +564,25 @@ async function findMatchingULDirectory(userName) {
             }
         }
 
-        // 如果没有找到匹配的目录，创建新的UL目录
-        const newULDir = `UL${getCurrentDateStr()}-${userName}`;
-        console.log('未找到任何匹配目录，创建新的UL目录:', newULDir);
-        
-        try {
-            await createDirectory(DOC_BASE_PATH + newULDir);
-            console.log('成功创建新的UL目录:', newULDir);
-            userInfo.setULPath(newULDir); // 保存到store中
-            return newULDir;
-        } catch (error) {
-            console.error('创建新的UL目录失败:', error);
-            return null;
-        }
+        // // 如果没有找到匹配的目录，创建新的UL目录
+        // const newULDir = `UL${getCurrentDateStr()}-${userName}`;
+        // console.log('未找到任何匹配目录，创建新的UL目录:', newULDir);
+
+        // try {
+        //     await createDirectory(DOC_BASE_PATH + newULDir);
+        //     console.log('成功创建新的UL目录:', newULDir);
+        //     userInfo.setULPath(newULDir); // 保存到store中
+        //     return newULDir;
+        // } catch (error) {
+        //     console.error('创建新的UL目录失败:', error);
+        //     return null;
+        // }
     } catch (error) {
         console.error('查找匹配UL目录时出错:', error);
         return null;
     }
-}
 
+}
 // 辅助函数：创建目录
 function createDirectory(path) {
     return new Promise((resolve, reject) => {
