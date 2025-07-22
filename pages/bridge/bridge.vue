@@ -8,7 +8,7 @@
 	<!-- 内容区 -->
 	<view class="container">
 		<!-- 下载进度条 -->
-		<view class="download-progress-container" v-if="showDownloadProgress">
+		<view class="download-progress-container" v-if="showDownloadProgress && isActiveProgressId(currentProgressId)">
 			<view class="progress-header">
 				<text class="progress-title">正在下载数据包 {{ formattedPackageSize }}</text>
 				<text class="progress-percent">{{ Math.floor(downloadProgress) }}%</text>
@@ -20,9 +20,9 @@
 				<text>已下载: {{ downloadedSize }}</text>
 			</view>
 		</view>
-		
+
 		<!-- 解压进度条 -->
-		<view class="download-progress-container" v-if="showUnzipProgress">
+		<view class="download-progress-container" v-if="showUnzipProgress && isActiveProgressId(currentProgressId)">
 			<view class="progress-header">
 				<text class="progress-title">正在解压数据包</text>
 				<text class="progress-percent">{{ Math.floor(unzipProgress) }}%</text>
@@ -118,6 +118,13 @@ import {
 		parsePackageSize,
 		copyObjectJsonFiles
 	} from '@/utils/downloadUtils.js';
+	// 导入全局进度条管理器
+	import {
+		setActiveProgressId,
+		getActiveProgressId,
+		clearActiveProgressId,
+		isActiveProgressId
+	} from '@/utils/progressManager.js';
 	import {
 		createUserDataStructure,
 		checkDirectoryExists,
@@ -131,13 +138,16 @@ import {
 	
 	// 引入下载器
 	const { downloadProgress, unzipProgress, resetProgress, currentTaskId } = useDownloader();
-	
+
 	// 添加进度条显示控制变量
 	const showDownloadProgress = ref(false);
 	const showUnzipProgress = ref(false);
 	const packageSize = ref(null); // 添加包大小变量
 	const isDownloading = ref(false);
 	const hasCheckedVersion = ref(false); // 添加版本检查标志
+
+	// 添加进度条ID管理
+	const currentProgressId = ref(null); // 当前页面的进度条ID
 	
 	// 获取当前日期字符串 (格式: YY-MM-DD)
 	function getCurrentDateStr() {
@@ -435,6 +445,11 @@ import {
 	  showUnzipProgress.value = false;
 	  packageSize.value = null;
 	  isDownloading.value = false;
+	  // 清理进度条ID
+	  if (currentProgressId.value) {
+	    clearActiveProgressId(currentProgressId.value);
+	    currentProgressId.value = null;
+	  }
 	};
 	
 	// 清理事件监听器
@@ -501,15 +516,20 @@ import {
 	      console.log('已有下载任务在进行，跳过新的下载请求');
 	      return;
 	    }
-	
+
 	    // 先清理之前的状态和监听器
 	    cleanupDownloadListeners();
 	    resetDownloadState();
-	
+
 	    // 设置下载状态
 	    isDownloading.value = true;
 	    const taskId = Date.now();
-	
+
+	    // 生成新的进度条ID并设置为活跃状态
+	    currentProgressId.value = taskId;
+	    setActiveProgressId(taskId);
+	    console.log('创建新的进度条ID:', taskId);
+
 	    // 显示下载进度条
 	    showDownloadProgress.value = true;
 
@@ -526,13 +546,20 @@ import {
 	
 	    // 监听下载进度
 	    uni.$on('download-progress', (progress) => {
-	      if (!isDownloading.value) {
-	        console.log('忽略过期的下载进度事件');
+	      // 检查是否是当前任务的进度事件
+	      if (!isDownloading.value || progress.taskId !== taskId) {
+	        console.log('忽略过期的下载进度事件，当前任务ID:', taskId, '事件任务ID:', progress.taskId);
 	        return;
 	      }
-	
+
+	      // 检查是否是当前活跃的进度条
+	      if (!isActiveProgressId(currentProgressId.value)) {
+	        console.log('当前进度条不是活跃状态，忽略进度更新');
+	        return;
+	      }
+
 	      downloadProgress.value = progress.progress || 0;
-	
+
 	      if (progress.packageSize) {
 	        const size = Number(progress.packageSize);
 	        if (!isNaN(size) && size > 0) {
@@ -543,23 +570,37 @@ import {
 	
 	    // 监听解压进度
 	    uni.$on('unzip-progress', (progress) => {
-	      if (!isDownloading.value) {
-	        console.log('忽略过期的解压进度事件');
+	      // 检查是否是当前任务的进度事件
+	      if (!isDownloading.value || progress.taskId !== taskId) {
+	        console.log('忽略过期的解压进度事件，当前任务ID:', taskId, '事件任务ID:', progress.taskId);
 	        return;
 	      }
-	
+
+	      // 检查是否是当前活跃的进度条
+	      if (!isActiveProgressId(currentProgressId.value)) {
+	        console.log('当前进度条不是活跃状态，忽略解压进度更新');
+	        return;
+	      }
+
 	      showDownloadProgress.value = false;
 	      showUnzipProgress.value = true;
 	      unzipProgress.value = progress.progress || 0;
 	    });
 	
 	    // 监听解压完成事件
-	    uni.$on('unzip-completed', async () => {
-	      if (!isDownloading.value) {
-	        console.log('忽略过期的解压完成事件');
+	    uni.$on('unzip-completed', async (event) => {
+	      // 检查是否是当前任务的完成事件
+	      if (!isDownloading.value || event.taskId !== taskId) {
+	        console.log('忽略过期的解压完成事件，当前任务ID:', taskId, '事件任务ID:', event.taskId);
 	        return;
 	      }
-	
+
+	      // 检查是否是当前活跃的进度条
+	      if (!isActiveProgressId(currentProgressId.value)) {
+	        console.log('当前进度条不是活跃状态，忽略解压完成事件');
+	        return;
+	      }
+
 	      console.log('收到解压完成事件，关闭进度条');
 	      cleanupDownloadListeners();
 	      resetDownloadState();
@@ -997,22 +1038,34 @@ import {
 					// 如果本地没有数据，则开始下载流程
 					if (!hasLocalData) {
 						console.log('开始执行下载流程...');
-						
+
 						// 移除确认对话框，直接下载
 						try {
+							// 生成新的进度条ID并设置为活跃状态
+							const initTaskId = Date.now();
+							currentProgressId.value = initTaskId;
+							setActiveProgressId(initTaskId);
+							console.log('创建初始化下载的进度条ID:', initTaskId);
+
 							// 显示下载进度提示，改为显示进度条
 							showDownloadProgress.value = true;
-							
+
 							// 监听下载进度
 							uni.$on('download-progress', (progress) => {
+								// 检查是否是当前活跃的进度条
+								if (!isActiveProgressId(currentProgressId.value)) {
+									console.log('当前进度条不是活跃状态，忽略初始化下载进度更新');
+									return;
+								}
+
 								// 不再使用showLoading，而是更新进度条
 								downloadProgress.value = progress.progress || 0;
-								
+
 								// 如果有包大小信息，也更新它
 								if (progress.packageSize) {
 									console.log('从进度事件接收到包大小:', progress.packageSize);
 									console.log('当前包大小值:', packageSize.value);
-									
+
 									// 确保packageSize是一个有效的数字
 									const size = Number(progress.packageSize);
 									if (!isNaN(size) && size > 0) {
@@ -1026,21 +1079,39 @@ import {
 							
 							// 监听解压进度
 							uni.$on('unzip-progress', (progress) => {
+								// 检查是否是当前活跃的进度条
+								if (!isActiveProgressId(currentProgressId.value)) {
+									console.log('当前进度条不是活跃状态，忽略初始化解压进度更新');
+									return;
+								}
+
 								// 隐藏下载进度条，显示解压进度条
 								showDownloadProgress.value = false;
 								showUnzipProgress.value = true;
 								unzipProgress.value = progress.progress || 0;
 							});
-							
+
 							// 监听解压完成事件
-							uni.$on('unzip-completed', () => {
+							uni.$on('unzip-completed', (event) => {
+								// 检查是否是当前活跃的进度条
+								if (!isActiveProgressId(currentProgressId.value)) {
+									console.log('当前进度条不是活跃状态，忽略初始化解压完成事件');
+									return;
+								}
+
 								console.log('收到解压完成事件，关闭进度条');
 								uni.$off('download-progress');
 								uni.$off('unzip-progress');
 								uni.$off('unzip-completed');
 								showDownloadProgress.value = false;
 								showUnzipProgress.value = false;
-								
+
+								// 清理进度条ID
+								if (currentProgressId.value) {
+									clearActiveProgressId(currentProgressId.value);
+									currentProgressId.value = null;
+								}
+
 								// 不再自动复制object.json文件
 							});
 							
@@ -1788,6 +1859,13 @@ import {
 		// 重置版本检查标志，允许重新检查
 		hasCheckedVersion.value = false;
 
+		// 初始化进度条状态
+		console.log('页面挂载，初始化进度条状态');
+		currentProgressId.value = null;
+		showDownloadProgress.value = false;
+		showUnzipProgress.value = false;
+		isDownloading.value = false;
+
 		console.log('Bridge页面加载，当前用户:', userInfo.username);
 		console.log('当前UDPath:', userInfo.UDPath);
 		console.log('当前ULPath:', userInfo.ULPath);
@@ -1840,6 +1918,22 @@ import {
     uni.setKeepScreenOn({
       keepScreenOn: false
     });*/
+
+    // 清理下载相关状态
+    console.log('页面卸载，清理下载状态');
+    cleanupDownloadListeners();
+
+    // 如果当前页面的进度条是活跃状态，则清理全局活跃状态
+    if (currentProgressId.value) {
+      clearActiveProgressId(currentProgressId.value);
+      console.log('清理全局活跃进度条状态');
+    }
+
+    // 重置当前页面的状态
+    showDownloadProgress.value = false;
+    showUnzipProgress.value = false;
+    isDownloading.value = false;
+    currentProgressId.value = null;
   })
 
 	// 测试数据包API接口
