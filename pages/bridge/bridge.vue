@@ -80,12 +80,12 @@
 </template>
 
 <script setup>
-	import {
-		ref,
-		onMounted,
-		computed,
-		watch
-	} from 'vue';
+import {
+  ref,
+  onMounted,
+  computed,
+  watch, onUnmounted
+} from 'vue';
 	import {
 		getProject,
 		getTask,
@@ -1791,6 +1791,16 @@
 		console.log('Bridge页面加载，当前用户:', userInfo.username);
 		console.log('当前UDPath:', userInfo.UDPath);
 		console.log('当前ULPath:', userInfo.ULPath);
+    // 设置屏幕常亮
+    uni.setKeepScreenOn({
+      keepScreenOn: true,
+      success: function() {
+        console.log('设置屏幕常亮成功');
+      },
+      fail: function(err) {
+        console.log('设置屏幕常亮失败:', err);
+      }
+    });
 
 		await init();
 
@@ -1808,6 +1818,10 @@
 			console.log('UDPath为空，尝试从ULPath设置:', userInfo.ULPath);
 			setUDPathFromDir(userInfo.ULPath);
 		}
+    // 取消屏幕常亮
+    uni.setKeepScreenOn({
+      keepScreenOn: false
+    });
 	});
 
 	const handleRadioChange = (e) => {
@@ -1820,6 +1834,13 @@
 			rememberPassword.value = false;
 		}
 	};
+
+  onUnmounted(async() => {
+    /*// 取消屏幕常亮
+    uni.setKeepScreenOn({
+      keepScreenOn: false
+    });*/
+  })
 
 	// 测试数据包API接口
 	// 测试数据包API接口函数已删除，直接使用testDataPackageAPI

@@ -617,27 +617,40 @@
 				</view>
 
 				<view class="part-UploadImage">
-					<view class="part-title">上传图片</view>
-					<view class="upload-view">
-						<!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
-							file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
-							:auto-upload="false"></uni-file-picker> -->
-						<my-photo-picker class="photo-select" v-model="fileList" @select="handleFileSelect" 
-							@delete="handleFileDelete" :limit="9"></my-photo-picker>
-					</view>
+          <view v-if="openMode === 'history'">
+            <view class="part-title">图片</view>
+            <image v-for="(url, index) in fileList" :key="index" :src="url" mode="aspectFill" @click="previewImage(url)" class="disease-image" />
+          </view>
+          <view v-else>
+            <view class="part-title">上传图片</view>
+            <view class="upload-view">
+              <!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
+                file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
+                :auto-upload="false"></uni-file-picker> -->
+              <my-photo-picker class="photo-select" v-model="fileList" @select="handleFileSelect"
+                               @delete="handleFileDelete" :limit="9"></my-photo-picker>
+            </view>
+          </view>
 				</view>
 
 				<view class="part-ADImages">
-					<view class="part-title">上传简图</view>
-					<view class="ADImages">
-						<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
-							<image :src="img.src" class="ADImage" />
-							<view class="close-btn" @click="removeImage(index)">×</view>
-						</view>
-						<view class="ADImage-container" @click="selectCanvasTemplate()">
-							<image src="/static/image/AD.svg" class="ADImageButton"></image>
-						</view>
-					</view>
+          <view v-if="openMode === 'history'">
+            <view class="part-title">简图</view>
+            <image v-for="(url, index) in ADImgs" :key="index" :src="url" mode="aspectFill" @click="previewImage(url)" class="disease-image" />
+          </view>
+          <view v-else>
+            <view class="part-title">上传简图</view>
+            <view class="ADImages">
+              <view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
+                <image :src="img.src" class="ADImage" />
+                <view class="close-btn" @click="removeImage(index)">×</view>
+              </view>
+              <view class="ADImage-container" @click="selectCanvasTemplate()">
+                <image src="/static/image/AD.svg" class="ADImageButton"></image>
+              </view>
+            </view>
+          </view>
+
 				</view>
 			</view>
 		</view>
@@ -1301,6 +1314,11 @@
 				initMultiPickerColumns();
 			}
 		});*/
+  const previewImage = (url) => {
+		uni.previewImage({
+			urls: [url],
+		});
+	}
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
@@ -3728,4 +3746,11 @@
 	.photo-select::v-deep .preview-list {
 		gap: 15rpx;
 	}
+  .disease-image{
+    height: 140rpx;
+    width: 140rpx;
+    margin-top: 10rpx;
+    margin-left: 10rpx;
+    object-fit: cover;
+  }
 </style>
