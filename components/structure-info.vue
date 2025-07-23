@@ -99,8 +99,8 @@
 						:placeholderStyle="'font-size: 20rpx;'">
 					</uni-easyinput>-->
           <view class="component-number">
-            <input type="number" v-model="currentEditItem.quantity" class="input-text" placeholder="请输入数量" placeholder-style="color: #CCCCCC;">
-            <image src="/static/image/clear.png" class="clear-icon" @click="currentEditItem.quantity = '' "></image>
+            <input type="number" v-model="currentEditItem.count" class="input-text" placeholder="请输入数量" placeholder-style="color: #CCCCCC;">
+            <image src="/static/image/clear.png" class="clear-icon" @click="currentEditItem.count = '' "></image>
           </view>
 				</view>
 				<view class="popup-buttons">
@@ -1304,7 +1304,6 @@ const refreshData = async () => {
 		align-items: center;
 		margin: 20rpx 30rpx;
 		padding-bottom: 20rpx;
-		border-bottom: 1px solid #eee;
 	}
 
 	.edit-row:last-child {

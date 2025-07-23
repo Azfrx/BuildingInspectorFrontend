@@ -198,13 +198,13 @@
 					infoData: response.data,
 				})
 				idInfo.setUserId(response.data.userId)
-				
+
 				// 调用setRootDir方法创建根目录
 				try {
 					console.log('开始调用setRootDir创建根目录');
 					const rootDir = await setRootDir();
 					console.log('根目录创建成功');
-					
+
 					// 检查返回的目录对象
 					if (rootDir && rootDir.fullPath) {
 						console.log('创建的目录路径:', rootDir.fullPath);
@@ -222,7 +222,17 @@
 						console.error('错误堆栈:', error.stack);
 					}
 				}
-				
+
+				// 在线登录成功后也设置本地路径
+				try {
+					console.log('在线登录：开始检查和设置本地路径');
+					const pathResult = await setOfflineUserPaths(username.value);
+					console.log('在线登录：路径设置结果:', pathResult);
+				} catch (error) {
+					console.error('在线登录：设置本地路径失败:', error);
+					// 设置路径失败不影响登录流程，继续执行
+				}
+
 				console.log('登录成功，准备跳转');
 				uni.navigateTo({
 					url: '/pages/home/home'

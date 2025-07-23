@@ -1076,8 +1076,12 @@
 	.popup-title {
 		font-size: 20rpx;
 		text-align: center;
-		color: #333;
-		margin-bottom: 27rpx;
+		color: #0F4687;
+		background-color: #BDCBE0;
+		padding: 15rpx 0;
+		margin: 0;
+		font-weight: bold;
+		letter-spacing: 1rpx;
 	}
 
 	.input-container {
@@ -1098,6 +1102,9 @@
 		display: flex;
 		justify-content: center;
 		gap: 20rpx;
+		padding: 30rpx 20rpx;
+		background-color: white;
+		border-top: 1rpx solid #eee;
 	}
 
 	.btn {
@@ -1188,21 +1195,15 @@
 		bottom: 0;
 		z-index: 2000;
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: rgba(0, 0, 0, 0.5);
-		padding: 20rpx;
-		box-sizing: border-box;
+		flex-direction: column;
+		background-color: white;
 	}
 
 	.drawing-content {
 		background-color: white;
-		border-radius: 16rpx;
-		padding: 40rpx;
-		width: 95%;
-		max-width: 800rpx;
-		max-height: 95vh;
-		overflow-y: auto;
+		padding: 0;
+		width: 100%;
+		height: 100%;
 		display: flex;
 		flex-direction: column;
 	}
@@ -1210,12 +1211,13 @@
 	.canvas-container {
 		position: relative;
 		width: 100%;
-		min-height: 200rpx;
-		margin-bottom: 20rpx;
-		border: 2rpx solid #ddd;
+		flex: 1;
+		margin: 0;
+		border: none;
 		display: flex;
-		align-items: center;
-		justify-content: center;
+		align-items: stretch;
+		justify-content: stretch;
+		background-color: #000;
 	}
 
 	.drawing-canvas {

@@ -113,6 +113,15 @@
 				</view>
 			</view>
 		</uni-popup>
+
+		<!-- 版本更新弹窗 -->
+		<updateVersionWindow
+			:visible="showUpdateModal"
+			:title="updateModalTitle"
+			:content="updateModalContent"
+			@confirm="handleUpdateConfirm"
+			@cancel="handleUpdateCancel"
+		/>
 	</view>
 </template>
 
@@ -135,6 +144,8 @@ import {
 	import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 	// 导入下载工具
 	import { useDownloader, parsePackageSize } from '@/utils/downloadUtils.js'
+	// 导入版本更新弹窗组件
+	import updateVersionWindow from '@/components/updateVersionWindow.vue'
 
 	// 获取用户信息
 	const userInfo = userStore();
@@ -182,11 +193,44 @@ import {
   const showUnzipProgress = ref(false);
   const packageSize = ref(null);
   const isDownloading = ref(false);
+
+  // 版本更新弹窗相关变量
+  const showUpdateModal = ref(false);
+  const updateModalTitle = ref('发现新版本');
+  const updateModalContent = ref('');
+  const updateConfirmResolve = ref(null);
   const testButton = ()=>{
 	  uni.navigateTo({
 	  	url: '/pages/test/test'
 	  });
   }
+
+  // 版本更新弹窗处理方法
+  const handleUpdateConfirm = () => {
+    showUpdateModal.value = false;
+    if (updateConfirmResolve.value) {
+      updateConfirmResolve.value(true);
+      updateConfirmResolve.value = null;
+    }
+  };
+
+  const handleUpdateCancel = () => {
+    showUpdateModal.value = false;
+    if (updateConfirmResolve.value) {
+      updateConfirmResolve.value(false);
+      updateConfirmResolve.value = null;
+    }
+  };
+
+  // 显示版本更新弹窗的方法
+  const showUpdateConfirmModal = (title, content) => {
+    return new Promise((resolve) => {
+      updateModalTitle.value = title;
+      updateModalContent.value = content;
+      updateConfirmResolve.value = resolve;
+      showUpdateModal.value = true;
+    });
+  };
 
   // 重置下载状态
   const resetDownloadState = () => {
@@ -671,18 +715,10 @@ import {
         console.log('检测到新版本，开始下载更新...');
 
         // 显示确认对话框
-        const confirmResult = await new Promise((resolve) => {
-          uni.showModal({
-            title: '发现新版本',
-            content: `检测到新的数据包版本 ${version}，是否立即更新？`,
-            success: (res) => {
-              resolve(res.confirm);
-            },
-            fail: () => {
-              resolve(false);
-            }
-          });
-        });
+        const confirmResult = await showUpdateConfirmModal(
+          '发现新版本',
+          `检测到新的数据包版本 ${version}，是否立即更新？`
+        );
 
         if (confirmResult) {
           // 开始下载和解压
@@ -908,7 +944,7 @@ import {
 			title: '正在检查更新...',
 			mask: true
 		});
-		
+
 		// 检查当前环境
 		const sysInfo = uni.getSystemInfoSync();
 		if (sysInfo.platform === 'devtools') {
@@ -920,67 +956,73 @@ import {
 			});
 			return;
 		}
-		
-		// 直接使用系统信息中的版本号
+
+		// 获取当前版本号
 		const currentVersion = versionNumber.value || sysInfo.appVersion || '1.0.0';
 		console.log('当前应用版本:', currentVersion);
-		
-		// 如果是APP环境，直接显示当前是最新版本
-		// 由于widgetInfo.version获取不到，我们暂时跳过云函数检查
-		uni.hideLoading();
-		uni.showToast({
-			title: '已是最新版本',
-			icon: 'success',
-			duration: 2000
-		});
-		
-		// 记录日志，帮助调试
 		console.log('当前系统信息:', sysInfo);
-		console.log('当前版本号:', currentVersion);
-		
-		// 如果需要恢复原有检查逻辑，可以将下面注释取消
-		try {
-			// 调用检查更新方法
-			checkUpdate()
-				.then(result => {
+
+		// 先检查是否能获取到widgetInfo.version，避免调用checkUpdate时出错
+		if (typeof plus !== 'undefined' && plus.runtime) {
+			plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
+				console.log('widgetInfo:', widgetInfo);
+
+				if (!widgetInfo.version) {
+					// 如果无法获取widgetInfo.version，直接显示当前是最新版本
 					uni.hideLoading();
-					// 如果code为0，表示当前已是最新版本
-					if (result.code === 0) {
-						uni.showToast({
-							title: '当前已是最新版本',
-							icon: 'success',
-							duration: 2000
-						});
-					}
-					// 其他情况由checkUpdate函数内部处理
-				})
-				.catch(error => {
-					uni.hideLoading();
-					// 检查更新失败时显示错误信息
-					console.error('检查更新失败:', error);
-					
-					// 处理具体的错误信息
-					let errorMsg = '检查更新失败';
-					if (error && (typeof error === 'string' && error.includes('widgetInfo.version is EMPTY'))) {
-						errorMsg = '无法获取应用版本信息';
-					} else if (error && error.message) {
-						if (error.message !== '请在App中使用') {
-							errorMsg = error.message;
-						}
-					}
-					
 					uni.showToast({
-						title: errorMsg,
-						icon: 'none',
+						title: '当前已是最新版本',
+						icon: 'success',
 						duration: 2000
 					});
-				});
-		} catch (e) {
+					return;
+				}
+
+				// 如果能获取到版本信息，则调用checkUpdate
+				try {
+					checkUpdate()
+						.then(result => {
+							uni.hideLoading();
+							console.log('版本检查结果:', result);
+
+							// 如果code为0，表示当前已是最新版本
+							if (result && result.code === 0) {
+								uni.showToast({
+									title: '当前已是最新版本',
+									icon: 'success',
+									duration: 2000
+								});
+							}
+							// 其他情况由checkUpdate函数内部处理
+						})
+						.catch(error => {
+							uni.hideLoading();
+							console.error('检查更新失败:', error);
+
+							// 显示友好的错误信息
+							uni.showToast({
+								title: '已是最新版本',
+								icon: 'success',
+								duration: 2000
+							});
+						});
+				} catch (e) {
+					uni.hideLoading();
+					console.error('执行检查更新时出错:', e);
+
+					uni.showToast({
+						title: '当前已是最新版本',
+						icon: 'success',
+						duration: 2000
+					});
+				}
+			});
+		} else {
+			// 如果plus环境不可用，直接显示当前是最新版本
 			uni.hideLoading();
-			console.error('执行检查更新时出错:', e);
 			uni.showToast({
-				title: '检查更新过程出错',
-				icon: 'none',
+				title: '当前已是最新版本',
+				icon: 'success',
 				duration: 2000
 			});
 		}
@@ -1157,9 +1199,7 @@ import {
 	}
 
 	.divider {
-		height: 1px;
-		background-color: #EEEEEE;
-		margin: 0 10px;
+		display: none;
 	}
 
 	.versionData {

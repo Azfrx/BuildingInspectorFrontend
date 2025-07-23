@@ -77,6 +77,24 @@
 			</view>
 		</view>
 	</view>
+
+	<!-- 下载确认弹窗 -->
+	<downLoadWindow
+		:visible="showDownloadModal"
+		:title="downloadModalTitle"
+		:content="downloadModalContent"
+		@confirm="handleDownloadConfirm"
+		@cancel="handleDownloadCancel"
+	/>
+
+	<!-- 版本更新弹窗 -->
+	<updateVersionWindow
+		:visible="showUpdateModal"
+		:title="updateModalTitle"
+		:content="updateModalContent"
+		@confirm="handleUpdateConfirm"
+		@cancel="handleUpdateCancel"
+	/>
 </template>
 
 <script setup>
@@ -135,6 +153,10 @@ import {
 	} from '@/utils/deleteFolder.js';
 	// 导入saveZipAndStorePath函数
 	import { saveZipAndStorePath } from '@/utils/write.js';
+// 导入下载确认弹窗组件
+import downLoadWindow from '@/components/downLoadWindow.vue';
+// 导入版本更新弹窗组件
+import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	// 引入下载器
 	const { downloadProgress, unzipProgress, resetProgress, currentTaskId } = useDownloader();
@@ -148,7 +170,73 @@ import {
 
 	// 添加进度条ID管理
 	const currentProgressId = ref(null); // 当前页面的进度条ID
+
+	// 下载确认弹窗相关变量
+	const showDownloadModal = ref(false);
+	const downloadModalTitle = ref('需要下载数据包');
+	const downloadModalContent = ref('');
+	const downloadConfirmResolve = ref(null); // 用于Promise的resolve函数
+
+	// 版本更新弹窗相关变量
+	const showUpdateModal = ref(false);
+	const updateModalTitle = ref('发现新版本');
+	const updateModalContent = ref('');
+	const updateConfirmResolve = ref(null); // 用于Promise的resolve函数
 	
+	// 下载确认弹窗处理方法
+	const handleDownloadConfirm = () => {
+		showDownloadModal.value = false;
+		if (downloadConfirmResolve.value) {
+			downloadConfirmResolve.value(true);
+			downloadConfirmResolve.value = null;
+		}
+	};
+
+	const handleDownloadCancel = () => {
+		showDownloadModal.value = false;
+		if (downloadConfirmResolve.value) {
+			downloadConfirmResolve.value(false);
+			downloadConfirmResolve.value = null;
+		}
+	};
+
+	// 显示下载确认弹窗的方法
+	const showDownloadConfirmModal = (title, content) => {
+		return new Promise((resolve) => {
+			downloadModalTitle.value = title;
+			downloadModalContent.value = content;
+			downloadConfirmResolve.value = resolve;
+			showDownloadModal.value = true;
+		});
+	};
+
+	// 版本更新弹窗处理方法
+	const handleUpdateConfirm = () => {
+		showUpdateModal.value = false;
+		if (updateConfirmResolve.value) {
+			updateConfirmResolve.value(true);
+			updateConfirmResolve.value = null;
+		}
+	};
+
+	const handleUpdateCancel = () => {
+		showUpdateModal.value = false;
+		if (updateConfirmResolve.value) {
+			updateConfirmResolve.value(false);
+			updateConfirmResolve.value = null;
+		}
+	};
+
+	// 显示版本更新弹窗的方法
+	const showUpdateConfirmModal = (title, content) => {
+		return new Promise((resolve) => {
+			updateModalTitle.value = title;
+			updateModalContent.value = content;
+			updateConfirmResolve.value = resolve;
+			showUpdateModal.value = true;
+		});
+	};
+
 	// 获取当前日期字符串 (格式: YY-MM-DD)
 	function getCurrentDateStr() {
 		const now = new Date();
@@ -304,18 +392,10 @@ import {
 	      console.log('本地版本为空，首次安装，需要下载数据包');
 
 	      // 显示下载确认对话框
-	      const confirmResult = await new Promise((resolve) => {
-	        uni.showModal({
-	          title: '需要下载数据包',
-	          content: `检测到当前用户需要下载数据包 ${dirNew}，是否立即下载？`,
-	          success: (res) => {
-	            resolve(res.confirm);
-	          },
-	          fail: () => {
-	            resolve(false);
-	          }
-	        });
-	      });
+	      const confirmResult = await showDownloadConfirmModal(
+	        '需要下载数据包',
+	        `检测到当前用户需要下载数据包 ${dirNew}，是否立即下载？`
+	      );
 
 	      if (confirmResult) {
 	        // 开始下载和解压，传递处理后的版本名（不含.zip）
@@ -346,18 +426,10 @@ import {
 	      console.log('本地版本:', dirOld);
 
 	      // 显示确认对话框，包含版本信息
-	      const confirmResult = await new Promise((resolve) => {
-	        uni.showModal({
-	          title: '发现新版本',
-	          content: `检测到新的数据包版本 ${dirNew}，是否立即更新？`,
-	          success: (res) => {
-	            resolve(res.confirm);
-	          },
-	          fail: () => {
-	            resolve(false);
-	          }
-	        });
-	      });
+	      const confirmResult = await showUpdateConfirmModal(
+	        '发现新版本',
+	        `检测到新的数据包版本 ${dirNew}，是否立即更新？`
+	      );
 	
 	      if (confirmResult) {
 	        // 开始下载和解压，传递处理后的版本名（不含.zip）
