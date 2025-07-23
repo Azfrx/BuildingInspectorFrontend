@@ -971,7 +971,7 @@ import {
 					// 如果无法获取widgetInfo.version，直接显示当前是最新版本
 					uni.hideLoading();
 					uni.showToast({
-						title: '当前已是最新版本',
+						title: '已是最新版本',
 						icon: 'success',
 						duration: 2000
 					});
@@ -988,7 +988,7 @@ import {
 							// 如果code为0，表示当前已是最新版本
 							if (result && result.code === 0) {
 								uni.showToast({
-									title: '当前已是最新版本',
+									title: '已是最新版本',
 									icon: 'success',
 									duration: 2000
 								});
@@ -1011,7 +1011,7 @@ import {
 					console.error('执行检查更新时出错:', e);
 
 					uni.showToast({
-						title: '当前已是最新版本',
+						title: '已是最新版本',
 						icon: 'success',
 						duration: 2000
 					});
@@ -1021,7 +1021,7 @@ import {
 			// 如果plus环境不可用，直接显示当前是最新版本
 			uni.hideLoading();
 			uni.showToast({
-				title: '当前已是最新版本',
+				title: '已是最新版本',
 				icon: 'success',
 				duration: 2000
 			});

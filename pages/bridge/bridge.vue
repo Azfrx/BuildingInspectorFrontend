@@ -70,7 +70,7 @@
 					<view class="text-group">
 						<text class="bridge-status"
 							:class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>
-						<text class="bridge-progress">{{`0/${getTasksNumber(item.id)}`||'0/0' }}</text>
+						<text class="bridge-progress">{{ filteredProjectsTasks.length > 0 ? `0/${getTasksNumber(item.id)}` : '加载中...' }}</text>
 					</view>
 					<image src="/static/image/RightOutline.svg" mode="scaleToFill" />
 				</view>
@@ -1662,7 +1662,22 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 						console.log('获取到项目数据，项目数量:', projectsData.length);
 						
 						// 处理项目任务
-						await getProjectsTasks(projectsData);
+						console.log('开始处理项目任务，项目数量:', projectsData.length);
+						console.log('当前用户信息:', {
+							username: userInfo.username,
+							hadUsername: userInfo.hadUsername
+						});
+
+						// 检查是否是离线模式（有hadUsername）
+						if (userInfo.hadUsername) {
+							console.log('离线模式：使用hadUsername获取任务数据');
+							await getProjectsTasksByHadUsername(projectsData, userInfo.hadUsername);
+						} else {
+							console.log('在线模式：使用username获取任务数据');
+							await getProjectsTasks(projectsData);
+						}
+
+						console.log('任务数据处理完成，filteredProjectsTasks长度:', filteredProjectsTasks.value.length);
 						
 						// 提取并处理年份
 						const repeatYears = projectsData
@@ -1738,6 +1753,35 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	});
 	const filteredProjectsTasks = ref([])
 
+	// 创建一个计算属性来映射项目ID到任务数量
+	const projectTasksMap = computed(() => {
+		console.log('计算属性 projectTasksMap 被调用，filteredProjectsTasks长度:', filteredProjectsTasks.value.length);
+		const map = new Map();
+		if (Array.isArray(filteredProjectsTasks.value)) {
+			filteredProjectsTasks.value.forEach(item => {
+				console.log(`添加到map: 项目${item.projectId} -> ${item.tastsNumber}个任务`);
+				map.set(item.projectId, item.tastsNumber || 0);
+			});
+		}
+		console.log('计算属性 projectTasksMap 完成，map大小:', map.size);
+		return map;
+	});
+
+	// 同步获取任务数量的函数
+	const getTasksNumber = (id) => {
+		const result = projectTasksMap.value.get(id) || 0;
+		console.log(`getTasksNumber for id ${id}: ${result} (type: ${typeof result})`);
+		return result;
+	};
+
+	// 监听 filteredProjectsTasks 的变化
+	watch(filteredProjectsTasks, (newVal) => {
+		console.log('filteredProjectsTasks 更新:', newVal.length, '个项目');
+		newVal.forEach(item => {
+			console.log(`项目 ${item.projectId}: ${item.tastsNumber} 个任务`);
+		});
+	}, { deep: true });
+
 	//获取year的函数
 	// const getYear = (objects[]) => {
 	// 	for (int i = 0; i < objects.length; i++) {
@@ -1769,12 +1813,21 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	};
 
 	const getProjectsTasks = async (projects) => {
+		// 清空之前的数据，避免重复
+		filteredProjectsTasks.value = [];
+
 		for (const item of projects) {
 			try {
 				//读取本地task
+				console.log(`正在获取项目 ${item.id} 的任务数据，用户名: ${userInfo.username}`);
 				const taskGetWithProjectId = await getTask(userInfo.username, item.id)
+				console.log(`项目 ${item.id} 的原始任务数据:`, taskGetWithProjectId);
+				console.log(`项目 ${item.id} 的tasks部分:`, taskGetWithProjectId?.tasks);
+				console.log(`项目 ${item.id} 的tasks类型:`, typeof taskGetWithProjectId?.tasks);
+				console.log(`项目 ${item.id} 的tasks是否为数组:`, Array.isArray(taskGetWithProjectId?.tasks));
 				// 确保data和tasks存在
-				const tasksCount = taskGetWithProjectId?.data?.tasks?.length || 0;
+				const tasksCount = taskGetWithProjectId?.tasks?.length || 0;
+				console.log(`项目 ${item.id} 解析后的任务数量: ${tasksCount}`);
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
 					tastsNumber: tasksCount
@@ -1792,12 +1845,18 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	}
 
 	const getProjectsTasksByHadUsername = async (projects, hadUsername) => {
+		// 清空之前的数据，避免重复
+		filteredProjectsTasks.value = [];
+
 		for (const item of projects) {
 			try {
 				//读取本地task
+				console.log(`正在获取项目 ${item.id} 的任务数据，hadUsername: ${hadUsername}`);
 				const taskGetWithProjectId = await getTaskByHadUsername(hadUsername, item.id)
+				console.log(`项目 ${item.id} 的原始任务数据:`, taskGetWithProjectId);
 				// 确保data和tasks存在
 				const tasksCount = taskGetWithProjectId?.data?.tasks?.length || 0;
+				console.log(`项目 ${item.id} 解析后的任务数量: ${tasksCount}`);
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
 					tastsNumber: tasksCount
@@ -1814,15 +1873,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		}
 	}
 
-	const getTasksNumber = (id) => {
-		// 确保filteredProjectsTasks.value是一个数组
-		if (!Array.isArray(filteredProjectsTasks.value)) {
-			return 0;
-		}
-		
-		const project = filteredProjectsTasks.value.find(item => item.projectId === id);
-		return project ? project.tastsNumber : 0;
-	}
+
 
 	// 获取状态文本
 	const getStatusText = (status) => {
