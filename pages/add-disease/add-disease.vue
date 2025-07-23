@@ -642,7 +642,7 @@
             <view class="part-title">上传简图</view>
             <view class="ADImages">
               <view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
-                <image :src="img.src" class="ADImage" />
+                <image :src="img.src" class="ADImage"  @click="previewImage(img.src)" />
                 <view class="close-btn" @click="removeImage(index)">×</view>
               </view>
               <view class="ADImage-container" @click="selectCanvasTemplate()">
@@ -1315,6 +1315,7 @@
 			}
 		});*/
   const previewImage = (url) => {
+    console.log('预览图片:', url)
 		uni.previewImage({
 			urls: [url],
 		});

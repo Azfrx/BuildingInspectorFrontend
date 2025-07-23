@@ -323,6 +323,8 @@
 				newDisease.projectId = idStorageInfo.projectId;
 				// 确保新复制出来的病害的copyId字段为空
 				newDisease.copyId = [];
+        newDisease.images = [];
+        newDisease.ADImgs = [];
 				newDisease.historyDiseaseId = disease.id;
 
 				// 将原始病害添加到allCopiedDiseases以便发送到current-disease

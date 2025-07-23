@@ -594,11 +594,13 @@
   }, { deep: true });
 
 	watch(() => crackTypeIndex.value, (newValue) => {
-		if (newValue === 5) {
-			showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0', '1', '1', '1', '0']
-		} else {
-			showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0', '1', '1', '1', '0']
-		}
+    if (crackTypeIndex.value === 5) {
+      showColumns.value = ['1', '0', '0', '1', '1', '0', '0', '0', '1', '1', '1', '0']
+    } else if(crackTypeIndex.value === 2) {
+      showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
+    }else{
+      showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
+    }
     clearDiseaseData();
 	})
 
@@ -620,9 +622,11 @@
 		console.log('showColumns:', showColumns.value)
     if(showColumns.value[0] == '1'){
       if (crackTypeIndex.value === 5) {
-        showColumns.value = ['1', '0', '0', '0', '1', '0', '0', '0', '1', '1', '1', '0']
-      } else {
-        showColumns.value = ['1', '1', '1', '0', '0', '0', '0', '0', '1', '1', '1', '0']
+        showColumns.value = ['1', '0', '0', '1', '1', '0', '0', '0', '1', '1', '1', '0']
+      } else if(crackTypeIndex.value === 2) {
+        showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
+      }else{
+        showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
       }
     }
 	}

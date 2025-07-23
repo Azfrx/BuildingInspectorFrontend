@@ -38,6 +38,7 @@
 					<view class="status" v-if="item.commitType === 3" style="background-color: #FFD24A; color: #ffffff;">未完成</view>
 					<view class="status" v-else-if="item.commitType === 1" style="background-color: #FF6430; color: #ffffff;">未提交</view>
 					<view class="status" v-else-if="item.commitType === 0" style="background-color: #00B578; color: #ffffff;">已提交</view>
+          <image v-if="hasADImgs" class="AD-icon" src="/static/image/ADIcon.png" mode="aspectFit"></image>
 					<image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
 				</view>
 			</view>
@@ -80,6 +81,7 @@
         </view>
       </view>
       <view class="status" v-if="item.copyId && item.copyId.length > 0" style="background-color: #00B578; color: #ffffff;">已复制</view>
+      <image v-if="hasADImgs" class="AD-icon" src="/static/image/ADIcon.png" mode="aspectFit"></image>
       <image v-if="hasImages" class="image-icon" src="/static/image/disease.png" mode="aspectFit"></image>
     </view>
   </view>
@@ -276,6 +278,10 @@ const hasImages = computed(() => {
   return props.item.images && props.item.images.length > 0;
 });
 
+const hasADImgs = computed(() => {
+  return props.item.ADImgs && props.item.ADImgs.length > 0;
+});
+
 </script>
 
 <style scoped>
@@ -403,7 +409,7 @@ const hasImages = computed(() => {
 .status {
 	position: absolute;
 	top: 0;
-	right: 45rpx;
+	right: 80rpx;
 	font-size: 14rpx;
 	color: #999999;
 	padding: 2rpx 6rpx;
@@ -411,12 +417,20 @@ const hasImages = computed(() => {
 	border-radius: 4rpx;
 }
 
-.image-icon {
+.AD-icon {
 	position: absolute;
 	top: 0;
 	right: 10rpx;
 	width: 25rpx;
 	height: 25rpx;
+}
+
+.image-icon{
+  position: absolute;
+  top: 0;
+  right: 45rpx;
+  width: 25rpx;
+  height: 25rpx;
 }
 
 </style>
