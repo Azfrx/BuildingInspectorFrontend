@@ -106,7 +106,7 @@
 				<view class="popup-buttons">
 					<button class="popup-btn cancel-btn" @click="closeEditPopup">取消</button>
 					<!-- <button class="popup-btn confirm-btn" @click="saveEdit">确定</button> -->
-					<button class="popup-btn confirm-btn" @click="confirmConfirm(currentEditItem.quantity)">确定</button>
+					<button class="popup-btn confirm-btn" @click="confirmConfirm()">确定</button>
 				</view>
 			</view>
 		</uni-popup>
@@ -135,7 +135,7 @@
 	import {setObject}  from '../utils/writeNew'
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
-import { setWarning, readWarning } from '../utils/warning';
+import { setWarning, readWarning, resetWarning } from '../utils/warning';
 import { setBuildingCommitted } from '../utils/isBuildingCommited';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
@@ -381,7 +381,7 @@ const refreshData = async () => {
   // 同步更新resultData
   resultData.value = structureData.value;
 
-  // 重新执行警告标志检查
+  // 重新执行警告标志检查（现在包含设置或重置全局警告标志）
   await warningFlag();
 
   // 检查所有警告状态
@@ -401,7 +401,7 @@ const refreshData = async () => {
 //     refreshData();
 //   }
 // });
-	const confirmConfirm = async (quantity) => {
+	const confirmConfirm = async () => {
 		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
 		saveEdit()
 
@@ -421,7 +421,7 @@ const refreshData = async () => {
 		console.log("selectedIndex.value",selectedIndex.value);
 		console.log("selectedSecondIndex.value",selectedSecondIndex.value);
 		console.log("selectedThirdIndex.value",selectedThirdIndex.value); */
-		resultData.value.children[selectedIndex.value].children[ selectedSecondIndex.value].children[selectedThirdIndex.value].count = quantity
+		// 不再需要传入quantity参数，因为已经在saveEdit中处理了
 		selectedThirdIndex.value = -1
 
 		// 直接存储数据到本地
@@ -436,7 +436,7 @@ const refreshData = async () => {
 			duration: 2000
 		});
 
-		// 执行warningFlag检查（现在包含设置全局警告标志）
+		// 执行warningFlag检查（现在包含设置或重置全局警告标志）
 		await warningFlag();
 		//更新编辑状态
 		// structureNumberInfo.incrementIsEdit();
@@ -517,10 +517,15 @@ const refreshData = async () => {
 
 			console.log('更新后的数据:', structureData.value)
 
-			// 如果有任何警告，设置全局警告标志
+			// 如果有任何警告，设置全局警告标志，否则重置警告标志
 			if (hasAnyWarning) {
 				console.log('检测到警告，设置全局警告标志');
 				await setGlobalWarningFlag();
+				globalWarning.value = true;
+			} else {
+				console.log('未检测到警告，重置全局警告标志');
+				await resetWarningFlag();
+				globalWarning.value = false;
 			}
 
 			// 强制更新视图
@@ -733,19 +738,19 @@ const refreshData = async () => {
 	// 	setObject(userInfo.username, TaskBridgeId.value, resultData.value);
 	// };
 
-	const setStatus = (e) => {
-		if (currentEditItem.value) {
-			// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
-			currentEditItem.value.status = e ? "0" : "1";
-			console.log('Switch toggled, new status:', currentEditItem.value.status);
+	// const setStatus = (e) => {
+	// 	if (currentEditItem.value) {
+	// 		// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
+	// 		currentEditItem.value.status = e ? "0" : "1";
+	// 		console.log('Switch toggled, new status:', currentEditItem.value.status);
 
-			// 如果状态改为停用("1")，则将数量直接置为0
-			if (currentEditItem.value.status === "1") {
-				currentEditItem.value.quantity = 0;
-				console.log('状态改为停用，数量自动置为0');
-			}
-		}
-	};
+	// 		// 如果状态改为停用("1")，则将数量直接置为0
+	// 		if (currentEditItem.value.status === "1") {
+	// 			currentEditItem.value.quantity = 0;
+	// 			console.log('状态改为停用，数量自动置为0');
+	// 		}
+	// 	}
+	// };
 
 	const saveEdit = () => {
 		const originalItem = thirdLevelItems.value.find(item => item.name === currentEditItem.value.name);
@@ -754,13 +759,12 @@ const refreshData = async () => {
 
 			// 如果状态为停用，确保数量为0
 			if (originalItem.status === "1") {
-				originalItem.quantity = 0;
+				originalItem.count = 0;
 			} else {
-				originalItem.quantity = Number(currentEditItem.value.quantity);
+				originalItem.count = Number(currentEditItem.value.count || 0);
 			}
 
-			// 直接更新count字段
-			originalItem.count = originalItem.status === "0" ? originalItem.quantity : 0;
+			// 直接更新count字段，不再使用quantity字段
 			console.log(`已更新${originalItem.name}的count为${originalItem.count}`);
 
 			// 更新resultData中对应的count字段
@@ -817,8 +821,7 @@ const refreshData = async () => {
 					const updateData = {
 						count: updatedItem.count,
 						status: updatedItem.status,
-						name: updatedItem.name,
-						quantity: updatedItem.quantity
+						name: updatedItem.name
 					};
 
 					// 将更新对象的属性复制到目标对象
@@ -955,6 +958,17 @@ const refreshData = async () => {
 			console.log('已设置全局警告标志');
 		} catch (error) {
 			console.error('设置全局警告标志失败:', error);
+		}
+	};
+
+	// 当没有警告时重置全局警告标志
+	const resetWarningFlag = async () => {
+		try {
+			await resetWarning(userInfo.username, TaskBridgeId.value);
+			globalWarning.value = false;
+			console.log('已重置全局警告标志');
+		} catch (error) {
+			console.error('重置全局警告标志失败:', error);
 		}
 	};
 

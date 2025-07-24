@@ -13,3 +13,8 @@ export async function readWarning(username, buildingId){
 		return false;
 	}
 }
+export async function resetWarning(username, buildingId){
+	const data = await getObjectUL(username,buildingId)
+	data.warning = false;
+	await setObject(username, buildingId, data);
+}
