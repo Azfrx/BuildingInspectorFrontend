@@ -22,7 +22,7 @@ export async function  checkUncommittedBuilding (username,buildingId) {
 }
 
 export async function setBuildingUnCommitted (username,projectId,buildingId) {
-    const taskData = await getTask(username, projectId);
+    const taskData = await getULTask(username, projectId);
     
     // 找到对应的任务项并设置 commited 字段为 0
     if (taskData && taskData.tasks) {

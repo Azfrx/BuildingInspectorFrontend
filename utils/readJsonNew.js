@@ -854,7 +854,7 @@ export async function isExistDisease(userName, buildingId, componentName) {
 		const currentYear = new Date().getFullYear().toString();
 
 		// 获取当前年份的病害数据
-		const diseaseData = await getDisease(userName, buildingId, currentYear);
+		const diseaseData = await getULDisease(userName, buildingId, currentYear);
 
 		// 检查数据是否有效
 		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {
@@ -882,7 +882,7 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 		const currentYear = new Date().getFullYear().toString();
 
 		// 获取当前年份的病害数据
-		const diseaseData = await getDisease(userName, buildingId, currentYear);
+		const diseaseData = await getULDisease(userName, buildingId, currentYear);
 
 		// 检查数据是否有效
 		if (!diseaseData || !diseaseData.diseases || !Array.isArray(diseaseData.diseases)) {

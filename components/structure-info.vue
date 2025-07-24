@@ -136,7 +136,7 @@
 	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
 	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
 import { setWarning, readWarning, resetWarning } from '../utils/warning';
-import { setBuildingCommitted } from '../utils/isBuildingCommited';
+  import {setBuildingCommitted, setBuildingUnCommitted} from '../utils/isBuildingCommited';
 	const structureData = ref(null);
 	const selectedIndex = ref(0);
 	const selectedSecondIndex = ref(0);
@@ -440,7 +440,7 @@ const refreshData = async () => {
 		await warningFlag();
 		//更新编辑状态
 		// structureNumberInfo.incrementIsEdit();
-		await setBuildingCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
+		await setBuildingUnCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
 		uni.$emit('setBuildingUnCommit',idInfo.buildingId)
 	};
 	const warningFlag = async () => {
