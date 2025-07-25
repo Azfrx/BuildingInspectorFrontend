@@ -400,9 +400,10 @@
 	};
 
 	const addNewDisease = () => {
+    const selectedGrandObject = tabItems.value[activeTab.value];
 		// 打开新增病害页面，不再传递类型参数
 		uni.navigateTo({
-			url: `/pages/add-disease/add-disease`
+			url: `/pages/add-disease/add-disease?selectedGrandObject=${selectedGrandObject}`
 		});
 	};
 

@@ -35,6 +35,14 @@
 					:localdata="crackTypeOptions"></uni-data-checkbox>
 			</view>
 		</view>
+    <view class="line-select" v-show="showColumns[0] == 1">
+      <view class="line-select-left">
+        <view>计算位置关系</view>
+      </view>
+      <view class="line-select-right">
+        <button class="input-right-button" @click="calculate">计算位置关系</button>
+      </view>
+    </view>
 
 		<!-- 使用v-for循环生成多组定量数据输入框 -->
 		<view v-for="(diseaseData, index) in diseaseDataList" :key="index" class="">
@@ -147,7 +155,8 @@
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length1 = ''">
 							</image>
 						</view>
-						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 3 || crackTypeIndex === 4">
+						<view class="quantitative-data-right-value length-input"
+							v-if="crackTypeIndex === 3 || crackTypeIndex === 4">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L2" type="number"
 								v-model="diseaseData.length2" placeholder-style="color: #CCCCCC;">
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length2 = ''">
@@ -299,6 +308,13 @@
 					<!-- 范围模式 -->
 					<!--					<template v-if="diseaseData.useRangeMode">-->
 					<view class="quantitative-data-right-range">
+						<picker class="area-picker" :range="areaPicker" @change="(e) => onAreaChange(e, index)"
+							v-if="diseaseData.useRangeMode">
+							<view class="area-picker-input"
+								:style="!diseaseData.areaIdentifier ? 'color: #CCCCCC;' : ''">
+								{{diseaseData.areaIdentifier === 1 ? '平均' : diseaseData.areaIdentifier === 2 ? '总计' : '请选择'}}</view>
+							<text class="picker-icon">&gt;</text>
+						</picker>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
 								v-model="diseaseData.areaLength" placeholder-style="color: #CCCCCC;">
@@ -533,6 +549,13 @@
 	])
 	const crackTypeIndex = ref(0);
 
+	const areaPicker = ref(['平均', '总计'])
+	const onAreaChange = (e, diseaseIndex) => {
+		const index = e.detail.value;
+		// 更新指定缺损的areaIdentifier值
+		diseaseDataList.value[diseaseIndex].areaIdentifier = index + 1; // 因为索引从0开始，而我们需要1和2的值
+	}
+
 	/*	const developmentTrend = ref([{
 				text: '稳定',
 				value: 0
@@ -572,12 +595,42 @@
 
 	const showColumns = ref([])
 
-  watch(() => diseaseDataList.value, (newList) => {
+  const threshold = ref(1)
+
+	/*watch(() => diseaseDataList.value, (newList) => {
+		if (showColumns.value[0] === '1') {
+			if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2) {
+				newList.forEach((diseaseData, index) => {
+					// 计算参考面1的长度
+					if (diseaseData.reference1LocationStart !== null && diseaseData
+						.reference1LocationEnd !== null && diseaseData.reference2LocationStart !== null &&
+						diseaseData.reference2LocationEnd !== null) {
+						const x1 = parseFloat(diseaseData.reference1LocationStart);
+						const y1 = parseFloat(diseaseData.reference2LocationStart);
+						const x2 = parseFloat(diseaseData.reference1LocationEnd);
+						const y2 = parseFloat(diseaseData.reference2LocationEnd);
+						if (!isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
+							const dx = x2 - x1;
+							const dy = y2 - y1;
+							diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
+						}
+					}
+				});
+			}
+		}
+	}, {
+		deep: true
+	});*/
+
+  const calculate = () => {
     if (showColumns.value[0] === '1') {
       if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2) {
-        newList.forEach((diseaseData, index) => {
+        diseaseDataList.value.forEach((diseaseData, index) => {
           // 计算参考面1的长度
-          if (diseaseData.reference1LocationStart !== null && diseaseData.reference1LocationEnd !== null && diseaseData.reference2LocationStart !== null && diseaseData.reference2LocationEnd !== null) {
+          if (diseaseData.reference1LocationStart !== '' && diseaseData
+                  .reference1LocationEnd !== '' && diseaseData.reference2LocationStart !== '' &&
+              diseaseData.reference2LocationEnd !== '') {
+            console.log('计算长度')
             const x1 = parseFloat(diseaseData.reference1LocationStart);
             const y1 = parseFloat(diseaseData.reference2LocationStart);
             const x2 = parseFloat(diseaseData.reference1LocationEnd);
@@ -587,21 +640,56 @@
               const dy = y2 - y1;
               diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
             }
+            if(crackTypeIndex.value === 2){
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1);
+            }
+          }
+          else if(diseaseData.reference1LocationStart !== '' && diseaseData.reference2LocationStart !== '' && diseaseData.length1 !== ''){
+            console.log('计算终点')
+            if(crackTypeIndex.value === 0){
+              diseaseData.reference1LocationEnd = ((parseFloat(diseaseData.reference1LocationStart)) + (parseFloat(diseaseData.length1))).toFixed(2);
+              diseaseData.reference2LocationEnd = parseFloat(diseaseData.reference2LocationStart).toFixed(2);
+            }
+            else if(crackTypeIndex.value === 1){
+              diseaseData.reference1LocationEnd = parseFloat(diseaseData.reference1LocationStart).toFixed(2);
+              diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1)).toFixed(2);
+            }
+            else if(crackTypeIndex.value === 2 && diseaseData.angle !== ''){
+              diseaseData.reference1LocationEnd = (parseFloat(diseaseData.reference1LocationStart) + parseFloat(diseaseData.length1) * Math.cos(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+              diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1) * Math.sin(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+            }
+          }
+          else if(diseaseData.reference1LocationEnd !== '' && diseaseData.reference2LocationEnd !== '' && diseaseData.length1 !== ''){
+            console.log('计算起点')
+            if(crackTypeIndex.value === 0){
+              diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd) - parseFloat(diseaseData.length1).toFixed(2);
+              diseaseData.reference2LocationStart = parseFloat(diseaseData.reference2LocationEnd).toFixed(2);
+            }
+            else if(crackTypeIndex.value === 1){
+              diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd).toFixed(2);
+              diseaseData.reference2LocationStart = (parseFloat(diseaseData.reference2LocationEnd) - parseFloat(diseaseData.length1)).toFixed(2);
+            }
+            else if(crackTypeIndex.value === 2 && diseaseData.angle !== ''){
+              diseaseData.reference1LocationStart = (parseFloat(diseaseData.reference1LocationEnd) - parseFloat(diseaseData.length1) * Math.cos(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+              diseaseData.reference2LocationStart = (parseFloat(diseaseData.reference2LocationEnd) - parseFloat(diseaseData.length1) * Math.sin(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+            }
           }
         });
       }
     }
-  }, { deep: true });
+  };
 
 	watch(() => crackTypeIndex.value, (newValue) => {
-    if (crackTypeIndex.value === 5) {
-      showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
-    } else if(crackTypeIndex.value === 2) {
-      showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
-    }else{
-      showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
-    }
-    clearDiseaseData();
+		if (crackTypeIndex.value === 5) {
+			showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
+		} else if (crackTypeIndex.value === 2) {
+			showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
+		} else {
+			showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
+		}
+		clearDiseaseData();
 	})
 
 	// 添加onMounted处理可能的初始值
@@ -613,28 +701,32 @@
 		uni.$on('setDiseaseDataList', setDiseaseDataList);
 		uni.$on('setCrackType', setCrackType);
 		uni.$on('setSelectColumn', setSelectColumn)
-    uni.$on('clearDiseaseData', clearDiseaseData)
+		uni.$on('clearDiseaseData', clearDiseaseData)
+    uni.$on('setThreshold', setThreshold)
 	})
+  const setThreshold = (thresholdnum) => {
+    threshold.value = thresholdnum
+  }
 	const setSelectColumn = (emitSelectColumn) => {
 		console.log('setSelectColumn:', emitSelectColumn)
 		selectedColumn.value = emitSelectColumn || 0
 		showColumns.value = selectedColumn.value.toString(2).padStart(12, '0').split('').reverse();
 		console.log('showColumns:', showColumns.value)
-    if(showColumns.value[0] == '1'){
-      if (crackTypeIndex.value === 5) {
-        showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
-      } else if(crackTypeIndex.value === 2) {
-        showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
-      }else{
-        showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
-      }
-    }
+		if (showColumns.value[0] == '1') {
+			if (crackTypeIndex.value === 5) {
+				showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
+			} else if (crackTypeIndex.value === 2) {
+				showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
+			} else {
+				showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
+			}
+		}
 	}
-  const clearDiseaseData = () => {
-    diseaseDataList.value = []
-    updateDiseaseDataList(1)
-    quantity.value = 1
-  }
+	const clearDiseaseData = () => {
+		diseaseDataList.value = []
+		updateDiseaseDataList(1)
+		quantity.value = 1
+	}
 
 	const setCrackType = (crack) => {
 		crackTypeIndex.value = crackTypeOptions.value.findIndex(item => item.text === crack)
@@ -670,8 +762,8 @@
 		if (isNaN(numValue) || numValue <= 0) {
 			// 如果输入无效，设为默认值1
 			updateDiseaseDataList(1);
-		} else if (numValue >= 10) {
-			// 限制最大数量为10，并且使用范围输入模式
+		} else if (numValue >= threshold.value) {
+			// 限制最大数量为阈值，并且使用范围输入模式
 			quantity.value = numValue;
 			updateDiseaseDataList(numValue);
 		} else {
@@ -688,10 +780,10 @@
 		const newList = [];
 
 		// 自动判断是否使用范围模式
-		const useRangeMode = count >= 10;
+		const useRangeMode = count >= threshold.value;
 		console.log(`数量: ${count}, 使用范围模式: ${useRangeMode}`);
 
-		// 如果数量大于等于10，只创建一条记录，使用范围模式
+		// 如果数量大于等于阈值，只创建一条记录，使用范围模式
 		if (useRangeMode) {
 			// 如果已有数据，尝试保留第一条的值作为范围的起始值
 			const firstItem = existingData.length > 0 ? existingData[0] : null;
@@ -715,6 +807,7 @@
 				crackWidthRangeEnd: firstItem?.crackWidthRangeEnd || '',
 				areaLength: firstItem?.areaLength || '',
 				areaWidth: firstItem?.areaWidth || '',
+				areaIdentifier: firstItem?.areaIdentifier || '',
 				deformationRangeStart: firstItem?.deformationRangeStart || firstItem?.deformation || '',
 				deformationRangeEnd: firstItem?.deformationRangeEnd || '',
 				angleRangeStart: firstItem?.angleRangeStart || firstItem?.angle || '',
@@ -723,8 +816,8 @@
 				denominatorRatio: firstItem?.denominatorRatio || '',
 				// 保留原有字段为空
 				length1: '',
-        length2: '',
-        length3: '',
+				length2: '',
+				length3: '',
 				// width: '',
 				heightDepth: '',
 				crackWidth: '',
@@ -754,13 +847,14 @@
 							reference2LocationEnd: existingData[i].reference2LocationEnd || '',
 							// 使用Min值作为普通模式的值
 							length1: existingData[i].lengthRangeStart || '',
-              length2: existingData[i].lengthRangeEnd || '',
-              length3: existingData[i].lengthRangeEnd || '',
+							length2: existingData[i].lengthRangeEnd || '',
+							length3: existingData[i].lengthRangeEnd || '',
 							// width: existingData[i].widthRangeStart || '',
 							heightDepth: existingData[i].heightDepthRangeStart || '',
 							crackWidth: existingData[i].crackWidthRangeStart || '',
 							areaLength: existingData[i].areaLength || '',
 							areaWidth: existingData[i].areaWidth || '',
+              areaIdentifier: existingData[i].areaIdentifier || '',
 							deformation: existingData[i].deformationRangeStart || '',
 							angle: existingData[i].angleRangeStart || '',
 							// percentage: existingData[i].numeratorRatio || '',
@@ -784,13 +878,14 @@
 						reference2LocationStart: '',
 						reference2LocationEnd: '',
 						length1: '',
-            length2: '',
-            length3: '',
+						length2: '',
+						length3: '',
 						// width: '',
 						crackWidth: '',
 						heightDepth: '',
 						areaLength: '',
 						areaWidth: '',
+						areaIdentifier: '',
 						deformation: '',
 						angle: '',
 						numeratorRatio: '',
@@ -1126,7 +1221,7 @@
 		align-items: center;
 		width: 100%;
 		justify-content: space-between;
-    padding: 0rpx 30rpx;
+		padding: 0rpx 30rpx;
 	}
 
 	.location-description-popup-input {
@@ -1157,7 +1252,7 @@
 	.location-description-position-popup-input3 {
 		margin-top: 10rpx;
 		font-size: 20rpx;
-    padding: 0rpx 30rpx;
+		padding: 0rpx 30rpx;
 	}
 
 	.location-description-position-popup-input3-item {
@@ -1200,17 +1295,49 @@
 	.input-text {
 		font-size: 18rpx;
 	}
-  .length-input{
-    margin-left: 10rpx;
-  }
-  .location-description-position-popup-title{
-    background-color: #BDCBE0;
-    font-size: 20rpx;
-    padding: 8rpx 0rpx;
-    text-align: center; /* 添加水平居中 */
-  }
-  .clear-icon {
-    width: 18rpx;
-    height: 18rpx;
+
+	.length-input {
+		margin-left: 10rpx;
+	}
+
+	.location-description-position-popup-title {
+		background-color: #BDCBE0;
+		font-size: 20rpx;
+		padding: 8rpx 0rpx;
+		text-align: center;
+		/* 添加水平居中 */
+	}
+
+	.clear-icon {
+		width: 18rpx;
+		height: 18rpx;
+	}
+
+	.area-picker {
+		border: 1px solid #ccc;
+		display: flex;
+		margin-right: 10rpx;
+		padding: 4rpx 5px;
+		align-items: center;
+	}
+
+	.area-picker-input {
+		flex: 1;
+		margin-right: 20rpx;
+		white-space: nowrap;
+		/* 不换行 */
+	}
+
+	.picker-icon {
+		color: #CCCCCC;
+		font-size: 20rpx;
+	}
+  .input-right-button {
+    background-color: #0F4687;
+    border-radius: 5rpx;
+    color: #fff;
+    margin-left: auto;
+    padding: 0 14rpx;
+    font-size: 16rpx;
   }
 </style>

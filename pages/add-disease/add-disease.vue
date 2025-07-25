@@ -32,7 +32,7 @@
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
 		<view class="form-container">
 
-			<disease-information :structureData="structureData" ref="diseaseInformationRef"> </disease-information>
+			<disease-information :structureData="structureData" :selectedGrandObject="selectedGrandObject" ref="diseaseInformationRef"> </disease-information>
 
 			<disease-quantitative-data ref="diseaseQuantitativeDataRef">
 			</disease-quantitative-data>
@@ -819,6 +819,9 @@
 	const popup = ref(null);
 	const ADImgs = ref([]);
 
+  // 选择进入的构件（上部结构、下部结构、桥面系）
+  const selectedGrandObject = ref('');
+
 	// 保存结构数据
 	const structureData = ref(null);
 	// 保存构件名称的父亲，即picker的第二级
@@ -1328,6 +1331,8 @@
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
+    selectedGrandObject.value = options.selectedGrandObject;
+    console.log('设置grandObject', selectedGrandObject.value)
 
 		// 初始化构件名称多级选择器
 		// initMultiPickerColumns();
@@ -1653,6 +1658,7 @@
           crackWidthRangeEnd: detail.crackWidthRangeEnd || '',
           areaLength: detail.areaLength || '',
           areaWidth: detail.areaWidth || '',
+          areaIdentifier: detail.areaIdentifier || '',
           deformationRangeStart: detail.deformationRangeStart || '',
           deformationRangeEnd: detail.deformationRangeEnd || '',
           angleRangeStart: detail.angleRangeStart || '',
@@ -1690,6 +1696,7 @@
             crackWidth: detail.crackWidth || '',
             areaLength: detail.areaLength || '',
             areaWidth: detail.areaWidth || '',
+            areaIdentifier: detail.areaIdentifier || '',
             deformation: detail.deformation || '',
             angle: detail.angle || '',
             // percentage: detail.percentage || '',
@@ -1995,6 +2002,7 @@
 				crackWidthRangeEnd: rangeData.crackWidthRangeEnd || '',
 				areaLength: rangeData.areaLength || '',
 				areaWidth: rangeData.areaWidth || '',
+        areaIdentifier: rangeData.areaIdentifier || '',
 				deformationRangeStart: rangeData.deformationRangeStart || '',
 				deformationRangeEnd: rangeData.deformationRangeEnd || '',
 				angleRangeStart: rangeData.angleRangeStart || '',
@@ -2031,6 +2039,7 @@
 					angle: item.angle || '',
 					areaLength: item.areaLength,
 					areaWidth: item.areaWidth,
+          areaIdentifier: item.areaIdentifier,
 					numeratorRatio: item.numeratorRatio,
 					denominatorRatio: item.denominatorRatio,
 					// percentage: item.percentage || '',

@@ -145,6 +145,7 @@
               <view class="popup-input2-firstPart-picker" :style="!codeFirstPart ? 'color: #CCCCCC;' : ''">{{codeFirstPart || 'L'}}</view>
               <text class="picker-icon">&gt;</text>
             </picker>
+            <text>-</text>
             <view class="popup-input2-secondPart">
               <input type="number" v-model="codeSecondPart" placeholder="0" placeholder-style="color: #CCCCCC;">
               <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeSecondPart = '' "></image>
@@ -159,6 +160,11 @@
               <input type="number" v-model="codeFourthPart" placeholder="0" placeholder-style="color: #CCCCCC;"></input>
               <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeFourthPart = '' "></image>
             </view>
+            <text>-</text>
+            <view class="popup-input2-fifthPart">
+              <input type="number" v-model="codeFifthPart" placeholder="0" placeholder-style="color: #CCCCCC;"></input>
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="codeFifthPart = '' "></image>
+            </view>
           </view>
         </view>
         <view class="popup-button">
@@ -171,24 +177,24 @@
 </template>
 
 <script setup>
-	// 保存结构数据
-	import {
-		computed,
-		onMounted,
-		ref,
-		watch
-	} from "vue";
+// 保存结构数据
+import {computed, onMounted, ref, watch} from "vue";
 
-	const props = defineProps({
+const props = defineProps({
 		structureData: {
 			type: Object,
-		}
+		},
+    selectedGrandObject:{
+      type: String,
+    }
 	});
 
 
 
 	// 直接赋值（静态副本）
 	const structureData = ref(null)
+
+  const selectedGrandObject = ref('')
 
 	// 保存构件名称的父亲，即picker的第二级
 	const parentObjectName = ref(''); // 默认值
@@ -247,6 +253,7 @@
   const codeSecondPart = ref('');
   const codeThirdPart = ref('');
   const codeFourthPart = ref('');
+  const codeFifthPart = ref('');
   //构件编号弹窗
   const componentCodePopup = ref(null);
 
@@ -254,7 +261,21 @@
 	watch(() => props.structureData, (newVal) => {
 		console.log('structureData 更新:', newVal)
 		if (newVal) {
-			structureData.value = JSON.parse(JSON.stringify(newVal)) // 深拷贝避免引用问题
+			structureData.value = JSON.parse(JSON.stringify(newVal))
+      if (structureData.value && structureData.value.children) {
+        // 更新第一列数据为structureData中的children的name数组
+        const firstColumnData = structureData.value.children.map(item => item.name);
+        structureTypes.value = firstColumnData;
+        typeMultiArray.value[0] = firstColumnData;
+
+        // 如果第一列索引超出范围，重置为0
+        if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
+          typeMultiIndex.value[0] = 0;
+        }
+      }
+      if(props.selectedGrandObject){
+        typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === props.selectedGrandObject);
+      }// 深拷贝避免引用问题
 			initMultiPickerColumns()
 		}
 	}, {
@@ -301,16 +322,20 @@
   }
   // 监听 input2 的四个部分，只要有变化就自动拼接
   watch(
-      [codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart],
+      [codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart, codeFifthPart],
       () => {
         console.log('input2变化:', codeFirstPart.value, codeSecondPart.value, codeThirdPart.value, codeFourthPart.value)
 
         // 构建各部分并根据前置条件添加分隔符
         const parts = [];
 
-        // 处理第二部分（codeSecondPart）
+        // 处理第二部分（codeSecondPart），如果前面有有效部分则加'-'
         if (codeSecondPart.value !== '') {
-          parts.push(codeSecondPart.value);
+          if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '')) {
+            parts.push('-' + codeSecondPart.value);
+          } else {
+            parts.push(codeSecondPart.value);
+          }
         }
 
         // 处理第三部分（codeThirdPart），如果前面有有效部分则加'-'
@@ -331,6 +356,15 @@
           }
         }
 
+        // 处理第五部分（codeFifthPart），如果前面有有效部分则加'-'
+        if (codeFifthPart.value !== '') {
+          if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '' || codeThirdPart.value !== '' || codeFourthPart.value !== '') {
+            parts.push('-' + codeFifthPart.value);
+          } else {
+            parts.push(codeFifthPart.value);
+          }
+        }
+
         // 拼接格式化部分
         const formattedParts = parts.join('');
         console.log('formattedParts', formattedParts)
@@ -348,8 +382,25 @@
 		// 如果父组件在挂载前已传递数据
 		if (props.structureData) {
 			structureData.value = JSON.parse(JSON.stringify(props.structureData))
+      if (structureData.value && structureData.value.children) {
+        // 更新第一列数据为structureData中的children的name数组
+        const firstColumnData = structureData.value.children.map(item => item.name);
+        structureTypes.value = firstColumnData;
+        typeMultiArray.value[0] = firstColumnData;
+
+        // 如果第一列索引超出范围，重置为0
+        if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
+          typeMultiIndex.value[0] = 0;
+        }
+      }
+      if(props.selectedGrandObject){
+        typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === props.selectedGrandObject);
+      }
 			initMultiPickerColumns()
 		}
+    /*if(props.selectedGrandObject){
+      typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === grandObjectName.value);
+    }*/
 		// uni.$on('setComponentName', (emitParam) => {
 		// 	componentNamePicker.value = emitParam
 		// });
@@ -505,7 +556,7 @@
 	// 初始化三级选择器的列数据
 	const initMultiPickerColumns = () => {
 		// 首先从structureData中获取第一列数据
-		if (structureData.value && structureData.value.children) {
+		/*if (structureData.value && structureData.value.children) {
 			// 更新第一列数据为structureData中的children的name数组
 			const firstColumnData = structureData.value.children.map(item => item.name);
 			structureTypes.value = firstColumnData;
@@ -516,6 +567,11 @@
 				typeMultiIndex.value[0] = 0;
 			}
 		}
+    if(props.selectedGrandObject){
+      console.log('props.selectedGrandObject',props.selectedGrandObject)
+      typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === props.selectedGrandObject);
+      console.log('typeMultiIndex.value[0]',typeMultiIndex.value[0])
+    }*/
 
 		// 根据第一列当前选中项更新第二列的数据
 		const structureType = typeMultiArray.value[0][typeMultiIndex.value[0]];
@@ -864,6 +920,9 @@
 		// 获取选中的病害类型对象
 		// const selectedDiseaseType = allDiseaseTypes.find(item => item.name === typePicker.value);
 		const selectedDiseaseType = allDiseaseTypes.find(item => item.id === diseaseTypeId);
+    if(selectedDiseaseType && selectedDiseaseType.threshold){
+      uni.$emit('setThreshold', selectedDiseaseType.threshold)
+    }
 		if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
 			// 根据maxScale和minScale更新评定标度选项
 			const minScale = parseInt(selectedDiseaseType.minScale) || 1;
@@ -912,6 +971,9 @@
 			// 获取选中的病害类型对象
 			const selectedDiseaseType = allDiseaseTypes[typeindex.value];
 			console.log('selectedDiseaseType获取选中的病害类型对象:', selectedDiseaseType);
+      if(selectedDiseaseType.threshold){
+        uni.$emit('setThreshold', selectedDiseaseType.threshold)
+      }
 			if (selectedDiseaseType && selectedDiseaseType.maxScale && selectedDiseaseType.minScale) {
 				// 根据maxScale和minScale更新评定标度选项
 				const minScale = parseInt(selectedDiseaseType.minScale) || 1;
@@ -1244,7 +1306,8 @@
   .popup-input2-firstPart {
     border: 1px solid #ccc;
     display: flex;
-    padding: 4rpx 10px;
+    margin-right: 5rpx;
+    padding: 4rpx 5px;
     align-items: center;
   }
   .popup-input2-firstPart-picker{
@@ -1255,22 +1318,29 @@
   .popup-input2-secondPart{
     border: 1px solid #ccc;
     display: flex;
-    margin: 0 10rpx;
-    padding: 5rpx 10px;
+    margin: 0 5rpx;
+    padding: 5rpx 5px;
     align-items: center;
   }
   .popup-input2-thirdPart{
     border: 1px solid #ccc;
     display: flex;
-    margin: 0 10rpx;
-    padding: 5rpx 10px;
+    margin: 0 5rpx;
+    padding: 5rpx 5px;
     align-items: center;
   }
   .popup-input2-forthPart{
     border: 1px solid #ccc;
     display: flex;
-    margin-left: 10rpx;
-    padding: 5rpx 10px;
+    margin: 0 5rpx;
+    padding: 5rpx 5px;
+    align-items: center;
+  }
+  .popup-input2-fifthPart{
+    border: 1px solid #ccc;
+    display: flex;
+    margin-left: 5rpx;
+    padding: 5rpx 5px;
     align-items: center;
   }
   .popup-button{
