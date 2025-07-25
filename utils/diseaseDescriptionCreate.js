@@ -16,7 +16,7 @@ function generateDiseaseDescription(data) {
 	// 仅显示名称部分
 	const componentNameOnly = componentName.split('#')[1];
 
-	let description = `${componentCode}#${componentName}${diseaseType}${count > 0 ? `${count}条` : ''}，${diseasePosition}`;
+	let description = `${componentCode}#${componentName}${diseaseType}${counts > 0 ? `${counts}条` : ''}，${diseasePosition}`;
 	if (showColumns[0] == 1 && crackType) description += `${crackType}裂缝`;
 	let descriptionArr = [];
 
@@ -31,6 +31,13 @@ function generateDiseaseDescription(data) {
 			}
 			if (showColumns[1] == 1 && item.length1) {
 				descriptionArr.push(`长度：${item.length1}m`);
+				if(crackType === 'L型'){
+					descriptionArr.push(`长度：${item.length2}m`);
+				}
+				if(crackType === 'U型'){
+					descriptionArr.push(`长度：${item.length2}m`);
+					descriptionArr.push(`长度：${item.length3}m`);
+				}
 			}
 			if (showColumns[2] == 1 && item.crackWidth) {
 				descriptionArr.push(`缝宽：${item.crackWidth}mm`);
