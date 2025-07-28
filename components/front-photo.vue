@@ -100,6 +100,7 @@
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
 	import MyPhotoPicker from "@/components/myPhotoPicker.vue";
+	import {ButtonStore} from '@/store/button.js';
 
 	// 接收父组件传递的数据加载状态
 	const props = defineProps({
@@ -125,10 +126,13 @@
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
+	const buttonInfo = ButtonStore()
 
 	watch(() => props.activeTabTop, (newval, oldval) => {
 		if (newval == 2) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+			// 隐藏图片信息按钮，确保在front-photo页面不显示
+			buttonInfo.reback();
 			readBridgeImageByJson();
 		}
 	})
@@ -520,6 +524,8 @@
 
 	// 组件挂载时
 	onMounted(async () => {
+		// 隐藏图片信息按钮，确保在front-photo页面不显示
+		buttonInfo.reback();
 		// 只有当数据加载完成时才读取图片数据
 		await readBridgeImageByJson();
 	});

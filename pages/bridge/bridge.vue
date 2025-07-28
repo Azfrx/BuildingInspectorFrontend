@@ -350,10 +350,15 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    infoData.value = userInfo.infoData;
 
 	    if (!infoData.value.token) {
-	      uni.showToast({
-	        title: '登录信息无效，请重新登录',
-	        icon: 'none'
-	      });
+			const responseLogin = await uni.request({
+			  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+			  		method: 'POST'
+			  	});
+			infoData.value.token = responseLogin.data.token;
+	      // uni.showToast({
+	      //   title: '登录信息无效，请重新登录',
+	      //   icon: 'none'
+	      // });
 	      return;
 	    }
 
@@ -1587,10 +1592,15 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				}
 			} else {
 				console.error('未获取到有效token');
-				uni.showToast({
-					title: '登录信息无效，请重新登录',
-					icon: 'none'
-				});
+				const responseLogin = await uni.request({
+				  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				  		method: 'POST'
+				  	});
+				infoData.value.token = responseLogin.data.token;
+				// uni.showToast({
+				// 	title: '登录信息无效，请重新登录',
+				// 	icon: 'none'
+				// });
 			}
 		} catch (error) {
 			// 离线登录逻辑

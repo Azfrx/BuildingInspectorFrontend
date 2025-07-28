@@ -466,10 +466,10 @@ const refreshData = async () => {
 				if (level === 3) {
 					const diseaseNumber = Number(node.diseaseNumber || 0);
 					const count = Number(node.count || 0);
-					console.log('第三层节点:', node.name, 'diseaseNumber:', diseaseNumber, 'count:', count)
+					// console.log('第三层节点:', node.name, 'diseaseNumber:', diseaseNumber, 'count:', count)
 					if (diseaseNumber > count) {
 						node.flag = true
-						console.log('设置警告:', node.name, 'flag:', node.flag)
+						// console.log('设置警告:', node.name, 'flag:', node.flag)
 						hasAnyWarning = true; // 标记有警告
 						return true
 					} else {
@@ -490,10 +490,10 @@ const refreshData = async () => {
 				// 如果子节点有warning，当前节点也设置flag
 				if (hasWarning) {
 					node.flag = true
-					console.log('父节点设置警告:', node.name, 'level:', level, 'flag:', node.flag)
+					// console.log('父节点设置警告:', node.name, 'level:', level, 'flag:', node.flag)
 				} else {
 					node.flag = false
-					console.log('父节点无警告:', node.name, 'level:', level, 'flag:', node.flag)
+					// console.log('父节点无警告:', node.name, 'level:', level, 'flag:', node.flag)
 				}
 
 				return hasWarning

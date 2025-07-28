@@ -676,10 +676,16 @@ import {
       infoData.value = userInfo.infoData;
 
       if (!infoData.value.token) {
-        uni.showToast({
-          title: '登录信息无效，请重新登录',
-          icon: 'none'
-        });
+		  // 先获取token
+		  	const responseLogin = await uni.request({
+		  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+		  		method: 'POST'
+		  	});
+		infoData.value.token = responseLogin.data.token;
+        // uni.showToast({
+        //   title: '登录信息无效，请重新登录',
+        //   icon: 'none'
+        // });
         return;
       }
 
@@ -756,7 +762,6 @@ import {
 				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
 				method: 'POST'
 			});
-
 			if (!responseLogin.data || !responseLogin.data.token) {
 				uni.hideLoading();
 				// 如果无法获取token，清理用户数据并跳转到登录页面
@@ -966,7 +971,7 @@ import {
 		if (typeof plus !== 'undefined' && plus.runtime) {
 			plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
 				console.log('widgetInfo:', widgetInfo);
-
+				console.log('widgetInfo。version:', widgetInfo.version);
 				if (!widgetInfo.version) {
 					// 如果无法获取widgetInfo.version，直接显示当前是最新版本
 					uni.hideLoading();
@@ -1000,31 +1005,31 @@ import {
 							console.error('检查更新失败:', error);
 
 							// 显示友好的错误信息
-							uni.showToast({
-								title: '已是最新版本',
-								icon: 'success',
-								duration: 2000
-							});
+							// uni.showToast({
+							// 	title: '已是最新版本',
+							// 	icon: 'success',
+							// 	duration: 2000
+							// });
 						});
 				} catch (e) {
 					uni.hideLoading();
 					console.error('执行检查更新时出错:', e);
 
-					uni.showToast({
-						title: '已是最新版本',
-						icon: 'success',
-						duration: 2000
-					});
+					// uni.showToast({
+					// 	title: '已是最新版本',
+					// 	icon: 'success',
+					// 	duration: 2000
+					// });
 				}
 			});
 		} else {
 			// 如果plus环境不可用，直接显示当前是最新版本
 			uni.hideLoading();
-			uni.showToast({
-				title: '已是最新版本',
-				icon: 'success',
-				duration: 2000
-			});
+			// uni.showToast({
+			// 	title: '已是最新版本',
+			// 	icon: 'success',
+			// 	duration: 2000
+			// });
 		}
 	}
 
