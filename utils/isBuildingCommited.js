@@ -45,7 +45,7 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
             }
         }
     }
-    
+    uni.$emit('setButtonUnCommited')
     await setTask(username, projectId, taskData);
 }
 
@@ -73,7 +73,7 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
             }
         }
     }
-
+    uni.$emit('setButtonCommited')
     await setTask(username, projectId, taskData);
 }
 

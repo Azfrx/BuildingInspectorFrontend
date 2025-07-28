@@ -1,5 +1,18 @@
 <template>
 	<view class="container">
+
+		<view class="bridge-info">
+			<view class="bridge-info-content">
+				<view class="bridge-info-content-left">
+					<view class="bridge-info-content-left-title">{{bridgeName}}</view>
+					<view class="bridge-info-content-left-content">
+						{{bridgeCode}}/{{routeCode}}/{{routeName}}/{{bridgePileNumber}}</view>
+				</view>
+				<view class="bridge-info-content-right">
+					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测按钮</button>
+				</view>
+			</view>
+		</view>
 		<!-- 顶部导航栏 -->
 		<view class="tabs">
 			<view v-for="(tab, index) in tabs" :key="index" :class="['tab-item', activeTab === index ? 'active' : '']"
@@ -23,21 +36,21 @@
 				<history-disease :activeTabTop="activeTab"></history-disease>
 			</view>
 			<view v-show="activeTab === 2">
-        <!-- 正面立照内容 -->
-        <front-photo :activeTabTop="activeTab"></front-photo>
+				<!-- 正面立照内容 -->
+				<front-photo :activeTabTop="activeTab"></front-photo>
 			</view>
 			<view v-show="activeTab === 3">
-        <!-- 现状照 -->
-        <current-photo :activeTabTop="activeTab"></current-photo>
+				<!-- 现状照 -->
+				<current-photo :activeTabTop="activeTab"></current-photo>
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
 				<structure-info :activeTabTop="activeTab"></structure-info>
 			</view>
-      <view v-show="activeTab === 5">
-        <!-- 桥梁卡片内容 -->
-        <bridge-archive :activeTabTop="activeTab"></bridge-archive>
-      </view>
+			<view v-show="activeTab === 5">
+				<!-- 桥梁卡片内容 -->
+				<bridge-archive :activeTabTop="activeTab"></bridge-archive>
+			</view>
 		</view>
 	</view>
 </template>
@@ -54,7 +67,46 @@
 		onMounted,
 		onUnmounted
 	} from 'vue';
-  import CurrentPhoto from "@/components/current-photo.vue";
+	import CurrentPhoto from "@/components/current-photo.vue";
+	import {
+		getTask,
+		isUnFinishDisease
+	} from "@/utils/readJsonNew";
+	import {
+		readWarning
+	} from "@/utils/warning";
+	import {
+		saveBridgeZip,
+		setDisease
+	} from "@/utils/writeNew";
+	import {
+		setFrontPhotoCommited
+	} from "@/utils/frontPhoto";
+	import {
+		setCommit1
+	} from "@/utils/CurrentPhoto";
+	import {
+		isBuildingCommited,
+		setBuildingCommitted
+	} from "@/utils/isBuildingCommited";
+	import {
+		userStore
+	} from "@/store";
+	import {
+		idStore
+	} from "@/store/idStorage";
+
+	const idStorageInfo = idStore();
+	const userInfo = userStore();
+
+	// 控制提交按钮是否可点击
+	const submitButtonEnabled = ref(false);
+
+	const bridgeName = ref('');
+	const bridgeCode = ref('');
+	const bridgePileNumber = ref('');
+	const routeCode = ref('');
+	const routeName = ref('');
 
 	// 定义导航标签
 	const tabs = ref([{
@@ -67,15 +119,15 @@
 		{
 			name: '正立面照',
 		},
-    {
-      name: '现状照'
-    },
+		{
+			name: '现状照'
+		},
 		{
 			name: '结构信息',
 		},
-    {
-      name: '桥梁卡片',
-    }
+		{
+			name: '桥梁卡片',
+		}
 	]);
 
 	// 当前活动标签
@@ -84,7 +136,7 @@
 	// 切换标签的方法
 	const switchTab = (index) => {
 		activeTab.value = index;
-		
+
 		// 当切换到结构信息标签时，发送页面显示事件
 		if (index === 4) {
 			setTimeout(() => {
@@ -103,18 +155,225 @@
 		};
 	});
 
+	const readBridgeInfo = async () => {
+		const taskData = await getTask(userInfo.username, idStorageInfo.projectId);
+		let buildingTask;
+		for (buildingTask of taskData.tasks) {
+			if (buildingTask.buildingId === idStorageInfo.buildingId) {
+				bridgeName.value = buildingTask.building.name;
+				bridgeCode.value = buildingTask.building.buildingCode;
+				bridgePileNumber.value = buildingTask.building.bridgePileNumber;
+				routeName.value = buildingTask.building.routeName;
+				routeCode.value = buildingTask.building.routeCode;
+			}
+		}
+	};
+
+	const setButtonUnCommited = () => {
+		submitButtonEnabled.value = true;
+	};
+	const setButtonCommited = () => {
+		submitButtonEnabled.value = false;
+	};
+
 	// 组件挂载时
 	onMounted(() => {
-		// 如果直接切换到正立面照标签，需要确保桥梁卡片组件已经加载
-		if (activeTab.value === 3) {
-			// 先切换到桥梁卡片标签，触发数据加载
-			activeTab.value = 2;
-			// 延迟后再切回正立面照标签
-			setTimeout(() => {
-				activeTab.value = 3;
-			}, 100);
-		}
+		checkUncommitted();
+		readBridgeInfo();
+		uni.$on('setButtonUnCommited', setButtonUnCommited)
+		uni.$on('setButtonCommited', setButtonCommited)
 	});
+
+	onUnmounted(() => {
+		uni.$off('setButtonUnCommited')
+		uni.$off('setButtonCommited')
+	})
+
+	// 检查是否有未提交的病害记录
+	const checkUncommitted = async () => {
+		try {
+			const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId,
+				idStorageInfo.buildingId);
+			if (isBuildingCommit === 0) submitButtonEnabled.value = true;
+			else submitButtonEnabled.value = false;
+		} catch (error) {
+			console.error('检查未提交病害出错:', error);
+			submitButtonEnabled.value = false;
+		}
+	};
+
+	const submitZip = async () => {
+		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
+		const currentYear = new Date().getFullYear().toString();
+		uni.showLoading({
+			title: '正在提交',
+			mask: true
+		});
+		const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId,
+			currentYear)
+		if (hasUnFinishDisease) {
+			uni.showToast({
+				title: '有未完成的病害',
+				icon: 'none'
+			});
+			return;
+		}
+		uni.showLoading({
+			title: '正在提交',
+			mask: true
+		});
+		const warning = await readWarning(userInfo.username, idStorageInfo.buildingId);
+		if (warning === true) {
+			uni.showToast({
+				title: '结构信息错误',
+				icon: 'none'
+			});
+			return;
+		}
+		try {
+			// 显示压缩中的加载提示
+			uni.showLoading({
+				title: '正在提交',
+				mask: true
+			});
+
+			// 等待压缩完成
+			const zipFilePath = await saveBridgeZip(userInfo.username, idStorageInfo.buildingId);
+			console.log('压缩完成，文件路径:', zipFilePath);
+
+			// 更新加载提示为登录中
+			uni.showLoading({
+				title: '正在提交',
+				mask: true
+			});
+
+			const responseLogin = await uni.request({
+				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				method: 'POST'
+			});
+
+			if (!responseLogin.data || !responseLogin.data.token) {
+				uni.hideLoading();
+				uni.showToast({
+					title: '获取授权失败',
+					icon: 'none'
+				});
+				return;
+			}
+
+			const token = responseLogin.data.token;
+			console.log('授权成功，开始上传文件', zipFilePath);
+
+			// 更新加载提示为上传中
+			uni.showLoading({
+				title: '正在提交',
+				mask: true
+			});
+
+			// 调用文件上传API
+			const response = await uni.uploadFile({
+				url: `http://60.205.13.156:8090/api/upload/bridgeData`,
+				filePath: zipFilePath,
+				name: 'file', // 后端接收文件的参数名（根据后端API文档确定）
+				header: {
+					'Authorization': token
+				},
+			});
+
+			// 隐藏加载提示
+			uni.hideLoading();
+
+			console.log('后端响应:', response.data);
+
+			// 解析响应数据
+			let responseData;
+			try {
+				responseData = JSON.parse(response.data);
+			} catch (e) {
+				responseData = response.data;
+			}
+
+			if (responseData && responseData.code === 0) {
+				uni.$emit('submitSuccess');
+				/*// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
+				let hasChanges = false;
+				const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
+				// 如果有记录被过滤掉，标记为有变化
+				if (filteredDiseaseList.length !== diseaseList.value.length) {
+				  hasChanges = true;
+				}
+
+				filteredDiseaseList.forEach(disease => {
+				  if (disease.commitType === 1) {
+				    disease.commitType = 0;
+				    hasChanges = true;
+				  }
+				});
+				diseaseList.value = filteredDiseaseList;
+
+				// 如果有更改，保存更新后的数据
+				if (hasChanges) {
+				  const currentYear = new Date().getFullYear().toString();
+
+				  // 构建要保存的数据对象
+				  const saveData = {
+				    year: parseInt(currentYear),
+				    buildingId: parseInt(idStorageInfo.buildingId),
+				    diseases: diseaseList.value
+				  };
+
+				  try {
+				    // 保存更新后的数据
+				    await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
+				    console.log('成功更新病害提交状态');
+				  } catch (error) {
+				    console.error('更新病害提交状态失败:', error);
+				  }
+				}*/
+				await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
+				// 更新加载提示为上传中
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
+				// await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
+				// 更新加载提示为上传中
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
+				await setCommit1(userInfo.username, idStorageInfo.buildingId)
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
+				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+				submitButtonEnabled.value = false;
+
+				uni.showToast({
+					title: '提交成功',
+					icon: 'success',
+					duration: 2000
+				});
+			} else {
+				uni.showToast({
+					title: responseData?.msg || '提交失败',
+					icon: 'none'
+				});
+			}
+
+		} catch (error) {
+			// 发生错误时隐藏加载提示
+			uni.hideLoading();
+
+			console.error('提交数据错误:', error);
+			uni.showToast({
+				title: '提交数据出错，请稍后重试',
+				icon: 'none'
+			});
+		}
+	};
 </script>
 
 <style>
@@ -174,5 +433,40 @@
 		text-align: center;
 		color: #666;
 		font-size: 28rpx;
+	}
+
+	.bridge-info {
+		background-color: #BDCBE0;
+		padding: 10rpx;
+	}
+
+	.bridge-info-content {
+		padding: 10rpx;
+		border: 1rpx solid #0F4687;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.bridge-info-content-left {}
+
+	.bridge-info-content-left-title {
+		font-size: 20rpx;
+		font-weight: 700;
+		color: #333333;
+	}
+
+	.bridge-info-content-left-content {
+		font-size: 16rpx;
+		color: #666666;
+	}
+
+	.submit-button {
+		background-color: #0F4687;
+		color: white;
+		font-size: 15rpx;
+		height: 36rpx;
+		line-height: 26rpx;
+		padding: 5rpx 10rpx;
 	}
 </style>

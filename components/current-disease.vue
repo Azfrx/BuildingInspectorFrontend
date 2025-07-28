@@ -7,7 +7,7 @@
 					@confirm="search" @input="handleSearchInput" />
 			</view>
 
-			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交检测结果</button>
+			<!--			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交检测结果</button>-->
 			<button class="add-button" @click="addNewDisease">新增病害</button>
 		</view>
 
@@ -44,12 +44,13 @@
 		watch,
 		onUnmounted
 	} from 'vue';
-  import {
-    getULDisease,
-    isExistDisease,
-    isOnlyDisease, isUnFinishDisease,
-    readDiseaseCommit
-  } from '../utils/readJsonNew.js';
+	import {
+		getULDisease,
+		isExistDisease,
+		isOnlyDisease,
+		isUnFinishDisease,
+		readDiseaseCommit
+	} from '../utils/readJsonNew.js';
 	import {
 		markObjectAsCommitted,
 		saveBridgeZip,
@@ -68,12 +69,20 @@
 		decrementDiseaseNumber,
 		incrementDiseaseNumber
 	} from "@/utils/diseaseNumber";
-/*	import {
-		structureStore
-	} from "@/store/structureNumberStorage";*/
-  import {isBuildingCommited, setBuildingCommitted, setBuildingUnCommitted} from "@/utils/isBuildingCommited";
-  import {setCommit1} from "@/utils/CurrentPhoto";
-  import {readWarning} from "@/utils/warning";
+	/*	import {
+			structureStore
+		} from "@/store/structureNumberStorage";*/
+	import {
+		isBuildingCommited,
+		setBuildingCommitted,
+		setBuildingUnCommitted
+	} from "@/utils/isBuildingCommited";
+	import {
+		setCommit1
+	} from "@/utils/CurrentPhoto";
+	import {
+		readWarning
+	} from "@/utils/warning";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -122,12 +131,12 @@
 			console.log('病害数据加载完成:', diseaseList.value);
 		} catch (error) {
 			console.error('读取当前病害数据失败,创建当前病害json:', error);
-      const currentYear = new Date().getFullYear().toString();
-      await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, {
-        year: parseInt(currentYear),
-        buildingId: parseInt(idStorageInfo.buildingId),
-        diseases: []
-      });
+			const currentYear = new Date().getFullYear().toString();
+			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, {
+				year: parseInt(currentYear),
+				buildingId: parseInt(idStorageInfo.buildingId),
+				diseases: []
+			});
 		}
 	};
 
@@ -171,16 +180,17 @@
 				icon: 'success'
 			});*/
 			// await checkUncommittedDiseases();
-      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      if(hasUncommittedDiseases) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }
-      /*else{
-        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }*/
-      await checkUncommitted();
+			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
+				currentYear);
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			}
+			/*else{
+			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+			}*/
+			await checkUncommitted();
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
 			uni.showToast({
@@ -251,15 +261,16 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('删除标记保存成功');
-      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      if(hasUncommittedDiseases) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }else{
-        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }
-      await checkUncommitted();
+			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
+				currentYear);
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			} else {
+				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+			}
+			await checkUncommitted();
 		} catch (error) {
 			console.error('保存删除失败:', error);
 			uni.showToast({
@@ -326,16 +337,17 @@
 
 			console.log('更新数据保存成功');
 			// await checkUncommittedDiseases();
-      const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      if(hasUncommittedDiseases) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }
-      /*else{
-        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }*/
-      await checkUncommitted();
+			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
+				currentYear);
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			}
+			/*else{
+			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+			}*/
+			await checkUncommitted();
 		} catch (error) {
 			console.error('保存更新数据失败:', error);
 			uni.showToast({
@@ -363,11 +375,11 @@
 			if (searchText.value) {
 				// 将搜索文本按空格分词
 				const keywords = searchText.value.trim().split(/\s+/);
-				return keywords.some(keyword => 
-					(item.description?.includes(keyword) || 
-					item.type?.includes(keyword) || 
-					item.biObjectName?.includes(keyword) || 
-					item.position?.includes(keyword))
+				return keywords.some(keyword =>
+					(item.description?.includes(keyword) ||
+						item.type?.includes(keyword) ||
+						item.biObjectName?.includes(keyword) ||
+						item.position?.includes(keyword))
 				);
 			}
 
@@ -400,183 +412,183 @@
 	};
 
 	const addNewDisease = () => {
-    const selectedGrandObject = tabItems.value[activeTab.value];
+		const selectedGrandObject = tabItems.value[activeTab.value];
 		// 打开新增病害页面，不再传递类型参数
 		uni.navigateTo({
 			url: `/pages/add-disease/add-disease?selectedGrandObject=${selectedGrandObject}`
 		});
 	};
 
-	const submitZip = async () => {
-		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
-    const currentYear = new Date().getFullYear().toString();
-    uni.showLoading({
-      title: '正在提交',
-      mask: true
-    });
-    const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId, currentYear)
-    if(hasUnFinishDisease){
-      uni.showToast({
-        title: '有未完成的病害',
-        icon: 'none'
-      });
-      return;
-    }
-    uni.showLoading({
-      title: '正在提交',
-      mask: true
-    });
-    const warning = await readWarning(userInfo.username, idStorageInfo.buildingId);
-    if(warning === true) {
-      uni.showToast({
-        title: '结构信息错误',
-        icon: 'none'
-      });
-      return;
-    }
-		try {
-			// 显示压缩中的加载提示
-			uni.showLoading({
-				title: '正在提交',
-				mask: true
-			});
-
-			// 等待压缩完成
-			const zipFilePath = await saveBridgeZip(userInfo.username, idStorageInfo.buildingId);
-			console.log('压缩完成，文件路径:', zipFilePath);
-
-			// 更新加载提示为登录中
-			uni.showLoading({
-				title: '正在提交',
-				mask: true
-			});
-
-			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-				method: 'POST'
-			});
-
-			if (!responseLogin.data || !responseLogin.data.token) {
-				uni.hideLoading();
-				uni.showToast({
-					title: '获取授权失败',
-					icon: 'none'
-				});
-				return;
-			}
-
-			const token = responseLogin.data.token;
-			console.log('授权成功，开始上传文件', zipFilePath);
-
-			// 更新加载提示为上传中
-			uni.showLoading({
-				title: '正在提交',
-				mask: true
-			});
-
-			// 调用文件上传API
-			const response = await uni.uploadFile({
-				url: `http://60.205.13.156:8090/api/upload/bridgeData`,
-				filePath: zipFilePath,
-				name: 'file', // 后端接收文件的参数名（根据后端API文档确定）
-				header: {
-					'Authorization': token
-				},
-			});
-
-			// 隐藏加载提示
-			uni.hideLoading();
-
-			console.log('后端响应:', response.data);
-
-			// 解析响应数据
-			let responseData;
+	/*	const submitZip = async () => {
+			console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
+	    const currentYear = new Date().getFullYear().toString();
+	    uni.showLoading({
+	      title: '正在提交',
+	      mask: true
+	    });
+	    const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId, currentYear)
+	    if(hasUnFinishDisease){
+	      uni.showToast({
+	        title: '有未完成的病害',
+	        icon: 'none'
+	      });
+	      return;
+	    }
+	    uni.showLoading({
+	      title: '正在提交',
+	      mask: true
+	    });
+	    const warning = await readWarning(userInfo.username, idStorageInfo.buildingId);
+	    if(warning === true) {
+	      uni.showToast({
+	        title: '结构信息错误',
+	        icon: 'none'
+	      });
+	      return;
+	    }
 			try {
-				responseData = JSON.parse(response.data);
-			} catch (e) {
-				responseData = response.data;
-			}
+				// 显示压缩中的加载提示
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
 
-			if (responseData && responseData.code === 0) {
-				// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
-				let hasChanges = false;
-				const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
-				// 如果有记录被过滤掉，标记为有变化
-				if (filteredDiseaseList.length !== diseaseList.value.length) {
-					hasChanges = true;
+				// 等待压缩完成
+				const zipFilePath = await saveBridgeZip(userInfo.username, idStorageInfo.buildingId);
+				console.log('压缩完成，文件路径:', zipFilePath);
+
+				// 更新加载提示为登录中
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
+
+				const responseLogin = await uni.request({
+					url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+					method: 'POST'
+				});
+
+				if (!responseLogin.data || !responseLogin.data.token) {
+					uni.hideLoading();
+					uni.showToast({
+						title: '获取授权失败',
+						icon: 'none'
+					});
+					return;
 				}
 
-				filteredDiseaseList.forEach(disease => {
-					if (disease.commitType === 1) {
-						disease.commitType = 0;
+				const token = responseLogin.data.token;
+				console.log('授权成功，开始上传文件', zipFilePath);
+
+				// 更新加载提示为上传中
+				uni.showLoading({
+					title: '正在提交',
+					mask: true
+				});
+
+				// 调用文件上传API
+				const response = await uni.uploadFile({
+					url: `http://60.205.13.156:8090/api/upload/bridgeData`,
+					filePath: zipFilePath,
+					name: 'file', // 后端接收文件的参数名（根据后端API文档确定）
+					header: {
+						'Authorization': token
+					},
+				});
+
+				// 隐藏加载提示
+				uni.hideLoading();
+
+				console.log('后端响应:', response.data);
+
+				// 解析响应数据
+				let responseData;
+				try {
+					responseData = JSON.parse(response.data);
+				} catch (e) {
+					responseData = response.data;
+				}
+
+				if (responseData && responseData.code === 0) {
+					// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
+					let hasChanges = false;
+					const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
+					// 如果有记录被过滤掉，标记为有变化
+					if (filteredDiseaseList.length !== diseaseList.value.length) {
 						hasChanges = true;
 					}
-				});
-				diseaseList.value = filteredDiseaseList;
 
-				// 如果有更改，保存更新后的数据
-				if (hasChanges) {
-					const currentYear = new Date().getFullYear().toString();
+					filteredDiseaseList.forEach(disease => {
+						if (disease.commitType === 1) {
+							disease.commitType = 0;
+							hasChanges = true;
+						}
+					});
+					diseaseList.value = filteredDiseaseList;
 
-					// 构建要保存的数据对象
-					const saveData = {
-						year: parseInt(currentYear),
-						buildingId: parseInt(idStorageInfo.buildingId),
-						diseases: diseaseList.value
-					};
+					// 如果有更改，保存更新后的数据
+					if (hasChanges) {
+						const currentYear = new Date().getFullYear().toString();
 
-					try {
-						// 保存更新后的数据
-						await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
-						console.log('成功更新病害提交状态');
-					} catch (error) {
-						console.error('更新病害提交状态失败:', error);
+						// 构建要保存的数据对象
+						const saveData = {
+							year: parseInt(currentYear),
+							buildingId: parseInt(idStorageInfo.buildingId),
+							diseases: diseaseList.value
+						};
+
+						try {
+							// 保存更新后的数据
+							await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
+							console.log('成功更新病害提交状态');
+						} catch (error) {
+							console.error('更新病害提交状态失败:', error);
+						}
 					}
-				}
-				await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
-        // 更新加载提示为上传中
-        uni.showLoading({
-          title: '正在提交',
-          mask: true
-        });
-				// await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
-        // 更新加载提示为上传中
-        uni.showLoading({
-          title: '正在提交',
-          mask: true
-        });
-        await setCommit1(userInfo.username, idStorageInfo.buildingId)
-        uni.showLoading({
-          title: '正在提交',
-          mask: true
-        });
-        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-        submitButtonEnabled.value = false;
+					await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
+	        // 更新加载提示为上传中
+	        uni.showLoading({
+	          title: '正在提交',
+	          mask: true
+	        });
+					// await markObjectAsCommitted(userInfo.username, idStorageInfo.buildingId);
+	        // 更新加载提示为上传中
+	        uni.showLoading({
+	          title: '正在提交',
+	          mask: true
+	        });
+	        await setCommit1(userInfo.username, idStorageInfo.buildingId)
+	        uni.showLoading({
+	          title: '正在提交',
+	          mask: true
+	        });
+	        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+	        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+	        submitButtonEnabled.value = false;
 
+					uni.showToast({
+						title: '提交成功',
+						icon: 'success',
+						duration: 2000
+					});
+				} else {
+					uni.showToast({
+						title: responseData?.msg || '提交失败',
+						icon: 'none'
+					});
+				}
+
+			} catch (error) {
+				// 发生错误时隐藏加载提示
+				uni.hideLoading();
+
+				console.error('提交数据错误:', error);
 				uni.showToast({
-					title: '提交成功',
-					icon: 'success',
-					duration: 2000
-				});
-			} else {
-				uni.showToast({
-					title: responseData?.msg || '提交失败',
+					title: '提交数据出错，请稍后重试',
 					icon: 'none'
 				});
 			}
-
-		} catch (error) {
-			// 发生错误时隐藏加载提示
-			uni.hideLoading();
-
-			console.error('提交数据错误:', error);
-			uni.showToast({
-				title: '提交数据出错，请稍后重试',
-				icon: 'none'
-			});
-		}
-	};
+		};*/
 
 	// 检查是否有未提交的病害记录
 	const checkUncommitted = async () => {
@@ -591,17 +603,18 @@
 			console.log('检查未提交病害结果:', hasUncommittedDiseases);
 			console.log('检查未提交图片结果:', hasUncommmittedPhoto);
 			console.log('检查未提交结构信息结果:', hasUnCommitStructure)*/
-      const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-      if(isBuildingCommit === 0) submitButtonEnabled.value = true;
-      else submitButtonEnabled.value = false;
+			const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId,
+				idStorageInfo.buildingId);
+			if (isBuildingCommit === 0) submitButtonEnabled.value = true;
+			else submitButtonEnabled.value = false;
 			// submitButtonEnabled.value = !isBuildingCommit;
-      /*if(submitButtonEnabled.value) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }else{
-        await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-        uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
-      }*/
+			/*if(submitButtonEnabled.value) {
+			  await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+			  uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			}else{
+			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
+			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+			}*/
 		} catch (error) {
 			console.error('检查未提交病害出错:', error);
 			submitButtonEnabled.value = false;
@@ -616,43 +629,84 @@
 		deep: true
 	}); // 使用deep: true确保监听对象内部属性的变化
 
+	const submitSuccess = async () => {
+		// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
+		let hasChanges = false;
+		const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
+		// 如果有记录被过滤掉，标记为有变化
+		if (filteredDiseaseList.length !== diseaseList.value.length) {
+			hasChanges = true;
+		}
+
+		filteredDiseaseList.forEach(disease => {
+			if (disease.commitType === 1) {
+				disease.commitType = 0;
+				hasChanges = true;
+			}
+		});
+		diseaseList.value = filteredDiseaseList;
+
+		// 如果有更改，保存更新后的数据
+		if (hasChanges) {
+			const currentYear = new Date().getFullYear().toString();
+
+			// 构建要保存的数据对象
+			const saveData = {
+				year: parseInt(currentYear),
+				buildingId: parseInt(idStorageInfo.buildingId),
+				diseases: diseaseList.value
+			};
+
+			try {
+				// 保存更新后的数据
+				await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
+				console.log('成功更新病害提交状态');
+			} catch (error) {
+				console.error('更新病害提交状态失败:', error);
+			}
+		}
+	};
+
 	// 组件挂载时
-	onMounted( () => {
-    console.log('current-disease组件挂载，准备加载数据');
-    // 加载数据
-    loadCurrentYearDiseaseData();
-    console.log('diseaseList', diseaseList.value)
+	onMounted(() => {
+		console.log('current-disease组件挂载，准备加载数据');
+		// 加载数据
+		loadCurrentYearDiseaseData();
+		console.log('diseaseList', diseaseList.value)
 
-    // 添加新增病害事件监听
-    uni.$on('addNewDisease', addNewDiseaseData);
+		// 提交成功 将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
+		uni.$on('submitSuccess', submitSuccess);
 
-    // 添加删除病害事件监听
-    uni.$on('deleteDisease', handleDeleteDisease);
+		// 添加新增病害事件监听
+		uni.$on('addNewDisease', addNewDiseaseData);
 
-    // 添加更新病害事件监听
-    uni.$on('updateDisease', handleUpdateDisease);
+		// 添加删除病害事件监听
+		uni.$on('deleteDisease', handleDeleteDisease);
 
-    // 添加获取同类型病害列表的事件监听
-    uni.$on('getDiseasesOfType', (data) => {
-      if (!data || !data.grandObjectName || !data.callback) {
-        console.error('获取同类型病害列表参数不完整');
-        return;
-      }
+		// 添加更新病害事件监听
+		uni.$on('updateDisease', handleUpdateDisease);
 
-      // 过滤出同类型的病害列表
-      const filteredList = diseaseList.value.filter(item =>
-          item.component?.grandObjectName === data.grandObjectName
-      );
+		// 添加获取同类型病害列表的事件监听
+		uni.$on('getDiseasesOfType', (data) => {
+			if (!data || !data.grandObjectName || !data.callback) {
+				console.error('获取同类型病害列表参数不完整');
+				return;
+			}
 
-      console.log(`获取${data.grandObjectName}类型的病害列表，共${filteredList.length}条`);
+			// 过滤出同类型的病害列表
+			const filteredList = diseaseList.value.filter(item =>
+				item.component?.grandObjectName === data.grandObjectName
+			);
 
-      // 通过回调函数返回结果
-      data.callback(filteredList);
-    });
+			console.log(`获取${data.grandObjectName}类型的病害列表，共${filteredList.length}条`);
 
-    // 初始检查未提交病害
-    checkUncommitted();
-  });
+			// 通过回调函数返回结果
+			data.callback(filteredList);
+		});
+
+		// 初始检查未提交病害
+		checkUncommitted();
+	});
 
 	// 组件卸载时
 	onUnmounted(() => {
@@ -661,6 +715,7 @@
 		uni.$off('deleteDisease');
 		uni.$off('updateDisease');
 		uni.$off('getDiseasesOfType');
+		uni.$off('submitSuccess')
 	});
 </script>
 
@@ -687,7 +742,7 @@
 	}
 
 	.view-search-bar {
-		width: 63%;
+		width: 80%;
 	}
 
 	.search-bar {
