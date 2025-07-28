@@ -461,7 +461,7 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight)
+        frontRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight)
 				// 保存原始图片数据
 				// originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
 			}
