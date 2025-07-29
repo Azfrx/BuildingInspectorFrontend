@@ -4,13 +4,13 @@
 
 		<view>
 
-			<view class="title">
+<!--			<view class="title">
 				<view class="status-text">
 					正立面照状态:
 					<text
 						:class="{ 'not-submitted': isSubmit == 0 }">{{ isSubmit === 0 ? '未提交' : isSubmit === 1 ? '已提交' : '/' }}</text>
 				</view>
-			</view>
+			</view>-->
 
 			<view class="photo-container">
 				<view class="photo-item">
