@@ -1,12 +1,12 @@
 <template>
 <view class="container">
 	<!-- 状态栏 -->
-	<view class="confirm-row">
+	<!-- <view class="confirm-row">
 		<span class="confirm-text">结构信息状态：</span>
 		<span class="confirm-status" :style="{color: isCommit === 0 ? '#f56c6c': '#333'}">
 			{{ isCommit === 0 ? '未提交' : isCommit === 1 ? '已提交' : '/' }}
 		</span>
-	</view>
+	</view> -->
 
 	<view class="content-layout">
 		<!-- 第一级目录 -->
@@ -296,6 +296,7 @@ const autoSavePhotos = async () => {
 			duration: 1500
 		});
 	}
+	uni.$emit('currentPhotoStatusChanged')
 };
 
 // 添加hasPhotos函数来检查菜单项是否有照片
@@ -768,6 +769,13 @@ const confirmPhotoInfo = async () => {
 		// 更新特定照片的信息
 		if (currentEditingPhotoIndex.value >= 0 && currentEditingPhotoIndex.value < secondLevelItem.information.length) {
 			secondLevelItem.information[currentEditingPhotoIndex.value] = photoInfoText.value;
+			
+			// 发送事件通知myPhotoPicker组件更新按钮内容
+			uni.$emit('photoInfoUpdated', {
+				structureData: structureData.value,
+				firstIndex: selectedIndex.value,
+				secondIndex: selectedSecondIndex.value
+			});
 		}
 		if (structureData.value && structureData.value.children) {
 			for (const firstLevel of structureData.value.children) {

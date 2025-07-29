@@ -11,9 +11,10 @@
 				</view>
 				<!-- 对应的图片信息按钮 - 恢复v-if条件 -->
 				<view class="info-button-wrapper" v-if="buttonInfo.show">
-					<button class="info-button" @click="showPhotoInfo(idx)">图片信息</button>
+					<button class="info-button" @click="showPhotoInfo(idx)">{{getPhotoInfoText(idx)}}</button>
 				</view>
 			</view>
+			
 			<!-- 添加按钮，仅在未达到上限时显示 -->
 			<view v-if="modelValue.length < limit" class="preview-container" @click="showActionSheet">
 				<view class="empty-preview">
@@ -25,7 +26,6 @@
 		<!-- 底部弹出层 -->
 		<view class="action-sheet" v-if="actionSheetVisible">
 			<view class="action-sheet-content">
-
 				<view class="action-sheet-item" @click="takePhoto">
 					<text>相机</text>
 				</view>
@@ -88,9 +88,16 @@
 <script setup>
 	import {
 		ref,
-		watch
+		watch,
+		onMounted,
+		onUnmounted
 	} from 'vue';
 import {ButtonStore} from '@/store/button.js'
+	import {
+		userStore
+	} from '@/store/index.js'
+import {getObjectUL} from'@/utils/readUL.js'
+import { idStore } from '@/store/idStorage';
 	const props = defineProps({
 		modelValue: {
 			type: Array,
@@ -101,9 +108,10 @@ import {ButtonStore} from '@/store/button.js'
 			default: 20
 		}
 	});
+	const userInfo = userStore()
 	const buttonInfo = ButtonStore()
 	const emit = defineEmits(['select', 'update:modelValue', 'delete', 'showPhotoInfo']);
-
+	const idInfo = idStore();
 	const actionSheetVisible = ref(false);
 	const photoNumberVisible = ref(false);
 	const photoNumber = ref('');
@@ -123,7 +131,35 @@ import {ButtonStore} from '@/store/button.js'
 	// 撤销功能相关变量
 	const strokeHistory = ref([]); // 存储每一笔的历史记录
 	const currentStroke = ref([]); // 当前正在绘制的笔画
+	//更新图片信息
+	const updateButtonInfo = async() => {
+		const data = await getObjectUL(userInfo.username, idInfo.buildingId);
+		return data;
+	}
 	
+	// 计算属性：根据索引获取对应的图片信息
+	const getPhotoInfoText = (index) => {
+		if (!buttonInfo.photoData || !buttonInfo.photoData.children) return '请添加图片信息';
+		
+		// 获取当前图片对应的信息
+		const firstIndex = buttonInfo.firstIndex;
+		
+		try {
+			// 检查当前结构下是否有对应的二级菜单项
+			const secondLevelItem = buttonInfo.photoData.children[firstIndex]?.children?.[selectedSecondIndex.value];
+			
+			// 检查二级菜单项是否有information数组且索引有效
+			if (secondLevelItem && Array.isArray(secondLevelItem.information) && 
+				index < secondLevelItem.information.length && 
+				secondLevelItem.information[index]) {
+				return secondLevelItem.information[index];
+			}
+		} catch (error) {
+			console.error('获取图片信息出错:', error);
+		}
+		
+		return '请添加图片信息';
+	}
 	// 预览图片
 	const previewImage = (index) => {
 		uni.previewImage({
@@ -156,6 +192,39 @@ import {ButtonStore} from '@/store/button.js'
 		emit('showPhotoInfo', index);
 		buttonInfo.reback();
 	};
+	
+	// 添加selectedSecondIndex变量，用于存储当前选中的二级菜单索引
+	const selectedSecondIndex = ref(0);
+	
+	// 初始化时加载图片数据
+	const initPhotoData = async () => {
+		try {
+			const data = await updateButtonInfo();
+			if (data) {
+				buttonInfo.setPhotoData(data);
+				
+				// 监听current-photo组件中的信息更新事件
+				uni.$on('photoInfoUpdated', (data) => {
+					// 更新按钮信息
+					buttonInfo.setPhotoData(data.structureData);
+					buttonInfo.setFirstIndex(data.firstIndex);
+					selectedSecondIndex.value = data.secondIndex;
+				});
+			}
+		} catch (error) {
+			console.error('初始化图片数据失败:', error);
+		}
+	};
+	
+	// 组件挂载时初始化数据
+	onMounted(() => {
+		initPhotoData();
+	});
+	
+	// 组件卸载时移除事件监听
+	onUnmounted(() => {
+		uni.$off('photoInfoUpdated');
+	});
 	
 	// 拍摄照片
 	const takePhoto = () => {
@@ -471,6 +540,16 @@ import {ButtonStore} from '@/store/button.js'
 		align-items: center;
 		justify-content: center;
 		margin-top: 10rpx;
+	}
+	
+	.info-button {
+		width: 100%;
+		min-width: 180rpx;
+		padding: 0 10rpx;
+		font-size: 18rpx;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 	
 	.info-text {
