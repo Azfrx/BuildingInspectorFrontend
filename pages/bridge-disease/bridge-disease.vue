@@ -6,7 +6,8 @@
 				<view class="bridge-info-content-left">
 					<view class="bridge-info-content-left-title">{{bridgeName}}</view>
 					<view class="bridge-info-content-left-content">
-						{{bridgeCode}}/{{routeCode}}/{{routeName}}/{{bridgePileNumber}}</view>
+						{{bridgeCode}}/{{routeCode}}/{{routeName}}/{{bridgePileNumber}}
+					</view>
 				</view>
 				<view class="bridge-info-content-right">
 					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测按钮</button>
@@ -19,6 +20,14 @@
 				@click="switchTab(index)">
 				<view class="tab-item-text">
 					{{ tab.name }}
+					<image v-if="(index === 0 && diseaseSubmitStatus === 0)" src="/static/image/red.png"
+						class="red-icon"></image>
+					<image v-if="(index === 0 && diseaseSubmitStatus === 2)" src="/static/image/yellow.png"
+						class="yellow-icon"></image>
+					<image v-if="(index === 2 && frontPhotoSubmitStatus === 0)" src="/static/image/red.png"
+						class="red-icon"></image>
+					<image v-if="(index === 3 && currentPhotoSubmitStatus === 0)" src="/static/image/red.png"
+						class="red-icon"></image>
 				</view>
 			</view>
 			<!-- 滑动指示器 -->
@@ -70,7 +79,9 @@
 	import CurrentPhoto from "@/components/current-photo.vue";
 	import {
 		getTask,
-		isUnFinishDisease
+		isUnFinishDisease,
+		getFrontPhoto,
+		readDiseaseCommit
 	} from "@/utils/readJsonNew";
 	import {
 		readWarning
@@ -83,6 +94,7 @@
 		setFrontPhotoCommited
 	} from "@/utils/frontPhoto";
 	import {
+		readCommit,
 		setCommit1
 	} from "@/utils/CurrentPhoto";
 	import {
@@ -129,6 +141,13 @@
 			name: '桥梁卡片',
 		}
 	]);
+
+	// 跟踪各个部分的提交状态
+	const frontPhotoSubmitStatus = ref(1); // 0表示未提交，1表示已提交
+
+	const diseaseSubmitStatus = ref(1) //0表未提交，1表示已提交,2表示存在未完成
+
+	const currentPhotoSubmitStatus = ref(1) //0表未提交，1表示已提交
 
 	// 当前活动标签
 	const activeTab = ref(0);
@@ -178,18 +197,66 @@
 
 	// 组件挂载时
 	onMounted(() => {
-		checkUncommitted();
 		readBridgeInfo();
+		checkUncommitted();
+		checkDiseaseStatus();
+		checkFrontPhotoStatus();
+		checkCurrentPhotoStatus();
 		uni.$on('setButtonUnCommited', setButtonUnCommited)
 		uni.$on('setButtonCommited', setButtonCommited)
+		uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
+		uni.$on('diseaseStatusChanged', checkDiseaseStatus)
+		uni.$on('currentPhotoStatusChanged', checkCurrentPhotoStatus)
 	});
 
 	onUnmounted(() => {
 		uni.$off('setButtonUnCommited')
 		uni.$off('setButtonCommited')
+		uni.$off('frontPhotoStatusChanged')
+		uni.$off('diseaseStatusChanged')
+		uni.$off('currentPhotoStatusChanged')
 	})
 
-	// 检查是否有未提交的病害记录
+
+	// 检查当前病害状态
+	const checkDiseaseStatus = async () => {
+		const currentYear = new Date().getFullYear().toString();
+		const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId,
+			currentYear)
+		if (hasUnFinishDisease) {
+			diseaseSubmitStatus.value = 2;
+			return;
+		}
+		const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
+			currentYear)
+		if (hasUncommittedDiseases) {
+			diseaseSubmitStatus.value = 0;
+			return;
+		}
+		diseaseSubmitStatus.value = 1;
+	};
+
+	// 检查正立面照提交状态
+	const checkFrontPhotoStatus = async () => {
+		try {
+			const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+			if (data && typeof data.commitType !== 'undefined') {
+				frontPhotoSubmitStatus.value = data.commitType;
+			} else {
+				frontPhotoSubmitStatus.value = 1; // 未知状态
+			}
+		} catch (error) {
+			console.error('获取正立面照状态失败:', error);
+			frontPhotoSubmitStatus.value = 1; // 发生错误，设为未知状态
+		}
+	};
+
+	// 检查现状照提交状态
+	const checkCurrentPhotoStatus = async () => {
+		currentPhotoSubmitStatus.value = await readCommit(userInfo.username, idStorageInfo.buildingId);
+	}
+
+	// 检查提交按钮的显示状态
 	const checkUncommitted = async () => {
 		try {
 			const isBuildingCommit = await isBuildingCommited(userInfo.username, idStorageInfo.projectId,
@@ -350,6 +417,9 @@
 				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 				submitButtonEnabled.value = false;
+				diseaseSubmitStatus.value = 1;
+				frontPhotoSubmitStatus.value = 1;
+				currentPhotoSubmitStatus.value = 1;
 
 				uni.showToast({
 					title: '提交成功',
@@ -411,6 +481,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		position: relative;
 	}
 
 	.tab-item.active .tab-item-text {}
@@ -468,5 +539,21 @@
 		height: 36rpx;
 		line-height: 26rpx;
 		padding: 5rpx 10rpx;
+	}
+
+	.red-icon {
+		width: 8rpx;
+		height: 8rpx;
+		position: absolute;
+		top: -2rpx;
+		right: -8rpx;
+	}
+
+	.yellow-icon {
+		width: 8rpx;
+		height: 8rpx;
+		position: absolute;
+		top: -2rpx;
+		right: -8rpx;
 	}
 </style>

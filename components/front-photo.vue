@@ -7,7 +7,8 @@
 			<view class="title">
 				<view class="status-text">
 					正立面照状态:
-					<text :class="{ 'not-submitted': isSubmit == 0 }">{{ isSubmit === 0 ? '未提交' : isSubmit === 1 ? '已提交' : '/' }}</text>
+					<text
+						:class="{ 'not-submitted': isSubmit == 0 }">{{ isSubmit === 0 ? '未提交' : isSubmit === 1 ? '已提交' : '/' }}</text>
 				</view>
 			</view>
 
@@ -247,6 +248,7 @@
 			isSubmit.value = 0;
 			await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 			uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			uni.$emit('frontPhotoStatusChanged') // 通知状态变化
 
 			// 隐藏加载提示
 			uni.hideLoading();
@@ -288,7 +290,7 @@
 					.value);
 			} else if (type == 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
-				.value);
+					.value);
 			} else if (type == 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
@@ -312,7 +314,7 @@
 					.value);
 			} else if (type == 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
-				.value);
+					.value);
 			} else if (type == 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
@@ -412,7 +414,8 @@
 			await removeDiseaseImage(imagesPaths);
 			data.frontLeft = [];
 		} else if (type === 'frontRight') {
-			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight);
+			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+				.frontRight);
 			await removeDiseaseImage(imagesPaths);
 			data.frontRight = [];
 		} else if (type === 'sideLeft') {
@@ -428,7 +431,8 @@
 		await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
 		isSubmit.value = 0;
 		await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
-    uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId);
+		uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId);
+		uni.$emit('frontPhotoStatusChanged'); // 通知状态变化
 	};
 
 	const onUploadSuccess = async (type) => {
@@ -454,7 +458,8 @@
 			console.log('获取正立面照数据成功:', data);
 			// 处理图片数据
 			if (data.frontLeft && Array.isArray(data.frontLeft)) {
-				frontLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft)
+				frontLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.frontLeft)
 				// 保存原始图片数据
 				// originalFrontLeft.value = JSON.parse(JSON.stringify(frontLeft.value));
 			}
@@ -465,7 +470,8 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-        frontRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontRight)
+				frontRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.frontRight)
 				// 保存原始图片数据
 				// originalFrontRight.value = JSON.parse(JSON.stringify(frontRight.value));
 			}
@@ -487,7 +493,8 @@
 					url: url,
 					extname: 'jpg',
 				}));*/
-				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight)
+				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.sideRight)
 				// 保存原始图片数据
 				// originalSideRight.value = JSON.parse(JSON.stringify(sideRight.value));
 			}
@@ -619,6 +626,7 @@
 
 	.photo-select {
 		margin-top: 20rpx;
-		height: 200rpx; /* 改为自适应高度 */
+		height: 200rpx;
+		/* 改为自适应高度 */
 	}
 </style>

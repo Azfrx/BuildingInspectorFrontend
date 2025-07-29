@@ -1600,6 +1600,10 @@
 		ctx.value.scale(scale.value, scale.value);
 		ctx.value.translate(-screenWidth.value / 2, -screenHeight.value / 2);
 
+		// 绘制白色背景
+		ctx.value.setFillStyle('#ffffff'); // 白色
+		ctx.value.fillRect(0, 0, screenWidth.value, screenHeight.value);
+
 		// 绘制模板图（如果有）
 		drawTemplate();
 

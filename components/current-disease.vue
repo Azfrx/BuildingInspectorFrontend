@@ -190,7 +190,8 @@
 			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 			}*/
-			await checkUncommitted();
+			// await checkUncommitted();
+			uni.$emit('diseaseStatusChanged');
 		} catch (error) {
 			console.error('保存新增病害数据失败:', error);
 			uni.showToast({
@@ -270,7 +271,8 @@
 				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 			}
-			await checkUncommitted();
+			// await checkUncommitted();
+			uni.$emit('diseaseStatusChanged');
 		} catch (error) {
 			console.error('保存删除失败:', error);
 			uni.showToast({
@@ -347,7 +349,8 @@
 			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
 			}*/
-			await checkUncommitted();
+			// await checkUncommitted();
+			uni.$emit('diseaseStatusChanged');
 		} catch (error) {
 			console.error('保存更新数据失败:', error);
 			uni.showToast({
