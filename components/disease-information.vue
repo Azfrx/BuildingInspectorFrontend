@@ -90,7 +90,7 @@
 					</picker>
 					<text class="picker-icon">&gt;</text>
 
-					<view class="component-name-input" v-show="typePicker.split('#')[1] === '其他'">
+					<view class="component-name-input" v-show="typePicker.split('#')[1]?.includes('其他')">
 						<input class="component-code-input" v-model="typeInput" placeholder="请输入病害类型"
 							placeholder-style="color: #CCCCCC;" @click.stop />
 						<!--						<view class="clear-input" @click.stop="typeInput = '' ">×</view>-->
@@ -911,7 +911,7 @@ const props = defineProps({
 		typePicker.value = diseaseTypeCode + '#' + diseaseType;
 		typeindex.value = index;
 		// 如果选择了"其他"，清空typeInput，等待用户输入
-		if (typePicker.value.split('#')[1] == '其他') {
+		if (typePicker.value.split('#')[1]?.includes('其他')) {
 			typeInput.value = diseaseTypeInput;
 		} else {
 			// 否则直接更新type值
@@ -945,8 +945,10 @@ const props = defineProps({
 			typePicker.value = diseaseTypeOptions.value[index];
 			typeindex.value = index;
 
+      console.log('病害类型选择变更为:', typePicker.value)
 			// 如果选择了"其他"，清空typeInput，等待用户输入
-			if (typePicker.value.split('#')[1] == '其他') {
+			if (typePicker.value.split('#')[1].includes('其他')) {
+        console.log('进入病害类型其他分支')
 				typeInput.value = '';
 			} else {
 				// 否则直接更新type值
@@ -993,7 +995,7 @@ const props = defineProps({
 
 	// 监听typePicker和typeInput的变化，更新type
 	watch([typePicker, typeInput], ([newTypePicker, newTypeInput]) => {
-		if (newTypePicker.split('#')[1] && newTypePicker.split('#')[1].trim() === '其他' && newTypeInput) {
+		if (newTypePicker.split('#')[1] && newTypePicker.split('#')[1].includes('其他') && newTypeInput) {
 			type.value = newTypeInput;
 		} else {
 			type.value = newTypePicker;
