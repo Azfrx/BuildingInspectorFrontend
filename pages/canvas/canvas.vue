@@ -1603,6 +1603,8 @@
 		// 绘制白色背景
 		ctx.value.setFillStyle('#ffffff'); // 白色
 		ctx.value.fillRect(0, 0, screenWidth.value, screenHeight.value);
+    ctx.value.restore();
+    ctx.value.save();
 
 		// 绘制模板图（如果有）
 		drawTemplate();
