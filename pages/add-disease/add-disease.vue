@@ -781,7 +781,8 @@
 		onMounted,
 		onUnmounted,
 		watch,
-		computed
+		computed,
+		nextTick
 	} from 'vue';
   import {
     getObject,
@@ -805,10 +806,12 @@
 	import DiseaseDescriptionPart from '@/components/disease-descriptionPart.vue';
 	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 	import MyPhotoPicker from '@/components/myPhotoPicker.vue';
+	import { ButtonStore } from '@/store/button.js';
 
 	const diseaseInformationRef = ref(null);
 	const diseaseQuantitativeDataRef = ref(null);
 	const diseaseDescriptionPart = ref(null);
+	const buttonInfo = ButtonStore();
 
 	const userInfo = userStore()
 
@@ -1326,6 +1329,8 @@
 
 	// 页面加载时初始化三级选择器
 	onMounted(async () => {
+		// 隐藏图片信息按钮，确保在新增病害页面不显示
+		buttonInfo.reback();
 		// 获取结构数据（先执行，并等待完成）
 
 		const pages = getCurrentPages();

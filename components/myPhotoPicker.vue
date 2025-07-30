@@ -59,8 +59,8 @@
 		<!-- 画线编辑弹窗 -->
 		<view class="drawing-popup" v-if="drawingVisible">
 			<view class="drawing-content">
-				<view class="popup-title">在图片上标记</view>
-				<view class="canvas-container" :style="{ height: canvasContainerHeight }">
+				<view class="popup-title" style="height: 20px; line-height: 20px; padding: 0;">在图片上标记</view>
+				<view class="canvas-container" :style="{ height: canvasContainerHeight, width: canvasContainerWidth, backgroundColor: '#fff' }">
 					<canvas canvas-id="drawingCanvas" class="drawing-canvas"
 						@touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"></canvas>
 				</view>
@@ -122,6 +122,7 @@ import { idStore } from '@/store/idStorage';
 	const lastPoint = ref({ x: 0, y: 0 });
 	const isDrawing = ref(false);
 	const imageInfo = ref(null);
+	const imageRatioValue = ref(1); // 保存图片的宽高比
 	const drawingPoints = ref([]);
 	const canvasContainerHeight = ref('600rpx');
 	const isProcessing = ref(false); // 防重复点击标志
@@ -226,6 +227,396 @@ import { idStore } from '@/store/idStorage';
 		uni.$off('photoInfoUpdated');
 	});
 	
+	// 处理图片选择成功
+	const handleImageSuccess = (filePath) => {
+		// 不再直接添加图片，而是打开绘图编辑弹窗
+		currentEditingImage.value = filePath;
+		openDrawingEditor(filePath);
+	};
+
+	// 打开绘图编辑器的函数
+	const openDrawingEditor = (imagePath) => {
+		// 设置当前编辑的图片
+		currentEditingImage.value = imagePath;
+		
+		// 重置绘画相关变量
+		drawingPoints.value = [];
+		strokeHistory.value = [];
+		currentStroke.value = [];
+		isProcessing.value = false;
+		
+		// 获取图片信息，以便正确设置画布大小
+		uni.getImageInfo({
+			src: imagePath,
+			success: (res) => {
+				imageInfo.value = res;
+				
+				// 获取原始图片大小信息
+				uni.getFileInfo({
+					filePath: imagePath,
+					success: (fileInfo) => {
+						// 保存原始图片大小，用于后续比较
+						imageInfo.value.size = fileInfo.size;
+						console.log('原始图片大小:', fileInfo.size / 1024, 'KB');
+					}
+				});
+				
+				// 获取屏幕尺寸
+				const screenInfo = uni.getSystemInfoSync();
+				const screenWidth = screenInfo.windowWidth;
+				
+				// 计算可用高度（屏幕高度减去标题和按钮区域的高度）
+				const buttonsHeight = 60; // 底部按钮区域高度
+				const titleHeight = 20; // 顶部标题高度
+				const availableHeight = screenInfo.windowHeight - (buttonsHeight + titleHeight);
+				
+				// 计算图片的宽高比
+				const imageRatio = res.height / res.width;
+				
+				// 计算适合屏幕的画布尺寸，确保图片完全显示
+				let canvasWidth, canvasHeight;
+				
+				// 对于所有图片，无论比例如何，都确保完整显示
+				// 首先尝试以可用宽度为基准
+				canvasWidth = screenWidth * 0.9; // 使用90%的屏幕宽度，留些边距
+				canvasHeight = canvasWidth * imageRatio;
+				
+				// 如果计算出的高度超过可用高度，则以高度为基准重新计算
+				if (canvasHeight > availableHeight * 0.9) {
+					canvasHeight = availableHeight * 0.9; // 使用90%的可用高度，留些边距
+					canvasWidth = canvasHeight / imageRatio;
+				}
+				
+				// 设置画布容器尺寸，确保图片完全显示
+				canvasContainerWidth.value = `${canvasWidth}px`;
+				canvasContainerHeight.value = `${canvasHeight}px`;
+				
+				// 保存原始图片比例，用于后续绘制
+				imageRatioValue.value = imageRatio;
+				
+				// 显示绘图弹窗
+				drawingVisible.value = true;
+				
+				// 在下一个渲染周期初始化画布
+				setTimeout(() => {
+					initDrawingCanvas(imagePath);
+				}, 300);
+			},
+			fail: (err) => {
+				console.error('获取图片信息失败:', err);
+				uni.showToast({
+					title: '无法加载图片',
+					icon: 'none'
+				});
+			}
+		});
+	};
+
+	// 初始化绘图画布 - 确保图片完整显示
+	const initDrawingCanvas = (imagePath) => {
+		// 创建画布上下文
+		drawingContext = uni.createCanvasContext('drawingCanvas');
+		
+		// 填充白色背景，避免透明区域
+		drawingContext.fillStyle = '#FFFFFF';
+		drawingContext.fillRect(0, 0, 9999, 9999);
+		
+		// 绘制背景图片
+		if (imageInfo.value) {
+			const { width, height } = imageInfo.value;
+			
+			// 获取画布容器的尺寸
+			const containerWidth = parseFloat(canvasContainerWidth.value);
+			const containerHeight = parseFloat(canvasContainerHeight.value);
+			
+			// 计算图片在容器中的绘制尺寸和位置
+			let drawWidth, drawHeight;
+			
+			// 对所有图片使用统一的绘制逻辑，确保完整显示
+			drawWidth = containerWidth;
+			drawHeight = containerHeight;
+			
+			// 绘制图片作为背景，使用计算的尺寸
+			drawingContext.drawImage(imagePath, 0, 0, drawWidth, drawHeight);
+			drawingContext.draw();
+			
+			// 保存绘制参数，用于后续重绘
+			imageDrawParams.value = { 
+				x: 0, 
+				y: 0, 
+				width: drawWidth, 
+				height: drawHeight 
+			};
+		}
+	};
+
+	// 添加一个ref存储图片绘制参数
+	const imageDrawParams = ref({ x: 0, y: 0, width: 0, height: 0 });
+
+	// 添加一个ref存储画布宽度
+	const canvasContainerWidth = ref('100%');
+
+	// 触摸开始事件
+	const touchStart = (e) => {
+		isDrawing.value = true;
+		const touch = e.touches[0];
+		lastPoint.value = { x: touch.x, y: touch.y };
+		
+		// 开始新的一笔
+		currentStroke.value = [{ x: touch.x, y: touch.y }];
+	};
+
+	// 触摸移动事件
+	const touchMove = (e) => {
+		if (!isDrawing.value) return;
+		
+		const touch = e.touches[0];
+		const currentPoint = { x: touch.x, y: touch.y };
+		
+		// 节流处理，避免过多绘制点导致性能问题
+		const now = Date.now();
+		if (now - lastDrawTime.value < 16) return; // 约60fps
+		lastDrawTime.value = now;
+		
+		// 记录当前点
+		currentStroke.value.push(currentPoint);
+		
+		// 绘制线条
+		drawingContext.beginPath();
+		drawingContext.lineWidth = 3;
+		drawingContext.lineCap = 'round';
+		drawingContext.lineJoin = 'round';
+		drawingContext.strokeStyle = '#FF0000'; // 红色线条
+		
+		drawingContext.moveTo(lastPoint.value.x, lastPoint.value.y);
+		drawingContext.lineTo(currentPoint.x, currentPoint.y);
+		drawingContext.stroke();
+		drawingContext.draw(true);
+		
+		// 更新最后一个点
+		lastPoint.value = currentPoint;
+	};
+
+	// 触摸结束事件
+	const touchEnd = () => {
+		if (!isDrawing.value) return;
+		
+		isDrawing.value = false;
+		
+		// 保存当前笔画到历史记录
+		if (currentStroke.value.length > 1) {
+			strokeHistory.value.push([...currentStroke.value]);
+			currentStroke.value = [];
+		}
+	};
+
+	// 撤销最后一笔
+	const undoLastStroke = () => {
+		if (strokeHistory.value.length === 0) return;
+		
+		// 移除最后一笔
+		strokeHistory.value.pop();
+		
+		// 重新绘制所有内容
+		redrawCanvas();
+	};
+
+	// 重新绘制画布
+	const redrawCanvas = () => {
+		if (!drawingContext || !currentEditingImage.value) return;
+		
+		// 清除画布
+		drawingContext.clearRect(0, 0, 9999, 9999);
+		
+		// 重新绘制背景图片
+		if (imageInfo.value && imageDrawParams.value) {
+			const { width: drawWidth, height: drawHeight } = imageDrawParams.value;
+			
+			// 对所有图片使用统一的绘制逻辑，确保完整显示
+			drawingContext.drawImage(currentEditingImage.value, 0, 0, drawWidth, drawHeight);
+		}
+		
+		// 重新绘制所有笔画
+		drawingContext.lineWidth = 3;
+		drawingContext.lineCap = 'round';
+		drawingContext.lineJoin = 'round';
+		drawingContext.strokeStyle = '#FF0000';
+		
+		strokeHistory.value.forEach(stroke => {
+			if (stroke.length < 2) return;
+			
+			drawingContext.beginPath();
+			drawingContext.moveTo(stroke[0].x, stroke[0].y);
+			
+			for (let i = 1; i < stroke.length; i++) {
+				drawingContext.lineTo(stroke[i].x, stroke[i].y);
+			}
+			
+			drawingContext.stroke();
+		});
+		
+		drawingContext.draw();
+	};
+
+	// 取消绘图
+	const cancelDrawing = () => {
+		drawingVisible.value = false;
+		currentEditingImage.value = '';
+		strokeHistory.value = [];
+	};
+
+	// 确认绘图
+	const confirmDrawing = () => {
+		if (isProcessing.value) return;
+		isProcessing.value = true;
+		
+		uni.showLoading({ title: '处理中...' });
+		
+		// 获取原始图片尺寸
+		const originalWidth = imageInfo.value.width;
+		const originalHeight = imageInfo.value.height;
+		
+		// 导出画布内容，使用原始图片尺寸
+		uni.canvasToTempFilePath({
+			canvasId: 'drawingCanvas',
+			x: 0,
+			y: 0,
+			width: imageDrawParams.value.width,
+			height: imageDrawParams.value.height,
+			// 使用原始图片尺寸，确保不变形
+			destWidth: originalWidth,
+			destHeight: originalHeight,
+			fileType: 'jpg',
+			quality: 0.9,
+			success: (res) => {
+				// 检查导出图片大小
+				uni.getFileInfo({
+					filePath: res.tempFilePath,
+					success: (fileInfo) => {
+						console.log('画布导出图片大小:', fileInfo.size / 1024, 'KB');
+						
+						// 如果导出图片大于原图，尝试使用原图+压缩
+						if (imageInfo.value.size && fileInfo.size > imageInfo.value.size * 1.2) {
+							console.log('导出图片大于原图120%，尝试直接压缩原图');
+							// 如果没有绘制任何内容，直接使用原图
+							if (strokeHistory.value.length === 0) {
+								compressImage(currentEditingImage.value).then(compressedPath => {
+									addImageToCollection(compressedPath);
+								}).catch(err => {
+									handleCompressionError(err);
+								});
+								return;
+							}
+						}
+						
+						// 正常压缩导出的图片
+						compressImage(res.tempFilePath).then(compressedPath => {
+							addImageToCollection(compressedPath);
+						}).catch(err => {
+							handleCompressionError(err);
+						});
+					},
+					fail: () => {
+						// 如果获取文件信息失败，继续正常压缩流程
+						compressImage(res.tempFilePath).then(compressedPath => {
+							addImageToCollection(compressedPath);
+						}).catch(err => {
+							handleCompressionError(err);
+						});
+					}
+				});
+			},
+			fail: (err) => {
+				console.error('保存编辑后的图片失败:', err);
+				uni.hideLoading();
+				uni.showToast({
+					title: '保存失败',
+					icon: 'none'
+				});
+				isProcessing.value = false;
+			}
+		});
+	};
+
+	// 添加图片到集合
+	const addImageToCollection = (imagePath) => {
+		const newImages = [...props.modelValue, imagePath];
+		emit('update:modelValue', newImages);
+		emit('select');
+		
+		uni.hideLoading();
+		uni.showToast({
+			title: '图片已添加',
+			icon: 'success'
+		});
+		
+		// 关闭绘图弹窗
+		drawingVisible.value = false;
+		isProcessing.value = false;
+	};
+
+	// 处理压缩错误
+	const handleCompressionError = (err) => {
+		console.error('压缩图片失败:', err);
+		uni.hideLoading();
+		uni.showToast({
+			title: '处理图片失败',
+			icon: 'none'
+		});
+		isProcessing.value = false;
+	};
+
+	// 添加图片压缩功能 - 优化速度版本
+	const compressImage = (imagePath) => {
+		return new Promise((resolve, reject) => {
+			// 先获取图片信息，检查大小
+			uni.getFileInfo({
+				filePath: imagePath,
+				success: (fileInfo) => {
+					console.log('原始图片大小:', fileInfo.size / 1024, 'KB');
+					
+					// 如果图片已经小于800KB，直接返回原图
+					if (fileInfo.size <= 800 * 1024) {
+						console.log('图片已经小于800KB，无需压缩');
+						resolve(imagePath);
+						return;
+					}
+					
+					// 快速压缩 - 使用较高质量但降低分辨率
+					uni.compressImage({
+						src: imagePath,
+						quality: 80, // 使用80%的质量，保持较好的图片质量
+						compressedWidth: 1280, // 限制最大宽度为1280px，足够大多数显示场景
+						success: (res) => {
+							console.log('压缩完成');
+							resolve(res.tempFilePath);
+						},
+						fail: (err) => {
+							console.error('压缩图片失败:', err);
+							// 压缩失败则返回原图
+							resolve(imagePath);
+						}
+					});
+				},
+				fail: (err) => {
+					console.error('获取图片信息失败:', err);
+					// 如果获取信息失败，尝试直接压缩
+					uni.compressImage({
+						src: imagePath,
+						quality: 80,
+						compressedWidth: 1280,
+						success: (res) => resolve(res.tempFilePath),
+						fail: () => resolve(imagePath) // 失败则使用原图
+					});
+				}
+			});
+		});
+	};
+
+	// 移除不需要的复杂压缩函数
+	// const compressWithQuality = (imagePath, quality) => { ... };
+	// const canvasCompressImage = (imagePath) => { ... };
+
 	// 拍摄照片
 	const takePhoto = () => {
 		closeActionSheet();
@@ -234,6 +625,7 @@ import { idStore } from '@/store/idStorage';
 			sourceType: ['camera'],
 			sizeType: ['original'],
 			success: (res) => {
+				// 不再直接调用handleImageSuccess，而是打开绘图编辑器
 				handleImageSuccess(res.tempFilePaths[0]);
 			},
 			fail: (err) => {
@@ -254,6 +646,7 @@ import { idStore } from '@/store/idStorage';
 			sourceType: ['album'],
 			sizeType: ['original'],
 			success: (res) => {
+				// 不再直接调用handleImageSuccess，而是打开绘图编辑器
 				handleImageSuccess(res.tempFilePaths[0]);
 			},
 			fail: (err) => {
@@ -361,6 +754,7 @@ import { idStore } from '@/store/idStorage';
 						canvasId: canvasId.value,
 						success: (res) => {
 							console.log('生成图片成功', res.tempFilePath);
+							// 数字图片通常很小，无需压缩
 							resolve(res.tempFilePath);
 						},
 						fail: (err) => {
@@ -412,17 +806,6 @@ import { idStore } from '@/store/idStorage';
 					}
 				});
 			});
-		});
-	};
-	
-	// 处理图片选择成功
-	const handleImageSuccess = (filePath) => {
-		const newImages = [...props.modelValue, filePath];
-		emit('update:modelValue', newImages);
-		emit('select'); // 不传递参数，只触发事件
-		uni.showToast({
-			title: '图片已选择',
-			icon: 'success'
 		});
 	};
 	
@@ -485,10 +868,11 @@ import { idStore } from '@/store/idStorage';
 		width: 100%;
 		height: 100%;
 		border-radius: 0;
-		object-fit: fill;
+		object-fit: contain;
 		object-position: center;
 		min-width: 100%;
 		min-height: 100%;
+		background-color: #f9f9f9;
 	}
 
 	.empty-preview {
@@ -701,7 +1085,7 @@ import { idStore } from '@/store/idStorage';
 
 	.btn {
 		width: 160rpx;
-		height: 48rpx;
+		height: 40rpx;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -788,28 +1172,33 @@ import { idStore } from '@/store/idStorage';
 		z-index: 2000;
 		display: flex;
 		flex-direction: column;
-		background-color: white;
+		align-items: center;
+		justify-content: center;
+		background-color: rgba(0, 0, 0, 0.7);
+		padding: 0;
 	}
 
 	.drawing-content {
 		background-color: white;
-		padding: 0;
-		width: 100%;
-		height: 100%;
+		width: auto; /* 改为自适应宽度 */
+		height: auto; /* 改为自适应高度 */
+		max-width: 100vw;
+		max-height: 100vh;
 		display: flex;
 		flex-direction: column;
+		overflow: visible; /* 改为可见，不裁剪内容 */
 	}
 
 	.canvas-container {
 		position: relative;
-		width: 100%;
-		flex: 1;
+		background-color: #ffffff;
 		margin: 0;
-		border: none;
+		padding: 0;
+		width: 100%;
 		display: flex;
-		align-items: stretch;
-		justify-content: stretch;
-		background-color: #000;
+		align-items: center;
+		justify-content: center;
+		overflow: visible; /* 改为可见，不裁剪内容 */
 	}
 
 	.drawing-canvas {
@@ -819,5 +1208,36 @@ import { idStore } from '@/store/idStorage';
 		width: 100%;
 		height: 100%;
 		z-index: 2;
+	}
+
+	.popup-title {
+		font-size: 18rpx !important;
+		text-align: center;
+		color: #0F4687;
+		background-color: #BDCBE0;
+		padding: 0 !important;
+		margin: 0;
+		font-weight: bold;
+		letter-spacing: 1rpx;
+		flex-shrink: 0; /* 防止标题被压缩 */
+		height: 20px !important; /* 将标题高度从40px缩小到20px */
+		line-height: 20px !important;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 20px !important;
+		max-height: 20px !important;
+	}
+
+	.popup-buttons {
+		display: flex;
+		justify-content: center;
+		gap: 20rpx;
+		padding: 10rpx;
+		background-color: white;
+		border-top: 1rpx solid #eee;
+		flex-shrink: 0; /* 防止按钮被压缩 */
+		height: 60px !important; /* 将按钮区域高度从80px减小到60px */
+		align-items: center;
 	}
 </style>

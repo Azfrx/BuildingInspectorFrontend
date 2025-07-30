@@ -53,7 +53,7 @@
 						<view class="item-info-right">
 							<view class="counterNumber">
 								<text class="item-quantity">
-									<span class="rightcount">病害构件数量</span>{{item?.diseaseNumber || 0}}</text>
+									<span class="rightcount">病害构件数量</span>{{item?.diseaseNumber}}</text>
 								<text v-if="item?.status === '0'" class="item-quantity">
 									<image v-if="(item?.diseaseNumber || 0) > (item?.count || 0)" src="@/static/image/warning.png"
 										style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
@@ -191,9 +191,9 @@ import { setWarning, readWarning, resetWarning } from '../utils/warning';
     if (newval == 4) {
       console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
       // 添加延时确保页面已完全显示
-      setTimeout(async () => {
+
         await init();
-      }, 300);
+
     }
   }, { immediate: true }) // 添加immediate:true确保首次加载时也会执行
 
@@ -276,7 +276,7 @@ import { setWarning, readWarning, resetWarning } from '../utils/warning';
 				try {
 					
 					const modifiedData = await addFlagsAndDiseaseNumber(structureData.value, userInfo.username, TaskBridgeId.value);
-					
+
 					// 读取完整数据
 					const finalData = await getObjectUL(userInfo.username, TaskBridgeId.value);
 					if (finalData && (finalData.children || (finalData.data && finalData.data.children))) {
@@ -464,7 +464,7 @@ const refreshData = async () => {
 
 				// 如果是第三层，检查diseaseNumber和count
 				if (level === 3) {
-					const diseaseNumber = Number(node.diseaseNumber || 0);
+					const diseaseNumber = Number(node.diseaseNumber);
 					const count = Number(node.count || 0);
 					// console.log('第三层节点:', node.name, 'diseaseNumber:', diseaseNumber, 'count:', count)
 					if (diseaseNumber > count) {
