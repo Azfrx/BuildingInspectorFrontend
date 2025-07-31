@@ -174,18 +174,15 @@
 		};
 	});
 
-	const readBridgeInfo = async () => {
-		const taskData = await getTask(userInfo.username, idStorageInfo.projectId);
-		let buildingTask;
-		for (buildingTask of taskData.tasks) {
-			if (buildingTask.buildingId === idStorageInfo.buildingId) {
-				bridgeName.value = buildingTask.building.name;
-				bridgeCode.value = buildingTask.building.buildingCode;
-				bridgePileNumber.value = buildingTask.building.bridgePileNumber;
-				routeName.value = buildingTask.building.routeName;
-				routeCode.value = buildingTask.building.routeCode;
-			}
-		}
+	const readBridgeInfo = () => {
+    const pages = getCurrentPages();
+    const currentPage = pages[pages.length - 1];
+    const params = currentPage.$page?.options;
+		bridgeName.value = params.bridgeName || '';
+		bridgeCode.value = params.bridgeCode || '';
+		bridgePileNumber.value = params.bridgePileNumber || '';
+		routeName.value = params.routeName || '';
+		routeCode.value = params.routeCode || '';
 	};
 
 	const setButtonUnCommited = () => {

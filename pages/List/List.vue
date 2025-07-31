@@ -460,7 +460,8 @@
 
     // 导航到桥梁疾病页面
     uni.navigateTo({
-      url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
+      // url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
+      url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}&bridgeCode=${bridge.building.buildingCode}&bridgeName=${bridge.building.name}&bridgePileNumber=${bridge.building.bridgePileNumber}&routeName=${bridge.building.routeName}&routeCode=${bridge.building.routeCode}`
     });
 		// 在跳转前，检查并复制数据从UD到UL目录
 		try {
