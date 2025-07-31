@@ -18,10 +18,12 @@
 					<!--					<view class="clear-input" @click="quantity = ''">×</view>-->
 					<image src="/static/image/clear.png" class="clear-icon" @click="quantity = 1"></image>
 				</view>
-				<view class="quantitative-data-right-unit">
-					<view class="quantitative-data-right-unit-input"> 个
+				<picker class="quantitative-data-right-unit unit-picker" :range="quantityUnits" @change="quantityUnitChange">
+					<view class="quantitative-data-right-unit-input" :style="units === '' ? 'color: #CCCCCC;' : ''">
+            {{units || "个"}}
 					</view>
-				</view>
+          <view class="right-icon">&gt;</view>
+				</picker>
 			</view>
 		</view>
 
@@ -156,13 +158,13 @@
 							</image>
 						</view>
 						<view class="quantitative-data-right-value length-input"
-							v-if="crackTypeIndex === 3 || crackTypeIndex === 4">
+							v-if="crackTypeIndex === 4 || crackTypeIndex === 5">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L2" type="number"
 								v-model="diseaseData.length2" placeholder-style="color: #CCCCCC;">
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length2 = ''">
 							</image>
 						</view>
-						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 4">
+						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 5">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L3" type="number"
 								v-model="diseaseData.length3" placeholder-style="color: #CCCCCC;">
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length3 = ''">
@@ -531,20 +533,24 @@
 			text: '横向',
 			value: 1
 		},
+    {
+      text: '竖向',
+      value: 2
+    },
 		{
 			text: '斜向',
-			value: 2
-		},
-		{
-			text: 'L型',
 			value: 3
 		},
 		{
-			text: 'U型',
+			text: 'L型',
 			value: 4
+		},
+		{
+			text: 'U型',
+			value: 5
 		}, {
 			text: '网状',
-			value: 5
+			value: 6
 		}
 	])
 	const crackTypeIndex = ref(0);
@@ -597,6 +603,15 @@
 
   const threshold = ref(1)
 
+  const units = ref('')
+
+  const quantityUnits = ref(['个', '条', '处'])
+
+  const quantityUnitChange = (e) => {
+    const index = e.detail.value;
+    units.value = quantityUnits.value[index]
+  }
+
 	/*watch(() => diseaseDataList.value, (newList) => {
 		if (showColumns.value[0] === '1') {
 			if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2) {
@@ -624,7 +639,7 @@
 
   const calculate = () => {
     if (showColumns.value[0] === '1') {
-      if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2) {
+      if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2 || crackTypeIndex.value === 3) {
         diseaseDataList.value.forEach((diseaseData, index) => {
           // 计算参考面1的长度
           if (diseaseData.reference1LocationStart !== '' && diseaseData
@@ -640,7 +655,7 @@
               const dy = y2 - y1;
               diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
             }
-            if(crackTypeIndex.value === 2){
+            if(crackTypeIndex.value === 3){
               const dx = x2 - x1;
               const dy = y2 - y1;
               diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1);
@@ -648,7 +663,7 @@
           }
           else if(diseaseData.reference1LocationStart !== '' && diseaseData.reference2LocationStart !== '' && diseaseData.length1 !== ''){
             console.log('计算终点')
-            if(crackTypeIndex.value === 0){
+            if(crackTypeIndex.value === 0 || crackTypeIndex.value === 2){
               diseaseData.reference1LocationEnd = ((parseFloat(diseaseData.reference1LocationStart)) + (parseFloat(diseaseData.length1))).toFixed(2);
               diseaseData.reference2LocationEnd = parseFloat(diseaseData.reference2LocationStart).toFixed(2);
             }
@@ -656,14 +671,14 @@
               diseaseData.reference1LocationEnd = parseFloat(diseaseData.reference1LocationStart).toFixed(2);
               diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1)).toFixed(2);
             }
-            else if(crackTypeIndex.value === 2 && diseaseData.angle !== ''){
+            else if(crackTypeIndex.value === 3 && diseaseData.angle !== ''){
               diseaseData.reference1LocationEnd = (parseFloat(diseaseData.reference1LocationStart) + parseFloat(diseaseData.length1) * Math.cos(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
               diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1) * Math.sin(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
             }
           }
           else if(diseaseData.reference1LocationEnd !== '' && diseaseData.reference2LocationEnd !== '' && diseaseData.length1 !== ''){
             console.log('计算起点')
-            if(crackTypeIndex.value === 0){
+            if(crackTypeIndex.value === 0 || crackTypeIndex.value === 2){
               diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd) - parseFloat(diseaseData.length1).toFixed(2);
               diseaseData.reference2LocationStart = parseFloat(diseaseData.reference2LocationEnd).toFixed(2);
             }
@@ -682,9 +697,9 @@
   };
 
 	watch(() => crackTypeIndex.value, (newValue) => {
-		if (crackTypeIndex.value === 5) {
+		if (crackTypeIndex.value === 6) {
 			showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
-		} else if (crackTypeIndex.value === 2) {
+		} else if (crackTypeIndex.value === 3) {
 			showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
 		} else {
 			showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
@@ -703,7 +718,11 @@
 		uni.$on('setSelectColumn', setSelectColumn)
 		uni.$on('clearDiseaseData', clearDiseaseData)
     uni.$on('setThreshold', setThreshold)
+    uni.$on('setUnits', setUnits)
 	})
+  const setUnits = (emitUnits) => {
+    units.value = emitUnits
+  }
   const setThreshold = (thresholdnum) => {
     threshold.value = thresholdnum
   }
@@ -713,9 +732,9 @@
 		showColumns.value = selectedColumn.value.toString(2).padStart(12, '0').split('').reverse();
 		console.log('showColumns:', showColumns.value)
 		if (showColumns.value[0] == '1') {
-			if (crackTypeIndex.value === 5) {
+			if (crackTypeIndex.value === 6) {
 				showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
-			} else if (crackTypeIndex.value === 2) {
+			} else if (crackTypeIndex.value === 3) {
 				showColumns.value = ['1', '1', '1', '1', '0', '0', '1', '0', '1', '1', '1', '0']
 			} else {
 				showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
@@ -1030,6 +1049,7 @@
 		quantity: quantity,
 		crackType: crackType,
 		diseaseDataList: diseaseDataList,
+    units: units,
 	});
 </script>
 
@@ -1339,5 +1359,10 @@
     margin-left: auto;
     padding: 0 14rpx;
     font-size: 16rpx;
+  }
+  .unit-picker{
+    border: 1px solid #ccc;
+    display: flex;
+    width: 50rpx;
   }
 </style>

@@ -101,7 +101,7 @@
 		</view>
 
 		<!-- 修改病害位置区域 - 从弹窗改为picker和input组合 -->
-		<view class="picker">
+<!--		<view class="picker">
 			<view class="picker-titleAndContent">
 				<view class="picker-left">
 					<text class="picker-must">*</text>
@@ -120,13 +120,30 @@
 					<view class="component-name-input" v-show="positionPicker === '其他'">
 						<input class="component-code-input" v-model="positionInput" placeholder="请输入病害位置"
 							placeholder-style="color: #CCCCCC;" @click.stop />
-						<!--						<view class="clear-input" @click.stop="positionInput = '' ">×</view>-->
+						&lt;!&ndash;						<view class="clear-input" @click.stop="positionInput = '' ">×</view>&ndash;&gt;
 						<image src="/static/image/clear.png" class="clear-icon" @click.stop="positionInput = '' ">
 						</image>
 					</view>
 				</view>
 			</view>
-		</view>
+		</view>-->
+
+    <view class="picker" @click="openComponentPositionPopup">
+      <view class="picker-titleAndContent">
+        <view class="picker-left">
+          <text class="picker-must">*</text>
+          <view class="picker-title">
+            病害位置
+          </view>
+        </view>
+        <view class="picker-right">
+          <view class="picker-content" :style="position === '' ? 'color: #CCCCCC;' : ''" @click="">
+            {{position === '' ? '请输入病害位置' : `第${positionNumber}号${position}`}}
+          </view>
+          <text class="picker-icon">&gt;</text>
+        </view>
+      </view>
+    </view>
 
     <uni-popup ref="componentCodePopup" type="center" @change="handlePopupChange">
       <view class="componentCode-popup-content">
@@ -170,6 +187,47 @@
         <view class="popup-button">
           <button class="popup-button-cancel" @click="closeComponentCodePopup">取消</button>
           <button class="popup-button-confirm" @click="confirmComponentCode">确定</button>
+        </view>
+      </view>
+    </uni-popup>
+
+    <uni-popup ref="positionPopup" type="center" @change="handlePositionPopupChange">
+      <view class="position-popup-content">
+        <view class="popup-title">编辑病害位置</view>
+        <view class="popup-input1">
+          <text class="popup-input1-title">病害位置</text>
+          <view class="position-popup-combined">
+<!--            <input type="text" placeholder="请填写" class="" v-model="componentCodePopupInput" placeholder-style="color: #CCCCCC;" />-->
+            {{combinedPosition}}
+          </view>
+        </view>
+        <view class="popup-input2">
+          <text class="popup-input2-title">位置序号</text>
+          <view class="popup-input2-input">
+            <text>第</text>
+            <view class="popup-input2-secondPart">
+              <input type="number" class="position-number-input" v-model="positionNumberPopup" placeholder="请填写" placeholder-style="color: #CCCCCC;">
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="positionNumberPopup = '' "></image>
+            </view>
+            <text>号</text>
+          </view>
+        </view>
+        <view class="popup-input2">
+          <text class="popup-input2-title">位置名称</text>
+          <view class="popup-input2-input">
+            <picker class="popup-input2-firstPart" :range="diseasePosition" @change="positionPickerPopupChange">
+              <view class="popup-input2-firstPart-picker" :style="!positionPickerPopup ? 'color: #CCCCCC;' : ''">{{positionPickerPopup || '请选择病害位置'}}</view>
+              <text class="picker-icon">&gt;</text>
+            </picker>
+            <view class="popup-input2-secondPart" v-show="positionPickerPopup === '其他'">
+              <input type="text" v-model="positionInputPopup" placeholder="0" placeholder-style="color: #CCCCCC;">
+              <image src="/static/image/clear.png" class="clear-icon" @click.stop="positionInputPopup = '' "></image>
+            </view>
+          </view>
+        </view>
+        <view class="popup-button">
+          <button class="popup-button-cancel" @click="closePositionPopup">取消</button>
+          <button class="popup-button-confirm" @click="confirmPositionCode">确定</button>
         </view>
       </view>
     </uni-popup>
@@ -226,8 +284,11 @@ const props = defineProps({
 	const typePicker = ref('');
 	const typeInput = ref('');
 
-	// 缺损位置
+	// 病害位置
 	const position = ref('');
+  // 病害位置序号
+	 const positionNumber = ref('');
+
 	// 添加病害位置picker和input变量
 	const positionPicker = ref('');
 	const positionInput = ref('');
@@ -256,6 +317,55 @@ const props = defineProps({
   const codeFifthPart = ref('');
   //构件编号弹窗
   const componentCodePopup = ref(null);
+  // 病害位置弹窗
+  const positionPopup = ref(null);
+
+  //病害位置弹窗的输入项
+  const positionNumberPopup = ref('');
+  const positionInputPopup = ref('');
+  const positionPickerPopup = ref('');
+  const combinedPosition = ref('')
+
+  const openComponentPositionPopup = () => {
+    positionPopup.value.open();
+    if(position.value) combinedPosition.value = '第' + positionNumber.value + '号' + position.value;
+  }
+
+  const positionPickerPopupChange = (e) => {
+    const index = e.detail.value;
+    positionPickerPopup.value = diseasePosition.value[index];
+  }
+  const handlePositionPopupChange = () => {
+    positionNumberPopup.value = '';
+    positionInputPopup.value = '';
+    positionPickerPopup.value = '';
+    combinedPosition.value = '';
+  }
+  const closePositionPopup = () => {
+    positionPopup.value.close();
+    handlePositionPopupChange();
+  }
+  const confirmPositionCode = () => {
+    if(positionPickerPopup.value === '其他'){
+      position.value = positionInputPopup.value;
+    }else{
+      position.value = positionPickerPopup.value;
+    }
+    positionNumber.value = positionNumberPopup.value;
+    positionPopup.value.close();
+    onDiseasePositionChange();
+    handlePositionPopupChange();
+  }
+watch(
+    [positionNumberPopup, positionPickerPopup, positionInputPopup],
+    () => {
+      if(positionPickerPopup.value === '其他'){
+        combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionInputPopup.value;
+      }else{
+        combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionPickerPopup.value;
+      }
+    }
+)
 
 	// 使用watch监听prop变化
 	watch(() => props.structureData, (newVal) => {
@@ -410,6 +520,9 @@ const props = defineProps({
 		});
 		uni.$on('setDiseaseType', onDiseaseTypeChangeByEmit);
 		uni.$on('setDiseasePosition', setDiseasePosition);
+    uni.$on('setPositionNumber', (emitParam) => {
+      positionNumber.value = emitParam;
+    })
 
 
 		uni.$on('getDescription', getDescription);
@@ -876,8 +989,8 @@ const props = defineProps({
 	};
 
 	// 确认病害位置选择
-	const onDiseasePositionChange = (e) => {
-		const index = e.detail.value;
+	const onDiseasePositionChange = () => {
+    const index = diseasePositionItems.value.findIndex(item => item.name === position.value)
 		if (index >= 0 && index < diseasePosition.value.length) {
 			positionPicker.value = diseasePosition.value[index];
 
@@ -1127,7 +1240,8 @@ const props = defineProps({
 		component,
 		componentCodeInput,
 		position,
-		type
+		type,
+		positionNumber,
 	});
 </script>
 
@@ -1374,6 +1488,24 @@ const props = defineProps({
     background-color: #1677FF;
     color: #fff;
     margin-left: 10rpx;
+  }
+  .position-popup-content{
+    background-color: #fff;
+    width: 500rpx;
+    height: 300rpx;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .position-popup-combined{
+    font-size: 20rpx;
+    margin-left: 10rpx;
+  }
+  .position-number-input{
+    width: 60rpx;
+    font-size: 20rpx;
   }
 
   .clear-icon {

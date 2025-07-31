@@ -436,12 +436,19 @@
 		} catch (error) {
 			// 发生错误时隐藏加载提示
 			uni.hideLoading();
-
-			console.error('提交数据错误:', error);
-			uni.showToast({
-				title: '提交数据出错，请稍后重试',
-				icon: 'none'
-			});
+      console.error('提交数据错误:', error);
+      if(error.errMsg.includes('Failed to connect')){
+        uni.showToast({
+          title: '当前无网络连接',
+          icon: 'none'
+        });
+      }
+			else{
+        uni.showToast({
+          title: '提交数据出错，请稍后重试',
+          icon: 'none'
+        });
+      }
 		}
 	};
 </script>

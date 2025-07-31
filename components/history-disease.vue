@@ -39,7 +39,7 @@
 							<text class="expand-icon">{{ expandedTypes[type] ? '▼' : '▶' }}</text>
 						</view>
 						<view v-show="expandedTypes[type]">
-							<disease-item v-for="(item, itemIndex) in getFilteredDiseasesByType(type)" :key="itemIndex"
+							<disease-item v-for="(item, itemIndex) in getFilteredDiseasesByType(type).sort((a, b) => (a.component?.code || '') > (b.component?.code || '') ? 1 : -1)" :key="itemIndex"
 								:item="item" :editMode="'history'" :selectMode="isSelectMode"
 								:selected="selectedItems.includes(item.id)" @select="handleItemSelect"
 								@delete="deleteDisease" @swipe-opened="handleSwipeOpened" ref="diseaseItems" />

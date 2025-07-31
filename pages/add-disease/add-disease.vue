@@ -1569,11 +1569,17 @@
 
       console.log('成功设置病害位置:', data.position);
     }
+    if(data.positionNumber){
+      uni.$emit('setPositionNumber', data.positionNumber)
+    }
 
     // 设置缺损数量
     if (data.quantity) {
       quantity.value = parseInt(data.quantity) || 1;
       uni.$emit('setQuantity', data.quantity)
+    }
+    if(data.units){
+      uni.$emit('setUnits', data.units)
     }
 
     // 设置参与评定值（uni-data-checkbox格式）
@@ -2105,8 +2111,10 @@
 			diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
 			description: diseaseDescriptionPart.value.description,
 			position: diseaseInformationRef.value.position,
+      positionNumber: diseaseInformationRef.value.positionNumber,
 			level: diseaseDescriptionPart.value.level,
 			quantity: diseaseQuantitativeDataRef.value.quantity,
+      units:diseaseQuantitativeDataRef.value.units,
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
 			type: diseaseInformationRef.value.type, // 直接使用type.value而不是通过索引获取
@@ -2118,24 +2126,6 @@
 			developmentTrend: diseaseDescriptionPart.value.developmentTrend,
 			biObjectName: diseaseInformationRef.value.getBiObjctName, //使用三级选择或输入框中的值
 			component: diseaseInformationRef.value.component,
-			/*{
-				createBy: "",
-				createTime: formatDateTime(new Date(new Date().setFullYear(2025))),
-				updateTime: formatDateTime(new Date(new Date().setFullYear(2025))),
-				id: null, // 第一级id设为null
-				code: componentCodeInput.value, // 使用输入的构件编号
-				name: componentName + '#' + componentCodeInput.value, // 使用第三级选择的值或输入框中的值#构件编号
-				biObjectId: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
-				status: "0",
-				delFlag: "0",
-				biObject: {
-					id: thirdLevelComponentId || (biObjectObj ? biObjectObj.id : null),
-					name: thirdLevelComponentName || (biObjectObj ? biObjectObj.name : ''), // 使用第三级选择的值
-					count: 0
-				},
-				parentObjectName: parentObjectName.value, // 使用第二级选择的值
-				grandObjectName: grandObjectName.value // 使用第一级选择的值
-			},*/
 			componentId: null, // 组件ID也设为null
 			buildingId: idStorageInfo.buildingId,
 			images: [], // 初始化为空数组，等待图片保存后更新
