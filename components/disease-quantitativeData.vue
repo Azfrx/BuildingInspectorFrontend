@@ -18,11 +18,12 @@
 					<!--					<view class="clear-input" @click="quantity = ''">×</view>-->
 					<image src="/static/image/clear.png" class="clear-icon" @click="quantity = 1"></image>
 				</view>
-				<picker class="quantitative-data-right-unit unit-picker" :range="quantityUnits" @change="quantityUnitChange">
+				<picker class="quantitative-data-right-unit unit-picker" :range="quantityUnits"
+					@change="quantityUnitChange">
 					<view class="quantitative-data-right-unit-input" :style="units === '' ? 'color: #CCCCCC;' : ''">
-            {{units || "个"}}
+						{{units || "个"}}
 					</view>
-          <view class="right-icon">&gt;</view>
+					<view class="right-icon">&gt;</view>
 				</picker>
 			</view>
 		</view>
@@ -37,14 +38,14 @@
 					:localdata="crackTypeOptions"></uni-data-checkbox>
 			</view>
 		</view>
-    <view class="line-select" v-show="showColumns[0] == 1">
-      <view class="line-select-left">
-        <view>计算位置关系</view>
-      </view>
-      <view class="line-select-right">
-        <button class="input-right-button" @click="calculate">计算位置关系</button>
-      </view>
-    </view>
+		<view class="line-select" v-show="showColumns[0] == 1">
+			<view class="line-select-left">
+				<view>计算位置关系</view>
+			</view>
+			<view class="line-select-right">
+				<button class="input-right-button" @click="calculate">计算位置关系</button>
+			</view>
+		</view>
 
 		<!-- 使用v-for循环生成多组定量数据输入框 -->
 		<view v-for="(diseaseData, index) in diseaseDataList" :key="index" class="">
@@ -314,7 +315,8 @@
 							v-if="diseaseData.useRangeMode">
 							<view class="area-picker-input"
 								:style="!diseaseData.areaIdentifier ? 'color: #CCCCCC;' : ''">
-								{{diseaseData.areaIdentifier === 1 ? '平均' : diseaseData.areaIdentifier === 2 ? '总计' : '请选择'}}</view>
+								{{diseaseData.areaIdentifier === 1 ? '平均' : diseaseData.areaIdentifier === 2 ? '总计' : '请选择'}}
+							</view>
 							<text class="picker-icon">&gt;</text>
 						</picker>
 						<view class="quantitative-data-right-value">
@@ -516,6 +518,7 @@
 	import {
 		computed,
 		onMounted,
+		onUnmounted,
 		ref,
 		watch
 	} from "vue";
@@ -533,10 +536,10 @@
 			text: '横向',
 			value: 1
 		},
-    {
-      text: '竖向',
-      value: 2
-    },
+		{
+			text: '竖向',
+			value: 2
+		},
 		{
 			text: '斜向',
 			value: 3
@@ -601,16 +604,16 @@
 
 	const showColumns = ref([])
 
-  const threshold = ref(1)
+	const threshold = ref(1)
 
-  const units = ref('')
+	const units = ref('')
 
-  const quantityUnits = ref(['个', '条', '处'])
+	const quantityUnits = ref(['个', '条', '处'])
 
-  const quantityUnitChange = (e) => {
-    const index = e.detail.value;
-    units.value = quantityUnits.value[index]
-  }
+	const quantityUnitChange = (e) => {
+		const index = e.detail.value;
+		units.value = quantityUnits.value[index]
+	}
 
 	/*watch(() => diseaseDataList.value, (newList) => {
 		if (showColumns.value[0] === '1') {
@@ -637,64 +640,77 @@
 		deep: true
 	});*/
 
-  const calculate = () => {
-    if (showColumns.value[0] === '1') {
-      if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2 || crackTypeIndex.value === 3) {
-        diseaseDataList.value.forEach((diseaseData, index) => {
-          // 计算参考面1的长度
-          if (diseaseData.reference1LocationStart !== '' && diseaseData
-                  .reference1LocationEnd !== '' && diseaseData.reference2LocationStart !== '' &&
-              diseaseData.reference2LocationEnd !== '') {
-            console.log('计算长度')
-            const x1 = parseFloat(diseaseData.reference1LocationStart);
-            const y1 = parseFloat(diseaseData.reference2LocationStart);
-            const x2 = parseFloat(diseaseData.reference1LocationEnd);
-            const y2 = parseFloat(diseaseData.reference2LocationEnd);
-            if (!isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
-              const dx = x2 - x1;
-              const dy = y2 - y1;
-              diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
-            }
-            if(crackTypeIndex.value === 3){
-              const dx = x2 - x1;
-              const dy = y2 - y1;
-              diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1);
-            }
-          }
-          else if(diseaseData.reference1LocationStart !== '' && diseaseData.reference2LocationStart !== '' && diseaseData.length1 !== ''){
-            console.log('计算终点')
-            if(crackTypeIndex.value === 0 || crackTypeIndex.value === 2){
-              diseaseData.reference1LocationEnd = ((parseFloat(diseaseData.reference1LocationStart)) + (parseFloat(diseaseData.length1))).toFixed(2);
-              diseaseData.reference2LocationEnd = parseFloat(diseaseData.reference2LocationStart).toFixed(2);
-            }
-            else if(crackTypeIndex.value === 1){
-              diseaseData.reference1LocationEnd = parseFloat(diseaseData.reference1LocationStart).toFixed(2);
-              diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1)).toFixed(2);
-            }
-            else if(crackTypeIndex.value === 3 && diseaseData.angle !== ''){
-              diseaseData.reference1LocationEnd = (parseFloat(diseaseData.reference1LocationStart) + parseFloat(diseaseData.length1) * Math.cos(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
-              diseaseData.reference2LocationEnd = (parseFloat(diseaseData.reference2LocationStart) + parseFloat(diseaseData.length1) * Math.sin(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
-            }
-          }
-          else if(diseaseData.reference1LocationEnd !== '' && diseaseData.reference2LocationEnd !== '' && diseaseData.length1 !== ''){
-            console.log('计算起点')
-            if(crackTypeIndex.value === 0 || crackTypeIndex.value === 2){
-              diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd) - parseFloat(diseaseData.length1).toFixed(2);
-              diseaseData.reference2LocationStart = parseFloat(diseaseData.reference2LocationEnd).toFixed(2);
-            }
-            else if(crackTypeIndex.value === 1){
-              diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd).toFixed(2);
-              diseaseData.reference2LocationStart = (parseFloat(diseaseData.reference2LocationEnd) - parseFloat(diseaseData.length1)).toFixed(2);
-            }
-            else if(crackTypeIndex.value === 2 && diseaseData.angle !== ''){
-              diseaseData.reference1LocationStart = (parseFloat(diseaseData.reference1LocationEnd) - parseFloat(diseaseData.length1) * Math.cos(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
-              diseaseData.reference2LocationStart = (parseFloat(diseaseData.reference2LocationEnd) - parseFloat(diseaseData.length1) * Math.sin(parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
-            }
-          }
-        });
-      }
-    }
-  };
+	const calculate = () => {
+		if (showColumns.value[0] === '1') {
+			if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2 ||
+				crackTypeIndex.value === 3) {
+				diseaseDataList.value.forEach((diseaseData, index) => {
+					// 计算参考面1的长度
+					if (diseaseData.reference1LocationStart !== '' && diseaseData
+						.reference1LocationEnd !== '' && diseaseData.reference2LocationStart !== '' &&
+						diseaseData.reference2LocationEnd !== '') {
+						console.log('计算长度')
+						const x1 = parseFloat(diseaseData.reference1LocationStart);
+						const y1 = parseFloat(diseaseData.reference2LocationStart);
+						const x2 = parseFloat(diseaseData.reference1LocationEnd);
+						const y2 = parseFloat(diseaseData.reference2LocationEnd);
+						if (!isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
+							const dx = x2 - x1;
+							const dy = y2 - y1;
+							diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
+						}
+						if (crackTypeIndex.value === 3) {
+							const dx = x2 - x1;
+							const dy = y2 - y1;
+							diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1);
+						}
+					} else if (diseaseData.reference1LocationStart !== '' && diseaseData
+						.reference2LocationStart !== '' && diseaseData.length1 !== '') {
+						console.log('计算终点')
+						if (crackTypeIndex.value === 0 || crackTypeIndex.value === 2) {
+							diseaseData.reference1LocationEnd = ((parseFloat(diseaseData
+								.reference1LocationStart)) + (parseFloat(diseaseData.length1))).toFixed(2);
+							diseaseData.reference2LocationEnd = parseFloat(diseaseData.reference2LocationStart)
+								.toFixed(2);
+						} else if (crackTypeIndex.value === 1) {
+							diseaseData.reference1LocationEnd = parseFloat(diseaseData.reference1LocationStart)
+								.toFixed(2);
+							diseaseData.reference2LocationEnd = (parseFloat(diseaseData
+								.reference2LocationStart) + parseFloat(diseaseData.length1)).toFixed(2);
+						} else if (crackTypeIndex.value === 3 && diseaseData.angle !== '') {
+							diseaseData.reference1LocationEnd = (parseFloat(diseaseData
+								.reference1LocationStart) + parseFloat(diseaseData.length1) * Math.cos(
+								parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+							diseaseData.reference2LocationEnd = (parseFloat(diseaseData
+								.reference2LocationStart) + parseFloat(diseaseData.length1) * Math.sin(
+								parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+						}
+					} else if (diseaseData.reference1LocationEnd !== '' && diseaseData
+						.reference2LocationEnd !== '' && diseaseData.length1 !== '') {
+						console.log('计算起点')
+						if (crackTypeIndex.value === 0 || crackTypeIndex.value === 2) {
+							diseaseData.reference1LocationStart = parseFloat(diseaseData
+								.reference1LocationEnd) - parseFloat(diseaseData.length1).toFixed(2);
+							diseaseData.reference2LocationStart = parseFloat(diseaseData.reference2LocationEnd)
+								.toFixed(2);
+						} else if (crackTypeIndex.value === 1) {
+							diseaseData.reference1LocationStart = parseFloat(diseaseData.reference1LocationEnd)
+								.toFixed(2);
+							diseaseData.reference2LocationStart = (parseFloat(diseaseData
+								.reference2LocationEnd) - parseFloat(diseaseData.length1)).toFixed(2);
+						} else if (crackTypeIndex.value === 2 && diseaseData.angle !== '') {
+							diseaseData.reference1LocationStart = (parseFloat(diseaseData
+								.reference1LocationEnd) - parseFloat(diseaseData.length1) * Math.cos(
+								parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+							diseaseData.reference2LocationStart = (parseFloat(diseaseData
+								.reference2LocationEnd) - parseFloat(diseaseData.length1) * Math.sin(
+								parseFloat(diseaseData.angle) / 180 * Math.PI)).toFixed(2);
+						}
+					}
+				});
+			}
+		}
+	};
 
 	watch(() => crackTypeIndex.value, (newValue) => {
 		if (crackTypeIndex.value === 6) {
@@ -717,15 +733,26 @@
 		uni.$on('setCrackType', setCrackType);
 		uni.$on('setSelectColumn', setSelectColumn)
 		uni.$on('clearDiseaseData', clearDiseaseData)
-    uni.$on('setThreshold', setThreshold)
-    uni.$on('setUnits', setUnits)
+		uni.$on('setThreshold', setThreshold)
+		uni.$on('setUnits', setUnits)
 	})
-  const setUnits = (emitUnits) => {
-    units.value = emitUnits
-  }
-  const setThreshold = (thresholdnum) => {
-    threshold.value = thresholdnum
-  }
+	onUnmounted(() => {
+		uni.$off('setPositionProps');
+		uni.$off('getDescription');
+		uni.$off('setQuantity');
+		uni.$off('setDiseaseDataList');
+		uni.$off('setCrackType');
+		uni.$off('setSelectColumn');
+		uni.$off('clearDiseaseData');
+		uni.$off('setThreshold');
+		uni.$off('setUnits');
+	})
+	const setUnits = (emitUnits) => {
+		units.value = emitUnits
+	}
+	const setThreshold = (thresholdnum) => {
+		threshold.value = thresholdnum
+	}
 	const setSelectColumn = (emitSelectColumn) => {
 		console.log('setSelectColumn:', emitSelectColumn)
 		selectedColumn.value = emitSelectColumn || 0
@@ -873,7 +900,7 @@
 							crackWidth: existingData[i].crackWidthRangeStart || '',
 							areaLength: existingData[i].areaLength || '',
 							areaWidth: existingData[i].areaWidth || '',
-              areaIdentifier: existingData[i].areaIdentifier || '',
+							areaIdentifier: existingData[i].areaIdentifier || '',
 							deformation: existingData[i].deformationRangeStart || '',
 							angle: existingData[i].angleRangeStart || '',
 							// percentage: existingData[i].numeratorRatio || '',
@@ -1049,7 +1076,7 @@
 		quantity: quantity,
 		crackType: crackType,
 		diseaseDataList: diseaseDataList,
-    units: units,
+		units: units,
 	});
 </script>
 
@@ -1193,15 +1220,30 @@
 
 	.line-select-right {}
 
+	/* 深度穿透组件样式 */
+	::v-deep .uni-data-checklist {
+		width: 100%;
+	}
 
+	::v-deep .uni-data-checklist .checklist-group {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		/* 防止换行 */
+		width: max-content;
+		/* 确保内容不会被压缩 */
+	}
 
 	/* 深度穿透组件样式 */
 	::v-deep .uni-data-checklist .checklist-box {
 		min-height: 20rpx !important;
-		min-width: 60rpx !important;
+		min-width: 40rpx !important;
+		/* 从50rpx减小为40rpx */
 		display: flex !important;
 		align-items: center !important;
 		justify-content: center !important;
+		padding: 4rpx 4rpx !important;
+		/* 添加更小的水平内边距 */
 	}
 
 	/* 单独处理文本容器 */
@@ -1213,6 +1255,8 @@
 		justify-content: center !important;
 		width: 100% !important;
 		/* 确保文本容器占满父级 */
+		font-size: 16rpx !important;
+		/* 减小字体大小 */
 	}
 
 	/* 确保外部容器不滚动 */
@@ -1352,17 +1396,19 @@
 		color: #CCCCCC;
 		font-size: 20rpx;
 	}
-  .input-right-button {
-    background-color: #0F4687;
-    border-radius: 5rpx;
-    color: #fff;
-    margin-left: auto;
-    padding: 0 14rpx;
-    font-size: 16rpx;
-  }
-  .unit-picker{
-    border: 1px solid #ccc;
-    display: flex;
-    width: 50rpx;
-  }
+
+	.input-right-button {
+		background-color: #0F4687;
+		border-radius: 5rpx;
+		color: #fff;
+		margin-left: auto;
+		padding: 0 14rpx;
+		font-size: 16rpx;
+	}
+
+	.unit-picker {
+		border: 1px solid #ccc;
+		display: flex;
+		width: 50rpx;
+	}
 </style>

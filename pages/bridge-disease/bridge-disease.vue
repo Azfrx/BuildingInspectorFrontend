@@ -86,10 +86,9 @@
 	import {
 		readWarning
 	} from "@/utils/warning";
-	import {
-		saveBridgeZip,
-		setDisease
-	} from "@/utils/writeNew";
+  import {
+    saveBridgeZip,
+  } from "@/utils/writeNew";
 	import {
 		setFrontPhotoCommited
 	} from "@/utils/frontPhoto";
@@ -199,6 +198,7 @@
 		checkDiseaseStatus();
 		checkFrontPhotoStatus();
 		checkCurrentPhotoStatus();
+    getObjectJson();
 		uni.$on('setButtonUnCommited', setButtonUnCommited)
 		uni.$on('setButtonCommited', setButtonCommited)
 		uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
@@ -312,7 +312,7 @@
 			});
 
 			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				url: `http://59.110.81.142:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
 				method: 'POST'
 			});
 
@@ -336,7 +336,7 @@
 
 			// 调用文件上传API
 			const response = await uni.uploadFile({
-				url: `http://60.205.13.156:8090/api/upload/bridgeData`,
+				url: `http://59.110.81.142:8090/api/upload/bridgeData`,
 				filePath: zipFilePath,
 				name: 'file', // 后端接收文件的参数名（根据后端API文档确定）
 				header: {
@@ -359,41 +359,6 @@
 
 			if (responseData && responseData.code === 0) {
 				uni.$emit('submitSuccess');
-				/*// 提交成功，将所有commit_type为1的病害记录更新为0，删除commit_type为2的记录
-				let hasChanges = false;
-				const filteredDiseaseList = diseaseList.value.filter(disease => disease.commitType !== 2);
-				// 如果有记录被过滤掉，标记为有变化
-				if (filteredDiseaseList.length !== diseaseList.value.length) {
-				  hasChanges = true;
-				}
-
-				filteredDiseaseList.forEach(disease => {
-				  if (disease.commitType === 1) {
-				    disease.commitType = 0;
-				    hasChanges = true;
-				  }
-				});
-				diseaseList.value = filteredDiseaseList;
-
-				// 如果有更改，保存更新后的数据
-				if (hasChanges) {
-				  const currentYear = new Date().getFullYear().toString();
-
-				  // 构建要保存的数据对象
-				  const saveData = {
-				    year: parseInt(currentYear),
-				    buildingId: parseInt(idStorageInfo.buildingId),
-				    diseases: diseaseList.value
-				  };
-
-				  try {
-				    // 保存更新后的数据
-				    await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
-				    console.log('成功更新病害提交状态');
-				  } catch (error) {
-				    console.error('更新病害提交状态失败:', error);
-				  }
-				}*/
 				await setFrontPhotoCommited(userInfo.username, idStorageInfo.buildingId);
 				// 更新加载提示为上传中
 				uni.showLoading({
