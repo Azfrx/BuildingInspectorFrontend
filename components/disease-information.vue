@@ -991,7 +991,6 @@
 		diseaseTypeMultiArray.value[0] = groupNamesArray;
 
 		const selectedGroupName = groupNamesArray[diseaseTypeMultiIndex.value[0]];
-		console.log('第一列选择的groupName:', selectedGroupName)
 
 		if (componentNamePicker.value === '其他') {
 			// 当选择"其他"时，通过grandObjectName查找对应的第一级结构
@@ -1029,13 +1028,11 @@
 							});
 						}
 					});
-					console.log('其他选项 - 合并所有病害类型:', allDiseaseTypes);
 				}
 			}
 		} else {
 			// 添加第二级的病害类型（如果有）
 			if (selectedBiObject.diseaseTypes && Array.isArray(selectedBiObject.diseaseTypes)) {
-				console.log('添加第二级病害类型:', selectedBiObject.diseaseTypes)
 				// allDiseaseTypes = [...selectedBiObject.diseaseTypes];
 				selectedBiObject.diseaseTypes.forEach(item => {
 					if (!allDiseaseTypes.some(existing => existing.id === item.id) && item.groupName ===
@@ -1060,7 +1057,6 @@
 							allDiseaseTypes.push(item);
 						}
 					});
-					console.log('添加第三级后的病害类型:', allDiseaseTypes);
 				}
 			}
 		}
@@ -1069,7 +1065,7 @@
 		diseaseTypeOptions.value = allDiseaseTypes.map(item => `${item.code}#${item.name}`);
 		diseaseTypeMultiArray.value[1] = diseaseTypeOptions.value;
 
-		console.log('groupNamesArray........................................', groupNamesArray)
+		console.log('groupNamesArray', groupNamesArray)
 		console.log('最终缺损类型第二列选项更新为:', diseaseTypeOptions.value);
 
 		// 如果已经设置了病害类型，尝试在新的选项中找到对应的索引
@@ -1086,7 +1082,6 @@
 				console.log('当前病害类型不在选项中，设为自定义输入:', type.value);
 			}
 		}*/
-		console.log('allDiseaseType', allDiseaseTypes)
 	}
 
 	// 更新病害位置选项

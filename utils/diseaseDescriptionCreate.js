@@ -8,6 +8,7 @@ function generateDiseaseDescription(data) {
 		crackType, // 裂缝特征（可选）
 		defects = [], // 缺损数据数组
 		counts = 0, // 病害数量（可选）
+		units, // 单位
 	} = data;
 
 	const count = defects.length;
@@ -16,7 +17,7 @@ function generateDiseaseDescription(data) {
 	// 仅显示名称部分
 	const componentNameOnly = componentName.split('#')[1];
 
-	let description = `${componentCode}#${componentName}${diseaseType}${counts > 0 ? `${counts}条` : ''}，${diseasePosition}`;
+	let description = `${componentCode}#${componentName}${diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}，${diseasePosition}`;
 	if (showColumns[0] == 1 && crackType) description += `${crackType}裂缝`;
 	let descriptionArr = [];
 
@@ -30,13 +31,17 @@ function generateDiseaseDescription(data) {
 				descriptionArr.push(`距${item.reference2Location} ${item.reference2LocationStart}m`);
 			}
 			if (showColumns[1] == 1 && item.length1) {
-				descriptionArr.push(`长度：${item.length1}m`);
+
 				if(crackType === 'L型'){
-					descriptionArr.push(`长度：${item.length2}m`);
+					descriptionArr.push(`长度1：${item.length1}m`);
+					descriptionArr.push(`长度2：${item.length2}m`);
 				}
-				if(crackType === 'U型'){
-					descriptionArr.push(`长度：${item.length2}m`);
-					descriptionArr.push(`长度：${item.length3}m`);
+				else if(crackType === 'U型'){
+					descriptionArr.push(`长度1：${item.length1}m`);
+					descriptionArr.push(`长度2：${item.length2}m`);
+					descriptionArr.push(`长度3：${item.length3}m`);
+				}else{
+					descriptionArr.push(`长度：${item.length1}m`);
 				}
 			}
 			if (showColumns[2] == 1 && item.crackWidth) {

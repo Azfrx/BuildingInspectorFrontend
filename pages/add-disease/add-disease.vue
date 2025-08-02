@@ -218,11 +218,14 @@
 	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 	import MyPhotoPicker from '@/components/myPhotoPicker.vue';
 	import { ButtonStore } from '@/store/button.js';
+  import {useObject} from "@/store/object";
 
 	const diseaseInformationRef = ref(null);
 	const diseaseQuantitativeDataRef = ref(null);
 	const diseaseDescriptionPart = ref(null);
 	const buttonInfo = ButtonStore();
+
+  const objectInfo = useObject();
 
 	const userInfo = userStore()
 
@@ -1531,7 +1534,8 @@
 		try {
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
-			const data = await getObject(userInfo.username, idStorageInfo.buildingId);
+			// const data = await getObject(userInfo.username, idStorageInfo.buildingId);
+      const data = objectInfo.getData();
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 

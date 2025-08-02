@@ -798,6 +798,7 @@
 			showColumns: showColumns.value, //判断是否显示裂缝特征
 			defects: diseaseDataList.value, // 病害定量数据数组
 			counts: quantity.value, // 病害数量
+      units: units.value,// 单位
 		};
 		uni.$emit('setDescription2', description);
 	}

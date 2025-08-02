@@ -216,6 +216,7 @@
       crackType: description2.value.crackType, // 裂缝特征
 			defects: description2.value.defects, // 病害定量数据数组
 			counts: description2.value.counts, // 缺损数量
+      units: description2.value.units,// 单位
 		})
 		description.value = createDescription
 	}

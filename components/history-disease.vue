@@ -110,12 +110,12 @@
 
 	const idStorageInfo = idStore();
 
-	watch(() => props.activeTabTop, (newval, oldval) => {
+	/*watch(() => props.activeTabTop, (newval, oldval) => {
 		if (newval == 1) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
 			loadDiseaseData();
 		}
-	})
+	})*/
 
 	// 读取json文件中的数据
 	const readHistoryDiseaseData = async () => {

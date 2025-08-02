@@ -106,9 +106,12 @@
 	import {
 		idStore
 	} from "@/store/idStorage";
+  import {getObjectUL} from "@/utils/readUL";
+  import {useObject} from "@/store/object";
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore();
+  const objectInfo = useObject();
 
 	// 控制提交按钮是否可点击
 	const submitButtonEnabled = ref(false);
@@ -192,19 +195,18 @@
 	};
 
 	// 组件挂载时
-	onMounted(() => {
-		readBridgeInfo();
-		checkUncommitted();
-		checkDiseaseStatus();
-		checkFrontPhotoStatus();
-		checkCurrentPhotoStatus();
-    getObjectJson();
-		uni.$on('setButtonUnCommited', setButtonUnCommited)
-		uni.$on('setButtonCommited', setButtonCommited)
-		uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
-		uni.$on('diseaseStatusChanged', checkDiseaseStatus)
-		uni.$on('currentPhotoStatusChanged', checkCurrentPhotoStatus)
-	});
+	onMounted(async () => {
+    readBridgeInfo();
+    checkUncommitted();
+    checkDiseaseStatus();
+    checkFrontPhotoStatus();
+    checkCurrentPhotoStatus();
+    uni.$on('setButtonUnCommited', setButtonUnCommited)
+    uni.$on('setButtonCommited', setButtonCommited)
+    uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
+    uni.$on('diseaseStatusChanged', checkDiseaseStatus)
+    uni.$on('currentPhotoStatusChanged', checkCurrentPhotoStatus)
+  });
 
 	onUnmounted(() => {
 		uni.$off('setButtonUnCommited')

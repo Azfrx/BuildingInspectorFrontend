@@ -49,7 +49,7 @@
 		isExistDisease,
 		isOnlyDisease,
 		isUnFinishDisease,
-		readDiseaseCommit
+		// readDiseaseCommit
 	} from '../utils/readJsonNew.js';
 	import {
 		markObjectAsCommitted,
@@ -104,13 +104,13 @@
 
 	// const structureStoreInfo = structureStore();
 
-	watch(() => props.activeTabTop, async (newval, oldval) => {
+	/*watch(() => props.activeTabTop, async (newval, oldval) => {
 		if (newval == 0) {
 			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
 			await readCurrentYearDiseaseDataByJson()
-			await checkUncommitted()
+			// await checkUncommitted()
 		}
-	})
+	})*/
 
 	//
 	const readCurrentYearDiseaseDataByJson = async () => {
@@ -180,8 +180,8 @@
 				icon: 'success'
 			});*/
 			// await checkUncommittedDiseases();
-			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
-				currentYear);
+			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      const hasUncommittedDiseases = readDiseaseCommit();
 			if (hasUncommittedDiseases) {
 				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
@@ -262,8 +262,8 @@
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
 			console.log('删除标记保存成功');
-			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
-				currentYear);
+			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      const hasUncommittedDiseases = readDiseaseCommit();
 			if (hasUncommittedDiseases) {
 				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
@@ -339,8 +339,8 @@
 
 			console.log('更新数据保存成功');
 			// await checkUncommittedDiseases();
-			const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId,
-				currentYear);
+			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
+      const hasUncommittedDiseases = readDiseaseCommit();
 			if (hasUncommittedDiseases) {
 				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
@@ -627,7 +627,7 @@
 	// 监听diseaseList的变化
 	watch(diseaseList, async () => {
 		console.log('diseaseList发生变化，检查未提交病害');
-		await checkUncommitted();
+		// await checkUncommitted();
 	}, {
 		deep: true
 	}); // 使用deep: true确保监听对象内部属性的变化
@@ -670,6 +670,26 @@
 		}
 	};
 
+  const readDiseaseCommit = () => {
+    try {
+      // 检查diseases数组是否存在
+      if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
+        console.log('没有找到病害数据或数据格式不正确');
+        return false;
+      }
+
+      // 使用some方法检查是否有任何病害的commit_type为1（未提交）或为2（需要删除）
+      const hasUncommittedDiseases = diseaseList.value.some(disease => disease.commitType === 1 || disease
+          .commitType === 2);
+
+      console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
+      return hasUncommittedDiseases;
+    } catch (error) {
+      console.error('检查病害提交状态时出错:', error);
+      return false; // 出错时返回false
+    }
+  }
+
 	// 组件挂载时
 	onMounted(() => {
 		console.log('current-disease组件挂载，准备加载数据');
@@ -708,7 +728,7 @@
 		});
 
 		// 初始检查未提交病害
-		checkUncommitted();
+		// checkUncommitted();
 	});
 
 	// 组件卸载时
