@@ -103,6 +103,7 @@
 		setBuildingCommitted,
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
+	import { useObject } from '../../store/object'
 	// 返回上一页
 	const back = () => {
 		uni.navigateBack()
@@ -123,6 +124,7 @@
 	const projects = ref(null)
 	const tasks = ref([])
 	const initTaskULData = ref(null)
+	const objectData = useObject();
 	// 初始化时获取projectId参数
 	const getURLParams = () => {
 		try {
@@ -457,7 +459,9 @@
 			value: bridge.buildingId
 		});
 		console.log('已将buildingId存储到store:', idInfo.buildingId);
-
+		const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
+		objectData.setData(newData);
+		console.log("objectData",objectData.getData());
     // 导航到桥梁疾病页面
     uni.navigateTo({
       // url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
@@ -468,7 +472,6 @@
 			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
 			// 尝试从UL目录读取数据
 			const structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-
 			// 如果从UL目录读不到数据（没有数据或只有默认空数据）
 			if (!structureData || !structureData.children || structureData.children.length === 0) {
 				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
