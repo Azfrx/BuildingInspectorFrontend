@@ -13,12 +13,10 @@ export async function setRootDir() {
             return;
         }
         
-        console.log('检查用户目录是否存在，用户名:', username);
         
         try {
             // 获取文件系统
             plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-                console.log('文件系统获取成功');
                 
                 // 读取根目录下的所有文件夹
                 fs.root.createReader().readEntries(entries => {
@@ -31,7 +29,6 @@ export async function setRootDir() {
                         entry.name.includes(`-${username}`)
                     );
                     
-                    console.log(`找到 ${ulDirs.length} 个UL目录`);
                     
                     // 检查是否有带project和building子目录的UL目录
                     let validDirEntry = null;
@@ -44,7 +41,6 @@ export async function setRootDir() {
                             dir.getDirectory('project', { create: false }, 
                                 () => {
                                     // 如果project目录存在，这是一个有效目录
-                                    console.log(`找到包含project子目录的UL目录: ${dir.name}`);
                                     validDirEntry = dir;
                                     resolveCheck();
                                 },
@@ -60,12 +56,10 @@ export async function setRootDir() {
                     Promise.all(checkDirPromises).then(() => {
                         if (validDirEntry) {
                             // 如果找到有效目录，使用它
-                            console.log('使用已存在的有效UL目录:', validDirEntry.name);
                             useInfo.setULPath(validDirEntry.name);
                             
                             // 删除空的UL目录
                             if (emptyDirs.length > 0) {
-                                console.log(`准备删除 ${emptyDirs.length} 个空的UL目录`);
                                 emptyDirs.forEach(dir => {
                                     if (dir.name !== validDirEntry.name) {
                                         dir.removeRecursively(
@@ -86,12 +80,10 @@ export async function setRootDir() {
                             // 按名称排序，使用最新的空目录
                             emptyDirs.sort((a, b) => b.name.localeCompare(a.name));
                             const dirEntry = emptyDirs[0];
-                            console.log('使用已存在的空UL目录:', dirEntry.name);
                             useInfo.setULPath(dirEntry.name);
                             
                             // 删除其他空目录
                             if (emptyDirs.length > 1) {
-                                console.log(`准备删除 ${emptyDirs.length - 1} 个多余的空UL目录`);
                                 emptyDirs.slice(1).forEach(dir => {
                                     dir.removeRecursively(
                                         () => console.log(`成功删除多余空目录: ${dir.name}`),
@@ -106,7 +98,6 @@ export async function setRootDir() {
                         }
                         
                         // 如果没有找到任何UL目录，创建新目录
-                        console.log('未找到任何UL目录，准备创建新目录');
                         const now = new Date();
                         const timestamp = 
                             now.getFullYear().toString() +
@@ -117,41 +108,33 @@ export async function setRootDir() {
                             now.getSeconds().toString().padStart(2, '0');
                         
                         const dirName = `UL-${timestamp}-${username}`;
-                        console.log('准备创建新目录:', dirName);
                         
                         // 创建目录
                         fs.root.getDirectory(
                             dirName,
                             { create: true, exclusive: false },
                             dirEntry => {
-                                console.log('新目录创建成功:', dirEntry.fullPath);
                                 
                                 // 存储目录名到ULPath
                                 useInfo.setULPath(dirName);
-                                console.log('已将目录名存储到ULPath:', dirName);
                                 
                                 // 创建子目录
                                 createSubDirectories(dirEntry, resolve, reject);
                             },
                             error => {
-                                console.error('目录创建失败:', error);
                                 reject(error);
                             }
                         );
                     }).catch(error => {
-                        console.error('检查目录状态失败:', error);
                         reject(error);
                     });
                 }, error => {
-                    console.error('读取目录失败:', error);
                     reject(error);
                 });
             }, error => {
-                console.error('获取文件系统失败:', error);
                 reject(error);
             });
         } catch (e) {
-            console.error('setRootDir异常:', e);
             reject(e);
         }
     });
@@ -164,25 +147,20 @@ export async function setRootDir() {
  * @param {Function} reject 失败回调
  */
 function createSubDirectories(parentDir, resolve, reject) {
-    console.log('开始创建子目录，父目录路径:', parentDir.fullPath);
     
     // 创建project目录
     parentDir.getDirectory('project', { create: true }, projectDir => {
-        console.log('project目录创建成功:', projectDir.fullPath);
         
         // 创建building目录
         parentDir.getDirectory('building', { create: true }, buildingDir => {
-            console.log('building目录创建成功:', buildingDir.fullPath);
             
             // 所有目录创建成功，返回父目录
             resolve(parentDir);
         }, error => {
-            console.error('building目录创建失败:', error, '错误代码:', error.code, '错误信息:', error.message);
             // 即使building目录创建失败，也返回父目录
             resolve(parentDir);
         });
     }, error => {
-        console.error('project目录创建失败:', error, '错误代码:', error.code, '错误信息:', error.message);
         // 即使project目录创建失败，也返回父目录
         resolve(parentDir);
     });
@@ -200,29 +178,22 @@ export function writeTaskJson(projectId, data) {
             const useInfo = userStore();
             const username = useInfo.username;
             
-            console.log('writeTaskJson开始执行，参数:', { projectId, username });
             
             if (!username) {
-                console.error('用户未登录，无法获取用户名');
                 reject(new Error('用户未登录，无法获取用户名'));
                 return;
             }
             
-            console.log('开始查找用户目录，用户名:', username);
-            
             // 获取文件系统
             plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
-                console.log('文件系统获取成功，准备读取目录');
                 
                 // 读取根目录下的所有文件夹
                 const reader = fs.root.createReader();
                 reader.readEntries(entries => {
-                    console.log('读取到目录数量:', entries.length);
                     
                     // 输出所有目录名称，方便调试
                     entries.forEach((entry, index) => {
                         if (entry.isDirectory) {
-                            console.log(`目录[${index}]:`, entry.name);
                         }
                     });
                     
@@ -232,13 +203,11 @@ export function writeTaskJson(projectId, data) {
                     // 优先检查ULPath和UDPath
                     if (useInfo.ULPath || useInfo.UDPath) {
                         const storedPath = useInfo.ULPath || useInfo.UDPath;
-                        console.log('检查store中保存的路径:', storedPath);
                         
                         // 查找匹配的目录
                         for (let i = 0; i < entries.length; i++) {
                             const entry = entries[i];
                             if (entry.isDirectory && entry.name === storedPath) {
-                                console.log('找到store中保存的目录:', entry.name);
                                 userDirEntry = entry;
                                 break;
                             }
@@ -250,20 +219,17 @@ export function writeTaskJson(projectId, data) {
                         for (let i = 0; i < entries.length; i++) {
                             const entry = entries[i];
                             if (entry.isDirectory && entry.name.includes(`-${username}`)) {
-                                console.log('找到匹配的用户目录:', entry.name, '完整路径:', entry.fullPath);
                                 userDirEntry = entry;
                                 
                                 // 更新store中的路径
                                 useInfo.setULPath(entry.name);
                                 useInfo.setUDPath(entry.name);
-                                console.log('更新store中的路径:', entry.name);
                                 break;
                             }
                         }
                     }
                     
                     if (!userDirEntry) {
-                        console.error(`未找到用户 ${username} 的目录，尝试查找UD-开头或UL-开头的目录`);
                         
                         // 如果没找到精确匹配，尝试查找UD-开头或UL-开头的最新目录
                         const prefixDirs = entries.filter(entry => 
@@ -274,13 +240,10 @@ export function writeTaskJson(projectId, data) {
                             // 按名称排序，取最新的（假设名称中包含时间戳）
                             prefixDirs.sort((a, b) => b.name.localeCompare(a.name));
                             userDirEntry = prefixDirs[0];
-                            console.log('使用最新的目录:', userDirEntry.name);
-                            
                             // 更新store中的路径
                             useInfo.setULPath(userDirEntry.name);
                             useInfo.setUDPath(userDirEntry.name);
                         } else {
-                            console.error('未找到任何UD-开头或UL-开头的目录');
                             reject(new Error(`未找到用户 ${username} 的目录`));
                             return;
                         }
@@ -288,11 +251,9 @@ export function writeTaskJson(projectId, data) {
                     
                     // 在用户目录下创建project文件夹
                     userDirEntry.getDirectory('project', { create: true, exclusive: false }, projectDirEntry => {
-                        console.log('project目录创建成功，路径:', projectDirEntry.fullPath);
                         
                         // 在project目录下创建以projectId命名的文件夹
                         projectDirEntry.getDirectory(projectId.toString(), { create: true, exclusive: false }, projectIdDirEntry => {
-                            console.log(`项目目录 ${projectId} 创建成功，路径:`, projectIdDirEntry.fullPath);
                             
                             // 准备写入的JSON数据
                             const jsonData = JSON.stringify({
@@ -301,11 +262,9 @@ export function writeTaskJson(projectId, data) {
                                 createTime: new Date().getTime()
                             }, null, 2); // 使用缩进格式化JSON
                             
-                            console.log('准备写入的JSON数据:', jsonData);
                             
                             // 修复路径，确保没有双斜杠
                             const filePath = `${projectIdDirEntry.fullPath.replace(/\/\//g, '/')}/task.json`;
-                            console.log('任务文件路径:', filePath);
                             
                             // 使用与writeNew.js相同的方法写入文件
                             projectIdDirEntry.getFile('task.json', { create: true }, fileEntry => {

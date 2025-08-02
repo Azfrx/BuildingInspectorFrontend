@@ -1,8 +1,10 @@
 import { getObjectUL } from "./readUL";
 import { setObject } from "./writeNew";
-
+import { useObject } from "../store/object";
 export async function incrementDiseaseNumber(username, buildingId,targetId) {
-	const data = await getObjectUL(username,buildingId)
+	//1. 创建实例对象
+	const objectData = useObject()
+	const data = objectData.getData()
     // 遍历第一层 children
     if (data.children && Array.isArray(data.children)) {
         for (let firstLevel of data.children) {
@@ -31,7 +33,8 @@ export async function incrementDiseaseNumber(username, buildingId,targetId) {
     return false; // 未找到匹配的 ID
 }
 export async function decrementDiseaseNumber(username, buildingId,targetId) {
-	const data = await getObjectUL(username,buildingId)
+    const objectData = useObject()
+    const data = objectData.getData()
     // 遍历第一层 children
     if (data.children && Array.isArray(data.children)) {
         for (let firstLevel of data.children) {

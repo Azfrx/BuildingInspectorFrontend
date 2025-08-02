@@ -48,10 +48,9 @@
 	import checkUpdate from '../../uni_modules/uni-upgrade-center-app/utils/check-update';
 	import { writeObjectJson } from '../../utils/write';
 	import { userStore } from '@/store/index.js';
-
+	import {useObject} from'@/store/object.js'
 	const activeSection = ref('');
 	const userInfo = userStore();
-
 	const handleClick = (section) => {
 		activeSection.value = section;
 		if (section === 'bridge') {

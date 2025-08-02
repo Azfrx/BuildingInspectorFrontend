@@ -1,112 +1,141 @@
 <template>
 	<view class="container">
-		<view class="confirm-row">
-			<span class="confirm-text">结构信息状态：</span>
-			<span class="confirm-status"
-				:style="{color: Number(structureData?.status) === 3 ? '#f56c6c': '#333'}">
-				{{ Number(structureData?.status) === 3 ? '已锁定': '未锁定'}}
+		<!-- 结构信息状态栏 -->
+		<view class="Title">
+			<span class="text">结构信息状态 : </span>
+			<span :style="{color: Number(treeData?.status) === 3 ? '#f56c6c': '#333'}">
+				{{ Number(treeData?.status) === 3 ? '已锁定': '未锁定'}}
 			</span>
 		</view>
-		<!-- 添加侧边栏 -->
-		<view class="content-layout">
-			<!-- 第一个侧边栏 -->
-			<view class="sidebar">
-				<view v-for="(item, index) in (structureData?.children || [])" :key="index"
-					:class="['sidebar-item', selectedIndex === index ? 'active' : '']" @click="changeTab(index)">
-					<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
-						style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
-					<view class="treeName sidebar-item-content">
-						{{item?.name || '未命名'}}
+		
+		<!-- 三个侧边栏 -->
+		<view class = "sidebar">
+			<!-- 第一级侧边栏 -->
+			<view class = 'sidebar-level1'>
+				<!-- 遍历展示第一层的数据 -->
+				<view v-for="(item1,index1) in treeData.children" :key="item1.id" @click = "changeTab(index1)" :class = "{active: menuIndex[0] === index1}">
+					<!-- menuIndex[0]记录了当前选中的菜单项索引 index1 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
+					<!-- 给每个容器设置宽高 -->
+					<view class = "box">
+						<!-- 第一级菜单项的警告图片 -->
+						<image v-if="item1.warnNumber > 0" src="@/static/image/warning.png"
+							   class="warning-icon"  />
+						{{item1.name}}
 					</view>
 				</view>
-				<view v-if="!structureData?.children || structureData.children.length === 0" class="no-data-tip">
-					数据加载中...
+			</view>
+			
+			<!-- 第二级侧边栏 -->
+			<view class = "sidebar-level2">
+				<!-- 遍历展示第2层的数据 -->
+				<view v-for="(item2,index2) in treeData.children[menuIndex[0]].children" :key="item2.id" 
+				@click = "changeTab(menuIndex[0],index2)" :class = "{active: menuIndex[1] === index2}">
+					<!-- menuIndex[1]记录了第二级的菜单项索引 index2 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
+					<!-- 给每个容器设置宽高 -->
+					<view class = "box">
+						<!-- 第二级菜单项的警告图片 -->
+						<image v-if="item2.warnNumber > 0" src="@/static/image/warning.png"
+							   class="warning-icon"  />
+						{{item2.name}}
+					</view>
 				</view>
 			</view>
-
-			<!-- 第二个侧边栏 -->
-			<view class="sidebar second-sidebar">
-				<view v-if="secondLevelItems && secondLevelItems.length > 0">
-					<view v-for="(item, index) in secondLevelItems" :key="index"
-						:class="['sidebar-item', selectedSecondIndex === index ? 'active' : '']"
-						@click="changeSecondTab(index)">
-						<image v-if="hasWarningInChildren(item)" src="@/static/image/warning.png" class="flagImage"
-							style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
-						<view class="treeName sidebar-item-content">
-							{{item?.name || '未命名'}}
+			
+			<!-- 第三级侧边栏 -->
+			<view class = "sidebar-level3">
+				<!-- 遍历展示第3层的数据 -->
+				<view v-for="(item3,index3) in treeData.children[menuIndex[0]].children[menuIndex[1]].children" :key="item3.id"
+				@click = "changeTab(menuIndex[0],menuIndex[1],index3)" :class = "{active2: menuIndex[2] === index3}" class="fathercontentandbutton">
+					<!-- menuIndex[2]记录了第3级的菜单项索引 index3 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
+					<view class="content">
+						
+						<!-- 给每个容器设置宽高 -->
+						<view class = "box3">
+							<!-- 第三级菜单项的警告图片 -->
+							<image v-if="(item3?.diseaseNumber || 0) > (item3?.count || 0)" src="@/static/image/warning.png"
+								   class="warning-icon"  />
+							{{item3.name}}
 						</view>
-					</view>
-				</view>
-				<view v-else class="no-data-tip">
-					不存在第二层数据
-				</view>
-			</view>
-
-			<!-- 第三个侧边栏 -->
-			<view class="sidebar third-sidebar" v-if="thirdLevelItems && thirdLevelItems.length > 0">
-				<view v-for="(item, index) in thirdLevelItems" :key="index"
-					:class="['sidebar-item', selectedThirdIndex === index ? 'active' : '']"
-					@click="changeThirdTab(index)">
-					<view class="sidebar-item-content">
-						<text class="item-name"
-							:class="{ 'disabled-text': item?.status === '1' }">{{item?.name || '未命名'}}</text>
-						<view class="item-info-right">
-							<view class="counterNumber">
-								<text class="item-quantity">
-									<span class="rightcount">病害构件数量</span>{{item?.diseaseNumber}}</text>
-								<text v-if="item?.status === '0'" class="item-quantity">
-									<image v-if="(item?.diseaseNumber || 0) > (item?.count || 0)" src="@/static/image/warning.png"
-										style="width: 13rpx; height: 13rpx; margin-right: 5rpx;" />
-									<span class="rightcount2">构件数量</span>
-									{{ item?.count || 0 }}
+						
+						<!-- 右侧信息区 -->
+						<view class="right">
+							<!-- 内容 -->
+							<view class="content-container">
+								<text class="disease">
+									<span class="dissease-count">病害构件数量</span>
+									{{item3?.diseaseNumber ?? 0}}
+								</text>
+								<text class="component-count">
+									<span class="count">构件数量</span>
+									{{item3.count}}
 								</text>
 							</view>
-							<image src="/static/image/RightOutline.svg" class="rightarrow" />
+							
+							<!-- 图标 -->
+							<view class="image-container">
+								<image src="/static/image/RightOutline.svg" class="rightarrow" />
+							</view>
+							
 						</view>
 					</view>
-					<view class="action-buttons" v-if="selectedThirdIndex === index && Number(structureData?.status) !== 3">
-						<button @click.stop="handleCancel()">取消</button>
-						<button @click.stop="handleEdit(index, item)">编辑</button>
+						
+					<!-- 第三级菜单项的按钮 -->
+					<view class = "button" :class="{show: menuIndex[2] === index3 && Number(treeData.status) !== 3}">
+						<view class = "cancle" @click.stop="closeButton">取消</view>
+						<view class = "confirm" @click = "open">编辑</view>
 					</view>
 				</view>
 			</view>
-			<!-- 当没有第三层数据时显示提示 -->
-			<view class="sidebar third-sidebar" v-else>
-				<view class="no-data-tip">
-					数据为空
-				</view>
-			</view>
-		</view>
-
-		<!-- 添加编辑弹窗 -->
-		<uni-popup ref="editPopup" type="center">
-			<view class="edit-popup-content">
-				<view class="popup-title">构件信息编辑</view>
-				<view class="edit-row">
-					<text class="edit-label">构件名称</text>
-					<text class="edit-value">{{currentEditItem?.name}}</text>
-				</view>
-				<view class="edit-row">
-					<text class="edit-label">病害构件数量</text>
-					<view>
-						<text class="desease">{{diseaseNumber}}</text>
+			
+			
+			
+		</view>   
+		
+		<!-- 编辑弹窗 -->
+		<!-- 通过ref属性实现对弹窗的启用或者关闭 -->
+		<uni-popup ref="windowPopup" type="center">
+			<view class="edit-container">
+			<!-- 弹窗标题栏 -->	
+				<view class="edit-title">构件信息编辑</view>
+			<!-- 弹窗内容区 -->
+				<view class="edit-content">
+					<!-- 第一行构件名称 -->
+					<view class="edit-content-first">
+						<text class="edit-key">构件名称</text>
+						<text class="edit-value1">{{componentName}}</text>
 					</view>
+					
+					<!-- 第二行病害构件数量 -->
+					<view class="edit-content-second">
+						<text class="edit-key">病害构件数量</text>
+						<text class="edit-value2">{{diseaseNumber}}</text>
+					</view>
+					
+					<!-- 第三行构件数量 -->
+					<view class="edit-content-third">
+						<text class="edit-key">构件数量</text>
+						<!--输入框 -->
+						<view class="input-wrapper">
+						    <input
+						      class="input-text"
+						      v-model="componentCount"
+						      type="number"
+						      placeholder="请输入数量"
+						      placeholder-style="color: #CCCCCC;"
+						    />
+						    <image
+						      src="/static/image/clear.png"
+						      class="clear-icon"
+						      @click="componentCount = ''"
+						    />
+						  </view>
+					</view>
+					
 				</view>
-				<view class="edit-row">
-					<text class="edit-label">构件数量</text>
-<!--					<uni-easyinput v-model="currentEditItem.quantity" type="number" placeholder="请输入数量" clearSize="40"
-						class="quantity-input" :inputStyle="{ fontSize: '18rpx' }"
-						:placeholderStyle="'font-size: 20rpx;'">
-					</uni-easyinput>-->
-          <view class="component-number">
-            <input type="number" v-model="currentEditItem.count" class="input-text" placeholder="请输入数量" placeholder-style="color: #CCCCCC;">
-            <image src="/static/image/clear.png" class="clear-icon" @click="currentEditItem.count = '' "></image>
-          </view>
-				</view>
-				<view class="popup-buttons">
-					<button class="popup-btn cancel-btn" @click="closeEditPopup">取消</button>
-					<!-- <button class="popup-btn confirm-btn" @click="saveEdit">确定</button> -->
-					<button class="popup-btn confirm-btn" @click="confirmConfirm()">确定</button>
+			<!-- 按钮区域 -->
+				<view class="edit-button">
+					<button class="edit-button-cancel" @click = "close">取消</button>
+					<button class="edit-button-confirm" @click = "setComponentCount()">确定</button>
 				</view>
 			</view>
 		</uni-popup>
@@ -114,1346 +143,488 @@
 </template>
 
 <script setup>
-	import {
-		ref,
-		computed,
-		onMounted,
-		watch,
-		nextTick
-	} from 'vue';
-	import CustomSwitch from './CustomSwitch.vue';
-		
-	import {
-		userStore
-	} from '@/store/index.js'
-	import { idStore } from '../store/idStorage';
-	import {
-		structureStore
-	} from '../store/structureNumberStorage';
-	import { getObjectUL,readDiseaseComponentUL } from '../utils/readUL';
-	import { getObject,readDiseaseComponent } from '../utils/readJsonNew';
-	import {setObject}  from '../utils/writeNew'
-	import {addFlagsAndDiseaseNumber} from'../utils/addFlag.js'
-	import{incrementDiseaseNumber} from'../utils/diseaseNumber.js'
-import { setWarning, readWarning, resetWarning } from '../utils/warning';
-  import {setBuildingCommitted, setBuildingUnCommitted} from '../utils/isBuildingCommited';
-	const structureData = ref(null);
-	const selectedIndex = ref(0);
-	const selectedSecondIndex = ref(0);
-	const selectedThirdIndex = ref(-1);
-	const editPopup = ref(null);
-	const currentEditItem = ref(null);
-	const globalWarning = ref(false);
-	const currentEditItemBoolean = computed(() => {
-		return currentEditItem.value.status === '0' ? true : false
-	})
-	//病害构件数量
-	const diseaseNumber = ref(0)
-	//桥梁id
-	const TaskBridgeId = ref(0)
-	//去除msg和code字段的数据
-	const resultData = ref(null);
-	const userInfo = userStore()
-	const idInfo = idStore()
-	// const structureNumberInfo = structureStore()
-	// 通过计算属性获取URL中的bridgeId参数
-	const bridgeIdFromURL = computed(() => {
-		const pages = getCurrentPages();
-		if (pages.length > 0) {
-			const currentPage = pages[pages.length - 1];
-			const options = currentPage.$page?.options;
+//1.引入结构数据全局变量
+import { onMounted, ref, watch, computed } from "vue";
+import { useObject } from "@/store/object.js";
+import { setObject } from "../utils/writeNew.js";
+import { userStore } from '../store/index.js';
+import { idStore } from '../store/idStorage.js';
+//2.创建实例对象
+const objectData = useObject();
+const userInfo = userStore();
+const idInfo = idStore();
 
-			if (options && options.bridgeId) {
-				return options.bridgeId;
+// 使用计算属性来响应式获取数据
+const treeData = computed(() => {
+	const data = objectData.getData();
+	// 每次获取数据时都重新计算警告状态
+	if (data.children) {
+		data.children.forEach(item1 => {
+			if (item1.children) {
+				item1.children.forEach(item2 => {
+					checkSecondLevelWarning(item2);
+				});
 			}
-		}
-		return 0; // 默认值
-	});
-	// const warningTwoFlag = warningThree(resultData.value)
-	// 监听bridgeIdFromURL的变化
-	watch(bridgeIdFromURL, (newVal) => {
-		if (newVal) {
-			TaskBridgeId.value = newVal;
-			console.log('接收到的桥梁ID:', TaskBridgeId.value);
-			
-		}
-	});
-
-  // 接收父组件传递的数据加载状态
-  const props = defineProps({
-    activeTabTop: {
-      type: Number,
-      default: 0
-    }
+			checkFirstLevelWarning(item1);
+		});
+	}
+	
+	// 检查页面警告状态并设置全局标志
+	checkPageWarning();
+	
+	return data;
+})
+//用数组存储索引下标,默认只选中前2项
+const menuIndex = ref([0,0,-1])
+//构件名称
+const componentName = ref("")
+//病害构件数量
+const diseaseNumber = ref(0)
+//构件数量
+const componentCount = ref(0)
+//通过这个变量控制第三级菜单项的按钮的显示
+const buttonVisible = ref({})
+//检查一级菜单下的三级菜单警告状态，并统计数量
+const checkFirstLevelWarning = (item1) => {
+	  if (!item1.children) {
+	    item1.warnNumber = 0; // 初始化
+	    return false;
+	  }
+	
+	  // 统计有问题的二级菜单项数量
+	  item1.warnNumber = item1.children.reduce((count, item2) => {
+	    return count + (item2.warnNumber > 0 ? 1 : 0);
+	  }, 0);
+	
+	  // 返回是否存在警告（warnNumber > 0）
+	  return item1.warnNumber > 0;	
+}
+// 检查二级菜单下的三级菜单警告状态，并统计数量
+const checkSecondLevelWarning = (item2) => {
+  // 统计警告数量和判断是否有警告
+  let warningCount = 0;        
+  const hasWarning = item2.children.some(item3 => {
+    const isWarning = (item3.diseaseNumber || 0) > (item3.count || 0);
+    if (isWarning) warningCount++;
+    return isWarning;
   });
 
-  watch(() => props.activeTabTop, async (newval, oldval) => {
-    if (newval == 4) {
-      console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
-      // 添加延时确保页面已完全显示
-
-        await init();
-
-    }
-  }, { immediate: true }) // 添加immediate:true确保首次加载时也会执行
-
-	// 修改init函数，添加重试机制
-	const init = async (retryCount = 0) => {
-		console.log('=== init 函数开始执行 ===', '重试次数:', retryCount);
-		
-		// 初始化数据结构，防止渲染错误
-		if (!structureData.value) {
-			structureData.value = { children: [] };
-		}
-		
-		// 确保TaskBridgeId已经从URL参数中获取
-		if (bridgeIdFromURL.value) {
-			TaskBridgeId.value = bridgeIdFromURL.value;
-		} else if (idInfo.buildingId && idInfo.buildingId.value) {
-			// 如果URL中没有，尝试从store中获取
-			TaskBridgeId.value = idInfo.buildingId.value;
-			console.log('从store中获取到buildingId:', TaskBridgeId.value);
-		}
-		
-		console.log('使用的桥梁ID:', TaskBridgeId.value);
-		
-		if (!TaskBridgeId.value || TaskBridgeId.value === 0) {
-			console.error('未能获取有效的桥梁ID，无法加载数据');
-			if (retryCount < 3) { // 最多重试3次
-				console.log(`将在1秒后进行第${retryCount + 1}次重试...`);
-				setTimeout(() => init(retryCount + 1), 1000);
-				return;
-			}
-			uni.showToast({
-				title: '未能获取桥梁信息',
-				icon: 'none',
-				duration: 2000
-			});
-			return;
-		}
-
-		try {
-			// 从UL目录读取数据
-			console.log('尝试从UL目录读取数据，参数:', userInfo.username, TaskBridgeId.value);
-			const tempData = await getObjectUL(userInfo.username, TaskBridgeId.value);
-			
-			// 确保数据有效
-			if (tempData && (tempData.children || (tempData.data && tempData.data.children))) {
-				structureData.value = tempData;
-				console.log("从UL目录读取的数据:", structureData.value);
-			} else {
-				console.log("从UL目录读取的数据无效或为空");
-			}
-			
-			// 如果数据为空，尝试从store中获取buildingId再次尝试
-			if (!structureData.value || !structureData.value.children || structureData.value.children.length === 0) {
-		
-				
-				if (idInfo.buildingId && idInfo.buildingId.value && idInfo.buildingId.value !== TaskBridgeId.value) {
-					TaskBridgeId.value = idInfo.buildingId.value;
-
-					const storeData = await getObjectUL(userInfo.username, TaskBridgeId.value);
-					
-					// 确保数据有效
-					if (storeData && (storeData.children || (storeData.data && storeData.data.children))) {
-						structureData.value = storeData;
-						console.log("使用store中buildingId重新读取的数据:", structureData.value);
-					} else {
-						console.log("使用store中buildingId重新读取的数据无效或为空");
-					}
-				}
-				
-				// 如果仍然没有数据，延迟重试
-				// if ((!structureData.value || !structureData.value.children || structureData.value.children.length === 0) && retryCount < 3) {
-				// 	console.log(`数据仍然为空，将在1秒后进行第${retryCount + 1}次重试...`);
-				// 	setTimeout(() => init(retryCount + 1), 1000);
-				// 	return;
-				// }
-			}
-			
-			// 添加标志和病害数量
-			if (structureData.value && structureData.value.children && structureData.value.children.length > 0) {
-				try {
-					
-					const modifiedData = await addFlagsAndDiseaseNumber(structureData.value, userInfo.username, TaskBridgeId.value);
-
-					// 读取完整数据
-					const finalData = await getObjectUL(userInfo.username, TaskBridgeId.value);
-					if (finalData && (finalData.children || (finalData.data && finalData.data.children))) {
-						structureData.value = finalData;
-						console.log("最终读取的structureData.value:", structureData.value);
-					}
-					
-					// 初始化resultData
-					resultData.value = structureData.value;
-					console.log("初始化后的resultData.value:", resultData.value);
-
-					// 执行警告标志检查
-					console.log('准备执行警告标志检查...');
-					await warningFlag();
-					console.log('警告标志检查完成');
-
-					// 检查初始警告状态
-					console.log('准备检查全局警告状态...');
-					await checkAndSetGlobalWarning();
-					console.log('全局警告状态检查完成');
-				} catch (error) {
-					console.error('处理标志和病害数量时出错:', error);
-				}
-			} else {
-				// uni.showToast({
-				// 	title: '无法获取结构数据',
-				// 	icon: 'none',
-				// 	duration: 2000
-				// });
-			}
-		} catch (error) {
-			console.error('初始化数据时出错:', error);
-			// 如果发生错误，尝试重试
-			if (retryCount < 3) {
-				console.log(`发生错误，将在1秒后进行第${retryCount + 1}次重试...`);
-				setTimeout(() => init(retryCount + 1), 1000);
-				return;
-			}
-			uni.showToast({
-				title: '加载数据出错',
-				icon: 'none',
-				duration: 2000
-			});
-		}
-	};
-	// 计算第二个侧边栏的数据
-	const secondLevelItems = computed(() => {
-		if (!structureData.value) {
-			console.log('secondLevelItems: structureData为空');
-			return [];
-		}
-		
-		// 检查直接结构
-		if (structureData.value.children && 
-			Array.isArray(structureData.value.children) &&
-			structureData.value.children[selectedIndex.value] && 
-			structureData.value.children[selectedIndex.value].children) {
-			return structureData.value.children[selectedIndex.value].children || [];
-		}
-		
-		// 检查嵌套结构
-		if (structureData.value.data && 
-			structureData.value.data.children && 
-			Array.isArray(structureData.value.data.children) &&
-			structureData.value.data.children[selectedIndex.value] && 
-			structureData.value.data.children[selectedIndex.value].children) {
-			return structureData.value.data.children[selectedIndex.value].children || [];
-		}
-		
-		console.log('secondLevelItems: 找不到有效的子节点');
-		return [];
-	});
-
-	// 计算第三个侧边栏的数据
-	const thirdLevelItems = computed(() => {
-		// 如果第二层数据为空，直接返回空数组
-		if (!secondLevelItems.value || !Array.isArray(secondLevelItems.value) || secondLevelItems.value.length === 0) {
-			console.log('thirdLevelItems: secondLevelItems为空');
-			return [];
-		}
-		
-		// 检查第二层选中项是否存在且有children属性
-		if (!secondLevelItems.value[selectedSecondIndex.value]) {
-			console.log('thirdLevelItems: 第二层选中项不存在');
-			return [];
-		}
-		
-		if (!secondLevelItems.value[selectedSecondIndex.value].children) {
-			console.log('thirdLevelItems: 第二层选中项没有children属性');
-			return [];
-		}
-		
-		return secondLevelItems.value[selectedSecondIndex.value].children || [];
-	});
-
-// 刷新数据的函数
-const refreshData = async () => {
-  // 重新获取最新数据
-  structureData.value = await getObjectUL(userInfo.username, TaskBridgeId.value);
-  console.log('新数据structureData.value', structureData.value)
-
-  // 同步更新resultData
-  resultData.value = structureData.value;
-
-  // 重新执行警告标志检查（现在包含设置或重置全局警告标志）
-  await warningFlag();
-
-  // 检查所有警告状态
-  checkAllWarnings();
-
-  // 重置选中状态
-  selectedIndex.value = 0;
-  selectedSecondIndex.value = 0;
-  selectedThirdIndex.value = -1;
-
-  console.log('数据已刷新');
+  // 将统计结果赋值给二级菜单
+  item2.warnNumber = warningCount;
+  
+  return hasWarning;
 };
 
-// 监听版本号变化
-// watch(() => structureNumberInfo.dataVersion, (newVal) => {
-//   if (newVal > 0) {
-//     refreshData();
-//   }
-// });
-	const confirmConfirm = async () => {
-		// currentEditDisease.value.flag = currentEditDisease.value.diseaseNumber <= currentEditDisease.value.count ? false : true
-		saveEdit()
-
-		// handleDisable(Number(currentEditItem.value))
-		// 计算并更新各级count总和
-		calculateAndUpdateCounts();
-
-		// 不再设置确认状态为true，允许多次提交
-		// confirmed.value = true;
-
-		// 不再提交数据到后端
-		// submitDataToBackend();
-
-		// 设置编辑标志为true
-		// resultData.value.Isedit = true;
-/* 		console.log('resultDate',resultData.value)
-		console.log("selectedIndex.value",selectedIndex.value);
-		console.log("selectedSecondIndex.value",selectedSecondIndex.value);
-		console.log("selectedThirdIndex.value",selectedThirdIndex.value); */
-		// 不再需要传入quantity参数，因为已经在saveEdit中处理了
-		selectedThirdIndex.value = -1
-
-		// 直接存储数据到本地
-		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-		console.log('确认后数据已保存到本地:', resultData.value);
-
-
-		// 显示确认成功提示
+// 检查整个页面是否存在警告，并设置全局标志warning
+const checkPageWarning = async () => {
+  const data = objectData.getData();
+  
+  // 只遍历第一级菜单项
+  if (data.children) {
+    for (let item1 of data.children) {
+      // 如果发现第一级菜单项的warnNumber > 0，直接设置标志并返回
+      if (item1.warnNumber > 0) {
+        data.warning = true;
+        objectData.setData(data);
+        return true;
+      }
+    }
+  }
+  
+  // 没有找到警告，设置标志为false
+  data.warning = false;
+  await setObject(userInfo.username, idInfo.buildingId, data);
+  return false;
+};
+//changeTab 动态更新索引值
+const changeTab = (index1, index2, index3) => {
+	// 如果系统处于锁定状态，提示用户并不进行任何操作
+	if (Number(treeData.value.status) === 3) {
 		uni.showToast({
-			title: '构件信息已保存',
-			icon: 'success',
+			title: '系统已锁定，无法编辑',
+			icon: 'none',
 			duration: 2000
 		});
-
-		// 执行warningFlag检查（现在包含设置或重置全局警告标志）
-		await warningFlag();
-		//更新编辑状态
-		// structureNumberInfo.incrementIsEdit();
-		await setBuildingUnCommitted(userInfo.username,idInfo.projectId,idInfo.buildingId)
-		uni.$emit('setBuildingUnCommit',idInfo.buildingId)
-	};
-	const warningFlag = async () => {
-		console.log('进入warning');
-		try {
-			const data = resultData.value;
-			if (!data || !data.children || !Array.isArray(data.children)) {
-				console.warn('warningFlag: 数据结构不完整或无效');
-				return;
-			}
-
-			console.log('开始检查前的数据:', data)
-
-			let hasAnyWarning = false; // 跟踪是否有任何警告
-
-			// 递归函数，返回是否设置了flag
-			const traverse = (node, level) => {
-				if (!node) return false
-
-				let hasWarning = false
-
-				// 如果是第三层，检查diseaseNumber和count
-				if (level === 3) {
-					const diseaseNumber = Number(node.diseaseNumber);
-					const count = Number(node.count || 0);
-					// console.log('第三层节点:', node.name, 'diseaseNumber:', diseaseNumber, 'count:', count)
-					if (diseaseNumber > count) {
-						node.flag = true
-						// console.log('设置警告:', node.name, 'flag:', node.flag)
-						hasAnyWarning = true; // 标记有警告
-						return true
-					} else {
-						node.flag = false
-						return false
-					}
-				}
-
-				// 遍历子节点
-				if (node.children && Array.isArray(node.children)) {
-					for (const child of node.children) {
-						if (child && traverse(child, level + 1)) {
-							hasWarning = true
-						}
-					}
-				}
-
-				// 如果子节点有warning，当前节点也设置flag
-				if (hasWarning) {
-					node.flag = true
-					// console.log('父节点设置警告:', node.name, 'level:', level, 'flag:', node.flag)
-				} else {
-					node.flag = false
-					// console.log('父节点无警告:', node.name, 'level:', level, 'flag:', node.flag)
-				}
-
-				return hasWarning
-			}
-
-			// 从第一层开始遍历
-			for (const firstLevel of data.children) {
-				if (firstLevel) {
-					traverse(firstLevel, 1)
-				}
-			}
-
-			// 更新数据
-			await setObject(userInfo.username, TaskBridgeId.value, data)
-
-			// 强制更新视图 - 直接使用data而不是嵌套结构
-			structureData.value = data;
-
-			// 同步更新resultData
-			resultData.value = structureData.value;
-
-			console.log('更新后的数据:', structureData.value)
-
-			// 如果有任何警告，设置全局警告标志，否则重置警告标志
-			if (hasAnyWarning) {
-				console.log('检测到警告，设置全局警告标志');
-				await setGlobalWarningFlag();
-				globalWarning.value = true;
-			} else {
-				console.log('未检测到警告，重置全局警告标志');
-				await resetWarningFlag();
-				globalWarning.value = false;
-			}
-
-			// 强制更新视图
-			nextTick(() => {
-				console.log('视图更新后的数据:', structureData.value)
-			})
-		} catch (error) {
-			console.error('warningFlag函数执行出错:', error);
-		}
+		return;
 	}
-	//判断第三层数据是否有warning
-	const warningThree = (obj) => {
-		for (let i = 0; i < obj.children.length; i++) {
-			for (let j = 0; j < obj.children[i].children.length; j++) {
-				for (let k = 0; k < obj.children[i].children[j].children.length; k++) {
-					if (obj.children[i].children[j].children[k].flag === false) {
-						return false;
-					}
-				}
-			}
-		}
-		return true
-	}
+  //有值就取index 没值就取默认值
+  menuIndex.value = [
+    index1 !== undefined ? index1 : menuIndex.value[0],
+    index2 !== undefined ? index2 : menuIndex.value[1],
+    index3 !== undefined ? index3 : menuIndex.value[2],
+  ];
+  // 当点击三级菜单时，设置该菜单按钮可见
+    if (index3 !== undefined) {
+      const key = `${index1}-${index2}-${index3}`;
+      buttonVisible.value = { [key]: true }; // 只显示当前点击的按钮
+    }
+}
+//初始化函数
+const initData = ()=>{
+//3.赋值结构树
+treeData.value = objectData.getData();
 
+// 初始化所有层级的警告状态
+if (treeData.value.children) {
+  // 遍历所有第一级菜单项
+  treeData.value.children.forEach(item1 => {
+    // 先遍历所有第二级菜单项，计算它们的警告状态
+    if (item1.children) {
+      item1.children.forEach(item2 => {
+        // 计算第二级菜单项的警告状态
+        checkSecondLevelWarning(item2);
+      });
+    }
+    
+    // 再计算第一级菜单项的警告状态（基于已计算的第二级菜单项状态）
+    checkFirstLevelWarning(item1);
+  });
+}
+}
 
-	// 添加计算并更新各级count总和的函数
-	const calculateAndUpdateCounts = () => {
-		if (!resultData.value || !resultData.value.children) {
-			console.warn('resultData结构不完整，无法计算count总和');
-			return;
-		}
+//控制弹窗的引用
+const windowPopup = ref(null)
 
-		// 遍历第一层
-		resultData.value.children.forEach(firstLevel => {
-			if (!firstLevel || !firstLevel.children) return;
+//打开弹窗的方法
+const open = ()=>{
+  //1.打开弹窗前先获取弹窗中的内容
+  //根据menuIndex获取最新索引
+  //获取数据
+  const data = treeData.value.children[menuIndex.value[0]].children[menuIndex.value[1]].children[menuIndex.value[2]]
+  //更新构件名称
+  componentName.value = data.name;
+  //更新病害构件数量
+  diseaseNumber.value = data.diseaseNumber ?? 0;
+  //更新构件数量
+  componentCount.value = data.count;
+  windowPopup.value.open();
+}
 
-			let firstLevelTotal = 0; // 第一层节点的count总和
-
-			// 遍历第二层
-			firstLevel.children.forEach(secondLevel => {
-				if (!secondLevel || !secondLevel.children) return;
-
-				let secondLevelTotal = 0; // 第二层节点的count总和
-
-				// 遍历第三层，计算第二层的count总和
-				secondLevel.children.forEach(thirdLevel => {
-					if (!thirdLevel) return;
-
-					// 确保count是数字
-					const count = Number(thirdLevel.count || 0);
-					secondLevelTotal += count;
-
-					console.log(`第三层节点 ${thirdLevel.name || '未命名'} 的count: ${count}`);
-				});
-
-				// 更新第二层节点的count
-				secondLevel.count = secondLevelTotal;
-				firstLevelTotal += secondLevelTotal;
-
-				console.log(`第二层节点 ${secondLevel.name || '未命名'} 的count总和: ${secondLevelTotal}`);
-			});
-
-			// 更新第一层节点的count
-			firstLevel.count = firstLevelTotal;
-
-			console.log(`第一层节点 ${firstLevel.name || '未命名'} 的count总和: ${firstLevelTotal}`);
-		});
-
-		// 计算所有第一层节点的count总和
-		let totalCount = 0;
-		resultData.value.children.forEach(firstLevel => {
-			totalCount += Number(firstLevel.count || 0);
-		});
-
-		// 更新根节点的count
-		resultData.value.count = totalCount;
-
-		console.log(`所有节点的count总和: ${totalCount}`);
-		console.log('更新后的resultData:', resultData.value);
-	};
-
-	const changeTab = (index) => {
-		selectedIndex.value = index;
-		selectedSecondIndex.value = 0; // 重置第二个侧边栏的选中状态
-		selectedThirdIndex.value = -1; // 重置第三个侧边栏的选中状态
-
-		// 添加防御性检查
-		if (!structureData.value) {
-			console.error('structureData为空，无法选择第一层结构');
-			return;
-		}
-		
-		// 检查正确的数据结构路径
-		let firstLevelItem = null;
-		
-		// 直接结构: structureData.value.children
-		if (structureData.value.children && structureData.value.children[index]) {
-			firstLevelItem = structureData.value.children[index];
-		} 
-		// 嵌套结构: structureData.value.data.children
-		else if (structureData.value.data && structureData.value.data.children && structureData.value.data.children[index]) {
-			firstLevelItem = structureData.value.data.children[index];
-		}
-		
-		if (firstLevelItem) {
-			console.log('选中的第一层结构:', firstLevelItem.name);
-		} else {
-			console.log('选中的第一层结构不存在或数据结构有问题');
-		}
-	};
-
-	const changeSecondTab = (index) => {
-		selectedSecondIndex.value = index;
-		selectedThirdIndex.value = -1; // 重置第三个侧边栏的选中状态
-
-		// 添加防御性检查
-		const secondLevelItem = secondLevelItems.value?.[index];
-		if (secondLevelItem) {
-			console.log('选中的第二层结构:', secondLevelItem.name);
-			// 检查是否有第三层数据
-			if (!secondLevelItem.children || secondLevelItem.children.length === 0) {
-				console.log('该第二层结构没有第三层数据');
-			}
-		} else {
-			console.log('选中的第二层结构不存在或数据结构有问题');
-		}
-	};
-
-	const changeThirdTab = (index) => {
-		// 如果系统处于锁定状态，提示用户并不进行任何操作
-		if (Number(structureData.value?.status) === 3) {
-			uni.showToast({
-				title: '系统已锁定，无法编辑',
-				icon: 'none',
-				duration: 2000
-			});
-			return;
-		}
-		
-		// 如果点击的是当前选中的项，则取消选中
-		if (selectedThirdIndex.value === index) {
-			selectedThirdIndex.value = -1;
-		} else {
-			selectedThirdIndex.value = index;
-		}
-		console.log("selectedThirdIndex.value",selectedThirdIndex.value);
-		console.log('选中的第三层结构:', thirdLevelItems.value[index]);
-	};
-
-	const handleCancel = () => {
-		// 不再需要index参数，直接重置selectedThirdIndex
-		selectedThirdIndex.value = -1; // 使用-1表示没有选中项
-	};
+// 关闭弹窗的方法
+const close = () => {
+ windowPopup.value.close()
+}
+// 添加关闭按钮的方法
+const closeButton = () => {
+  // 重置第三级菜单的选中状态
+  menuIndex.value = [menuIndex.value[0], menuIndex.value[1], -1];
+}
+//更新构件数量
+const setComponentCount = async () =>{
 	
-	const currentEditDisease = ref()
-	const handleEdit = (index, diseaseItem) => {
-		// 如果系统处于锁定状态，提示用户并不打开编辑弹窗
-		if (Number(structureData.value?.status) === 3) {
-			uni.showToast({
-				title: '系统已锁定，无法编辑',
-				icon: 'none',
-				duration: 2000
-			});
-			return;
-		}
-		
-		diseaseNumber.value = diseaseItem.diseaseNumber
-		currentEditDisease.value = diseaseItem
-		
-		currentEditItem.value = JSON.parse(JSON.stringify(thirdLevelItems.value[index]));
-		if (currentEditItem.value) {
-			if (currentEditItem.value.status === undefined) {
-				currentEditItem.value.status = true;
-			}
-			if (currentEditItem.value.quantity === undefined) {
-				currentEditItem.value.quantity = 0;
-			}
-		}
-		editPopup.value.open();
-	};
-
-	// const handleDisable = (index) => {
-	// 	console.log('切换状态前:', thirdLevelItems.value[index].status);
-	// 	// 切换状态
-	// 	const currentStatus = thirdLevelItems.value[index].status;
-	// 	// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
-	// 	thirdLevelItems.value[index].status = currentStatus === "0" ? "1" : "0";
-	// 	console.log('切换状态后:', thirdLevelItems.value[index].status);
-
-	// 	// 直接更新count字段
-	// 	const item = thirdLevelItems.value[index];
-	// 	item.count = item.status === "0" ? Number(item.quantity || 0) : 0;
-
-	// 	// 不再设置delFlag字段，直接使用status字段
-	// 	console.log(`已更新${item.name}的count为${item.count}, status为${item.status}`);
-
-	// 	// 更新resultData中对应的count字段和status字段
-	// 	updateResultData(item);
-
-	// 	// 打印所有第三层构件的name和count
-	// 	console.log('所有第三层构件信息:');
-	// 	thirdLevelItems.value.forEach(item => {
-	// 		console.log(`构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || '0'}`);
-	// 	});
-
-	// 	// 隐藏操作按钮
-	// 	selectedThirdIndex.value = -1;
-	// 	console.log('最终存的resultData.value', resultData.value);
-	// 	// 将数据存储到本地
-	// 	setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-	// };
-
-	// const setStatus = (e) => {
-	// 	if (currentEditItem.value) {
-	// 		// 将布尔值转换为字符串"0"/"1"，"0"表示启用，"1"表示停用
-	// 		currentEditItem.value.status = e ? "0" : "1";
-	// 		console.log('Switch toggled, new status:', currentEditItem.value.status);
-
-	// 		// 如果状态改为停用("1")，则将数量直接置为0
-	// 		if (currentEditItem.value.status === "1") {
-	// 			currentEditItem.value.quantity = 0;
-	// 			console.log('状态改为停用，数量自动置为0');
-	// 		}
-	// 	}
-	// };
-
-	const saveEdit = () => {
-		const originalItem = thirdLevelItems.value.find(item => item.name === currentEditItem.value.name);
-		if (originalItem) {
-			originalItem.status = currentEditItem.value.status;
-
-			// 如果状态为停用，确保数量为0
-			if (originalItem.status === "1") {
-				originalItem.count = 0;
-			} else {
-				originalItem.count = Number(currentEditItem.value.count || 0);
-			}
-
-			// 直接更新count字段，不再使用quantity字段
-			console.log(`已更新${originalItem.name}的count为${originalItem.count}`);
-
-			// 更新resultData中对应的count字段
-			updateResultData(originalItem);
-
-			// // 设置编辑标志为true
-			// resultData.value.Isedit = true;
-
-			// 打印所有第三层构件的name和count
-			console.log('所有第三层构件信息:');
-			thirdLevelItems.value.forEach(item => {
-				console.log(`构件名称: ${item.name}, 构件数量: ${item.count || 0}, 状态标志: ${item.status || '0'}`);
-			});
-			
-			// 保存更新后的数据到本地存储
-			setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-			console.log('数据已保存到本地存储:', resultData.value);
-		}
-		closeEditPopup();
-	};
-
-	const closeEditPopup = () => {
-		editPopup.value.close();
-		// 隐藏操作按钮
-		// selectedThirdIndex.value = -1;
-	};
-	// 添加更新resultData的函数
-	const updateResultData = (updatedItem) => {
-		if (!resultData.value || !resultData.value.children) {
-			console.error('resultData未正确初始化');
-			return;
-		}
-
-		// 获取当前选中的第一层索引
-		const firstLevelIndex = selectedIndex.value;
-		// 获取当前选中的第二层索引
-		const secondLevelIndex = selectedSecondIndex.value;
-		// 获取当前第三层项目的名称
-		const itemName = updatedItem.name;
-
-		// 确保resultData中有对应的层级结构
-		if (resultData.value.children[firstLevelIndex] &&
-			resultData.value.children[firstLevelIndex].children[secondLevelIndex]) {
-
-			// 获取第三层数据
-			const thirdLevelItems = resultData.value.children[firstLevelIndex].children[secondLevelIndex].children;
-
-			if (thirdLevelItems) {
-				// 查找对应名称的项
-				const targetItem = thirdLevelItems.find(item => item.name === itemName);
-
-				if (targetItem) {
-					// 创建一个不包含showActions的更新对象
-					const updateData = {
-						count: updatedItem.count,
-						status: updatedItem.status,
-						name: updatedItem.name
-					};
-
-					// 将更新对象的属性复制到目标对象
-					Object.assign(targetItem, updateData);
-					console.log(`已更新resultData中${itemName}的count为${updatedItem.count}, status为${targetItem.status}`);
-				} else {
-					console.warn(`未在resultData中找到名称为${itemName}的项`);
-				}
-			} else {
-				console.warn('resultData中没有第三层数据');
-			}
-		} else {
-			console.warn('resultData中的层级结构不完整');
-		}
-
-		// 打印更新后的resultData结构
-		console.log('更新后的resultData:', resultData.value);
-	};
-
-	// 添加本地存储数据的函数
-	// const storeDataLocally = async () => {
-	// 	try {
-	// 		const responseLogin = await uni.request({
-	// 			url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-	// 			method: 'POST'
-	// 		});
-
-	// 		if (!responseLogin.data) {
-	// 			uni.showToast({
-	// 				title: '获取用户信息失败',
-	// 				icon: 'none'
-	// 			});
-	// 			return;
-	// 		}
-
-	// 		// 将数据存储到本地
-	// 		setObject(userInfo.username, TaskBridgeId.value, resultData.value);
-	// 		console.log('已将数据存储到本地:', resultData.value);
-
-	// 	} catch (error) {
-	// 		console.error('存储数据错误:', error);
-	// 		uni.showToast({
-	// 			title: '存储数据出错，请稍后重试',
-	// 			icon: 'none'
-	// 		});
-	// 	}
-	// };
-
-	// 添加一个函数来规范化status字段
-	const normalizeStatusFields = (data) => {
-		if (!data || !data.children) return;
-
-		// 处理第一层
-		data.children.forEach(firstLevel => {
-			if (!firstLevel) return;
-
-			// 规范化第一层status
-			if (typeof firstLevel.status === 'boolean') {
-				firstLevel.status = firstLevel.status ? "0" : "1"; // true转为"0"(启用)，false转为"1"(停用)
-			}
-
-			// 处理第二层
-			if (firstLevel.children) {
-				firstLevel.children.forEach(secondLevel => {
-					if (!secondLevel) return;
-
-					// 规范化第二层status
-					if (typeof secondLevel.status === 'boolean') {
-						secondLevel.status = secondLevel.status ? "0" :
-							"1"; // true转为"0"(启用)，false转为"1"(停用)
-					}
-
-					// 处理第三层
-					if (secondLevel.children) {
-						secondLevel.children.forEach(thirdLevel => {
-							if (!thirdLevel) return;
-
-							// 规范化第三层status
-							if (typeof thirdLevel.status === 'boolean') {
-								thirdLevel.status = thirdLevel.status ? "0" :
-									"1"; // true转为"0"(启用)，false转为"1"(停用)
-							}
-						});
-					}
-				});
-			}
-		});
-
-		console.log('已规范化所有status字段为"0"/"1"格式，"0"表示启用，"1"表示停用');
-	};
-
-	// 检查特定节点是否有警告标志
-	const hasWarningInChildren = (node) => {
-		if (!node) {
-			return false;
-		}
-
-		// 检查当前节点是否有flag标志
-		if (node.flag === true) {
-			console.log(`节点 ${node.name || '未命名'} 有警告标志`);
-			return true;
-		}
-
-		// 递归检查子节点
-		if (node.children && Array.isArray(node.children)) {
-			const hasChildWarning = node.children.some(child => hasWarningInChildren(child));
-			if (hasChildWarning) {
-				console.log(`节点 ${node.name || '未命名'} 的子节点有警告`);
-			}
-			return hasChildWarning;
-		}
-
-		return false;
-	};
-
-	// 检查并设置全局警告状态
-	const checkAndSetGlobalWarning = async () => {
-		try {
-			// 读取全局警告状态
-			const hasGlobalWarning = await readWarning(userInfo.username, TaskBridgeId.value);
-			globalWarning.value = hasGlobalWarning;
-			console.log('全局警告状态:', hasGlobalWarning);
-		} catch (error) {
-			console.error('检查全局警告状态失败:', error);
-			globalWarning.value = false;
-		}
-	};
-
-	// 当发现有警告时设置全局警告标志
-	const setGlobalWarningFlag = async () => {
-		try {
-			await setWarning(userInfo.username, TaskBridgeId.value);
-			globalWarning.value = true;
-			console.log('已设置全局警告标志');
-		} catch (error) {
-			console.error('设置全局警告标志失败:', error);
-		}
-	};
-
-	// 当没有警告时重置全局警告标志
-	const resetWarningFlag = async () => {
-		try {
-			await resetWarning(userInfo.username, TaskBridgeId.value);
-			globalWarning.value = false;
-			console.log('已重置全局警告标志');
-		} catch (error) {
-			console.error('重置全局警告标志失败:', error);
-		}
-	};
-
-	// 添加一个函数来检查整个数据结构是否有警告
-	const checkAllWarnings = () => {
-		console.log('=== checkAllWarnings 函数被调用 ===');
-		
-		if (!structureData.value) {
-			console.log('checkAllWarnings: structureData为空');
-			return;
-		}
-		
-		// 尝试不同的数据结构路径
-		let childrenData = null;
-		
-		// 直接结构: structureData.value.children
-		if (structureData.value.children && Array.isArray(structureData.value.children)) {
-			childrenData = structureData.value.children;
-			console.log('使用 structureData.value.children，长度:', childrenData.length);
-		} 
-		// 嵌套结构: structureData.value.data.children
-		else if (structureData.value.data && structureData.value.data.children && 
-				 Array.isArray(structureData.value.data.children)) {
-			childrenData = structureData.value.data.children;
-			console.log('使用 structureData.value.data.children，长度:', childrenData.length);
-		} else {
-			console.log('checkAllWarnings: 找不到有效的 children 数据');
-			// structureNumberInfo.status = false; // 确保状态被重置
-			return;
-		}
-		
-		// console.log('开始检查警告状态，当前structureNumberInfo.status:', structureNumberInfo.status);
-		
-		// 重置状态
-		// structureNumberInfo.status = false;
-		
-		try {
-			// 检查所有第一层节点
-			const hasAnyWarning = childrenData.some(node => {
-				if (!node) return false;
-				
-				const hasWarning = hasWarningInChildren(node);
-				console.log(`检查节点 ${node.name || '未命名'}: hasWarning = ${hasWarning}`);
-				return hasWarning;
-			});
-			
-			// 设置最终状态
-			// structureNumberInfo.status = hasAnyWarning;
-			
-			// console.log(`警告检查完成: hasAnyWarning = ${hasAnyWarning}, 最终structureNumberInfo.status = ${structureNumberInfo.status}`);
-		} catch (error) {
-			console.error('检查警告状态时出错:', error);
-			// structureNumberInfo.status = false; // 确保状态被重置
-		}
-	};
-
-	onMounted(async () => {
-		console.log('初始bridgeId:', bridgeIdFromURL.value);
-		// 先确认URL参数是否已获取
-		if (bridgeIdFromURL.value) {
-			TaskBridgeId.value = bridgeIdFromURL.value;
-		}
-		await init();
-		
-		// 监听页面显示事件
-		uni.$on('pageShow', async () => {
-			console.log('页面显示事件触发，重新加载数据');
-			await init();
-		});
-	});
+	const currentData = objectData.getData();
+	currentData.children[menuIndex.value[0]].children[menuIndex.value[1]].children[menuIndex.value[2]].count = componentCount.value;
 	
-	// 添加页面卸载时的清理
-	import { onUnmounted } from 'vue';
+	// 重新计算第二级菜单项的警告状态
+	const currentItem2 = currentData.children[menuIndex.value[0]].children[menuIndex.value[1]];
+	checkSecondLevelWarning(currentItem2);
 	
-	onUnmounted(() => {
-		// 移除页面显示事件监听
-		uni.$off('pageShow');
-	});
+	// 重新计算第一级菜单项的警告状态
+	const currentItem1 = currentData.children[menuIndex.value[0]];
+	checkFirstLevelWarning(currentItem1);
+	
+	// 同时更新全局store中的数据
+	objectData.setData(currentData);
+	
+	// 保存到本地文件系统
+	await setObject(userInfo.username, idInfo.buildingId, currentData);
+	
+	// 最后检查整个页面的警告状态
+	checkPageWarning();
+	
+	// 关闭弹窗
+	close();
+	//关闭按钮
+	closeButton();
+}
+
+onMounted(() => {
+	console.log("组件挂载完成");
+	// 初始化时计算属性会自动处理数据获取和警告状态计算
+	// 如果需要额外的初始化操作，可以在这里添加
+})
 </script>
 
-<style scoped>
-	.active {
-		background-color: #0F4687;
-		/* 选中项背景色 */
-	}
+<style>
+/*激活后的背景色 */
+.active {
+	background-color: #FFF;
+	color:#0F4687;
+	position: relative; 
+}
+/*使用伪元素添加竖线 */
+.active::before {
+    content: "";                /* 必需属性，定义伪元素的内容 */
+    position: absolute;         
+    top: 50%;                   /* 线的顶部对齐盒子中心 */
+	transform: translateY(-50%); /* 将线移动一半 使两者中心对齐 */
+    left: 0;                    
+    width: 4rpx;                /* 线宽*/
+    height: 48rpx;              /* 线高 - 调整为与容器匹配 */
+    background-color: #0F4687;  /* 线色*/
+}
+/*第三个菜单项激活 文字不变色*/
+.active2{
+	background-color: #FFF;
+	position: relative;
+}
+.container{
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+}
+.Title{
+	padding: 20rpx 0;
+	background-color: #BDCBE0;
+	font-size: 20rpx;
+}
+.text{
+	padding-left: 20rpx;
+}
+.sidebar{
+	height:100%;
+	/*菜单项中的元素 横向排列*/
+	display: flex;
+	flex-direction: row; 
+	color:#333;
+}
+.sidebar-level1 {
+  width: 140rpx; 
+  background-color: #f5f5f5; 
+  font-size: 15rpx;
+  white-space:nowrap;/* 强制文本不换行*/
+  text-align: center; /* 添加水平居中 */
+  color:#333;
+}
+.sidebar-level2 {
+	  width: 140rpx; 
+	  font-size: 15rpx;
+	  background-color: #fafafa; 
+	  text-align: center;
+	  white-space:normal;/* 允许换行*/
+	  word-break: break-all;
+}
+.sidebar-level3 {
+  flex: 1; position: relative; /* 为按钮提供定位参考 */
+  background-color: #f5f5f5; 
+  font-size: 20rpx;
+}
+.fathercontentandbutton{
+	position: relative; /* 为按钮提供定位参考 */
+	display: flex;           /* 新增：让容器成为flex容器 */
+	align-items: stretch;     /* 新增：让子元素拉伸到父容器高度 */
+}
+.box{
+  height: 90rpx; /* 固定高度 */
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  padding-left: 20rpx; /* 为图标预留空间 */
+  position: relative; /* 为警告图标提供定位参考 */
+}
 
-	.container {
-		width: 100%;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		position: absolute;
-		left: 0;
-		right: 0;
-		top: 0;
-		bottom: 0;
-	}
+/* 第一级菜单项的特殊样式 */
+.sidebar-level1 .box {
+  padding-left: 20rpx; /* 与第二级保持一致 */
+}
 
-	.content-layout {
-		height: 100%;
-		display: flex;
-		flex: 1;
-		overflow: hidden;
-	}
+/* 第一级菜单项文字左移 */
+.sidebar-level1 .box {
+  transform: translateX(-20rpx);
+}
+.box3{
+  height:auto;
+  padding:22rpx 20rpx;
+  border-bottom:1px solid #eee;
+  position: relative;
+  padding-left: 20rpx; /* 确保与第一级和第二级保持一致 */
+  transform: translateX(10rpx); /* 第三级菜单项文字整体右移 */
+}
+.button{
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	right: -200rpx;
+	transition: right 0.3s ease;
+	display: flex;
+	flex-direction: row;
+	font-size: 20rpx;
+	color: #fff;
+	width: 160rpx;
+	align-items: stretch;     /* 修改：从 center 改为 stretch */
+}
+/*将right设置为0 让按钮显示出来 */
+.button.show {
+  right: 0; 
+}
+.cancle{
+	display: flex;
+	width: 80rpx;
+	background: #CCC;
+	align-items: center;/*交叉轴对齐*/
+	justify-content: center;/*主轴对齐 */
+}
+.confirm{
+	display:flex;
+	width: 80rpx;
+	background: #1677ff;
+	align-items: center;/*交叉轴对齐*/
+	justify-content: center;/*主轴对齐 */
+}
+.content{
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	flex: 1;                
+}
+.content-container{
+	font-size:15rpx ;
+	display:flex;
+	flex-direction: column;
+	align-items: flex-end;
+}
+.right{
+	display: flex;
+	flex-direction: row;
+	margin-left:auto;/*优先从右边找位置 */
+}
+.image-container{
+	margin-left: 8rpx;
+}
+.rightarrow {
+	height: 20rpx;
+	width: 20rpx;
+	align-items: center;/*相对于父容器的交叉轴垂直居中*/
+	transform: translate(0, 6rpx); /* 微调箭头的位置 */
+}
+.edit-container{
+	width: 500rpx;
+	background-color: #fff;
+	border-radius: 10rpx;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden
+}
+.edit-title{
+	font-size: 20rpx;
+	text-align: center;
+	background-color: #BDCBE0;
+	height: 60rpx;
+	color: #333;
+	display: flex;   /*只有该容器为flex容器 下面的属性才会生效*/
+	align-items: center;/*交叉轴对齐*/
+	justify-content: center;/*主轴对齐 */
+}
+.edit-content{
+	font-size: 20rpx;
+	margin: 30rpx 30rpx;
+	display: flex;
+	flex-direction: column;
+}
+.edit-content-first{
+	margin: 20rpx 30rpx;
+	padding-bottom: 20rpx;
 	
-	.flagImage{
-		position: absolute;
-		top: 10rpx;
-		left: 10rpx;
-	}
+}
+.edit-content-second{
+	margin: 20rpx 30rpx;
+	padding-bottom: 20rpx;
+	
+}
+.edit-content-third{
+	margin: 20rpx 30rpx;
+	padding-bottom: 20rpx;
+	display: flex;
+	flex-direction: row;
+	
+}
+.edit-key{
+	color: #666;
+	width: 150rpx;	
+}
+.edit-value1{
+	flex: 1;
+	margin-left:90rpx;
+}
+.edit-value2{
+	flex: 1;
+	margin-left:50rpx;
+}
+.input-wrapper {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
 
-	/* 侧边栏样式 */
-	.sidebar {
-		width: 190rpx;
-		/* 修改为190rpx */
-		background-color: #f5f5f5;
-		border-right: 1rpx solid #eeeeee;
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-	}
+.input-text {
+  width: 100%;
+  padding-right: 40rpx; /* 为图标预留空间 */
+  padding-left: 20rpx;
+  height: 40rpx;
+  border: 1rpx solid #ccc;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+  font-size: 20rpx;
+  transform: translateY(-10rpx);
+}
 
-	.second-sidebar {
-		background-color: #fafafa;
-		width: 190rpx;
-		/* 修改为190rpx */
-	}
+.clear-icon {
+  position: absolute;
+  right: 10rpx;
+  top: 50%;
+  transform: translateY(-25rpx);
+  width: 28rpx;
+  height: 28rpx;
+  opacity: 0.6;
+}
+.edit-button{
+  display: flex;
+  min-width: 80rpx;
+  flex-direction: row;
+  font-size:20rpx;
+  height: 50rpx;
+  padding: 0 30rpx 30rpx;
+  margin-top: 10rpx;
+  justify-content: space-between;
+}
+.edit-button-cancel{
+	flex: 1;
+	background-color: #fff;
+	color: #0F4687;
+	border: 1px solid #0F4687;
+	margin-right: 20rpx;
+	display: flex;
+	align-items: center;     /* 垂直居中 */
+	justify-content: center; /* 水平居中 */
+	transform: translateY(-30rpx);  
+}
+.edit-button-confirm{
+	flex: 1;
+	background-color: #0F4687;
+	color: #fff;
+	display: flex;
+	align-items: center;     /* 垂直居中 */
+	justify-content: center; /* 水平居中 */
+	transform: translateY(-30rpx);   
+}
+.warning-icon {
+  position: absolute;
+  left: 10rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 13rpx;
+  height: 13rpx;
+}
 
-	.treeName {
-		margin-left: 20rpx;
-		font-size: 15rpx;
-	}
+/* 第三级菜单项的警告图标特殊样式 */
+.box3 .warning-icon {
+  left: 10rpx;
+  transform: translateX(-10rpx) translateY(-7rpx); /* 抵消文字的右移并上移，与文字中心对齐 */
+}
 
-	.third-sidebar {
-		width: 100%;
-	}
-
-	.rightcount {
-		margin-right: 10rpx;
-		margin-bottom: 10rpx;
-	}
-
-	.third-sidebar .sidebar-item {
-		height: auto;
-		padding: 15.5rpx 20rpx;
-		/* 将上下内边距减小2.5rpx */
-		border-bottom: 1px solid #eee;
-		/* 将下方实线变粗 */
-	}
-
-	.third-sidebar .sidebar-item-content {
-		width: 100%;
-		font-size: 20rpx;
-		color: #333;
-		padding-left: 0;
-		display: flex;
-		justify-content: space-between;
-		/* 使内容两端对齐 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.item-name {
-		flex-shrink: 0;
-		/* 防止名字被压缩 */
-		margin-right: 10rpx;
-		/* 添加右侧间距 */
-		color: #333;
-	}
-
-	.item-info-right {
-		display: flex;
-		align-items: center;
-		color: #333;
-		font-size: 18rpx;
-		margin-left: auto;
-	}
-
-	.counterNumber {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		min-width: 120rpx;
-	}
-
-	.item-quantity {
-		font-size: 15rpx;
-		margin-right: 10rpx;
-		text-align: right;
-		width: 100%;
-	}
-
-	.rightarrow {
-		height: 20rpx;
-		width: 20rpx;
-	}
-
-	.third-sidebar .sidebar-item.active .sidebar-item-content {
-		border-left: none;
-	}
-
-	.sidebar-item {
-		padding: 24rpx 0;
-		text-align: left;
-		color: #666;
-		border-bottom: 1px solid #eeeeee;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		height: 40rpx;
-		justify-content: center;
-		position: relative;
-	}
-
-	.sidebar-item-content {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		padding-left: 12rpx;
-		width: 60%;
-	}
-
-	.sidebar-item.active {
-		background-color: #ffffff;
-
-	}
-
-	/* 修改活动项样式，使用伪元素创建蓝色线 */
-	.sidebar-item.active::before {
-		content: '';
-		position: absolute;
-		top: 50%;
-		left: 0;
-		width: 4rpx;
-		height: 48rpx;
-		background-color: #0F4687;
-		transform: translateY(-50%);
-	}
-
-	.sidebar-item.active .sidebar-item-content {
-		background-color: #ffffff;
-		color: #0F4687;
-		border-left: none;
-	}
-
-	/* 移除第三个侧边栏活动项的左侧竖线 */
-	.third-sidebar .sidebar-item.active .sidebar-item-content {
-		border-left: none;
-	}
-
-	/* 确保第三个侧边栏活动项文字颜色为黑色 */
-	.third-sidebar .sidebar-item.active .sidebar-item-content {
-		color: #000;
-		font-weight: normal;
-		border-left: none;
-	}
-
-	/* 隐藏第三个侧边栏活动项的蓝色竖线伪元素 */
-	.third-sidebar .sidebar-item.active::before {
-		display: none;
-	}
-
-	.confirm-row {
-		width: 100%;
-		background-color: #BDCBE0;
-		font-size: 20rpx;
-		display: flex;
-		align-items: center;
-		justify-content: flex-start;
-		padding: 10rpx;
-		box-sizing: border-box;
-	}
-
-	.confirm-text {
-		text-align: center;
-		font-size: 20px;
-		color: #333;
-	}
-
-	.confirm-status {
-		text-align: center;
-		font-size: 20px;
-	}
-
-	.confirm-button-container {
-		margin-left: auto;
-	}
-
-	.action-buttons {
-		position: absolute;
-		right: 0;
-		top: 0;
-		height: 100%;
-		display: flex;
-	}
-
-	.action-buttons button {
-		width: 80rpx;
-		height: 100%;
-		border: none;
-		padding: 0;
-		font-size: 20rpx;
-		border-radius: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		color: #fff;
-	}
-
-	.action-buttons button:nth-child(1) {
-		background-color: #cccccc;
-	}
-
-	.action-buttons button:nth-child(2) {
-		background-color: #1677ff;
-	}
-
-	.action-buttons button:nth-child(3) {
-		background-color: #ff3141;
-	}
-
-	.action-buttons button:nth-child(3)[data-status="enabled"] {
-		background-color: #00b578;
-	}
-
-	.edit-popup-content {
-		background-color: #fff;
-		padding: 0;
-		width: 500rpx;
-		border-radius: 10rpx;
-		overflow: hidden;
-	}
-
-	.popup-title {
-		font-size: 20rpx;
-		text-align: center;
-		color: #333;
-		background-color: #BDCBE0;
-		height: 60rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	.edit-row {
-		display: flex;
-		align-items: center;
-		margin: 20rpx 30rpx;
-		padding-bottom: 20rpx;
-	}
-
-	.edit-row:last-child {
-		border-bottom: none;
-		margin-bottom: 0;
-		padding-bottom: 0;
-	}
-
-	.edit-label {
-		font-size: 20rpx;
-		color: #666;
-		width: 150rpx;
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-	}
-
-	.edit-value {
-		font-size: 20rpx;
-		color: #333;
-		flex: 1;
-		margin-left: 10rpx;
-	}
-
-	.desease {
-		margin-left: 10rpx;
-		font-size: 20rpx;
-	}
-
-	.status-toggle {
-		display: flex;
-		align-items: center;
-		flex: 1;
-		margin-left: -55rpx;
-	}
-
-	.status-text {
-		font-size: 20rpx;
-		color: #333;
-		margin: 0 10rpx;
-	}
-
-	.quantity-input {
-		flex: 1;
-		font-size: 20rpx;
-		margin-left: 10rpx;
-		height: 24rpx;
-		align-self: center;
-		margin-bottom: 16rpx;
-	}
-
-
-	.quantity-input ::v-deep .uni-easyinput__content {
-		padding: 0 10rpx !important;
-		font-size: 20rpx !important;
-		display: flex;
-		align-items: center;
-		border-radius: 0 !important;
-		min-height: 24rpx;
-	}
-
-	/* Style for the placeholder text */
-	.quantity-input ::v-deep .uni-easyinput__placeholder {
-		font-size: 20rpx !important;
-		color: #999;
-	}
-
-	.popup-buttons {
-		display: flex;
-		justify-content: space-between;
-		gap: 20rpx;
-		margin-top: 30rpx;
-		padding: 0 30rpx 30rpx;
-	}
-
-	.popup-btn {
-		flex: 1 1 0;
-		min-width: 80rpx;
-		height: 50rpx;
-		font-size: 20rpx;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		border-radius: 10rpx;
-		margin: 0;
-	}
-
-	.cancel-btn {
-		background-color: #fff;
-		color: #0F4687;
-		border: 1px solid #0F4687;
-	}
-
-	.confirm-btn {
-		background-color: #0F4687;
-		color: #fff;
-		border: none;
-	}
-
-	.disabled-button {
-		background-color: #ff3141;
-		color: #fff;
-		font-size: 13rpx;
-		padding: 0 12rpx;
-		border-radius: 20rpx;
-		margin-right: 5rpx;
-		height: 30rpx;
-		line-height: 30rpx;
-		display: inline-block;
-		width: 43rpx;
-		text-align: center;
-	}
-
-	.disabled-text {
-		color: #999;
-	}
-
-	/* 添加无数据提示样式 */
-	.no-data-tip {
-		padding: 30rpx;
-		text-align: center;
-		color: #999;
-		font-size: 24rpx;
-	}
-  .input-text{
-    font-size:18rpx
-  }
-  .component-number {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    border: 1rpx solid #EEEEEE;
-    padding: 4rpx 4rpx;
-  }
-  .clear-icon{
-    width: 18rpx;
-    height: 18rpx;
-  }
+/* 第一级菜单项的警告图标左移 */
+.sidebar-level1 .warning-icon {
+  left: 30rpx;
+}
 </style>

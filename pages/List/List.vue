@@ -459,9 +459,9 @@
 			value: bridge.buildingId
 		});
 		console.log('已将buildingId存储到store:', idInfo.buildingId);
-		const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
-		objectData.setData(newData);
-		console.log("objectData",objectData.getData());
+		// const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
+		// objectData.setData(newData);
+		// console.log("objectData",objectData.getData());
     // 导航到桥梁疾病页面
     uni.navigateTo({
       // url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`

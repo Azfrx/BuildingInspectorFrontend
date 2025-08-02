@@ -503,20 +503,19 @@ async function findMatchingULDirectory(userName) {
     try {
         // 获取_doc目录下的所有子目录
         const allDirs = await getAllFirstLevelDirs();
-        console.log('所有目录:', allDirs);
 
         // 获取用户信息store
         const userInfo = userStore();
         
         // 优先使用ULPath（如果已经在store中设置）
         if (userInfo.ULPath && allDirs.includes(userInfo.ULPath)) {
-            console.log('使用store中保存的ULPath:', userInfo.ULPath);
+          
             return userInfo.ULPath;
         }
 
         // 如果没有project目录，查找以UL开头的目录
         const ulDirs = allDirs.filter(dir => dir.startsWith('UL'));
-        console.log('找到UL开头的目录:', ulDirs);
+       
 
         // 遍历UL目录，查找匹配当前用户名的目录
         for (const dir of ulDirs) {
@@ -524,11 +523,11 @@ async function findMatchingULDirectory(userName) {
             const lastDashIndex = dir.lastIndexOf('-');
             if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
                 const dirUsername = dir.substring(lastDashIndex + 1);
-                console.log(`目录 ${dir} 中的用户名: ${dirUsername}`);
+                
 
                 // 检查提取的用户名是否与当前用户名匹配
                 if (userName && dirUsername === userName) {
-                    console.log('找到匹配的UL用户目录:', dir);
+               
                     userInfo.setULPath(dir); // 保存到store中
                     return dir;
                 }
@@ -537,7 +536,7 @@ async function findMatchingULDirectory(userName) {
 
         // 如果没有找到匹配的UL目录，尝试查找对应的UD目录
         const udDirs = allDirs.filter(dir => dir.startsWith('UD'));
-        console.log('找到UD开头的目录:', udDirs);
+        
         
         // 遍历UD目录，查找匹配当前用户名的目录
         for (const dir of udDirs) {
@@ -549,12 +548,12 @@ async function findMatchingULDirectory(userName) {
                 if (userName && dirUsername === userName) {
                     // 创建对应的UL目录名称
                     const ulDir = 'UL' + dir.substring(2); // 替换UD为UL
-                    console.log('未找到UL目录，但找到了对应的UD目录，创建UL目录:', ulDir);
+                  
                     
                     // 创建UL目录
                     try {
                         await createDirectory(DOC_BASE_PATH + ulDir);
-                        console.log('成功创建UL目录:', ulDir);
+                        
                         userInfo.setULPath(ulDir); // 保存到store中
                         return ulDir;
                     } catch (error) {
@@ -588,7 +587,7 @@ function createDirectory(path) {
     return new Promise((resolve, reject) => {
         plus.io.requestFileSystem(plus.io.PRIVATE_DOC, fs => {
             fs.root.getDirectory(path, { create: true }, dirEntry => {
-                console.log('目录创建成功:', path);
+               
                 resolve(dirEntry);
             }, error => {
                 console.error('目录创建失败:', error);
@@ -603,7 +602,7 @@ function createDirectory(path) {
 
 // 辅助函数：确保目录存在，如果不存在则创建
 async function ensureDirectoryExists(path) {
-    console.log('确保目录存在:', path);
+    
     const parts = path.split('/').filter(Boolean);
     let currentPath = '';
     
@@ -621,7 +620,6 @@ async function ensureDirectoryExists(path) {
         }
     }
     
-    console.log('目录结构已确保存在:', path);
     return true;
 }
 

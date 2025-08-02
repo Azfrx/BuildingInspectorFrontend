@@ -122,6 +122,10 @@
 			@confirm="handleUpdateConfirm"
 			@cancel="handleUpdateCancel"
 		/>
+
+		<!-- 自定义错误弹窗 -->
+		<offlineFailVue ref="offlineFailRef" @confirm="handleOfflineFailConfirm" />
+		<offlineVersionVue ref="offlineVersionRef" />
 	</view>
 </template>
 
@@ -146,7 +150,8 @@ import {
 	import { useDownloader, parsePackageSize } from '@/utils/downloadUtils.js'
 	// 导入版本更新弹窗组件
 	import updateVersionWindow from '@/components/updateVersionWindow.vue'
-
+import offlineFailVue from '../../components/offlineFail.vue'
+import offlineVersionVue from '../../components/offlineVersion.vue';
 	// 获取用户信息
 	const userInfo = userStore();
 
@@ -194,11 +199,15 @@ import {
   const packageSize = ref(null);
   const isDownloading = ref(false);
 
-  // 版本更新弹窗相关变量
-  const showUpdateModal = ref(false);
-  const updateModalTitle = ref('发现新版本');
-  const updateModalContent = ref('');
-  const updateConfirmResolve = ref(null);
+  	// 版本更新弹窗相关变量
+	const showUpdateModal = ref(false);
+	const updateModalTitle = ref('发现新版本');
+	const updateModalContent = ref('');
+	const updateConfirmResolve = ref(null);
+	
+	// 自定义错误弹窗引用
+	const offlineFailRef = ref(null);
+	const offlineVersionRef = ref(null)
   const testButton = ()=>{
 	  uni.navigateTo({
 	  	url: '/pages/test/test'
@@ -220,6 +229,12 @@ import {
       updateConfirmResolve.value(false);
       updateConfirmResolve.value = null;
     }
+  };
+
+  // 处理自定义错误弹窗确认事件
+  const handleOfflineFailConfirm = () => {
+    console.log('用户确认了错误弹窗');
+    // 可以在这里添加额外的处理逻辑
   };
 
   // 显示版本更新弹窗的方法
@@ -462,11 +477,11 @@ import {
       cleanupDownloadListeners();
       resetDownloadState();
 
-      uni.showModal({
-        title: '更新失败',
-        content: error.message || '下载或解压数据包失败，请重试',
-        showCancel: false
-      });
+      // 使用自定义弹窗替代 uni.showModal
+      if (offlineFailRef.value) {
+        // 显示错误信息
+        offlineFailRef.value.show('更新失败', error.message || '下载或解压数据包失败，请重试');
+      }
     }
   };
 
@@ -739,11 +754,11 @@ import {
       }
     } catch (error) {
       console.error('检查更新失败:', error);
-      uni.showModal({
-        title: '检查更新失败',
-        content: error.message || '检查更新时发生错误，请稍后重试',
-        showCancel: false
-      });
+      // 使用自定义弹窗替代 uni.showModal
+      if (offlineFailRef.value) {
+        // 显示错误信息
+        offlineFailRef.value.show();
+      }
     } finally {
       loading.value = false;
     }
@@ -944,93 +959,108 @@ import {
 	};
 
 	const onClickUpdate = () => {
-		// 显示检查中的提示
-		uni.showLoading({
-			title: '正在检查更新...',
-			mask: true
-		});
+		uni.getNetworkType({
+			success: (res) => {
+				if (res.networkType === 'none') {
+					// 离线，弹出离线版本弹窗
+					if (offlineVersionRef.value) {
+						offlineVersionRef.value.show()
+					}
+					return
+				}
+				
+				// 在线情况下的检查更新逻辑
+				// 显示检查中的提示
+				uni.showLoading({
+					title: '正在检查更新...',
+					mask: true
+				});
 
-		// 检查当前环境
-		const sysInfo = uni.getSystemInfoSync();
-		if (sysInfo.platform === 'devtools') {
-			uni.hideLoading();
-			uni.showToast({
-				title: '开发环境无法检查更新',
-				icon: 'none',
-				duration: 2000
-			});
-			return;
-		}
-
-		// 获取当前版本号
-		const currentVersion = versionNumber.value || sysInfo.appVersion || '1.0.0';
-		console.log('当前应用版本:', currentVersion);
-		console.log('当前系统信息:', sysInfo);
-
-		// 先检查是否能获取到widgetInfo.version，避免调用checkUpdate时出错
-		if (typeof plus !== 'undefined' && plus.runtime) {
-			plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
-				console.log('widgetInfo:', widgetInfo);
-				console.log('widgetInfo。version:', widgetInfo.version);
-				if (!widgetInfo.version) {
-					// 如果无法获取widgetInfo.version，直接显示当前是最新版本
+				// 检查当前环境
+				const sysInfo = uni.getSystemInfoSync();
+				if (sysInfo.platform === 'devtools') {
 					uni.hideLoading();
 					uni.showToast({
-						title: '已是最新版本',
-						icon: 'success',
+						title: '开发环境无法检查更新',
+						icon: 'none',
 						duration: 2000
 					});
 					return;
 				}
 
-				// 如果能获取到版本信息，则调用checkUpdate
-				try {
-					checkUpdate()
-						.then(result => {
-							uni.hideLoading();
-							console.log('版本检查结果:', result);
+				// 获取当前版本号
+				const currentVersion = versionNumber.value || sysInfo.appVersion || '1.0.0';
+				console.log('当前应用版本:', currentVersion);
+				console.log('当前系统信息:', sysInfo);
+				console.log('appId:', sysInfo.appId);
 
-							// 如果code为0，表示当前已是最新版本
-							if (result && result.code === 0) {
-								uni.showToast({
-									title: '已是最新版本',
-									icon: 'success',
-									duration: 2000
+				// 先检查是否能获取到widgetInfo.version，避免调用checkUpdate时出错
+				if (typeof plus !== 'undefined' && plus.runtime) {
+					plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
+						console.log('widgetInfo:', widgetInfo);
+						console.log('widgetInfo。version:', widgetInfo.version);
+						if (!widgetInfo.version) {
+							// 如果无法获取widgetInfo.version，直接显示当前是最新版本
+							uni.hideLoading();
+							uni.showToast({
+								title: '已是最新版本',
+								icon: 'success',
+								duration: 2000
+							});
+							return;
+						}
+
+						// 如果能获取到版本信息，则调用checkUpdate
+						try {
+							// 直接调用checkUpdate，不传递参数，让它自己获取版本信息
+							checkUpdate()
+								.then(result => {
+									uni.hideLoading();
+									console.log('版本检查结果:', result);
+
+									// 如果code为0，表示当前已是最新版本
+									if (result && result.code === 0) {
+										uni.showToast({
+											title: '已是最新版本',
+											icon: 'success',
+											duration: 2000
+										});
+									}
+									// 其他情况由checkUpdate函数内部处理
+								})
+								.catch(error => {
+									uni.hideLoading();
+									console.error('检查更新失败:', error);
+
+									// 显示友好的错误信息
+									uni.showToast({
+										title: '已是最新版本',
+										icon: 'success',
+										duration: 2000
+									});
 								});
-							}
-							// 其他情况由checkUpdate函数内部处理
-						})
-						.catch(error => {
+						} catch (e) {
 							uni.hideLoading();
-							console.error('检查更新失败:', error);
+							console.error('执行检查更新时出错:', e);
 
-							// 显示友好的错误信息
-							// uni.showToast({
-							// 	title: '已是最新版本',
-							// 	icon: 'success',
-							// 	duration: 2000
-							// });
-						});
-				} catch (e) {
+							uni.showToast({
+								title: '已是最新版本',
+								icon: 'success',
+								duration: 2000
+							});
+						}
+					});
+				} else {
+					// 如果plus环境不可用，直接显示当前是最新版本
 					uni.hideLoading();
-					console.error('执行检查更新时出错:', e);
-
 					// uni.showToast({
 					// 	title: '已是最新版本',
 					// 	icon: 'success',
 					// 	duration: 2000
 					// });
 				}
-			});
-		} else {
-			// 如果plus环境不可用，直接显示当前是最新版本
-			uni.hideLoading();
-			// uni.showToast({
-			// 	title: '已是最新版本',
-			// 	icon: 'success',
-			// 	duration: 2000
-			// });
-		}
+			}
+		});
 	}
 
 	//版本比较函数

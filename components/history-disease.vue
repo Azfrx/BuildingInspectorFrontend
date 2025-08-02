@@ -9,7 +9,6 @@
 
 			<view class="button-group">
 				<button v-if="showCopyButton" class="copy-button" @click="copyDisease">复制为新病害</button>
-				<button v-if="showCopyButton" class="copy-button" @click="selectAllDisease">全选</button>
 				<button class="select-button" @click="toggleSelectMode">{{ isSelectMode ? '取消' : '选择' }}</button>
 			</view>
 
@@ -67,8 +66,7 @@
 	} from 'vue';
 	import {
 		getDisease,
-		getHistoryYear,
-		getULDisease
+		getHistoryYear
 	} from '../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages,
@@ -128,11 +126,11 @@
 			// 清空现有数据
 			diseaseMap.value = {};
 
-			// 依次读取各年份数据 UD
+			// 依次读取各年份数据
 			for (const year of years) {
 				try {
 					const yearData = await getDisease(userInfo.username, idStorageInfo.buildingId, year);
-					console.log(`获取到${year}年UD病害数据:`, yearData);
+					console.log(`获取到${year}年病害数据:`, yearData);
 
 					// 直接按年份存储
 					if (yearData && yearData.diseases && yearData.diseases.length > 0) {
@@ -141,38 +139,8 @@
 						diseaseMap.value[year] = [];
 					}
 				} catch (yearError) {
-					console.warn(`获取${year}年UD数据失败:`, yearError);
+					console.warn(`获取${year}年数据失败:`, yearError);
 					diseaseMap.value[year] = [];
-				}
-			}
-
-			//依次读取各年份数据 UL
-			for (const year of years) {
-				try {
-					const yearData = await getULDisease(userInfo.username, idStorageInfo.buildingId, year);
-					console.log(`获取到${year}年UL病害数据:`, yearData);
-
-					if (yearData && yearData.diseases && yearData.diseases.length > 0) {
-						// 获取当前年份的UD数据
-						const currentYearDiseases = diseaseMap.value[year] || [];
-
-						// 合并UL数据到UD数据中
-						yearData.diseases.forEach(ulDisease => {
-							// 查找对应ID的UD数据
-							const existingDiseaseIndex = currentYearDiseases.findIndex(disease => disease
-								.id === ulDisease.id);
-
-							if (existingDiseaseIndex !== -1) {
-								// 如果找到匹配的UD数据，更新copyId字段
-								currentYearDiseases[existingDiseaseIndex].copyId = ulDisease.copyId;
-							}
-						});
-
-						// 更新合并后的数据
-						diseaseMap.value[year] = currentYearDiseases;
-					}
-				} catch (yearError) {
-					console.warn(`获取${year}年UL数据失败:`, yearError);
 				}
 			}
 
@@ -204,10 +172,10 @@
 			// 将搜索文本按空格分词
 			const keywords = searchText.value.trim().split(/\s+/);
 			list = list.filter(item =>
-				keywords.some(keyword =>
+				keywords.some(keyword => 
 					(item.description?.includes(keyword) ||
-						item.type?.includes(keyword) ||
-						item.component?.grandObjectName?.includes(keyword))
+					item.type?.includes(keyword) ||
+					item.component?.grandObjectName?.includes(keyword))
 				)
 			);
 		}
@@ -251,18 +219,6 @@
 				selectedItems.value = [];
 			}
 		};
-
-	// 全选所有病害
-	const selectAllDisease = () => {
-		// 获取当前筛选后的病害列表
-		const allDiseases = filteredDiseases.value;
-		// 清空当前选中项
-		selectedItems.value = [];
-		// 将所有病害ID添加到选中列表
-		selectedItems.value = allDiseases.map(item => item.id);
-		
-		console.log('已全选病害:', selectedItems.value);
-	};
 
 	// 处理项目选择
 	const handleItemSelect = (event) => {
@@ -338,8 +294,6 @@
 				newDisease.projectId = idStorageInfo.projectId;
 				// 确保新复制出来的病害的copyId字段为空
 				newDisease.copyId = [];
-				newDisease.images = [];
-				newDisease.ADImgs = [];
 				newDisease.historyDiseaseId = disease.id;
 
 				// 将原始病害添加到allCopiedDiseases以便发送到current-disease
@@ -355,7 +309,7 @@
 			const originalDiseases = diseaseMap.value[year] || [];
 			const updatedDiseases = originalDiseases.map(disease => {
 				const matchedCopy = copiedDiseases.find(item => item.originalDisease.id === disease
-					.id);
+				.id);
 				if (matchedCopy) {
 					// 如果病害已有copyId字段且是数组，则添加新的localId
 					if (disease.copyId && Array.isArray(disease.copyId)) {
@@ -371,10 +325,7 @@
 			// 保存更新后的病害数据到对应年份
 			setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 				year: year,
-				diseases: updatedDiseases.map(disease => ({
-					id: disease.id,
-					copyId: disease.copyId
-				}))
+				diseases: updatedDiseases
 			});
 		});
 
@@ -449,11 +400,11 @@
 				// 将搜索文本按空格分词
 				const keywords = searchText.value.trim().split(/\s+/);
 				// 只要满足其中一个关键词就返回true
-				return keywords.some(keyword =>
-					(item.description?.includes(keyword) ||
-						item.type?.includes(keyword) ||
-						item.biObjectName?.includes(keyword) ||
-						item.position?.includes(keyword))
+				return keywords.some(keyword => 
+					(item.description?.includes(keyword) || 
+					item.type?.includes(keyword) || 
+					item.biObjectName?.includes(keyword) || 
+					item.position?.includes(keyword))
 				);
 			}
 			return true;
@@ -573,10 +524,7 @@
 				// 保存更新后的病害数据到对应年份
 				await setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 					year: year,
-					diseases: yearDiseases.map(disease => ({
-						id: disease.id,
-						copyId: disease.copyId
-					}))
+					diseases: yearDiseases
 				});
 
 				foundOriginalDisease = true;
@@ -629,10 +577,7 @@
 						// 保存更新后的数据
 						await setDisease(userInfo.username, idStorageInfo.buildingId, year, {
 							year: year,
-							diseases: yearDiseases.map(disease => ({
-								id: disease.id,
-								copyId: disease.copyId
-							}))
+							diseases: yearDiseases
 						});
 
 						console.log(`已从历史病害 ID:${historyDiseaseId} 的 copyId 中移除 localId:${localId}`);
@@ -732,26 +677,24 @@
 	}
 
 	.select-button {
-		margin-right: 16rpx;
+		margin-right: 24rpx;
 		background-color: #0F4687;
 		color: white;
 		font-size: 15rpx;
 		height: 40rpx;
 		line-height: 30rpx;
 		padding: 5rpx 10rpx;
-		white-space: nowrap; /* 防止文本换行 */
 	}
 
 
 	.copy-button {
-		margin-right: 16rpx;
+		margin-right: 24rpx;
 		background-color: #0F4687;
 		color: white;
 		font-size: 15rpx;
 		height: 40rpx;
 		line-height: 40rpx;
 		padding: 0 10rpx;
-		white-space: nowrap; /* 防止文本换行 */
 	}
 
 	/* 内容布局 */

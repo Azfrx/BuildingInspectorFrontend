@@ -155,6 +155,7 @@ import {
 	import { saveZipAndStorePath } from '@/utils/write.js';
 // 导入下载确认弹窗组件
 import downLoadWindow from '@/components/downLoadWindow.vue';
+import apiConfig from '../../config/api';
 // 导入版本更新弹窗组件
 import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
@@ -289,7 +290,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	// 下载文件函数
 	const downloadFile = (url, packageSizeParam, taskId) => {
 	  return new Promise((resolve, reject) => {
-	    console.log('开始下载文件:', url);
+	   
 	
 	    if (!url.startsWith('http')) {
 	      reject(new Error('URL格式不正确'));
@@ -310,7 +311,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	      timeout: 180000,
 	      success: (res) => {
 	        if (res.statusCode === 200) {
-	          console.log('下载成功，临时文件路径:', res.tempFilePath);
+	        
 	          resolve(res.tempFilePath);
 	        } else {
 	          reject(new Error(`下载失败: ${res.statusCode}`));
@@ -343,7 +344,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	  try {
 	    // 防止重复检查版本
 	    if (hasCheckedVersion.value) {
-	      console.log('已经检查过版本，跳过重复检查');
+	      
 	      return;
 	    }
 
@@ -351,7 +352,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 	    if (!infoData.value.token) {
 			const responseLogin = await uni.request({
-			  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+					url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
 			  		method: 'POST'
 			  	});
 			infoData.value.token = responseLogin.data.token;
@@ -365,36 +366,32 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    // loading.value = true;
 	
 	    // 1.根据url版本号与本地UD目录的版本号的相对大小来判断是否有更新内容
-	    console.log('开始检查数据包版本...');
 	    const response = await uni.request({
-	      url: 'http://60.205.13.156:8090/api/user/dataPackage',
+			url: `${apiConfig.baseURL}${apiConfig.endpoints.dataPackage}`,
+	      // url: 'http://60.205.13.156:8090/api/user/dataPackage',
 	      method: 'GET',
 	      header: {
 	        'Authorization': `${infoData.value.token}`
 	      }
 	    });
 	
-	    console.log('API响应:', response.data);
+	   
 	
 	    if (response.statusCode !== 200 || response.data.code !== 0) {
 	      throw new Error(response.data?.msg || '获取数据包信息失败');
 	    }
 	
 	    const { url, version, packageSize: apiPackageSize } = response.data;
-	    console.log('当前数据包版本:', version);
-	    console.log('压缩包URL:', url);
-	    console.log('包大小:', apiPackageSize);
+	   
 	
 	    // 处理服务器版本格式：移除.zip后缀
 	    const dirNew = version.endsWith('.zip') ? version.slice(0, -4) : version;
 	    const dirOld = userInfo.UDPath;
-	    console.log('本地数据包版本:', dirOld);
-	    console.log('服务器数据包版本(原始):', version);
-	    console.log('服务器数据包版本(处理后):', dirNew);
+	    
 
 	    // 如果本地版本为空，说明是首次安装，需要下载数据包
 	    if (!dirOld) {
-	      console.log('本地版本为空，首次安装，需要下载数据包');
+	  
 
 	      // 显示下载确认对话框
 	      const confirmResult = await showDownloadConfirmModal(
@@ -409,26 +406,19 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	        hasCheckedVersion.value = true;
 	      } else {
 	        // 用户拒绝下载，不标记已检查，下次进入还能重新提示
-	        console.log('用户拒绝下载数据包');
+	     
 	      }
 	      return;
 	    }
-	    console.log('版本类型检查:', {
-	      dirOldType: typeof dirOld,
-	      dirNewType: typeof dirNew,
-	      dirOldLength: dirOld ? dirOld.length : 0,
-	      dirNewLength: dirNew ? dirNew.length : 0
-	    });
+	  
 
 	    // 如果本地版本小于获取的版本 触发更新
 	    // 添加额外检查：确保版本确实不同
 	    const needsUpdate = !dirOld || compareUDDirectories(dirNew, dirOld);
-	    console.log('是否需要更新:', needsUpdate);
+
 
 	    if (needsUpdate) {
-	      console.log('检测到新版本，开始下载更新...');
-	      console.log('新版本:', dirNew);
-	      console.log('本地版本:', dirOld);
+	    
 
 	      // 显示确认对话框，包含版本信息
 	      const confirmResult = await showUpdateConfirmModal(
@@ -441,7 +431,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	        await downloadAndUnzipPackage(url, apiPackageSize, dirNew);
 	      }
 	    } else {
-	      console.log('当前已是最新版本，无需更新');
+	
 	      // uni.showToast({
 	      //   title: '已是最新版本',
 	      //   icon: 'success',
@@ -471,17 +461,17 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	// 判断目录1是否大于目录2
 	function compareUDDirectories(dir1, dir2) {
-	    console.log('比较版本:', { dir1, dir2 });
+	 
 
 	    // 如果本地版本为空，则需要更新
 	    if (!dir2) {
-	        console.log('本地版本为空，需要更新');
+	       
 	        return true;
 	    }
 
 	    // 如果两个版本相同，则不需要更新
 	    if (dir1 === dir2) {
-	        console.log('版本相同，不需要更新');
+	  
 	        return false;
 	    }
 
@@ -506,17 +496,17 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    }
 	    const timestamp2 = match2[1];
 
-	    console.log('时间戳比较:', { timestamp1, timestamp2 });
+	
 
 	    // 比较两个时间戳字符串（直接字符串比较即可，因为它们都是固定长度的数字）
 	    const result = timestamp1 > timestamp2;
-	    console.log('比较结果:', result);
+	  
 	    return result;
 	}
 	
 	// 重置下载状态
 	const resetDownloadState = () => {
-	  console.log('重置下载状态');
+	
 	  resetProgress();
 	  showDownloadProgress.value = false;
 	  showUnzipProgress.value = false;
@@ -531,7 +521,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	// 清理事件监听器
 	const cleanupDownloadListeners = () => {
-	  console.log('清理下载事件监听器');
+	 
 	  uni.$off('download-progress');
 	  uni.$off('unzip-progress');
 	  uni.$off('unzip-completed');
@@ -543,7 +533,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	  return new Promise((resolve) => {
 	    plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 	      entry.createReader().readEntries((entries) => {
-	        console.log('检查_doc/目录内容，寻找解压后的目录:');
+	       
 	
 	        // 查找最新的UD开头的目录
 	        const udDirs = entries
@@ -555,7 +545,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	        if (udDirs.length > 0) {
 	          const latestDir = udDirs[0].name;
-	          console.log('找到最新的UD目录:', latestDir);
+	       
 	          resolve(latestDir);
 	        } else {
 	          // 如果没有UD目录，查找其他可能的目录
@@ -567,10 +557,10 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	          if (otherDirs.length > 0) {
 	            const dirName = otherDirs[0].name;
-	            console.log('找到其他目录:', dirName);
+	     
 	            resolve(dirName);
 	          } else {
-	            console.log('未找到合适的解压目录');
+	           
 	            resolve(null);
 	          }
 	        }
@@ -590,7 +580,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	  try {
 	    // 检查是否已经有下载任务在进行
 	    if (isDownloading.value) {
-	      console.log('已有下载任务在进行，跳过新的下载请求');
+	  
 	      return;
 	    }
 
@@ -605,33 +595,31 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    // 生成新的进度条ID并设置为活跃状态
 	    currentProgressId.value = taskId;
 	    setActiveProgressId(taskId);
-	    console.log('创建新的进度条ID:', taskId);
+
 
 	    // 显示下载进度条
 	    showDownloadProgress.value = true;
 
-	    console.log('开始下载数据包，URL:', url);
-	    console.log('包大小:', packageSizeStr);
-	    console.log('版本:', version);
+	    
 	
 	    // 解析包大小
 	    const parsedSize = parsePackageSize(packageSizeStr);
 	    if (parsedSize) {
 	      packageSize.value = parsedSize;
-	      console.log(`解析后的包大小: ${(parsedSize / (1024 * 1024)).toFixed(2)}MB`);
+	
 	    }
 	
 	    // 监听下载进度
 	    uni.$on('download-progress', (progress) => {
 	      // 检查是否是当前任务的进度事件
 	      if (!isDownloading.value || progress.taskId !== taskId) {
-	        console.log('忽略过期的下载进度事件，当前任务ID:', taskId, '事件任务ID:', progress.taskId);
+	       
 	        return;
 	      }
 
 	      // 检查是否是当前活跃的进度条
 	      if (!isActiveProgressId(currentProgressId.value)) {
-	        console.log('当前进度条不是活跃状态，忽略进度更新');
+	      
 	        return;
 	      }
 
@@ -649,13 +637,13 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    uni.$on('unzip-progress', (progress) => {
 	      // 检查是否是当前任务的进度事件
 	      if (!isDownloading.value || progress.taskId !== taskId) {
-	        console.log('忽略过期的解压进度事件，当前任务ID:', taskId, '事件任务ID:', progress.taskId);
+	      
 	        return;
 	      }
 
 	      // 检查是否是当前活跃的进度条
 	      if (!isActiveProgressId(currentProgressId.value)) {
-	        console.log('当前进度条不是活跃状态，忽略解压进度更新');
+	     
 	        return;
 	      }
 
@@ -668,17 +656,16 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    uni.$on('unzip-completed', async (event) => {
 	      // 检查是否是当前任务的完成事件
 	      if (!isDownloading.value || event.taskId !== taskId) {
-	        console.log('忽略过期的解压完成事件，当前任务ID:', taskId, '事件任务ID:', event.taskId);
+	    
 	        return;
 	      }
 
 	      // 检查是否是当前活跃的进度条
 	      if (!isActiveProgressId(currentProgressId.value)) {
-	        console.log('当前进度条不是活跃状态，忽略解压完成事件');
+	       
 	        return;
 	      }
 
-	      console.log('收到解压完成事件，关闭进度条');
 	      cleanupDownloadListeners();
 	      resetDownloadState();
 	
@@ -686,27 +673,27 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	        // 查找解压后的实际目录
 	        const actualDirName = await findActualUnzippedDir();
 	        if (actualDirName) {
-	          console.log('找到解压后的实际目录:', actualDirName);
+	          
 	
 	          // 删除旧的UD目录（如果存在）
 	          const oldUDPath = userInfo.UDPath;
-			  console.log('oldUDPath',oldUDPath)
+			 
 	          if (oldUDPath && oldUDPath !== actualDirName) {
-	            console.log('准备删除旧目录:', oldUDPath);
+	          
 	            try {
 	              await deleteOldDirectory(`_doc/${oldUDPath}`);
-	              console.log('成功删除旧目录:', oldUDPath);
+	          
 	            } catch (error) {
-	              console.error('删除旧目录失败:', error);
+	              
 	              // 继续执行，不中断流程
 	            }
 	          }
 	
 	          // 更新用户的UDPath为实际解压的目录
 	          userInfo.setUDPath(actualDirName);
-	          console.log('已更新UDPath为实际目录:', actualDirName);
+	      
 	        } else {
-	          console.log('未找到解压后的实际目录，使用时间戳生成目录名');
+	         
 	          // 如果找不到实际目录，回退到使用时间戳
 	          const now = new Date();
 	          const timestamp =
@@ -719,7 +706,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	          const dirName = `UD${timestamp}-${userInfo.username}`;
 	          userInfo.setUDPath(dirName);
-	          console.log('已更新UDPath为时间戳生成的目录:', dirName);
+	         
 	        }
 	      } catch (error) {
 	        console.error('处理解压后目录时出错:', error);
@@ -734,10 +721,10 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	
 	    // 开始下载
 	    const tempPath = await downloadFile(url, parsedSize || packageSizeStr, taskId);
-	    console.log('下载完成，临时文件路径:', tempPath);
+	
 	
 	    // 开始解压
-	    console.log('开始解压文件到 _doc/');
+	    
 	    await unzipFile(tempPath, '_doc/', taskId);
 	
 	  } catch (error) {
@@ -756,22 +743,22 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	// 解压文件函数 - 参考bridge页面的优化实现
 	const unzipFile = (zipPath, targetDir, taskId) => {
 	  return new Promise((resolve, reject) => {
-	    console.log('开始解压文件:', zipPath, '到', targetDir);
+	   
 	
 	    let isResolved = false;
 	
 	    // 添加强制完成定时器，大幅缩短检查时间
 	    const forceCompleteTimeoutId = setTimeout(() => {
 	      if (!isResolved) {
-	        console.log('解压可能已完成，正在检查文件系统');
+	     
 	        isResolved = true;
 	
 	        // 检查_doc目录是否有内容，验证解压是否成功
 	        plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 	          entry.createReader().readEntries((entries) => {
-	            console.log('解压后_doc/目录内容:', entries.length, '个项目');
+	            
 	            if (entries.length > 0) {
-	              console.log('目录不为空，解压已成功');
+	            
 	              // 发送解压完成事件
 	              uni.$emit('unzip-completed', { taskId: taskId });
 	              resolve(targetDir);
@@ -800,7 +787,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	      }
 	
 	      checkCount++;
-	      console.log(`轮询检查解压状态 (${checkCount}/${maxChecks})...`);
+	  
 	
 	      plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 	        entry.createReader().readEntries((entries) => {
@@ -810,7 +797,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	          );
 	
 	          if (hasKeyDirectories) {
-	            console.log('发现关键目录，解压已完成');
+	         
 	            if (!isResolved) {
 	              isResolved = true;
 	              clearTimeout(forceCompleteTimeoutId);
@@ -819,7 +806,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	              resolve(targetDir);
 	            }
 	          } else if (checkCount >= maxChecks) {
-	            console.log('达到最大检查次数，停止轮询');
+	            
 	            clearInterval(checkInterval);
 	          }
 	        }, () => {
@@ -841,11 +828,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	        if (progress && progress.loaded && progress.total && progress.total > 0) {
 	          const progressPercent = Math.floor((progress.loaded / progress.total) * 100);
 	          uni.$emit('unzip-progress', { progress: progressPercent, taskId: taskId });
-	          console.log('解压进度:', progressPercent);
+	    
 	
 	          // 如果进度达到100%，也可以认为解压已完成
 	          if (progressPercent >= 100 && !isResolved) {
-	            console.log('进度达到100%，解压已完成');
+	        
 	            isResolved = true;
 	            clearTimeout(forceCompleteTimeoutId);
 	            clearInterval(checkInterval);
@@ -853,11 +840,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	            resolve(targetDir);
 	          }
 	        } else {
-	          console.log('解压进行中...', Date.now());
+	        
 	        }
 	      },
 	      () => {
-	        console.log('解压完成回调被触发');
+	   
 	        // 解压完成时发送事件
 	        if (!isResolved) {
 	          uni.$emit('unzip-completed', { taskId: taskId });
@@ -883,26 +870,26 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	// 删除旧目录
 	const deleteOldDirectory = (dirPath) => {
 	  return new Promise((resolve, reject) => {
-	    console.log('准备删除目录:', dirPath);
+	 
 	
 	    plus.io.resolveLocalFileSystemURL(dirPath, (entry) => {
 	      if (entry.isDirectory) {
 	        entry.removeRecursively(() => {
-	          console.log('目录删除成功:', dirPath);
+	         
 	          resolve();
 	        }, (err) => {
-	          console.error('目录删除失败:', dirPath, err);
+	       
 	          reject(err);
 	        });
 	      } else {
-	        console.error('路径不是目录:', dirPath);
+	        
 	        reject(new Error('路径不是目录'));
 	      }
 	    }, (err) => {
-	      console.error('解析目录路径失败:', dirPath, err);
+	  
 	      // 如果目录不存在，也认为删除成功
 	      if (err.code === 1) { // NOT_FOUND_ERR
-	        console.log('目录不存在，无需删除:', dirPath);
+	        
 	        resolve();
 	      } else {
 	        reject(err);
@@ -914,18 +901,14 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	// 初始化本地路径
 	const initializeLocalPaths = async () => {
 	  try {
-	    console.log('开始初始化本地路径...');
-	    console.log('当前用户:', userInfo.username);
 
 	    // 检查UDPath是否匹配当前用户，如果不匹配则重置
 	    if (userInfo.UDPath) {
 	      const currentUsername = userInfo.username;
 	      if (currentUsername && !userInfo.UDPath.includes(currentUsername)) {
-	        console.log('UDPath不匹配当前用户，重置UDPath:', userInfo.UDPath);
 	        userInfo.setUDPath(''); // 重置UDPath
 	        hasCheckedVersion.value = false; // 重置版本检查标志
 	      } else {
-	        console.log('UDPath匹配当前用户:', userInfo.UDPath);
 	        return;
 	      }
 	    }
@@ -934,7 +917,6 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	    await new Promise((resolve) => {
 	      plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 	        entry.createReader().readEntries((entries) => {
-	          console.log('检查_doc/目录内容，寻找UD目录:');
 
 	          // 查找UD开头的目录
 	          const udDirs = entries
@@ -946,7 +928,6 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 	          if (udDirs.length > 0) {
 	            const latestDir = udDirs[0].name;
-	            console.log('找到最新的UD目录:', latestDir);
 
 	            // 检查目录是否包含当前用户名
 	            const currentUsername = userInfo.username;
@@ -957,7 +938,6 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	              for (const dir of udDirs) {
 	                if (dir.name.includes(currentUsername)) {
 	                  matchedDir = dir.name;
-	                  console.log('找到匹配当前用户的UD目录:', matchedDir);
 	                  break;
 	                }
 	              }
@@ -965,32 +945,24 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 	            // 如果没找到匹配的，不设置UDPath，让系统识别为需要下载
 	            if (!matchedDir) {
-	              console.log('未找到匹配当前用户的目录，当前用户需要下载数据包');
 	              // 不设置UDPath，让handleUnpdate识别为需要下载
 	            } else {
 	              userInfo.setUDPath(matchedDir);
 	            }
 	          } else {
-	            console.log('未找到UD目录，可能是首次安装');
 	            // 不设置UDPath，让handleUnpdate识别为首次安装
 	          }
 
 	          resolve();
 	        }, (err) => {
-	          console.error('读取_doc/目录失败:', err);
-	          console.log('_doc/目录可能不存在或为空，首次安装');
 	          resolve();
 	        });
 	      }, (err) => {
-	        console.error('解析_doc/目录失败:', err);
-	        console.log('_doc/目录不存在，首次安装');
 	        resolve();
 	      });
 	    });
 
-	    console.log('本地路径初始化完成，当前UDPath:', userInfo.UDPath);
 	  } catch (error) {
-	    console.error('初始化本地路径失败:', error);
 	  }
 	};
 
@@ -1003,9 +975,6 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			// 	method: 'POST'
 			// });
 			infoData.value = userInfo.infoData
-			console.log('用户信息:', infoData.value);
-			console.log("ULPath",userInfo.ULPath);
-			console.log("UDPath",userInfo.UDPath);
 
 			// 在检查版本更新之前，先尝试设置本地的UDPath
 			await initializeLocalPaths();
@@ -1020,7 +989,6 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				// 直接下载数据包
 				try {
 					const token = infoData.value.token;
-					console.log('开始下载数据包，使用token:', token.substring(0, 10) + '...');
 					
 					// 先检查本地是否已有数据
 					let hasLocalData = false;
@@ -1030,26 +998,20 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 						await new Promise((resolve, reject) => {
 							plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 								entry.createReader().readEntries((entries) => {
-									console.log('检查_doc/目录内容:');
-									console.log('目录项数量:', entries.length);
 									entries.forEach(item => {
-										console.log(`- ${item.name} (${item.isDirectory ? '目录' : '文件'})`);
 									});
 									
 									// 简化检测逻辑：只检查目录是否存在，不检查文件内容
 									let hasValidData = false;
 									const currentUsername = userInfo.username;
-									console.log('当前用户名:', currentUsername);
 									
 									// 检查是否有project目录或包含当前用户名的目录
 									for (const item of entries) {
 										if (item.isDirectory) {
-											console.log('检查目录:', item.name);
 											
 											// 如果存在project目录，认为有效
 											if (item.name === 'project') {
 												hasValidData = true;
-												console.log('找到project目录');
 												break;
 											}
 											
@@ -1059,12 +1021,12 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 												const lastDashIndex = item.name.lastIndexOf('-');
 												if (lastDashIndex !== -1 && lastDashIndex < item.name.length - 1) {
 													const dirUsername = item.name.substring(lastDashIndex + 1);
-													console.log('目录中的用户名:', dirUsername);
+													
 													
 													// 检查提取的用户名是否与当前用户名匹配
 													if (currentUsername && dirUsername === currentUsername) {
 														hasValidData = true;
-														console.log('找到匹配的用户目录:', item.name);
+													
 														// 设置已有用户名到store
 														userInfo.setUDPath(item.name);
 														break;
@@ -1075,10 +1037,10 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 									}
 									
 									if (hasValidData) {
-										console.log('本地已有有效数据，跳过下载步骤');
+									
 										hasLocalData = true;
 									} else {
-										console.log('_doc/目录中没有有效数据，需要下载数据');
+									
 										hasLocalData = false;
 									}
 									resolve();
@@ -1089,7 +1051,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 								});
 							}, (err) => {
 								// _doc目录不存在，需要下载
-								console.log('_doc/目录不存在，需要下载数据');
+							
 								// 确保hasLocalData为false
 								hasLocalData = false;
 								resolve();
@@ -1105,16 +1067,16 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							};
 						}
 					} catch (checkError) {
-						console.error('检查本地数据失败:', checkError);
+						
 						// 检查失败，确保hasLocalData为false，继续尝试下载
 						hasLocalData = false;
 					}
 					
-					console.log('本地数据状态:', hasLocalData ? '已存在' : '不存在或为空，将开始下载');
+					
 					
 					// 如果本地没有数据，则开始下载流程
 					if (!hasLocalData) {
-						console.log('开始执行下载流程...');
+					
 
 						// 移除确认对话框，直接下载
 						try {
@@ -1122,7 +1084,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							const initTaskId = Date.now();
 							currentProgressId.value = initTaskId;
 							setActiveProgressId(initTaskId);
-							console.log('创建初始化下载的进度条ID:', initTaskId);
+							
 
 							// 显示下载进度提示，改为显示进度条
 							showDownloadProgress.value = true;
@@ -1131,7 +1093,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							uni.$on('download-progress', (progress) => {
 								// 检查是否是当前活跃的进度条
 								if (!isActiveProgressId(currentProgressId.value)) {
-									console.log('当前进度条不是活跃状态，忽略初始化下载进度更新');
+							
 									return;
 								}
 
@@ -1140,14 +1102,13 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 								// 如果有包大小信息，也更新它
 								if (progress.packageSize) {
-									console.log('从进度事件接收到包大小:', progress.packageSize);
-									console.log('当前包大小值:', packageSize.value);
+							
 
 									// 确保packageSize是一个有效的数字
 									const size = Number(progress.packageSize);
 									if (!isNaN(size) && size > 0) {
 										packageSize.value = size;
-										console.log(`更新包大小为: ${(packageSize.value / (1024 * 1024)).toFixed(2)}MB`);
+									
 									} else {
 										console.warn('接收到无效的包大小:', progress.packageSize);
 									}
@@ -1158,7 +1119,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							uni.$on('unzip-progress', (progress) => {
 								// 检查是否是当前活跃的进度条
 								if (!isActiveProgressId(currentProgressId.value)) {
-									console.log('当前进度条不是活跃状态，忽略初始化解压进度更新');
+								
 									return;
 								}
 
@@ -1172,11 +1133,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							uni.$on('unzip-completed', (event) => {
 								// 检查是否是当前活跃的进度条
 								if (!isActiveProgressId(currentProgressId.value)) {
-									console.log('当前进度条不是活跃状态，忽略初始化解压完成事件');
+							
 									return;
 								}
 
-								console.log('收到解压完成事件，关闭进度条');
+								
 								uni.$off('download-progress');
 								uni.$off('unzip-progress');
 								uni.$off('unzip-completed');
@@ -1196,16 +1157,16 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							const timeoutPromise = new Promise((_, reject) => {
 								// 增加超时时间到10分钟
 								const timeoutId = setTimeout(() => {
-									console.log('下载操作已运行10分钟，检查是否已完成但未收到回调');
+								
 									
 									// 检查_doc目录是否有内容，如果有则可能已经下载解压成功
 									plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 										entry.createReader().readEntries((entries) => {
 											if (entries.length > 0) {
-												console.log('_doc/目录不为空，下载可能已成功但未收到回调，不触发超时错误');
+												
 												// 不触发reject，而是让下载继续
 											} else {
-												console.log('_doc/目录为空，确认下载超时');
+											
 												reject(new Error('下载超时，请检查网络连接'));
 											}
 										}, () => {
@@ -1220,7 +1181,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 								
 								// 添加强制完成检查
 								const forceCompleteId = setTimeout(() => {
-									console.log('下载操作已运行15分钟，强制完成');
+								
 									clearTimeout(timeoutId);
 									reject(new Error('下载操作时间过长，强制完成'));
 								}, 900000); // 15分钟强制完成
@@ -1272,18 +1233,18 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 								
 								// 检查是否为超时错误
 								if (downloadError.message && downloadError.message.includes('超时')) {
-									console.log('下载超时，检查本地数据是否可用');
+									
 									
 									// 检查_doc目录是否存在有效数据
 									try {
 										const hasValidLocalData = await new Promise((resolve) => {
 											plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 												entry.createReader().readEntries((entries) => {
-													console.log('检查_doc/目录内容，项目数:', entries.length);
+													
 													
 													// 获取当前用户名
 													const currentUsername = userInfo.username;
-													console.log('当前登录用户名:', currentUsername);
+												
 													
 													// 标记是否找到匹配的用户目录
 													let foundMatchingUserDir = false;
@@ -1291,11 +1252,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 													// 检查是否有project目录或包含当前用户名的目录
 													for (const item of entries) {
 														if (item.isDirectory) {
-															console.log('检查目录:', item.name);
+														
 															
 															// 如果存在project目录，认为有效
 															if (item.name === 'project') {
-																console.log('找到project目录');
+															
 																foundMatchingUserDir = true;
 																break;
 															}
@@ -1306,11 +1267,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 																const lastDashIndex = item.name.lastIndexOf('-');
 																if (lastDashIndex !== -1 && lastDashIndex < item.name.length - 1) {
 																	const dirUsername = item.name.substring(lastDashIndex + 1);
-																	console.log('目录中的用户名:', dirUsername);
+																
 																	
 																	// 检查提取的用户名是否与当前用户名匹配
 																	if (currentUsername && dirUsername === currentUsername) {
-																		console.log('找到匹配的用户目录:', item.name);
+																	
 																		// 设置已有用户名到store
 																		userInfo.setUDPath(item.name);
 																		foundMatchingUserDir = true;
@@ -1328,7 +1289,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 										});
 										
 										if (hasValidLocalData) {
-											console.log('发现有效的本地数据，使用本地数据');
+										
 											result = {
 												targetDir: '_doc/',
 												tempPath: null,
@@ -1337,10 +1298,10 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 											hasLocalData = true;
 											
 											// 本地数据有效，尝试复制object.json文件
-											console.log('本地数据有效，不再自动复制object.json文件');
+											
 											// 移除自动复制代码
 										} else {
-											console.log('未找到与当前用户匹配的本地数据');
+											
 											// 本地无数据，尝试直接下载
 											throw downloadError; // 重新抛出错误，进入后续处理流程
 										}
@@ -1359,7 +1320,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 											const parsedSize = parsePackageSize(apiResult.data.packageSize);
 											if (parsedSize) {
 												packageSize.value = parsedSize;
-												console.log(`解析后的包大小: ${(packageSize.value / (1024 * 1024)).toFixed(2)}MB`);
+												
 											}
 										}
 										
@@ -1378,18 +1339,18 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 														url: apiResult.data.url,
 														success: (res) => {
 															if (res.statusCode === 200) {
-																console.log('直接下载成功，临时文件路径:', res.tempFilePath);
+																
 																resolve(res.tempFilePath);
 															} else {
-																console.error('直接下载失败，状态码:', res.statusCode);
+																
 																// 不立即拒绝，尝试使用directDownload
 																directDownload(apiResult.data.url, apiResult.data.packageSize).then(resolve).catch(reject);
 															}
 														},
 														fail: (err) => {
-															console.error('直接下载失败:', err);
+															
 															// 尝试使用directDownload作为备用方案
-															console.log('尝试使用备用下载方法...');
+															
 															directDownload(apiResult.data.url, apiResult.data.packageSize).then(resolve).catch(reject);
 														}
 													});
@@ -1413,13 +1374,13 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 												try {
 													// 直接解压到_doc目录
 													await new Promise((resolve, reject) => {
-														console.log('开始解压文件:', tempPath, '到', '_doc/');
+														
 														
 														// 设置解压超时保护
 														let isResolved = false;
 														const timeoutId = setTimeout(() => {
 															if (!isResolved) {
-																console.log('解压操作超时，但继续等待完成');
+															
 																// 不立即拒绝，只记录日志
 															}
 														}, 30000); // 30秒超时检查
@@ -1431,13 +1392,13 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 																// 添加进度信息日志
 																if (progress && progress.loaded && progress.total) {
 																	const percent = Math.floor((progress.loaded / progress.total) * 100);
-																	console.log(`直接下载解压进度: ${percent}%`);
+																
 																} else {
-																	console.log('解压进行中...');
+																	
 																}
 															},
 															() => {
-																console.log('解压完成');
+																
 																clearTimeout(timeoutId);
 																isResolved = true;
 																resolve();
@@ -1458,9 +1419,9 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 													await new Promise((resolve, reject) => {
 														plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
 															entry.createReader().readEntries((entries) => {
-																console.log('_doc/目录内容:');
+																
 																entries.forEach((item) => {
-																	console.log(`- ${item.name} (${item.isDirectory ? '目录' : '文件'})`);
+																	
 																});
 																resolve();
 															}, (err) => {
@@ -1483,7 +1444,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 													};
 													
 													// 解压完成后，复制object.json文件
-													console.log('直接下载解压完成，不再自动复制object.json文件');
+												
 													// 移除自动复制代码
 												} catch (directError) {
 													console.error('直接下载或解压失败:', directError);
@@ -1524,7 +1485,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 							console.error('下载失败:', error);
 							
 							// 不再询问用户，直接尝试使用本地数据
-							console.log('下载失败，尝试使用本地数据');
+						
 							result = {
 								targetDir: '_doc/',
 								tempPath: null,
@@ -1534,19 +1495,17 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 						}
 					} else {
 						// 如果已经有本地数据，尝试复制object.json文件
-						console.log('使用本地数据，不再自动复制object.json文件');
+						
 						// 移除自动复制代码
 					}
 					
-					console.log('数据包已下载并解压到:', result.targetDir);
-					console.log('临时文件路径:', result.tempPath || '无临时文件（使用本地数据）');
-					console.log('数据包版本:', result.version);
+					
 					
 					// 如果是下载的数据，不再创建任何额外目录或文件
 					if (!hasLocalData && userInfo.username) {
 						try {
 							// 直接使用解压后的原始文件夹，不做任何额外处理
-							console.log('使用解压后的原始文件结构，不创建任何额外目录或文件');
+						
 						} catch (error) {
 							console.error('处理解压后的文件时出错:', error);
 						}
@@ -1593,7 +1552,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			} else {
 				console.error('未获取到有效token');
 				const responseLogin = await uni.request({
-				  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				  		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
 				  		method: 'POST'
 				  	});
 				infoData.value.token = responseLogin.data.token;
@@ -1612,13 +1571,13 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				const hadUsername = hadUsernameArrBySplit[hadUsernameArrBySplit.length - 1];
 				if (hadUsername === userInfo.username) {
 					//已存在此用户 去读旧数据
-					console.log("已存在此用户", user);
+				
 					userInfo.setHadUsername(user); // 设置已存在的用户名到store
-					console.log("已存入用户：", userInfo.hadUsername);
+					
 
 					// 离线模式下也设置UDPath，用于版本比较
 					if (user.startsWith('UD')) {
-						console.log("离线模式：设置UDPath为", user);
+					
 						userInfo.setUDPath(user);
 					}
 					foundUserData = true;
@@ -1628,7 +1587,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 			if (!foundUserData) {
 				// 没有找到当前用户的数据，提示需要联网下载
-				console.log('离线模式：未找到当前用户的数据包');
+			
 				uni.showModal({
 					title: '本地无数据',
 					content: '检测到本地没有当前用户的数据包，请先联网登录下载数据包后再使用离线模式。',
@@ -1645,49 +1604,44 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				return; // 不继续执行后续逻辑
 			}
 
-			console.log('当前无网络，离线模式，读取本地数据', error)
+			
 			uni.showToast({
 				title: '当前无网络，离线模式登录',
 				icon: 'none'
 			});
 			
 			// 离线模式下也尝试复制object.json文件
-			console.log('离线模式，不再自动复制object.json文件');
+		
 			// 移除自动复制代码
 		} finally {
 			try {
 				//不论有没有网，都从本地读取project
-				console.log('从本地读取项目数据');
+			
 				
 				// 直接尝试读取项目数据，不做文件检查
 				try {
 					const localProjectsAsync = await getProject(userInfo.username);
 					data.value = localProjectsAsync;
-					console.log("data", data.value);
+				
 					
 					// 确保data.value包含projects数组
 					if (data.value && data.value.projects && Array.isArray(data.value.projects)) {
 						// 获取项目数据
 						const projectsData = data.value.projects;
-						console.log('获取到项目数据，项目数量:', projectsData.length);
+					
 						
-						// 处理项目任务
-						console.log('开始处理项目任务，项目数量:', projectsData.length);
-						console.log('当前用户信息:', {
-							username: userInfo.username,
-							hadUsername: userInfo.hadUsername
-						});
+						
 
 						// 检查是否是离线模式（有hadUsername）
 						if (userInfo.hadUsername) {
-							console.log('离线模式：使用hadUsername获取任务数据');
+					
 							await getProjectsTasksByHadUsername(projectsData, userInfo.hadUsername);
 						} else {
-							console.log('在线模式：使用username获取任务数据');
+						
 							await getProjectsTasks(projectsData);
 						}
 
-						console.log('任务数据处理完成，filteredProjectsTasks长度:', filteredProjectsTasks.value.length);
+						
 						
 						// 提取并处理年份
 						const repeatYears = projectsData
@@ -1699,16 +1653,16 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 						
 						if (years.value.length > 0) {
 							currentYear.value = years.value[0];
-							console.log('设置当前年份为:', currentYear.value);
+						
 						} else {
 							// 如果没有有效年份，使用当前年份
 							const thisYear = new Date().getFullYear();
 							years.value = [thisYear];
 							currentYear.value = thisYear;
-							console.log('未找到有效年份，使用当前年份:', thisYear);
+						
 						}
 					} else {
-						console.log('本地项目数据为空或格式不正确');
+						
 						// 确保data.value有一个空的projects数组
 						if (!data.value) data.value = {};
 						data.value.projects = [];
@@ -1765,30 +1719,30 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 	// 创建一个计算属性来映射项目ID到任务数量
 	const projectTasksMap = computed(() => {
-		console.log('计算属性 projectTasksMap 被调用，filteredProjectsTasks长度:', filteredProjectsTasks.value.length);
+		
 		const map = new Map();
 		if (Array.isArray(filteredProjectsTasks.value)) {
 			filteredProjectsTasks.value.forEach(item => {
-				console.log(`添加到map: 项目${item.projectId} -> ${item.tastsNumber}个任务`);
+				
 				map.set(item.projectId, item.tastsNumber || 0);
 			});
 		}
-		console.log('计算属性 projectTasksMap 完成，map大小:', map.size);
+	
 		return map;
 	});
 
 	// 同步获取任务数量的函数
 	const getTasksNumber = (id) => {
 		const result = projectTasksMap.value.get(id) || 0;
-		console.log(`getTasksNumber for id ${id}: ${result} (type: ${typeof result})`);
+	
 		return result;
 	};
 
 	// 监听 filteredProjectsTasks 的变化
 	watch(filteredProjectsTasks, (newVal) => {
-		console.log('filteredProjectsTasks 更新:', newVal.length, '个项目');
+		
 		newVal.forEach(item => {
-			console.log(`项目 ${item.projectId}: ${item.tastsNumber} 个任务`);
+		
 		});
 	}, { deep: true });
 
@@ -1803,7 +1757,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 	const changeYear = (e) => {
 		selectedYearIndex.value = e.detail.value;
 		currentYear.value = years.value[selectedYearIndex.value];
-		console.log(`已选择${currentYear.value}年度，筛选出${filteredProjects.value.length}个项目`);
+	
 	};
 
 	const back = () => {
@@ -1829,20 +1783,17 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		for (const item of projects) {
 			try {
 				//读取本地task
-				console.log(`正在获取项目 ${item.id} 的任务数据，用户名: ${userInfo.username}`);
+				
 				const taskGetWithProjectId = await getTask(userInfo.username, item.id)
-				console.log(`项目 ${item.id} 的原始任务数据:`, taskGetWithProjectId);
-				console.log(`项目 ${item.id} 的tasks部分:`, taskGetWithProjectId?.tasks);
-				console.log(`项目 ${item.id} 的tasks类型:`, typeof taskGetWithProjectId?.tasks);
-				console.log(`项目 ${item.id} 的tasks是否为数组:`, Array.isArray(taskGetWithProjectId?.tasks));
+				
 				// 确保data和tasks存在
 				const tasksCount = taskGetWithProjectId?.tasks?.length || 0;
-				console.log(`项目 ${item.id} 解析后的任务数量: ${tasksCount}`);
+				
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
 					tastsNumber: tasksCount
 				});
-				console.log(`项目 ${item.name} (ID: ${item.id}) 的任务数量: ${tasksCount}`);
+			
 			} catch (error) {
 				console.error(`获取项目 ${item.id} 的任务失败:`, error);
 				// 添加错误处理，确保即使一个项目失败也不会影响其他项目
@@ -1861,19 +1812,18 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		for (const item of projects) {
 			try {
 				//读取本地task
-				console.log(`正在获取项目 ${item.id} 的任务数据，hadUsername: ${hadUsername}`);
+			
 				const taskGetWithProjectId = await getTaskByHadUsername(hadUsername, item.id)
-				console.log(`项目 ${item.id} 的原始任务数据:`, taskGetWithProjectId);
+				
 				// 确保data和tasks存在
 				const tasksCount = taskGetWithProjectId?.data?.tasks?.length || 0;
-				console.log(`项目 ${item.id} 解析后的任务数量: ${tasksCount}`);
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
 					tastsNumber: tasksCount
 				});
-				console.log(`项目 ${item.name} (ID: ${item.id}) 的任务数量: ${tasksCount}`);
+				
 			} catch (error) {
-				console.error(`获取项目 ${item.id} 的任务失败:`, error);
+			
 				// 添加错误处理，确保即使一个项目失败也不会影响其他项目
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
@@ -1927,7 +1877,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		try {
 			// 如果没有包大小或包大小无效，只显示百分比
 			if (!packageSize.value || isNaN(packageSize.value)) {
-				console.log('包大小无效，只显示百分比:', packageSize.value);
+		
 				return `${Math.floor(downloadProgress.value || 0)}%`;
 			}
 			
@@ -1940,12 +1890,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			
 			// 检查计算结果是否有效
 			if (isNaN(downloaded) || isNaN(total)) {
-				console.log('计算结果无效，只显示百分比:', {
-					packageSize: packageSize.value,
-					progress,
-					downloaded,
-					total
-				});
+				
 				return `${Math.floor(progress)}%`;
 			}
 			
@@ -1957,59 +1902,23 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		}
 	});
 
-	// 添加一个函数，用于设置UDPath
-// 	const setUDPathFromDir = (dirName) => {
-//     if (!dirName) return;
-    
-//     try {
-//         console.log('尝试设置UDPath，目录名:', dirName);
-//         // 提取目录名，如果是完整路径
-//         const parts = dirName.split('/');
-//         const name = parts[parts.length - 1];
-        
-//         // 检查是否是UD开头的目录
-//         if (name && name.startsWith('UD')) {
-//             console.log('找到UD目录:', name);
-//             userInfo.setUDPath(name);
-//             console.log('UDPath已设置为:', name);
-//         } else {
-//             console.log('目录不是UD开头，尝试创建UD目录');
-//             // 如果不是UD开头的目录，可以创建一个
-//             saveZipAndStorePath('_doc/' + name, 'package.zip')
-//                 .then(result => {
-//                     console.log('UDPath设置成功:', result.dirPath);
-//                 })
-//                 .catch(error => {
-//                     console.error('设置UDPath失败:', error);
-//                 });
-//         }
-//     } catch (error) {
-//         console.error('设置UDPath时出错:', error);
-//     }
-// };
+	
 
 	onMounted(async () => {
 		// 重置版本检查标志，允许重新检查
 		hasCheckedVersion.value = false;
 
 		// 初始化进度条状态
-		console.log('页面挂载，初始化进度条状态');
 		currentProgressId.value = null;
 		showDownloadProgress.value = false;
 		showUnzipProgress.value = false;
 		isDownloading.value = false;
-
-		console.log('Bridge页面加载，当前用户:', userInfo.username);
-		console.log('当前UDPath:', userInfo.UDPath);
-		console.log('当前ULPath:', userInfo.ULPath);
     // 设置屏幕常亮
     uni.setKeepScreenOn({
       keepScreenOn: true,
       success: function() {
-        console.log('设置屏幕常亮成功');
       },
       fail: function(err) {
-        console.log('设置屏幕常亮失败:', err);
       }
     });
 
@@ -2024,11 +1933,7 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			uni.$emit('unzip-progress', { progress: newValue });
 		});
 
-		// 检查UDPath是否为空，如果为空则尝试设置
-		if (!userInfo.UDPath && userInfo.ULPath) {
-			console.log('UDPath为空，尝试从ULPath设置:', userInfo.ULPath);
-			setUDPathFromDir(userInfo.ULPath);
-		}
+	
     // 取消屏幕常亮
     uni.setKeepScreenOn({
       keepScreenOn: false
@@ -2053,13 +1958,11 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
     });*/
 
     // 清理下载相关状态
-    console.log('页面卸载，清理下载状态');
     cleanupDownloadListeners();
 
     // 如果当前页面的进度条是活跃状态，则清理全局活跃状态
     if (currentProgressId.value) {
       clearActiveProgressId(currentProgressId.value);
-      console.log('清理全局活跃进度条状态');
     }
 
     // 重置当前页面的状态
