@@ -108,6 +108,7 @@
 	} from "@/store/idStorage";
   import {getObjectUL} from "@/utils/readUL";
   import {useObject} from "@/store/object";
+  import apiConfig from '../../config/api';
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore();
@@ -314,7 +315,7 @@
 			});
 
 			const responseLogin = await uni.request({
-				url: `http://59.110.81.142:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				url: `${apiConfig.baseURL}/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
 				method: 'POST'
 			});
 
@@ -338,7 +339,7 @@
 
 			// 调用文件上传API
 			const response = await uni.uploadFile({
-				url: `http://59.110.81.142:8090/api/upload/bridgeData`,
+				url: `${apiConfig.baseURL}/api/upload/bridgeData`,
 				filePath: zipFilePath,
 				name: 'file', // 后端接收文件的参数名（根据后端API文档确定）
 				header: {

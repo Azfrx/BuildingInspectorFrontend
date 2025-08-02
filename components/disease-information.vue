@@ -363,6 +363,8 @@
 	const openComponentPositionPopup = () => {
 		positionPopup.value.open();
 		if (position.value) combinedPosition.value = '第' + positionNumber.value + '号' + position.value;
+    if(positionNumber.value) positionNumberPopup.value = positionNumber.value;
+    if(position.value) positionPickerPopup.value = position.value;
 	}
 
 	const positionPickerPopupChange = (e) => {
