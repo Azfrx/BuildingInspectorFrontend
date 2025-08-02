@@ -149,13 +149,14 @@ import { useObject } from "@/store/object.js";
 import { setObject } from "../utils/writeNew.js";
 import { userStore } from '../store/index.js';
 import { idStore } from '../store/idStorage.js';
+import {getObjectUL} from "@/utils/readUL";
 //2.创建实例对象
 const objectData = useObject();
 const userInfo = userStore();
 const idInfo = idStore();
 
 // 使用计算属性来响应式获取数据
-const treeData = computed(() => {
+/*const treeData = computed(() => {
 	const data = objectData.getData();
 	// 每次获取数据时都重新计算警告状态
 	if (data.children) {
@@ -173,7 +174,8 @@ const treeData = computed(() => {
 	checkPageWarning();
 	
 	return data;
-})
+})*/
+const treeData = ref();
 //用数组存储索引下标,默认只选中前2项
 const menuIndex = ref([0,0,-1])
 //构件名称
@@ -338,10 +340,51 @@ const setComponentCount = async () =>{
 	closeButton();
 }
 
-onMounted(() => {
-	console.log("组件挂载完成");
-	// 初始化时计算属性会自动处理数据获取和警告状态计算
-	// 如果需要额外的初始化操作，可以在这里添加
+onMounted(async () => {
+  uni.showLoading({
+    title: '加载结构信息',
+    mask: true
+  });
+  const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
+  uni.showLoading({
+    title: '加载结构信息',
+    mask: true
+  });
+  objectData.setData(newData);
+  console.log("objectData", objectData.getData());
+  const data = objectData.getData();
+  uni.showLoading({
+    title: '加载结构信息',
+    mask: true
+  });
+  // 每次获取数据时都重新计算警告状态
+  if (data.children) {
+    data.children.forEach(item1 => {
+      if (item1.children) {
+        item1.children.forEach(item2 => {
+          checkSecondLevelWarning(item2);
+        });
+      }
+      checkFirstLevelWarning(item1);
+    });
+  }
+  uni.showLoading({
+    title: '加载结构信息',
+    mask: true
+  });
+
+  // 检查页面警告状态并设置全局标志
+  await checkPageWarning();
+
+  treeData.value = objectData.getData();
+  uni.showToast({
+    title: '加载完成',
+    icon: 'success',
+    duration: 2000
+  });
+  console.log("组件挂载完成");
+  // 初始化时计算属性会自动处理数据获取和警告状态计算
+  // 如果需要额外的初始化操作，可以在这里添加
 })
 </script>
 
