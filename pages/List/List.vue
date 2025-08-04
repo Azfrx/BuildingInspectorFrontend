@@ -467,46 +467,46 @@
       // url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
       url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}&bridgeCode=${bridge.building.buildingCode}&bridgeName=${bridge.building.name}&bridgePileNumber=${bridge.building.bridgePileNumber}&routeName=${bridge.building.routeName}&routeCode=${bridge.building.routeCode}`
     });
-		// 在跳转前，检查并复制数据从UD到UL目录
-		try {
-			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
-			// 尝试从UL目录读取数据
-			const structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-			// 如果从UL目录读不到数据（没有数据或只有默认空数据）
-			if (!structureData || !structureData.children || structureData.children.length === 0) {
-				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
+		// // 在跳转前，检查并复制数据从UD到UL目录
+		// try {
+		// 	console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
+		// 	// 尝试从UL目录读取数据
+		// 	const structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
+		// 	// 如果从UL目录读不到数据（没有数据或只有默认空数据）
+		// 	if (!structureData || !structureData.children || structureData.children.length === 0) {
+		// 		console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
 
-				// 从UD目录读取数据
-				console.log('尝试从UD目录读取object.json，参数:', userInfo.username, bridge.buildingId);
-				const udData = await getObject(userInfo.username, idInfo.buildingId);
-				console.log("udData0:", udData);
-				if (udData && udData.children && udData.children.length > 0) {
-					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
+		// 		// 从UD目录读取数据
+		// 		console.log('尝试从UD目录读取object.json，参数:', userInfo.username, bridge.buildingId);
+		// 		const udData = await getObject(userInfo.username, idInfo.buildingId);
+		// 		console.log("udData0:", udData);
+		// 		if (udData && udData.children && udData.children.length > 0) {
+		// 			console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
 
-					// 将UD目录的数据保存到UL目录
-					console.log('将object.json数据保存到UL目录，参数:', userInfo.username, bridge.buildingId);
-					udData.warning = false;
-					udData.commit = 2
-					await setObject(userInfo.username, idInfo.buildingId, udData);
-					console.log("udData:", udData);
-					console.log("object.json数据已从UD目录复制到UL目录");
+		// 			// 将UD目录的数据保存到UL目录
+		// 			console.log('将object.json数据保存到UL目录，参数:', userInfo.username, bridge.buildingId);
+		// 			udData.warning = false;
+		// 			udData.commit = 2
+		// 			await setObject(userInfo.username, idInfo.buildingId, udData);
+		// 			console.log("udData:", udData);
+		// 			console.log("object.json数据已从UD目录复制到UL目录");
 
-					// 验证数据是否成功保存
-					const verifyData = await getObjectUL(userInfo.username, idInfo.buildingId);
-					if (verifyData && verifyData.children && verifyData.children.length > 0) {
-						console.log("验证成功：object.json数据已正确保存到UL目录");
-					} else {
-						console.error("验证失败：object.json数据未能正确保存到UL目录");
-					}
-				} else {
-					console.log("UD目录中也没有有效的object.json数据");
-				}
-			} else {
-				console.log("UL目录已有有效的object.json数据，无需复制");
-			}
-		} catch (error) {
-			console.error("处理object.json数据时出错:", error);
-		}
+		// 			// 验证数据是否成功保存
+		// 			const verifyData = await getObjectUL(userInfo.username, idInfo.buildingId);
+		// 			if (verifyData && verifyData.children && verifyData.children.length > 0) {
+		// 				console.log("验证成功：object.json数据已正确保存到UL目录");
+		// 			} else {
+		// 				console.error("验证失败：object.json数据未能正确保存到UL目录");
+		// 			}
+		// 		} else {
+		// 			console.log("UD目录中也没有有效的object.json数据");
+		// 		}
+		// 	} else {
+		// 		console.log("UL目录已有有效的object.json数据，无需复制");
+		// 	}
+		// } catch (error) {
+		// 	console.error("处理object.json数据时出错:", error);
+		// }
 	}
 
 	// 根据搜索文本过滤桥梁列表

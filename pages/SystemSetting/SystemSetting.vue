@@ -152,6 +152,7 @@ import {
 	import updateVersionWindow from '@/components/updateVersionWindow.vue'
 import offlineFailVue from '../../components/offlineFail.vue'
 import offlineVersionVue from '../../components/offlineVersion.vue';
+import apiConfig from '../../config/api';
 	// 获取用户信息
 	const userInfo = userStore();
 
@@ -692,10 +693,14 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 
       if (!infoData.value.token) {
 		  // 先获取token
-		  	const responseLogin = await uni.request({
-		  		url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-		  		method: 'POST'
-		  	});
+		  const response = await uni.request({
+		  	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+		  	method: 'POST'
+		  });
+		  	// const responseLogin = await uni.request({
+		  	// 	url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+		  	// 	method: 'POST'
+		  	// });
 		infoData.value.token = responseLogin.data.token;
         // uni.showToast({
         //   title: '登录信息无效，请重新登录',
@@ -709,7 +714,8 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
       // 1.根据url版本号与本地UD目录的版本号的相对大小来判断是否有更新内容
       console.log('开始检查数据包版本...');
       const response = await uni.request({
-        url: 'http://60.205.13.156:8090/api/user/dataPackage',
+      	url: `${apiConfig.baseURL}${apiConfig.endpoints.dataPackage}`,
+        // url: 'http://60.205.13.156:8090/api/user/dataPackage',
         method: 'GET',
         header: {
           'Authorization': `${infoData.value.token}`
@@ -754,6 +760,11 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
       }
     } catch (error) {
       console.error('检查更新失败:', error);
+	  const responseLogin = await uni.request({
+	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+	    		method: 'POST'
+	    	});
+	  infoData.value.token = responseLogin.data.token;
       // 使用自定义弹窗替代 uni.showModal
       if (offlineFailRef.value) {
         // 显示错误信息
@@ -774,8 +785,8 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 
 			// 先获取token
 			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
-				method: 'POST'
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+				method: 'POST',
 			});
 			if (!responseLogin.data || !responseLogin.data.token) {
 				uni.hideLoading();
@@ -790,7 +801,8 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 
 			// 向后端发送退出登录请求
 			const response = await uni.request({
-				url: 'http://60.205.13.156:8090/api/user/logOut',
+				// url: 'http://60.205.13.156:8090/api/user/logOut',
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.logOut}`,
 				method: 'POST',
 				header: {
 					'Content-Type': 'application/json',
@@ -883,10 +895,10 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 
 		try {
 			// 先获取token
-			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${oldPassword.value}`,
-				method: 'POST'
-			});
+		const responseLogin = await uni.request({
+			url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+			method: 'POST'
+		});
 
 			console.log('登录响应:', responseLogin.data);
 
@@ -904,7 +916,8 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 
 			// 向后端发送修改密码请求
 			const response = await uni.request({
-				url: `http://60.205.13.156:8090/api/user/resetPassword?oldPassword=${oldPassword.value}&newPassword=${newPassword.value}`,
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.resetPassword}?oldPassword=${oldPassword.value}&newPassword=${newPassword.value}`,
+				// url: `http://60.205.13.156:8090/api/user/resetPassword?oldPassword=${oldPassword.value}&newPassword=${newPassword.value}`,
 				method: 'POST',
 				header: {
 					'Content-Type': 'application/json',
@@ -1031,7 +1044,11 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 								.catch(error => {
 									uni.hideLoading();
 									console.error('检查更新失败:', error);
-
+									// const responseLogin = await uni.request({
+									//   		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+									//   		method: 'POST'
+									//   	});
+									// infoData.value.token = responseLogin.data.token;
 									// 显示友好的错误信息
 									uni.showToast({
 										title: '已是最新版本',
@@ -1128,7 +1145,7 @@ import offlineVersionVue from '../../components/offlineVersion.vue';
 	onMounted(async () => {
 		try {
 			const responseLogin = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${userInfo.username}&password=${userInfo.password}`,
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
 				method: 'POST'
 			});
 			name.value = responseLogin.data.userName;

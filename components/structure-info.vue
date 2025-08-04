@@ -3,17 +3,22 @@
 		<!-- 结构信息状态栏 -->
 		<view class="Title">
 			<span class="text">结构信息状态 : </span>
-			<span :style="{color: Number(treeData?.status) === 3 ? '#f56c6c': '#333'}">
-				{{ Number(treeData?.status) === 3 ? '已锁定': '未锁定'}}
+			<span :style="{color: Number(safeTreeData?.status) === 3 ? '#f56c6c': '#333'}">
+				{{ Number(safeTreeData?.status) === 3 ? '已锁定': '未锁定'}}
 			</span>
 		</view>
 		
+		<!-- 加载状态 -->
+		<view v-if="isLoading" class="loading">
+			<text>加载中...</text>
+		</view>
+		
 		<!-- 三个侧边栏 -->
-		<view class = "sidebar">
+		<view v-else-if="isReady" class = "sidebar">
 			<!-- 第一级侧边栏 -->
 			<view class = 'sidebar-level1'>
 				<!-- 遍历展示第一层的数据 -->
-				<view v-for="(item1,index1) in treeData.children" :key="item1.id" @click = "changeTab(index1)" :class = "{active: menuIndex[0] === index1}">
+				<view v-for="(item1,index1) in (safeTreeData?.children || [])" :key="item1.id" @click = "changeTab(index1)" :class = "{active: safeMenuIndex[0] === index1}">
 					<!-- menuIndex[0]记录了当前选中的菜单项索引 index1 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
 					<!-- 给每个容器设置宽高 -->
 					<view class = "box">
@@ -28,8 +33,8 @@
 			<!-- 第二级侧边栏 -->
 			<view class = "sidebar-level2">
 				<!-- 遍历展示第2层的数据 -->
-				<view v-for="(item2,index2) in treeData.children[menuIndex[0]].children" :key="item2.id" 
-				@click = "changeTab(menuIndex[0],index2)" :class = "{active: menuIndex[1] === index2}">
+				<view v-for="(item2,index2) in (safeTreeData?.children?.[safeMenuIndex[0]]?.children || [])" :key="item2.id" 
+				@click = "changeTab(safeMenuIndex[0],index2)" :class = "{active: safeMenuIndex[1] === index2}">
 					<!-- menuIndex[1]记录了第二级的菜单项索引 index2 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
 					<!-- 给每个容器设置宽高 -->
 					<view class = "box">
@@ -44,8 +49,8 @@
 			<!-- 第三级侧边栏 -->
 			<view class = "sidebar-level3">
 				<!-- 遍历展示第3层的数据 -->
-				<view v-for="(item3,index3) in treeData.children[menuIndex[0]].children[menuIndex[1]].children" :key="item3.id"
-				@click = "changeTab(menuIndex[0],menuIndex[1],index3)" :class = "{active2: menuIndex[2] === index3}" class="fathercontentandbutton">
+				<view v-for="(item3,index3) in (safeTreeData?.children?.[safeMenuIndex[0]]?.children?.[safeMenuIndex[1]]?.children || [])" :key="item3.id"
+				@click = "changeTab(safeMenuIndex[0],safeMenuIndex[1],index3)" :class = "{active2: safeMenuIndex[2] === index3}" class="fathercontentandbutton">
 					<!-- menuIndex[2]记录了第3级的菜单项索引 index3 是当前循环渲染菜单项的索引 你每次修改后menuIndex会变会触发遍历 index会找到更新的index然后高亮-->
 					<view class="content">
 						
@@ -80,7 +85,7 @@
 					</view>
 						
 					<!-- 第三级菜单项的按钮 -->
-					<view class = "button" :class="{show: menuIndex[2] === index3 && Number(treeData.status) !== 3}">
+					<view class = "button" :class="{show: safeMenuIndex[2] === index3 && Number(safeTreeData?.status) !== 3}">
 						<view class = "cancle" @click.stop="closeButton">取消</view>
 						<view class = "confirm" @click = "open">编辑</view>
 					</view>
@@ -89,7 +94,12 @@
 			
 			
 			
-		</view>   
+		</view>
+		
+		<!-- 数据未准备好时的提示 -->
+		<view v-else class="loading">
+			<text>数据加载中，请稍候...</text>
+		</view>
 		
 		<!-- 编辑弹窗 -->
 		<!-- 通过ref属性实现对弹窗的启用或者关闭 -->
@@ -150,34 +160,63 @@ import { setObject } from "../utils/writeNew.js";
 import { userStore } from '../store/index.js';
 import { idStore } from '../store/idStorage.js';
 import {getObjectUL} from "@/utils/readUL";
+import {
+		getObject
+	} from '@/utils/readJsonNew.js'
 //2.创建实例对象
 const objectData = useObject();
 const userInfo = userStore();
 const idInfo = idStore();
 
-// 使用计算属性来响应式获取数据
-/*const treeData = computed(() => {
-	const data = objectData.getData();
-	// 每次获取数据时都重新计算警告状态
-	if (data.children) {
-		data.children.forEach(item1 => {
-			if (item1.children) {
-				item1.children.forEach(item2 => {
-					checkSecondLevelWarning(item2);
-				});
-			}
-			checkFirstLevelWarning(item1);
-		});
-	}
+// // 使用计算属性来响应式获取数据
+// const treeData = computed(() => {
+// 	const data = objectData.getData();
+// 	// 每次获取数据时都重新计算警告状态
+// 	if (data.children) {
+// 		data.children.forEach(item1 => {
+// 			if (item1.children) {
+// 				item1.children.forEach(item2 => {
+// 					checkSecondLevelWarning(item2);
+// 				});
+// 			}
+// 			checkFirstLevelWarning(item1);
+// 		});
+// 	}
 	
-	// 检查页面警告状态并设置全局标志
-	checkPageWarning();
+// 	// 检查页面警告状态并设置全局标志
+// 	checkPageWarning();
 	
-	return data;
-})*/
+// 	return data;
+// })
+  
 const treeData = ref();
+watch(
+  () => treeData.value, // 监听 treeData 的变化
+  (newData) => {
+    // 当 treeData 变化时执行警告检查
+    if (newData.children) {
+      newData.children.forEach(item1 => {
+        if (item1.children) {
+          item1.children.forEach(item2 => {
+            checkSecondLevelWarning(item2);
+          });
+        }
+        checkFirstLevelWarning(item1);
+      });
+    }
+    
+    // 检查页面警告状态
+    checkPageWarning();
+  },
+  { deep: true } // 深度监听，确保嵌套对象变化也能触发
+);
 //用数组存储索引下标,默认只选中前2项
 const menuIndex = ref([0,0,-1])
+
+// 确保menuIndex有安全的值
+const safeMenuIndex = computed(() => {
+  return menuIndex.value || [0, 0, -1]
+})
 //构件名称
 const componentName = ref("")
 //病害构件数量
@@ -186,6 +225,19 @@ const diseaseNumber = ref(0)
 const componentCount = ref(0)
 //通过这个变量控制第三级菜单项的按钮的显示
 const buttonVisible = ref({})
+
+// 添加加载状态
+const isLoading = ref(true)
+
+// 确保treeData有默认值
+const safeTreeData = computed(() => {
+  return treeData.value || { children: [], status: 0 }
+})
+
+// 检查组件是否准备好渲染
+const isReady = computed(() => {
+  return !isLoading.value && treeData.value && safeMenuIndex.value
+})
 //检查一级菜单下的三级菜单警告状态，并统计数量
 const checkFirstLevelWarning = (item1) => {
 	  if (!item1.children) {
@@ -241,7 +293,7 @@ const checkPageWarning = async () => {
 //changeTab 动态更新索引值
 const changeTab = (index1, index2, index3) => {
 	// 如果系统处于锁定状态，提示用户并不进行任何操作
-	if (Number(treeData.value.status) === 3) {
+	if (Number(treeData.value?.status) === 3) {
 		uni.showToast({
 			title: '系统已锁定，无法编辑',
 			icon: 'none',
@@ -250,10 +302,11 @@ const changeTab = (index1, index2, index3) => {
 		return;
 	}
   //有值就取index 没值就取默认值
+  const currentMenuIndex = menuIndex.value || [0, 0, -1];
   menuIndex.value = [
-    index1 !== undefined ? index1 : menuIndex.value[0],
-    index2 !== undefined ? index2 : menuIndex.value[1],
-    index3 !== undefined ? index3 : menuIndex.value[2],
+    index1 !== undefined ? index1 : currentMenuIndex[0],
+    index2 !== undefined ? index2 : currentMenuIndex[1],
+    index3 !== undefined ? index3 : currentMenuIndex[2],
   ];
   // 当点击三级菜单时，设置该菜单按钮可见
     if (index3 !== undefined) {
@@ -267,7 +320,7 @@ const initData = ()=>{
 treeData.value = objectData.getData();
 
 // 初始化所有层级的警告状态
-if (treeData.value.children) {
+if (treeData.value?.children) {
   // 遍历所有第一级菜单项
   treeData.value.children.forEach(item1 => {
     // 先遍历所有第二级菜单项，计算它们的警告状态
@@ -292,7 +345,16 @@ const open = ()=>{
   //1.打开弹窗前先获取弹窗中的内容
   //根据menuIndex获取最新索引
   //获取数据
-  const data = treeData.value.children[menuIndex.value[0]].children[menuIndex.value[1]].children[menuIndex.value[2]]
+  const currentMenuIndex = menuIndex.value || [0, 0, -1];
+  const data = treeData.value?.children?.[currentMenuIndex[0]]?.children?.[currentMenuIndex[1]]?.children?.[currentMenuIndex[2]]
+  if (!data) {
+    uni.showToast({
+      title: '数据加载中，请稍后重试',
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
   //更新构件名称
   componentName.value = data.name;
   //更新病害构件数量
@@ -309,20 +371,31 @@ const close = () => {
 // 添加关闭按钮的方法
 const closeButton = () => {
   // 重置第三级菜单的选中状态
-  menuIndex.value = [menuIndex.value[0], menuIndex.value[1], -1];
+  const currentMenuIndex = menuIndex.value || [0, 0, -1];
+  menuIndex.value = [currentMenuIndex[0], currentMenuIndex[1], -1];
 }
 //更新构件数量
 const setComponentCount = async () =>{
 	
 	const currentData = objectData.getData();
-	currentData.children[menuIndex.value[0]].children[menuIndex.value[1]].children[menuIndex.value[2]].count = componentCount.value;
+	const currentMenuIndex = menuIndex.value || [0, 0, -1];
+	if (!currentData?.children?.[currentMenuIndex[0]]?.children?.[currentMenuIndex[1]]?.children?.[currentMenuIndex[2]]) {
+		uni.showToast({
+			title: '数据加载中，请稍后重试',
+			icon: 'none',
+			duration: 2000
+		});
+		return;
+	}
+	
+	currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = componentCount.value;
 	
 	// 重新计算第二级菜单项的警告状态
-	const currentItem2 = currentData.children[menuIndex.value[0]].children[menuIndex.value[1]];
+	const currentItem2 = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]];
 	checkSecondLevelWarning(currentItem2);
 	
 	// 重新计算第一级菜单项的警告状态
-	const currentItem1 = currentData.children[menuIndex.value[0]];
+	const currentItem1 = currentData.children[currentMenuIndex[0]];
 	checkFirstLevelWarning(currentItem1);
 	
 	// 同时更新全局store中的数据
@@ -339,53 +412,217 @@ const setComponentCount = async () =>{
 	//关闭按钮
 	closeButton();
 }
-
 onMounted(async () => {
-  uni.showLoading({
-    title: '加载结构信息',
-    mask: true
-  });
-  const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
-  uni.showLoading({
-    title: '加载结构信息',
-    mask: true
-  });
-  objectData.setData(newData);
-  console.log("objectData", objectData.getData());
-  const data = objectData.getData();
-  uni.showLoading({
-    title: '加载结构信息',
-    mask: true
-  });
-  // 每次获取数据时都重新计算警告状态
-  if (data.children) {
-    data.children.forEach(item1 => {
-      if (item1.children) {
-        item1.children.forEach(item2 => {
-          checkSecondLevelWarning(item2);
-        });
+  try {
+    uni.showLoading({
+      title: '加载结构信息',
+      mask: true
+    });
+
+    // 尝试从UL目录读取object.json
+    console.log('尝试从UL目录读取object.json，参数:', userInfo.username, idInfo.buildingId);
+    let structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
+
+    // 如果UL目录中没有有效数据，尝试从UD目录复制
+    if (!structureData || !structureData.children || structureData.children.length === 0) {
+      console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
+      
+      const udData = await getObject(userInfo.username, idInfo.buildingId);
+      console.log("udData0:", udData);
+      
+      if (udData && udData.children && udData.children.length > 0) {
+        console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
+        
+        udData.warning = false;
+        udData.commit = 2;
+        await setObject(userInfo.username, idInfo.buildingId, udData);
+        console.log("udData:", udData);
+        
+        // 重新从UL目录读取数据
+        structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
       }
-      checkFirstLevelWarning(item1);
+    }
+
+    // 设置数据并计算警告状态
+    objectData.setData(structureData);
+    const data = objectData.getData();
+    
+    if (data?.children) {
+      data.children.forEach(item1 => {
+        if (item1.children) {
+          item1.children.forEach(item2 => {
+            checkSecondLevelWarning(item2);
+          });
+        }
+        checkFirstLevelWarning(item1);
+      });
+    }
+
+    // 检查页面警告状态
+    await checkPageWarning();
+
+    treeData.value = objectData.getData();
+    isLoading.value = false;
+    uni.hideLoading();
+    uni.showToast({
+      title: '加载完成',
+      icon: 'success',
+      duration: 2000
+    });
+    console.log("组件挂载完成");
+    
+  } catch (error) {
+    console.error("加载数据失败:", error);
+    isLoading.value = false;
+    uni.hideLoading();
+    uni.showToast({
+      title: '加载失败，请重试',
+      icon: 'none',
+      duration: 2000
     });
   }
-  uni.showLoading({
-    title: '加载结构信息',
-    mask: true
-  });
+});
+// onMounted(async () => {
+// 	let structureData = null;
+//     uni.showLoading({
+//       title: '加载结构信息',
+//       mask: true
+//     });// 在跳转前，检查并复制数据从UD到UL目录
+// 		try {
+// 			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
+// 			// 尝试从UL目录读取数据
+// 			structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
+// 			// 如果从UL目录读不到数据（没有数据或只有默认空数据）
+// 			if (!structureData || !structureData.children || structureData.children.length === 0) {
+// 				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
 
-  // 检查页面警告状态并设置全局标志
-  await checkPageWarning();
+// 				// 从UD目录读取数据
+// 				console.log('尝试从UD目录读取object.json，参数:', userInfo.username, idInfo.buildingId);
+// 				const udData = await getObject(userInfo.username, idInfo.buildingId);
+// 				console.log("udData0:", udData);
+// 				if (udData && udData.children && udData.children.length > 0) {
+// 					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
 
-  treeData.value = objectData.getData();
-  uni.showToast({
-    title: '加载完成',
-    icon: 'success',
-    duration: 2000
-  });
-  console.log("组件挂载完成");
-  // 初始化时计算属性会自动处理数据获取和警告状态计算
-  // 如果需要额外的初始化操作，可以在这里添加
-})
+// 					// 将UD目录的数据保存到UL目录
+// 					console.log('将object.json数据保存到UL目录，参数:', userInfo.username,idInfo.buildingId);
+// 					udData.warning = false;
+// 					udData.commit = 2
+// 					await setObject(userInfo.username, idInfo.buildingId, udData);
+// 					console.log("udData:", udData);
+// 					console.log("object.json数据已从UD目录复制到UL目录");
+
+// 					// 验证数据是否成功保存
+// 					const verifyData = await getObjectUL(userInfo.username, idInfo.buildingId);
+// 					if (verifyData && verifyData.children && verifyData.children.length > 0) {
+// 						console.log("验证成功：object.json数据已正确保存到UL目录");
+// 					} else {
+// 						console.error("验证失败：object.json数据未能正确保存到UL目录");
+// 					}
+// 				} else {
+// 					console.log("UD目录中也没有有效的object.json数据");
+// 				}
+// 			} else {
+// 				  uni.showLoading({
+// 				    title: '加载结构信息',
+// 				    mask: true
+// 				  });
+// 				  objectData.setData(structureData);
+// 				  console.log("objectData", objectData.getData());
+// 				  const data = objectData.getData();
+// 				  uni.showLoading({
+// 				    title: '加载结构信息',
+// 				    mask: true
+// 				  });
+// 				  // 每次获取数据时都重新计算警告状态
+// 				 if (data?.children) {
+// 				    data.children.forEach(item1 => {
+// 				      if (item1.children) {
+// 				        item1.children.forEach(item2 => {
+// 				          checkSecondLevelWarning(item2);
+// 				        });
+// 				      }
+// 				      checkFirstLevelWarning(item1);
+// 				    });
+// 				  }
+// 				  uni.showLoading({
+// 				    title: '加载结构信息',
+// 				    mask: true
+// 				  });
+				
+// 				  // 检查页面警告状态并设置全局标志
+// 				  await checkPageWarning();
+				
+// 				  treeData.value = objectData.getData();
+// 				  isLoading.value = false;
+// 				  uni.showToast({
+// 				    title: '加载完成',
+// 				    icon: 'success',
+// 				    duration: 2000
+// 				  });
+// 				  console.log("组件挂载完成");
+// 				} catch (error) {
+// 				  console.error("加载数据失败:", error);
+// 				  isLoading.value = false;
+// 				  uni.showToast({
+// 				    title: '加载失败，请重试',
+// 				    icon: 'none',
+// 				    duration: 2000
+// 				  });
+// 				}
+// 			}
+
+//  //    const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
+// 	// console.log("结构信息数据",newData);
+//  //    uni.showLoading({
+//  //      title: '加载结构信息',
+//  //      mask: true
+//  //    });
+//  //    objectData.setData(newData);
+//  //    console.log("objectData", objectData.getData());
+//  //    const data = objectData.getData();
+//  //    uni.showLoading({
+//  //      title: '加载结构信息',
+//  //      mask: true
+//  //    });
+//  //    // 每次获取数据时都重新计算警告状态
+//  //   if (data?.children) {
+//  //      data.children.forEach(item1 => {
+//  //        if (item1.children) {
+//  //          item1.children.forEach(item2 => {
+//  //            checkSecondLevelWarning(item2);
+//  //          });
+//  //        }
+//  //        checkFirstLevelWarning(item1);
+//  //      });
+//  //    }
+//  //    uni.showLoading({
+//  //      title: '加载结构信息',
+//  //      mask: true
+//  //    });
+
+//  //    // 检查页面警告状态并设置全局标志
+//  //    await checkPageWarning();
+
+//  //    treeData.value = objectData.getData();
+//  //    isLoading.value = false;
+//  //    uni.showToast({
+//  //      title: '加载完成',
+//  //      icon: 'success',
+//  //      duration: 2000
+//  //    });
+//  //    console.log("组件挂载完成");
+//  //  } catch (error) {
+//  //    console.error("加载数据失败:", error);
+//  //    isLoading.value = false;
+//  //    uni.showToast({
+//  //      title: '加载失败，请重试',
+//  //      icon: 'none',
+//  //      duration: 2000
+//  //    });
+//  //  }
+//   // 初始化时计算属性会自动处理数据获取和警告状态计算
+//   // 如果需要额外的初始化操作，可以在这里添加
+// })
 </script>
 
 <style>
@@ -669,5 +906,15 @@ onMounted(async () => {
 /* 第一级菜单项的警告图标左移 */
 .sidebar-level1 .warning-icon {
   left: 30rpx;
+}
+
+/* 加载状态样式 */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200rpx;
+  font-size: 28rpx;
+  color: #666;
 }
 </style>

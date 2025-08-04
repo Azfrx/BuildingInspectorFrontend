@@ -448,11 +448,16 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 
 	    // 只有在网络错误或服务器错误时才显示错误弹窗
 	    if (error.message && !error.message.includes('无效的目录格式')) {
-	      uni.showModal({
-	        title: '检查更新失败',
-	        content: error.message || '检查更新时发生错误，请稍后重试',
-	        showCancel: false
-	      });
+	      // uni.showModal({
+	      //   title: '检查更新失败',
+	      //   content: error.message || '检查更新时发生错误，请稍后重试',
+	      //   showCancel: false
+	      // });
+		  const responseLogin = await uni.request({
+		    url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+		    		method: 'POST'
+		    	});
+		  infoData.value.token = responseLogin.data.token;
 	    }
 	  } finally {
 	    loading.value = false;
@@ -1605,10 +1610,10 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			}
 
 			
-			uni.showToast({
-				title: '当前无网络，离线模式登录',
-				icon: 'none'
-			});
+			// uni.showToast({
+			// 	title: '当前无网络，离线模式登录',
+			// 	icon: 'none'
+			// });
 			
 			// 离线模式下也尝试复制object.json文件
 		

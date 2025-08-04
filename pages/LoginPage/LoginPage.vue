@@ -61,6 +61,8 @@
 		idStore
 	} from '../../store/idStorage';
 	import { setRootDir } from '../../utils/write';
+	// 引入配置文件
+	import apiConfig from '@/config/api.js';
 	const username = ref('');
 	const password = ref('');
 	const userInfo = userStore()
@@ -184,10 +186,11 @@
 
 		try {
 			// 在线登录逻辑
-			const response = await uni.request({
-				url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
-				method: 'POST'
-			});
+			const response = await apiConfig.login(username.value,password.value)
+			// const response = await uni.request({
+			// 	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+			// 	method: 'POST'
+			// });
 
 			console.log('登录响应:', response.data);
 
