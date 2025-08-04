@@ -431,6 +431,7 @@
 		position: relative;
 		height: 4.37%;
 		background-color: #BDCBE0;
+		flex-shrink: 0;
 	}
 
 	.tab-item {
@@ -469,6 +470,7 @@
 	.content {
 		flex: 1;
 		position: relative;
+		overflow: hidden;
 	}
 
 	.placeholder {
@@ -481,6 +483,7 @@
 	.bridge-info {
 		background-color: #BDCBE0;
 		padding: 10rpx;
+		flex-shrink: 0;
 	}
 
 	.bridge-info-content {
