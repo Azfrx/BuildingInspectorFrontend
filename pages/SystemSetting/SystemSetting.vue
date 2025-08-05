@@ -1269,7 +1269,7 @@ import apiConfig from '../../config/api';
 	}
 
 	.versionNumber {
-		font-size: 20px;
+		font-size: 20rpx;
 		color: #333333;
 		margin-left: auto;
 		margin-right: 0;

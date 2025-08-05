@@ -217,6 +217,7 @@
 			defects: description2.value.defects, // 病害定量数据数组
 			counts: description2.value.counts, // 缺损数量
       units: description2.value.units,// 单位
+      threshold: description2.value.threshold,// 阈值
 		})
 		description.value = createDescription
 	}

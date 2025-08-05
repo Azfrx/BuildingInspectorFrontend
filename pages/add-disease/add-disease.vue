@@ -548,6 +548,10 @@
       console.log('成功设置病害类型:', data.type);
     }
 
+    if(data.diseaseType.threshold){
+      uni.$emit('setThreshold', data.diseaseType.threshold)
+    }
+
     // 设置病害位置
     if (data.position) {
       // updateDiseasePositionOptions();
@@ -631,11 +635,11 @@
     }
 
     // 处理diseaseDetails数据
-    if (data.diseaseDetails && Array.isArray(data.diseaseDetails) && data.diseaseDetails.length > 0) {
+    if (data.diseaseDetails && Array.isArray(data.diseaseDetails) ) {
 
       // 判断是否为范围模式 - 直接使用quantity字段判断
       const quantity = parseInt(data.quantity) || 0;
-      const isRangeMode = quantity >= 10;
+      const isRangeMode = quantity >= data.diseaseType.threshold;
       console.log('根据quantity判断范围模式:', quantity, isRangeMode);
 
       // 根据模式创建对应的数据结构
@@ -1595,31 +1599,12 @@
 	}
 
 	.button-delete {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #FF3141;
 		color: #ffffff;
 		margin-right: 10rpx;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
-	}
-
-	.button-edit {
-		height: 36rpx;
-		font-size: 16px;
-		color: #ffffff;
-		background-color: #0F4687;
-		margin: 0 10rpx;
-		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
+    padding: 0 10rpx;
 	}
 
 	/* 新增病害顶部按钮 */
@@ -1634,100 +1619,68 @@
 
 	.button-before,
 	.button-next {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		margin: 0 10rpx;
 		background-color: #0F4687;
 		color: #ffffff;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
+    padding: 0 10rpx;
 	}
 
 	.button-copyAndTonext {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #0F4687;
 		color: #ffffff;
 		margin-left: 0;
 		margin-right: 10rpx;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
+    padding: 0 10rpx;
 	}
 
 	.button-savetonext {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #0F4687;
 		color: #ffffff;
 		margin-right: 10rpx;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
+    padding: 0 10rpx;
 	}
 
 	.button-save {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #0F4687;
 		color: #ffffff;
 		margin-left: 0;
 		margin-right: 0;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
+    padding: 0 10rpx;
 	}
 
 	.button-cancle {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		border: 1px solid #1677FF;
 		margin: 0 10rpx;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
-		/* 垂直居中 */
+    padding: 0 10rpx;
 	}
 
 	.button-copyHistoryDisease {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #0F4687;
 		color: #ffffff;
-		margin-right: 0rpx;
+		margin-right: 0;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
+    padding: 0 10rpx;
 	}
 
 	.button-staging {
-		height: 36rpx;
-		font-size: 16px;
+		font-size: 16rpx;
 		background-color: #0F4687;
 		color: #ffffff;
 		margin-right: 0;
 		margin-left: 10rpx;
 		display: flex;
-		/* 设置为 flex 布局 */
-		justify-content: center;
-		/* 水平居中 */
-		align-items: center;
+    padding: 0 10rpx;
 	}
 
 	/*picker公用*/

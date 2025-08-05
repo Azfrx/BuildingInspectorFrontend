@@ -179,42 +179,6 @@
 				</view>
 			</view>
 
-			<!-- 宽度 - 根据模式显示不同的输入框 -->
-			<!--			<view class="quantitative-data">
-				<view class="quantitative-data-left">
-					宽度
-				</view>
-				<view class="quantitative-data-right">
-					&lt;!&ndash; 范围模式 &ndash;&gt;
-					<template v-if="diseaseData.useRangeMode">
-						<view class="quantitative-data-right-range">
-							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.widthRangeStart">
-								<view class="clear-input" @click="diseaseData.widthRangeStart = ''">×</view>
-							</view>
-							<view class="range-separator">-</view>
-							<view class="quantitative-data-right-value">
-								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.widthRangeEnd">
-								<view class="clear-input" @click="diseaseData.widthRangeEnd = ''">×</view>
-							</view>
-						</view>
-					</template>
-					&lt;!&ndash; 普通模式 &ndash;&gt;
-					<template v-else>
-						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.width">
-							<view class="clear-input" @click="diseaseData.width = ''">×</view>
-						</view>
-					</template>
-					<view class="quantitative-data-right-unit">
-						<view class="quantitative-data-right-unit-input"> m</view>
-					</view>
-				</view>
-			</view>-->
-
 			<!-- 缝宽 - 根据模式显示不同的输入框 -->
 			<view class="quantitative-data" v-show="showColumns[2] == 1">
 				<view class="quantitative-data-left">
@@ -461,33 +425,12 @@
 								@click="diseaseData.denominatorRatio = ''"></image>
 						</view>
 					</view>
-					<!--					</template>-->
-					<!-- 普通模式 -->
-					<!--					<template v-else>
-						<view class="quantitative-data-right-value">
-							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.percentage">
-							<view class="clear-input" @click="diseaseData.percentage = ''">×</view>
-						</view>
-					</template>-->
 					<view class="quantitative-data-right-unit">
 						<view class="quantitative-data-right-unit-input"> %
 						</view>
 					</view>
 				</view>
 			</view>
-
-			<!--			<view class="line-select">
-				<view class="line-select-left">
-					<text style="color: red;">*</text>
-					<view>发展趋势</view>
-				</view>
-				<view class="line-select-right">
-					<uni-data-checkbox mode="tag" v-model="diseaseData.developmentTrendIndex"
-						:localdata="developmentTrend"></uni-data-checkbox>
-				</view>
-			</view>
-		</view>-->
 
 			<uni-popup ref="referenceSurfacePopup" type="center">
 				<view class="location-description-position-popup-content">
@@ -565,24 +508,6 @@
 		diseaseDataList.value[diseaseIndex].areaIdentifier = index + 1; // 因为索引从0开始，而我们需要1和2的值
 	}
 
-	/*	const developmentTrend = ref([{
-				text: '稳定',
-				value: 0
-			},
-			{
-				text: '发展',
-				value: 1
-			},
-			{
-				text: '新增',
-				value: 2
-			},
-			{
-				text: '已维修',
-				value: 3
-			}
-		])*/
-
 	// 添加当前编辑的缺损索引
 	const currentDiseaseIndex = ref(0);
 
@@ -614,31 +539,6 @@
 		const index = e.detail.value;
 		units.value = quantityUnits.value[index]
 	}
-
-	/*watch(() => diseaseDataList.value, (newList) => {
-		if (showColumns.value[0] === '1') {
-			if (crackTypeIndex.value === 0 || crackTypeIndex.value === 1 || crackTypeIndex.value === 2) {
-				newList.forEach((diseaseData, index) => {
-					// 计算参考面1的长度
-					if (diseaseData.reference1LocationStart !== null && diseaseData
-						.reference1LocationEnd !== null && diseaseData.reference2LocationStart !== null &&
-						diseaseData.reference2LocationEnd !== null) {
-						const x1 = parseFloat(diseaseData.reference1LocationStart);
-						const y1 = parseFloat(diseaseData.reference2LocationStart);
-						const x2 = parseFloat(diseaseData.reference1LocationEnd);
-						const y2 = parseFloat(diseaseData.reference2LocationEnd);
-						if (!isNaN(x1) && !isNaN(y1) && !isNaN(x2) && !isNaN(y2)) {
-							const dx = x2 - x1;
-							const dy = y2 - y1;
-							diseaseData.length1 = Math.sqrt(dx * dx + dy * dy).toFixed(2);
-						}
-					}
-				});
-			}
-		}
-	}, {
-		deep: true
-	});*/
 
 	const calculate = () => {
 		if (showColumns.value[0] === '1') {
@@ -799,6 +699,7 @@
 			defects: diseaseDataList.value, // 病害定量数据数组
 			counts: quantity.value, // 病害数量
       units: units.value,// 单位
+      threshold: threshold.value,// 阈值
 		};
 		uni.$emit('setDescription2', description);
 	}

@@ -9,6 +9,7 @@ function generateDiseaseDescription(data) {
 		defects = [], // 缺损数据数组
 		counts = 0, // 病害数量（可选）
 		units, // 单位
+		threshold,// 阈值
 	} = data;
 
 	const count = defects.length;
@@ -21,7 +22,7 @@ function generateDiseaseDescription(data) {
 	if (showColumns[0] == 1 && crackType) description += `${crackType}裂缝`;
 	let descriptionArr = [];
 
-	if (counts < 10) {
+	if (counts < threshold) {
 		const details = defects.map(item => {
 			// 检查字段是否存在内容再拼接
 			if (showColumns[8] == 1 && item.reference1Location && item.reference1LocationStart) {
@@ -87,7 +88,8 @@ function generateDiseaseDescription(data) {
 			descriptionArr.push(`高度/深度：${item.heightDepthRangeStart}~${item.heightDepthRangeEnd}m`);
 		}
 		if (showColumns[4] == 1 && item.areaLength && item.areaWidth) {
-			descriptionArr.push(`面积：${item.areaLength}×${item.areaWidth}m²`);
+			const areaLabel = item.areaIdentifier == 1 ? '平均' : item.areaIdentifier == 2 ? '总计' : item.areaIdentifier;
+			descriptionArr.push(`面积(${areaLabel})：${item.areaLength}×${item.areaWidth}m²`);
 		}
 		if (showColumns[5] == 1 && item.deformationRangeStart && item.deformationRangeEnd) {
 			descriptionArr.push(`变形/位移：${item.deformationRangeStart}~${item.deformationRangeEnd}m`);

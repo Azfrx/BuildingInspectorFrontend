@@ -36,26 +36,6 @@
 			</picker>
 		</view>
 
-
-		<!-- 替换原来的构件编号input输入框 -->
-		<!--		<view class="picker">
-			<view class="picker-titleAndContent">
-				<view class="picker-left">
-					<text class="picker-must">*</text>
-					<view class="picker-title">
-						构件编号
-					</view>
-				</view>
-				<view class="input-right">
-					<input class="component-code-input" v-model="componentCodeInput" placeholder="请输入构件编号"
-						placeholder-style="color: #CCCCCC;" />
-					&lt;!&ndash;					<view class="clear-input" @click=" componentCodeInput = ''">×</view>&ndash;&gt;
-					<image src="/static/image/clear.png" class="clear-icon" @click.stop="componentCodeInput = '' ">
-					</image>
-				</view>
-			</view>
-		</view>-->
-
 		<view class="picker" @click="openComponentCodePopup">
 			<view class="picker-titleAndContent">
 				<view class="picker-left">
@@ -101,34 +81,6 @@
 			</view>
 		</view>
 
-		<!-- 修改病害位置区域 - 从弹窗改为picker和input组合 -->
-		<!--		<view class="picker">
-			<view class="picker-titleAndContent">
-				<view class="picker-left">
-					<text class="picker-must">*</text>
-					<view class="picker-title">
-						病害位置
-					</view>
-				</view>
-				<view class="picker-right">
-					<picker class="picker" :range="diseasePosition" @change="onDiseasePositionChange">
-						<view class="picker-content" :style="!positionPicker ? 'color: #CCCCCC;' : ''">
-							{{positionPicker || '请选择病害位置'}}
-						</view>
-					</picker>
-					<text class="picker-icon">&gt;</text>
-
-					<view class="component-name-input" v-show="positionPicker === '其他'">
-						<input class="component-code-input" v-model="positionInput" placeholder="请输入病害位置"
-							placeholder-style="color: #CCCCCC;" @click.stop />
-						&lt;!&ndash;						<view class="clear-input" @click.stop="positionInput = '' ">×</view>&ndash;&gt;
-						<image src="/static/image/clear.png" class="clear-icon" @click.stop="positionInput = '' ">
-						</image>
-					</view>
-				</view>
-			</view>
-		</view>-->
-
 		<view class="picker" @click="openComponentPositionPopup">
 			<view class="picker-titleAndContent">
 				<view class="picker-left">
@@ -139,7 +91,7 @@
 				</view>
 				<view class="picker-right">
 					<view class="picker-content" :style="position === '' ? 'color: #CCCCCC;' : ''" @click="">
-						{{position === '' ? '请输入病害位置' : `第${positionNumber}号${position}`}}
+            {{position === '' ? '请输入病害位置' : `${positionNumber !== '' ? `第${positionNumber}号` : ''}${position}`}}
 					</view>
 					<text class="picker-icon">&gt;</text>
 				</view>
@@ -362,7 +314,8 @@
 
 	const openComponentPositionPopup = () => {
 		positionPopup.value.open();
-		if (position.value) combinedPosition.value = '第' + positionNumber.value + '号' + position.value;
+		if (position.value && positionNumber.value) combinedPosition.value = '第' + positionNumber.value + '号' + position.value;
+    else if(position.value) combinedPosition.value = position.value;
     if(positionNumber.value) positionNumberPopup.value = positionNumber.value;
     if(position.value) positionPickerPopup.value = position.value;
 	}
@@ -396,9 +349,17 @@
 		[positionNumberPopup, positionPickerPopup, positionInputPopup],
 		() => {
 			if (positionPickerPopup.value === '其他') {
-				combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionInputPopup.value;
+        if(positionNumberPopup.value){
+          combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionInputPopup.value;
+        }else{
+          combinedPosition.value = positionInputPopup.value;
+        }
 			} else {
-				combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionPickerPopup.value;
+        if(positionNumberPopup.value){
+          combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionPickerPopup.value;
+        }else{
+          combinedPosition.value = positionPickerPopup.value;
+        }
 			}
 		}
 	)
