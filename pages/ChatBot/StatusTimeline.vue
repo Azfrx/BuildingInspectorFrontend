@@ -54,6 +54,7 @@ const props = defineProps({
 .status-timeline-container {
   padding: 12px 12px 0;
   font-size: 14px;
+  margin-bottom: 8px;
 }
 .status-timeline-header {
   font-weight: 600;

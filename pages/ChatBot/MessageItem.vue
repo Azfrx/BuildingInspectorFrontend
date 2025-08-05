@@ -11,8 +11,10 @@
         </template>
 
         <view class="text-content">
-          <zero-markdown-view v-if="props.message.sender === 'ai'" :markdown="props.message.text || '...'"
-                              :aiMode="true"/>
+          <zero-markdown-view v-if="props.message.sender === 'ai'" :markdown="props.message.text || ''"
+                              :aiMode="true"
+							  style="padding: 0 4px;"
+							  />
           <text v-else selectable="true">{{ props.message.text }}</text>
         </view>
 
@@ -40,13 +42,13 @@ const props = defineProps({
 .message-item {
   box-sizing: border-box;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   margin-bottom: 16px;
   width: 100%;
   padding: 8px;
 
   &.user {
-    align-items: flex-end;
+	  flex-direction: row-reverse;
   }
 
   &.ai {
@@ -62,6 +64,7 @@ const props = defineProps({
   width: 36px;
   height: 36px;
   border-radius: 50%;
+  margin: 10px 2px;
   background-color: #6b7280;
   display: flex;
   align-items: center;
@@ -88,8 +91,8 @@ const props = defineProps({
 
 .text-content {
   padding: 8px 12px;
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 16px;
+  line-height: 1.2;
   word-wrap: break-word;
 }
 </style>
