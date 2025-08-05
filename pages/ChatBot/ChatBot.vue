@@ -32,7 +32,7 @@ import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue';
 import MessageList from './MessageList.vue';
 import ChatInput from './ChatInput.vue';
 import { idStore } from '../../store/idStorage';
-
+import apiConfig from "../../config/api";
 const store = idStore();
 
 // --- 响应式状态定义 ---
@@ -40,9 +40,11 @@ const chatSSEClient = ref(null);
 const messageListRef = ref(null);
 let currentAiMarkdownContent = '';
 
+
+
 // API和会话配置
 const CHAT_CONFIG = reactive({
-  API_URL: 'http://59.110.81.142:8081/api-ai/chat-stream',
+  API_URL: apiConfig.botURL + '/api-ai/chat-stream',
   USER_ID: '',
   CHAT_ID: ''
 });

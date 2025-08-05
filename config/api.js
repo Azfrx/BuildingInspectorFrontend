@@ -2,7 +2,8 @@
 import { reactive } from 'vue';
 
 const apiConfig = reactive({
-  baseURL: "http://59.110.81.142:8090",
+  baseURL: "http://59.110.81.142:8090", // 基础URL
+  botURL: "http://59.110.81.142:8081",
   endpoints: {
     login: "/jwt/login",
     dataPackage: "/api/user/dataPackage",
