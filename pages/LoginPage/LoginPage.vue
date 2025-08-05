@@ -200,7 +200,7 @@
 					password: password.value,
 					infoData: response.data,
 				})
-				idInfo.setUserId(response.data.userId)
+				idInfo.setUserId({value:response.data.userId})
 
 				// 调用setRootDir方法创建根目录
 				try {

@@ -115,6 +115,14 @@
 			{
 				"navigationBarTitleText" : ""
 			}
+		},
+		{
+			"path" : "pages/ChatBot/ChatBot",
+			"style" : 
+			{
+				"navigationBarTitleText" : "智能助手",
+				"navigationBarBackgroundColor": "#0F4687"
+			}
 		}
 	],
 	"globalStyle": {
