@@ -61,6 +61,7 @@
 				<bridge-archive :activeTabTop="activeTab"></bridge-archive>
 			</view>
 		</view>
+		<ChatAgentButton />
 	</view>
 </template>
 
@@ -109,6 +110,7 @@
   import {getObjectUL} from "@/utils/readUL";
   import {useObject} from "@/store/object";
   import apiConfig from '../../config/api';
+import ChatAgentButton from '../../components/ChatAgentButton.vue';
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore();

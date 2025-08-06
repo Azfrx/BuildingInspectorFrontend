@@ -76,6 +76,7 @@
 				</view>
 			</view>
 		</view>
+		<ChatAgentButton />
 	</view>
 
 	<!-- 下载确认弹窗 -->
@@ -95,6 +96,7 @@
 		@confirm="handleUpdateConfirm"
 		@cancel="handleUpdateCancel"
 	/>
+			
 </template>
 
 <script setup>
@@ -153,6 +155,7 @@ import {
 	} from '@/utils/deleteFolder.js';
 	// 导入saveZipAndStorePath函数
 	import { saveZipAndStorePath } from '@/utils/write.js';
+  	import ChatAgentButton from "../../components/ChatAgentButton.vue";
 // 导入下载确认弹窗组件
 import downLoadWindow from '@/components/downLoadWindow.vue';
 import apiConfig from '../../config/api';

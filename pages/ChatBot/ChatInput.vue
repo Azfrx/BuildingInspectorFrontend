@@ -5,13 +5,13 @@
         v-model="text"
         placeholder="请输入你的问题..."
         :auto-height="true"
-        :disabled="props.disabled"
+        :disabled="props.isLoading"
         maxlength="-1"
         confirm-type="send"
         @confirm="handleSend"
         :adjust-position="false"  ></textarea>
-    <button class="send-button" @click="handleSend" :disabled="props.disabled || !text.trim()">
-      <uni-icons type="paperplane-filled" size="24" color="#FFFFFF"></uni-icons>
+    <button class="send-button" @click="handleClick" :disabled="!props.isLoading && !text.trim()" :class="{ 'stop-button': props.isLoading }">
+      <uni-icons :type="props.isLoading ? 'closeempty' : 'paperplane-filled'" size="24" color="#FFFFFF"></uni-icons>
     </button>
   </view>
 </template>
@@ -20,12 +20,12 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 
 const props = defineProps({
-  disabled: {
+  isLoading: {
     type: Boolean,
     default: false
   }
 });
-const emit = defineEmits(['sendMessage']);
+const emit = defineEmits(['sendMessage', 'interruptGeneration']);
 
 const text = ref('');
 
@@ -35,7 +35,7 @@ onMounted(() => {
 
   uni.onKeyboardHeightChange(res => {
     console.log('键盘高度变化：', res.height);
-    keyboardHeight.value = res.height + 5;
+    keyboardHeight.value = res.height > 0 ? res.height + 5 : 0;
   });
 });
 
@@ -46,11 +46,23 @@ onUnmounted(() => {
 
 const handleSend = () => {
   const content = text.value.trim();
-  if (!content || props.disabled) {
+  if (!content || props.isLoading) {
     return;
   }
   emit('sendMessage', content);
   text.value = '';
+};
+
+const handleInterrupt = () => {
+  emit('interruptGeneration');
+};
+
+const handleClick = () => {
+  if (props.isLoading) {
+    handleInterrupt();
+  } else {
+    handleSend();
+  }
 };
 </script>
 
@@ -104,6 +116,13 @@ const handleSend = () => {
   &[disabled] {
     background-color: #9ca3af;
     cursor: not-allowed;
+  }
+  
+  &.stop-button {
+    background-color: #ef4444; // Red for stop
+    &:hover {
+      background-color: #dc2626;
+    }
   }
 }
 </style>

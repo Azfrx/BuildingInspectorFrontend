@@ -70,6 +70,7 @@
 		<view class="no-result" v-if="filteredBridges.length === 0">
 			<text>未找到匹配的桥梁</text>
 		</view>
+		<ChatAgentButton />
 	</view>
 </template>
 
@@ -104,6 +105,7 @@
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
 	import { useObject } from '../../store/object'
+import ChatAgentButton from '../../components/ChatAgentButton.vue'
 	// 返回上一页
 	const back = () => {
 		uni.navigateBack()
