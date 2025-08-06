@@ -570,7 +570,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    const year = date.getFullYear().toString().slice(-2); // 取后两位作为 yy
+    const year = date.getFullYear().toString().slice(); // yyyy
     const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1并补零
     const day = String(date.getDate()).padStart(2, '0'); // 日期补零
     return `${year}-${month}-${day}`;

@@ -38,7 +38,7 @@
 					:localdata="crackTypeOptions"></uni-data-checkbox>
 			</view>
 		</view>
-		<view class="line-select" v-show="showColumns[0] == 1">
+		<view class="line-select" v-show="showColumns[0] == 1 && quantity < threshold">
 			<view class="line-select-left">
 				<view>计算位置关系</view>
 			</view>
@@ -70,15 +70,13 @@
 					</view>
 					<view class="reference-start">
 						<input type="number" placeholder="起点位置" v-model="diseaseData.reference1LocationStart"
-							class="input-text" placeholder-style="color: #CCCCCC;">
-						<!--						<view class="clear-input" @click="clearReferenceSurfaceStart(index, 1)">×</view>-->
+							class="input-text" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('reference1LocationStart', index)">
 						<image src="/static/image/clear.png" class="clear-icon"
 							@click="clearReferenceSurfaceStart(index, 1)"></image>
 					</view>
 					<view class="reference-end">
 						<input type="number" placeholder="终点位置" v-model="diseaseData.reference1LocationEnd"
-							class="input-text" placeholder-style="color: #CCCCCC;">
-						<!--						<view class="clear-input" @click="clearReferenceSurfaceEnd(index, 1)">×</view>-->
+							class="input-text" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('reference1LocationEnd', index)">
 						<image src="/static/image/clear.png" class="clear-icon"
 							@click="clearReferenceSurfaceEnd(index, 1)"></image>
 					</view>
@@ -104,14 +102,14 @@
 					</view>
 					<view class="reference-start">
 						<input type="number" placeholder="起点位置" v-model="diseaseData.reference2LocationStart"
-							class="input-text" placeholder-style="color: #CCCCCC;">
+							class="input-text" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('reference2LocationStart', index)">
 						<!--						<view class="clear-input" @click="clearReferenceSurfaceStart(index, 2)">×</view>-->
 						<image src="/static/image/clear.png" class="clear-icon"
 							@click="clearReferenceSurfaceStart(index, 2)"></image>
 					</view>
 					<view class="reference-end">
 						<input type="number" placeholder="终点位置" v-model="diseaseData.reference2LocationEnd"
-							class="input-text" placeholder-style="color: #CCCCCC;">
+							class="input-text" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('reference2LocationEnd', index)">
 						<!--						<view class="clear-input" @click="clearReferenceSurfaceEnd(index, 2)">×</view>-->
 						<image src="/static/image/clear.png" class="clear-icon"
 							@click="clearReferenceSurfaceEnd(index, 2)"></image>
@@ -134,7 +132,7 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.lengthRangeStart" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.lengthRangeStart" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('lengthRangeStart', index)">
 								<!--								<view class="clear-input" @click="diseaseData.lengthRangeStart = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.lengthRangeStart = ''"></image>
@@ -142,7 +140,7 @@
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.lengthRangeEnd" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.lengthRangeEnd" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('lengthRangeEnd', index)">
 								<!--								<view class="clear-input" @click="diseaseData.lengthRangeEnd = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.lengthRangeEnd = ''"></image>
@@ -153,7 +151,7 @@
 					<template v-else>
 						<view class="quantitative-data-right-value length-input">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L1" type="number"
-								v-model="diseaseData.length1" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.length1" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('length1', index)">
 							<!--							<view class="clear-input" @click="diseaseData.length1 = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length1 = ''">
 							</image>
@@ -161,13 +159,13 @@
 						<view class="quantitative-data-right-value length-input"
 							v-if="crackTypeIndex === 4 || crackTypeIndex === 5">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L2" type="number"
-								v-model="diseaseData.length2" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.length2" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('length2', index)">
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length2 = ''">
 							</image>
 						</view>
 						<view class="quantitative-data-right-value length-input" v-if="crackTypeIndex === 5">
 							<input class="quantitative-data-right-value-input" placeholder="请填写L3" type="number"
-								v-model="diseaseData.length3" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.length3" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('length3', index)">
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.length3 = ''">
 							</image>
 						</view>
@@ -190,7 +188,7 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.crackWidthRangeStart" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.crackWidthRangeStart" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('crackWidthRangeStart', index)">
 								<!--                <view class="clear-input" @click="diseaseData.crackWidthRangeStart = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.crackWidthRangeStart = ''"></image>
@@ -198,7 +196,7 @@
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.crackWidthRangeEnd" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.crackWidthRangeEnd" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('crackWidthRangeEnd', index)">
 								<!--                <view class="clear-input" @click="diseaseData.crackWidthRangeEnd = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.crackWidthRangeEnd = ''"></image>
@@ -209,7 +207,7 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.crackWidth" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.crackWidth" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('crackWidth', index)">
 							<!--              <view class="clear-input" @click="diseaseData.crackWidth = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.crackWidth = ''"></image>
@@ -234,7 +232,7 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.heightDepthRangeStart" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.heightDepthRangeStart" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('heightDepthRangeStart', index)">
 								<!--								<view class="clear-input" @click="diseaseData.heightDepthRangeStart = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.heightDepthRangeStart = ''"></image>
@@ -242,7 +240,7 @@
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.heightDepthRangeEnd" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.heightDepthRangeEnd" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('heightDepthRangeEnd', index)">
 								<!--								<view class="clear-input" @click="diseaseData.heightDepthRangeEnd = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.heightDepthRangeEnd = ''"></image>
@@ -253,7 +251,7 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.heightDepth" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.heightDepth" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('heightDepth', index)">
 							<!--							<view class="clear-input" @click="diseaseData.heightDepth = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.heightDepth = ''"></image>
@@ -285,7 +283,7 @@
 						</picker>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.areaLength" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.areaLength" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('areaLength', index)">
 							<!--								<view class="clear-input" @click="diseaseData.areaLength = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.areaLength = ''"></image>
@@ -293,7 +291,7 @@
 						<view class="range-separator">×</view>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.areaWidth" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.areaWidth" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('areaWidth', index)">
 							<!--								<view class="clear-input" @click="diseaseData.areaWidth = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.areaWidth = ''">
 							</image>
@@ -325,7 +323,7 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.deformationRangeStart" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.deformationRangeStart" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('deformationRangeStart', index)">
 								<!--								<view class="clear-input" @click="diseaseData.deformationRangeStart = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.deformationRangeStart = ''"></image>
@@ -333,7 +331,7 @@
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.deformationRangeEnd" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.deformationRangeEnd" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('deformationRangeEnd', index)">
 								<!--								<view class="clear-input" @click="diseaseData.deformationRangeEnd = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.deformationRangeEnd = ''"></image>
@@ -344,7 +342,7 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.deformation" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.deformation" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('deformation', index)">
 							<!--							<view class="clear-input" @click="diseaseData.deformation = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.deformation = ''"></image>
@@ -368,7 +366,7 @@
 						<view class="quantitative-data-right-range">
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最小值" type="number"
-									v-model="diseaseData.angleRangeStart" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.angleRangeStart" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('angleRangeStart', index)">
 								<!--								<view class="clear-input" @click="diseaseData.angleRangeStart = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.angleRangeStart = ''"></image>
@@ -376,7 +374,7 @@
 							<view class="range-separator">-</view>
 							<view class="quantitative-data-right-value">
 								<input class="quantitative-data-right-value-input" placeholder="最大值" type="number"
-									v-model="diseaseData.angleRangeEnd" placeholder-style="color: #CCCCCC;">
+									v-model="diseaseData.angleRangeEnd" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('angleRangeEnd', index)">
 								<!--								<view class="clear-input" @click="diseaseData.angleRangeEnd = ''">×</view>-->
 								<image src="/static/image/clear.png" class="clear-icon"
 									@click="diseaseData.angleRangeEnd = ''"></image>
@@ -387,7 +385,7 @@
 					<template v-else>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.angle" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.angle" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('angle', index)">
 							<!--							<view class="clear-input" @click="diseaseData.angle = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon" @click="diseaseData.angle = ''">
 							</image>
@@ -411,7 +409,7 @@
 					<view class="quantitative-data-right-range">
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.numeratorRatio" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.numeratorRatio" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('numeratorRatio', index)">
 							<!--								<view class="clear-input" @click="diseaseData.numeratorRatio = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.numeratorRatio = ''"></image>
@@ -419,7 +417,7 @@
 						<view class="range-separator">/</view>
 						<view class="quantitative-data-right-value">
 							<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-								v-model="diseaseData.denominatorRatio" placeholder-style="color: #CCCCCC;">
+								v-model="diseaseData.denominatorRatio" placeholder-style="color: #CCCCCC;" @blur="formatToTwoDecimals('denominatorRatio', index)">
 							<!--								<view class="clear-input" @click="diseaseData.denominatorRatio = ''">×</view>-->
 							<image src="/static/image/clear.png" class="clear-icon"
 								@click="diseaseData.denominatorRatio = ''"></image>
@@ -562,7 +560,7 @@
 						if (crackTypeIndex.value === 3) {
 							const dx = x2 - x1;
 							const dy = y2 - y1;
-							diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(1);
+							diseaseData.angle = (Math.atan2(dy, dx) * 180 / Math.PI).toFixed(2);
 						}
 					} else if (diseaseData.reference1LocationStart !== '' && diseaseData
 						.reference2LocationStart !== '' && diseaseData.length1 !== '') {
@@ -974,6 +972,17 @@
 		return crackTypeOptions.value[crackTypeIndex.value].text;
 	})
 
+	// 格式化数值为2位小数
+	const formatToTwoDecimals = (fieldName, diseaseIndex) => {
+		const value = diseaseDataList.value[diseaseIndex][fieldName];
+		if (value && value !== '') {
+			const numValue = parseFloat(value);
+			if (!isNaN(numValue)) {
+				diseaseDataList.value[diseaseIndex][fieldName] = numValue.toFixed(2);
+			}
+		}
+	};
+	
 	defineExpose({
 		quantity: quantity,
 		crackType: crackType,
