@@ -31,16 +31,16 @@ const text = ref('');
 
 const keyboardHeight = ref(0);
 
-onMounted(() => {
+const onKeyboardHeightChange = (res) => {
+  keyboardHeight.value = res.height > 0 ? res.height + 5 : 0;
+};
 
-  uni.onKeyboardHeightChange(res => {
-    keyboardHeight.value = res.height > 0 ? res.height + 5 : 0;
-  });
+onMounted(() => {
+  uni.onKeyboardHeightChange(onKeyboardHeightChange);
 });
 
 onUnmounted(() => {
-
-  uni.offKeyboardHeightChange();
+  uni.offKeyboardHeightChange(onKeyboardHeightChange);
 });
 
 const handleSend = () => {

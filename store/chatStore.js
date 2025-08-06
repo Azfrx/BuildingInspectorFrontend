@@ -47,8 +47,8 @@ export const useChatStore = defineStore('chat', {
     chatHistory: (state) => {
       return Object.values(state.conversations).map(conv => ({
         id: conv.id,
-        // 使用第一条用户消息作为标题，如果没有则显示默认标题
-        title: conv.messages.find(m => m.sender === 'user')?.text.substring(0, 30) || '新对话',
+        // 优先使用自定义标题，否则使用第一条用户消息作为标题
+        title: conv.title || conv.messages.find(m => m.sender === 'user')?.text.substring(0, 30) || '新对话',
       })).reverse(); // 按时间倒序排列
     },
   },
@@ -67,9 +67,19 @@ export const useChatStore = defineStore('chat', {
             references: []
           }
         ],
+        title: null // 初始化自定义标题为null
       };
       this.currentChatId = chatId;
       return chatId;
+    },
+    // 重命名一个对话
+    renameChat({ chatId, newTitle }) {
+      if (this.conversations[chatId]) {
+        this.conversations[chatId].title = newTitle;
+        console.log(`对话 ${chatId} 已被重命名为: ${newTitle}`);
+      } else {
+        console.warn(`尝试重命名一个不存在的对话: ${chatId}`);
+      }
     },
     // 删除一个对话
     deleteChat(chatId) {
@@ -98,6 +108,37 @@ export const useChatStore = defineStore('chat', {
         } else {
           // 如果没有其他对话了，将 currentChatId 设置为 null
           // 这将导致 getter 返回初始欢迎消息
+          this.currentChatId = null;
+        }
+      }
+    },
+    // 批量删除对话
+    deleteMultipleChats(chatIds) {
+      if (!chatIds || chatIds.length === 0) {
+        return;
+      }
+
+      let isCurrentChatDeleted = false;
+
+      chatIds.forEach(chatId => {
+        if (this.conversations[chatId]) {
+          if (this.currentChatId === chatId) {
+            isCurrentChatDeleted = true;
+          }
+          delete this.conversations[chatId];
+        }
+      });
+
+      if (isCurrentChatDeleted) {
+        const remainingChatIds = Object.keys(this.conversations).sort((a, b) => {
+          const timeA = parseInt(a.split('_')[1] || '0');
+          const timeB = parseInt(b.split('_')[1] || '0');
+          return timeB - timeA;
+        });
+
+        if (remainingChatIds.length > 0) {
+          this.currentChatId = remainingChatIds[0];
+        } else {
           this.currentChatId = null;
         }
       }

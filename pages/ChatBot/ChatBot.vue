@@ -203,6 +203,15 @@ const handleSendMessage = (prompt) => {
 };
 
 const startNewChat = () => {
+  // 检查当前是否已经是新对话（即只有一条初始AI消息）
+  if (messages.value.length === 1 && messages.value[0].sender === 'ai') {
+    uni.showToast({
+      title: '当前已是新对话',
+      icon: 'none'
+    });
+    return;
+  }
+
   if (isLoading.value) {
     uni.showModal({
       title: '提示',
