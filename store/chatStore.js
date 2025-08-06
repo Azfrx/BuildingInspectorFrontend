@@ -1,10 +1,32 @@
 import { defineStore } from 'pinia';
+import { watch } from 'vue';
+
+// 尝试从同步存储中加载初始状态
+const getInitialState = () => {
+  try {
+    const savedState = uni.getStorageSync('chatStore');
+    if (savedState) {
+      const parsed = JSON.parse(savedState);
+      // 基本的验证，确保conversations是一个对象
+      if (typeof parsed.conversations === 'object' && parsed.conversations !== null) {
+        return {
+          conversations: parsed.conversations,
+          currentChatId: parsed.currentChatId || null,
+        };
+      }
+    }
+  } catch (error) {
+    console.error('从历史记录中获取聊天消息失败', error);
+  }
+  // 如果没有保存的状态或解析失败，返回默认初始状态
+  return {
+    conversations: {},
+    currentChatId: null,
+  };
+};
 
 export const useChatStore = defineStore('chat', {
-  state: () => ({
-    conversations: {}, // 使用对象存储对话，以 chatId 为键
-    currentChatId: null,
-  }),
+  state: () => getInitialState(),
   getters: {
     // 获取当前对话的消息列表
     currentMessages: (state) => {
@@ -48,6 +70,37 @@ export const useChatStore = defineStore('chat', {
       };
       this.currentChatId = chatId;
       return chatId;
+    },
+    // 删除一个对话
+    deleteChat(chatId) {
+      if (!this.conversations[chatId]) {
+        console.warn(`删除一个不存在的对话: ${chatId}`);
+        return;
+      }
+
+      const isCurrent = this.currentChatId === chatId;
+      
+      // 从 conversations 对象中删除该对话
+      delete this.conversations[chatId];
+
+      // 如果删除的是当前正在进行的对话
+      if (isCurrent) {
+        // 获取剩余的对话ID，并按时间倒序排序（最新的在前）
+        const remainingChatIds = Object.keys(this.conversations).sort((a, b) => {
+            const timeA = parseInt(a.split('_')[1] || '0');
+            const timeB = parseInt(b.split('_')[1] || '0');
+            return timeB - timeA;
+        });
+
+        // 如果还有其他对话，则切换到最新的一个
+        if (remainingChatIds.length > 0) {
+          this.currentChatId = remainingChatIds[0];
+        } else {
+          // 如果没有其他对话了，将 currentChatId 设置为 null
+          // 这将导致 getter 返回初始欢迎消息
+          this.currentChatId = null;
+        }
+      }
     },
     // 设置当前对话
     setCurrentChat(chatId) {

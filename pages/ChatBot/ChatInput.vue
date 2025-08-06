@@ -34,7 +34,6 @@ const keyboardHeight = ref(0);
 onMounted(() => {
 
   uni.onKeyboardHeightChange(res => {
-    console.log('键盘高度变化：', res.height);
     keyboardHeight.value = res.height > 0 ? res.height + 5 : 0;
   });
 });

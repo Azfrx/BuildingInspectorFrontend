@@ -284,7 +284,7 @@ const handleInterruptGeneration = () => {
 
 // --- SSE 事件回调函数 ---
 const handleSSEOpen = (response) => {
-  console.log("[LOG] SSE connection opened successfully.", response);
+  console.log("[日志] SSE 已打开 ", response);
   const aiMessage = chatStore.findLastAiMessage();
   if (!aiMessage) return;
   completeCurrentStep();
@@ -326,12 +326,12 @@ const handleSSEMessage = (event) => {
         }
     });
   } catch(e) {
-    console.error("[LOG] Failed to parse SSE message data.", "Error:", e, "Raw Event:", event);
+    console.error("[日志] 解析SSE失败", "错误:", e, "原始事件:", event);
   }
 };
 
 const handleSSEError = (error) => {
-  console.error("[LOG] SSE connection error occurred.", error);
+  console.error("[日志] SSE 连接发生错误。", error);
   if (activeTimer) clearInterval(activeTimer);
   chatStore.updateLastAiMessage(currentMessage => {
       currentMessage.timeline.current = null;
@@ -341,7 +341,7 @@ const handleSSEError = (error) => {
 };
 
 const handleSSEFinish = () => {
-  console.log("[LOG] SSE connection finished.");
+  console.log("[日志] SSE 连接已完成。");
   if (activeTimer) clearInterval(activeTimer);
   const aiMessage = chatStore.findLastAiMessage();
   if (!aiMessage) return;
