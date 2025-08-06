@@ -1759,12 +1759,12 @@
 	
 	/* 覆盖myPhotoPicker组件中的图片容器尺寸 */
 	.photo-select::v-deep .preview-container {
-		width: 160rpx;
-		height: 160rpx;
-		min-width: 160rpx;
-		min-height: 160rpx;
-		max-width: 160rpx;
-		max-height: 160rpx;
+		width: 140rpx;
+		height: 140rpx;
+		min-width: 140rpx;
+		min-height: 140rpx;
+		max-width: 140rpx;
+		max-height: 140rpx;
 	}
 
 	.file-picker {
