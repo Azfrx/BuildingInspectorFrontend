@@ -63,6 +63,7 @@
 	import { setRootDir } from '../../utils/write';
 	// 引入配置文件
 	import apiConfig from '@/config/api.js';
+	import checkUpdate from '../../uni_modules/uni-upgrade-center-app/utils/check-update';
 	const username = ref('');
 	const password = ref('');
 	const userInfo = userStore()
@@ -101,6 +102,7 @@
 	});
 
 	onMounted(() => {
+		checkUpdate();   
 		const lastUsername = uni.getStorageSync('lastUsername')
 		const lastPassword = uni.getStorageSync('lastPassword')
 		const isRemember = uni.getStorageSync('isRemember')

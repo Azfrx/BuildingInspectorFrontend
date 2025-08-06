@@ -436,7 +436,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			'2': '/static/image/bridge1.png', //拱桥
 			'1': '/static/image/bridge2.png', //梁式桥
 			'4': '/static/image/bridge3.png', //斜拉桥
-			'3': '/static/images/bridge4.png', //悬索桥
+			'3': '/static/image/bridge4.png', //悬索桥
 		}
 		return icons[type] || icons['arch']
 	}

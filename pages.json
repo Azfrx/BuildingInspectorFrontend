@@ -8,6 +8,17 @@
 	},
 
 	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	{
+		"path" : "pages/Login/Login",
+		"style" : 
+		{
+			"navigationBarTitleText": "湖北交投桥梁定检现场检测",
+			"navigationBarBackgroundColor": "#0F4687",
+			"app-plus": {
+				"titleNView": {}
+			}
+		}
+	},
 		{
 			"path": "pages/LoginPage/LoginPage",
 			"style": {
