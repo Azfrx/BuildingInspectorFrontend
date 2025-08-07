@@ -345,7 +345,7 @@ const handleSSEError = (error) => {
   if (activeTimer) clearInterval(activeTimer);
   chatStore.updateLastAiMessage(currentMessage => {
       currentMessage.timeline.current = null;
-      currentMessage.timeline.error = "服务异常";
+      currentMessage.timeline.error = "网络异常";
   });
   isLoading.value = false;
 };

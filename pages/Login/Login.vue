@@ -95,7 +95,7 @@ const login = async () =>{
 					userDept:response.data.userDept, //返回的部门名称
 				})
 				//用户id
-				idInfo.setUserId(response.data.userId)
+				idInfo.setUserId({value: response.data.userId})
 				//跳转页面
 				uni.navigateTo({
 					url: '/pages/home/home'

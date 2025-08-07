@@ -1,6 +1,5 @@
 <template>
   <view>
-    <!-- A transparent backdrop to catch outside clicks -->
     <view
       v-if="isExpanded"
       class="backdrop"
@@ -36,7 +35,6 @@ const collapseButton = () => {
 };
 
 const handleClick = () => {
-  // Always clear timer on interaction
   clearCollapseTimer();
 
   if (isExpanded.value) {
@@ -45,14 +43,13 @@ const handleClick = () => {
     });
   } else {
     isExpanded.value = true;
-    // Set a timer to automatically collapse after 5 seconds of inactivity
     collapseTimer.value = setTimeout(() => {
       isExpanded.value = false;
-    }, 5000); // 5 seconds
+    }, 2000); 
   }
 };
 
-// Clean up timer when the component is unmounted
+
 onUnmounted(() => {
   clearCollapseTimer();
 });
@@ -83,7 +80,7 @@ onUnmounted(() => {
   box-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.3);
   cursor: pointer;
   transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
-  opacity: 0.7;
+  opacity: 0.5;
   z-index: 999;
 
   .button-text {
@@ -98,7 +95,7 @@ onUnmounted(() => {
     right: 20px;
     width: 130px;
     border-radius: 25px;
-    opacity: 1;
+    opacity: 0.8;
 
     .button-text {
       display: inline;
