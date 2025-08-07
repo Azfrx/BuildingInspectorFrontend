@@ -156,13 +156,21 @@ export const useChatStore = defineStore('chat', {
       }
       this.conversations[this.currentChatId].messages.push(message);
     },
-    // 更新当前对话的最后一条 AI 消息
     updateLastAiMessage(updater) {
       if (!this.currentChatId) return;
       const messages = this.conversations[this.currentChatId].messages;
       const lastMessage = messages[messages.length - 1];
       if (lastMessage && lastMessage.sender === 'ai') {
         updater(lastMessage);
+      }
+    },
+    // 删除指定消息
+    removeMessage(msgId) {
+      if (!this.currentChatId) return;
+      const messages = this.conversations[this.currentChatId].messages;
+      const idx = messages.findIndex(m => m.id === msgId);
+      if (idx >= 0) {
+        messages.splice(idx, 1);
       }
     },
     // 查找当前对话的最后一条 AI 消息

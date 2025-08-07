@@ -13,14 +13,18 @@
         <view class="text-content">
           <zero-markdown-view v-if="props.message.sender === 'ai'" :markdown="props.message.text || ''"
                               :aiMode="true"
-							  style="padding: 0 4px;"
-							  />
+                style="padding: 0 4px;"
+                />
           <text v-else selectable="true">{{ props.message.text }}</text>
         </view>
 
         <template v-if="props.message.sender === 'ai'">
           <KnowledgeSources :sources="props.message.references"/>
         </template>
+        <!-- 重试按钮，仅当 AI 消息是最后一个且发生错误时显示 -->
+        <view v-if="props.message.sender === 'ai' && props.isLastAi && props.message.timeline.error && !props.message.timeline.current" class="retry-button-container">
+          <button class="retry-button" @click="handleRetry">重试</button>
+        </view>
       </view>
     </view>
   </view>
@@ -34,8 +38,17 @@ const props = defineProps({
   message: {
     type: Object,
     required: true
+  },
+  isLastAi: {
+    type: Boolean,
+    default: false
   }
 });
+const emit = defineEmits(['retry']);
+const handleRetry = () => {
+  console.log("重试按钮被点击，消息ID:", props.message.id);
+  emit('retry', props.message.id);
+};
 </script>
 
 <style lang="scss" scoped>
@@ -48,7 +61,7 @@ const props = defineProps({
   padding: 8px;
 
   &.user {
-	  flex-direction: row-reverse;
+    flex-direction: row-reverse;
   }
 
   &.ai {
@@ -94,5 +107,17 @@ const props = defineProps({
   font-size: 16px;
   line-height: 1.2;
   word-wrap: break-word;
+}
+// 重试按钮样式
+.retry-button-container {
+  padding: 4px;
+  text-align: right;
+}
+.retry-button {
+  background-color: transparent;
+  border: none;
+  color: #2563eb;
+  font-size: 14px;
+  cursor: pointer;
 }
 </style>

@@ -9,7 +9,7 @@
         @scroll="handleScroll"
     >
       <view v-for="msg in props.messages" :key="msg.id" :id="msg.id">
-        <MessageItem :message="msg" />
+        <MessageItem :message="msg" :is-last-ai="msg.id===lastAiId" @retry="handleItemRetry" />
       </view>
       <view id="scroll-bottom-anchor" style="height: 1px;"></view>
     </scroll-view>
@@ -24,7 +24,7 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted, getCurrentInstance } from 'vue';
+import { ref, nextTick, onMounted, getCurrentInstance, computed } from 'vue';
 import MessageItem from './MessageItem.vue';
 
 const props = defineProps({
@@ -37,8 +37,18 @@ const props = defineProps({
     default: false
   }
 });
+// 计算最后一个 AI 消息的 id
+const lastAiId = computed(() => {
+  const list = props.messages;
+  for (let i = list.length - 1; i >= 0; i--) {
+    if (list[i].sender === 'ai') {
+      return list[i].id;
+    }
+  }
+  return null;
+});
 
-const emit = defineEmits(['onScrollStateChange', 'requestScroll']);
+const emit = defineEmits(['onScrollStateChange', 'requestScroll', 'retry']);
 
 const useAnimation = ref(false);
 const scrollTargetId = ref('scroll-bottom-anchor');
@@ -82,6 +92,12 @@ const scrollToBottom = (options = { animated: false }) => {
       isProgrammaticScroll = false;
     }, 300);
   });
+};
+
+// 处理从消息项冒泡的重试事件
+const handleItemRetry = (msgId) => {
+  console.log("MessageList 收到重试事件:", msgId);
+  emit('retry', msgId);
 };
 
 defineExpose({

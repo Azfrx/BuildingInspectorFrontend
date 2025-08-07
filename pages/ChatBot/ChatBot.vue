@@ -23,6 +23,7 @@
           :show-scroll-button="showScrollToBottomButton"
           @onScrollStateChange="handleScrollStateChange"
           @requestScroll="forceScrollToBottomAnimated"
+          @retry="handleRetryMessage"
       />
 
       <ChatInput 
@@ -382,6 +383,43 @@ const startStepTimer = () => {
           activeTimer = null;
         }
     });
+  }, 100);
+};
+
+// 重试：删除未完成 AI 消息并重发上一条用户消息
+const handleRetryMessage = (msgId) => {
+  console.log("开始重试消息:", msgId);
+  
+  // 中断当前生成并清理状态
+  handleInterruptGeneration();
+  
+  // 等待清理完成后执行重试
+  setTimeout(() => {
+    // 寻找对应 AI 消息在列表中的位置
+    const msgs = chatStore.currentMessages;
+    const idx = msgs.findIndex(m => m.id === msgId);
+    console.log("找到消息位置:", idx, "消息总数:", msgs.length);
+    
+    if (idx <= 0) {
+      console.warn("无法找到对应的用户消息");
+      return;
+    }
+    
+    const prev = msgs[idx - 1];
+    console.log("上一条消息:", prev);
+    
+    if (prev.sender !== 'user') {
+      console.warn("上一条消息不是用户消息");
+      return;
+    }
+    
+    // 删除未完成的 AI 消息
+    console.log("删除未完成的 AI 消息:", msgId);
+    chatStore.removeMessage(msgId);
+    
+    // 重新发送用户上一条消息
+    console.log("重新发送用户消息:", prev.text);
+    handleSendMessage(prev.text);
   }, 100);
 };
 </script>
