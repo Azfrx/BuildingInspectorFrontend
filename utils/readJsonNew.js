@@ -670,6 +670,14 @@ export async function getFrontPhoto(userName, buildingId) {
     return getJsonData(path);
 }
 
+export async function getUDFrontPhoto(userName, buildingId) {
+    // 查找匹配的目录
+    const matchedDir = await findMatchingDirectory(userName);
+    const path = DOC_BASE_PATH + `${matchedDir}/building/${buildingId}/frontPhoto.json`;
+    trackPath(path);
+    return getJsonData(path);
+}
+
 export function removeDiseaseImage(paths) {
 	return new Promise((resolve, reject) => {
 		try {

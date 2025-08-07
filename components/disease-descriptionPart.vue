@@ -41,6 +41,7 @@
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
 				<view>评定标度</view>
+        <image src="/static/image/diseaseHelp.png" @click="showDiseaseHelp" class="disease-help"></image>
 			</view>
 			<view class="line-select-right">
 				<uni-data-checkbox mode="tag" v-model="levelindex" :localdata="level"></uni-data-checkbox>
@@ -57,18 +58,46 @@
 			</view>
 		</view>
 
+    <uni-popup ref="diseaseHelpPopup" type="center">
+      <view class="diseaseHelp-popup-content">
+        <view class="popup-title">病害标度信息</view>
+        <view class="popup-input1">
+          <text class="popup-input1-title">病害标度</text>
+          <view class="popup-input1-content">
+            定性描述
+          </view>
+          <view class="popup-input1-content">
+            定量描述
+          </view>
+        </view>
+        <view class="popup-input1" v-for="item in diseaseHelpList">
+          <text class="popup-input1-title">{{ item.scale }}</text>
+          <view class="popup-input1-content">
+            {{ item.qualitative_description }}
+          </view>
+          <view class="popup-input1-content">
+            {{item.quantitative_description}}
+          </view>
+        </view>
+        <view class="popup-button">
+          <button class="popup-button-confirm" @click="confirmDiseaseHelp">确定</button>
+        </view>
+      </view>
+    </uni-popup>
+
 	</view>
 </template>
 
 <script setup>
-	import {
-		computed,
-		onMounted,
-		ref
-	} from 'vue';
+import {
+  computed,
+  onMounted, onUnmounted,
+  ref
+} from 'vue';
 	import {
 		generateDiseaseDescription
 	} from '@/utils/diseaseDescriptionCreate.js'
+import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 
 	//病害描述
 	const description = ref('');
@@ -82,9 +111,6 @@
 		text: '结构病害',
 		value: 1
 	}]);
-	// 添加病害类型picker和input变量
-	const typePicker = ref('');
-	const typeInput = ref('');
 	const participateAssessindex = ref(1);
 	//参与评定
 	const participateAssess = ref([{
@@ -144,6 +170,16 @@
 	])
 	const developmentTrendIndex = ref(0);
 
+  const diseaseHelpList = ref([])
+
+  const diseaseHelpPopup = ref();
+  const confirmDiseaseHelp = () => {
+    diseaseHelpPopup.value.close();
+  }
+  const showDiseaseHelp = () => {
+    diseaseHelpPopup.value.open();
+  }
+
 	onMounted(() => {
 		uni.$on('changeScale', changeScale);
 
@@ -154,8 +190,25 @@
 		uni.$on('setNature', setNature);
 		uni.$on('setParticipateAssess', setParticipateAssess);
 		uni.$on('setDevelopmentTrend', setDevelopmentTrend)
+    uni.$on('setDiseaseHelp', setDiseaseHelp)
 	})
 
+  onUnmounted(() => {
+    uni.$off('changeScale');
+    uni.$off('setDescription1');
+    uni.$off('setDescription2');
+    uni.$off('setDescriptionByEmit');
+    uni.$off('setLevel');
+    uni.$off('setNature');
+    uni.$off('setParticipateAssess');
+    uni.$off('setDevelopmentTrend');
+    uni.$off('setDiseaseHelp');
+  })
+  const setDiseaseHelp = (emitDiseaseCode) => {
+    const parts = emitDiseaseCode.split('-'); // 按 '-' 分割成数组
+    const formattedCode = parts.slice(0, 2).join('-'); // 取前两部分并用 '-' 重新连接
+    diseaseHelpList.value = getDiseaseScale(formattedCode);
+  }
 	const setDevelopmentTrend = (emitDevelopmentTrend) => {
 		developmentTrendIndex.value = developmentTrend.value.findIndex(item => item.text === emitDevelopmentTrend);
 	}
@@ -328,5 +381,58 @@
 	view {
 		box-sizing: border-box;
 	}
+  .disease-help {
+    height: 20rpx;
+    width: 20rpx;
+  }
+  .diseaseHelp-popup-content {
+    background-color: #fff;
+    width: 700rpx;
+    max-height: 80vh;
+    min-height: 200rpx;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .popup-title {
+    background-color: #BDCBE0;
+    font-size: 20rpx;
+    padding: 8rpx 0rpx;
+    text-align: center;
+    flex-shrink: 0;
+  }
+  .popup-input1 {
+    display: flex;
+    align-items: flex-start;
+    padding: 10px 10rpx;
+    border-bottom: 1rpx solid #eee;
+    flex-shrink: 0;
+  }
+  .popup-input1-title {
+    font-size: 20rpx;
+    min-width: 80rpx;
+    text-align: center;
+  }
+  .popup-input1-content {
+    flex: 1;
+    margin-left: 30rpx;
+    font-size: 20rpx;
+    word-wrap: break-word;
+    line-height: 1.4;
+  }
+  .popup-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30rpx;
+	margin-bottom: 10rpx;
+    flex-shrink: 0;
+  }
+  .popup-button-confirm {
+    background-color: #1677FF;
+    color: #fff;
+  }
 
 </style>

@@ -15,11 +15,8 @@ function generateDiseaseDescription(data) {
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
 
-	// 仅显示名称部分
-	const componentNameOnly = componentName.split('#')[1];
-
-	let description = `${componentCode}#${componentName}${diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}，${diseasePosition}`;
-	if (showColumns[0] == 1 && crackType) description += `${crackType}裂缝`;
+	let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '在'+diseasePosition : ''}有${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
+	if (showColumns[0] == 1 && crackType) description += `，${crackType}裂缝`;
 	let descriptionArr = [];
 
 	if (counts < threshold) {
@@ -32,17 +29,16 @@ function generateDiseaseDescription(data) {
 				descriptionArr.push(`距${item.reference2Location} ${item.reference2LocationStart}m`);
 			}
 			if (showColumns[1] == 1 && item.length1) {
-
 				if(crackType === 'L型'){
-					descriptionArr.push(`长度1：${item.length1}m`);
-					descriptionArr.push(`长度2：${item.length2}m`);
+					descriptionArr.push(`长度L1=${item.length1}m`);
+					descriptionArr.push(`L2=${item.length2}m`);
 				}
 				else if(crackType === 'U型'){
-					descriptionArr.push(`长度1：${item.length1}m`);
-					descriptionArr.push(`长度2：${item.length2}m`);
-					descriptionArr.push(`长度3：${item.length3}m`);
+					descriptionArr.push(`长度L1=${item.length1}m`);
+					descriptionArr.push(`L2=${item.length2}m`);
+					descriptionArr.push(`L3=${item.length3}m`);
 				}else{
-					descriptionArr.push(`长度：${item.length1}m`);
+					descriptionArr.push(`长度L=${item.length1}m`);
 				}
 			}
 			if (showColumns[2] == 1 && item.crackWidth) {
@@ -52,7 +48,7 @@ function generateDiseaseDescription(data) {
 				descriptionArr.push(`高度/深度：${item.heightDepth}m`);
 			}
 			if (showColumns[4] == 1 && item.areaLength && item.areaWidth) {
-				descriptionArr.push(`面积：${item.areaLength}×${item.areaWidth}m²`);
+				descriptionArr.push(`面积S=${item.areaLength}×${item.areaWidth}m²`);
 			}
 			if (showColumns[5] == 1 && item.deformation) {
 				descriptionArr.push(`变形/位移：${item.deformation}m`);
@@ -79,7 +75,7 @@ function generateDiseaseDescription(data) {
 			descriptionArr.push(`距${item.reference2Location} ${item.reference2LocationStart}m`);
 		}
 		if (showColumns[1] == 1 && item.lengthRangeStart && item.lengthRangeEnd) {
-			descriptionArr.push(`长度：${item.lengthRangeStart}~${item.lengthRangeEnd}m`);
+			descriptionArr.push(`长度L=${item.lengthRangeStart}~${item.lengthRangeEnd}m`);
 		}
 		if (showColumns[2] == 1 && item.crackWidthRangeStart && item.crackWidthRangeEnd) {
 			descriptionArr.push(`缝宽：${item.crackWidthRangeStart}~${item.crackWidthRangeEnd}mm`);
@@ -88,8 +84,8 @@ function generateDiseaseDescription(data) {
 			descriptionArr.push(`高度/深度：${item.heightDepthRangeStart}~${item.heightDepthRangeEnd}m`);
 		}
 		if (showColumns[4] == 1 && item.areaLength && item.areaWidth) {
-			const areaLabel = item.areaIdentifier == 1 ? '平均' : item.areaIdentifier == 2 ? '总计' : item.areaIdentifier;
-			descriptionArr.push(`面积(${areaLabel})：${item.areaLength}×${item.areaWidth}m²`);
+			const areaLabel = item.areaIdentifier == 1 ? '均' : item.areaIdentifier == 2 ? '总' : item.areaIdentifier;
+			descriptionArr.push(`面积S(${areaLabel})=${item.areaLength}×${item.areaWidth}m²`);
 		}
 		if (showColumns[5] == 1 && item.deformationRangeStart && item.deformationRangeEnd) {
 			descriptionArr.push(`变形/位移：${item.deformationRangeStart}~${item.deformationRangeEnd}m`);
