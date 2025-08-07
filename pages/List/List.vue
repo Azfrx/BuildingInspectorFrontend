@@ -436,7 +436,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			'2': '/static/image/bridge1.png', //拱桥
 			'1': '/static/image/bridge2.png', //梁式桥
 			'4': '/static/image/bridge3.png', //斜拉桥
-			'3': '/static/images/bridge4.png', //悬索桥
+			'3': '/static/image/bridge4.png', //悬索桥
 		}
 		return icons[type] || icons['arch']
 	}
@@ -570,7 +570,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
   const formatDate = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    const year = date.getFullYear().toString().slice(-2); // 取后两位作为 yy
+    const year = date.getFullYear().toString().slice(); // yyyy
     const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1并补零
     const day = String(date.getDate()).padStart(2, '0'); // 日期补零
     return `${year}-${month}-${day}`;

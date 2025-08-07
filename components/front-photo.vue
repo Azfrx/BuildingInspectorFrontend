@@ -19,9 +19,6 @@
 							左正面照
 						</view>
 					</view>
-					<!--					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontLeft"
-						file-mediatype="image" mode="grid" @select="frontLeftSelect" :auto-upload="false" @delete="deletePhoto('frontLeft')"
-						@success="onUploadSuccess('frontLeft')"></my-file-picker>-->
 					<my-photo-picker class="photo-select" v-model="frontLeft" @select="frontLeftSelect"
 						@delete="deletePhoto('frontLeft')" :limit="1"></my-photo-picker>
 				</view>
@@ -32,9 +29,6 @@
 							右正面照
 						</view>
 					</view>
-					<!--					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="frontRight"
-						file-mediatype="image" mode="grid" @select="frontRightSelect" :auto-upload="false" @delete="deletePhoto('frontRight')"
-						@success="onUploadSuccess('frontRight')"></my-file-picker>-->
 					<my-photo-picker class="photo-select" v-model="frontRight" @select="frontRightSelect"
 						@delete="deletePhoto('frontRight')" :limit="1"></my-photo-picker>
 				</view>
@@ -47,9 +41,6 @@
 							左侧面照
 						</view>
 					</view>
-					<!--					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideLeft"
-						file-mediatype="image" mode="grid" @select="sideLeftSelect" :auto-upload="false" @delete="deletePhoto('sideLeft')"
-						@success="onUploadSuccess('sideLeft')"></my-file-picker>-->
 					<my-photo-picker class="photo-select" v-model="sideLeft" @select="sideLeftSelect"
 						@delete="deletePhoto('sideLeft')" :limit="1"></my-photo-picker>
 				</view>
@@ -60,9 +51,6 @@
 							右侧面照
 						</view>
 					</view>
-					<!--					<my-file-picker class="file-picker" limit="1" :image-styles="imageStyles" v-model="sideRight"
-						file-mediatype="image" mode="grid" @select="sideRightSelect" :auto-upload="false" @delete="deletePhoto('sideRight')"
-						@success="onUploadSuccess('sideRight')"></my-file-picker>-->
 					<my-photo-picker class="photo-select" v-model="sideRight" @select="sideRightSelect"
 						@delete="deletePhoto('sideRight')" :limit="1"></my-photo-picker>
 				</view>

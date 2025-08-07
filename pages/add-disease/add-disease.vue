@@ -644,6 +644,35 @@
 
       // 根据模式创建对应的数据结构
       if (isRangeMode) {
+        if(data.diseaseDetails.length === 0){
+          data.diseaseDetails.push({
+            useRangeMode: true,
+            // 最小值
+            lengthRangeStart:'',
+            lengthRangeEnd: '',
+            heightDepthRangeStart: '',
+            heightDepthRangeEnd: '',
+            crackWidthRangeStart: '',
+            crackWidthRangeEnd: '',
+            areaLength: '',
+            areaWidth: '',
+            areaIdentifier: '',
+            deformationRangeStart: '',
+            deformationRangeEnd: '',
+            angleRangeStart: '',
+            angleRangeEnd: '',
+            numeratorRatio: '',
+            denominatorRatio: '',
+
+            // 参考面信息
+            reference1Location: '',
+            reference1LocationStart: '',
+            reference1LocationEnd: '',
+            reference2Location: '',
+            reference2LocationStart: '',
+            reference2LocationEnd: '',
+          })
+        }
         // 范围模式 - 缺损数量大于等于10时
         const detail = data.diseaseDetails[0];
 
@@ -653,8 +682,6 @@
           // 最小值
           lengthRangeStart: detail.lengthRangeStart || '',
           lengthRangeEnd: detail.lengthRangeEnd || '',
-          /*					widthRangeStart: detail.widthRangeStart || '',
-                    widthRangeEnd: detail.widthRangeEnd || '',*/
           heightDepthRangeStart: detail.heightDepthRangeStart || '',
           heightDepthRangeEnd: detail.heightDepthRangeEnd || '',
           crackWidthRangeStart: detail.crackWidthRangeStart || '',
@@ -676,17 +703,38 @@
           reference2Location: detail.reference2Location || '',
           reference2LocationStart: detail.reference2LocationStart || '',
           reference2LocationEnd: detail.reference2LocationEnd || '',
-
-          // 裂缝特征和趋势 - 查找索引值
-          /*					crackTypeIndex: findIndexByText(crackType.value, detail
-                      .crackType) || 0,
-                    developmentTrendIndex: findIndexByText(developmentTrend.value, detail.developmentTrend) || 0*/
         };
 
         // 更新数据列表
         diseaseDataList.value = [rangeData];
       } else {
-        console.log('普通模式:', data.diseaseDetails)
+        if(data.diseaseDetails.length < data.quantity){
+          while(data.diseaseDetails.length < data.quantity){
+            data.diseaseDetails.push({
+              useRangeMode: false,
+              length1: '',
+              length2: '',
+              length3: '',
+              heightDepth: '',
+              crackWidth: '',
+              areaLength: '',
+              areaWidth: '',
+              areaIdentifier: '',
+              deformation: '',
+              angle: '',
+              numeratorRatio: '',
+              denominatorRatio: '',
+
+              // 参考面信息
+              reference1Location: '',
+              reference1LocationStart: '',
+              reference1LocationEnd: '',
+              reference2Location: '',
+              reference2LocationStart: '',
+              reference2LocationEnd: '',
+            })
+          }
+        }
         // 普通模式 - 为每个缺损创建一条记录
         const newList = data.diseaseDetails.map(detail => {
           return {
@@ -694,7 +742,6 @@
             length1: detail.length1 || '',
             length2: detail.length2 || '',
             length3: detail.length3 || '',
-            // width: detail.width || '',
             heightDepth: detail.heightDepth || '',
             crackWidth: detail.crackWidth || '',
             areaLength: detail.areaLength || '',
@@ -702,7 +749,6 @@
             areaIdentifier: detail.areaIdentifier || '',
             deformation: detail.deformation || '',
             angle: detail.angle || '',
-            // percentage: detail.percentage || '',
             numeratorRatio: detail.numeratorRatio || '',
             denominatorRatio: detail.denominatorRatio || '',
 
@@ -714,12 +760,6 @@
             reference2Location: detail.reference2Location || '',
             reference2LocationStart: detail.reference2LocationStart || '',
             reference2LocationEnd: detail.reference2LocationEnd || '',
-
-            // 裂缝特征和趋势 - 查找索引值
-            /*						crackTypeIndex: findIndexByText(crackType.value, detail
-                          .crackType) || 0,
-                        developmentTrendIndex: findIndexByText(developmentTrend.value, detail
-                          .developmentTrend) || 0*/
           };
         });
 
@@ -1719,12 +1759,12 @@
 	
 	/* 覆盖myPhotoPicker组件中的图片容器尺寸 */
 	.photo-select::v-deep .preview-container {
-		width: 160rpx;
-		height: 160rpx;
-		min-width: 160rpx;
-		min-height: 160rpx;
-		max-width: 160rpx;
-		max-height: 160rpx;
+		width: 140rpx;
+		height: 140rpx;
+		min-width: 140rpx;
+		min-height: 140rpx;
+		max-width: 140rpx;
+		max-height: 140rpx;
 	}
 
 	.file-picker {
