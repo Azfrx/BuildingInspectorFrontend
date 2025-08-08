@@ -59,13 +59,13 @@
 
 	// 分离图片项和文本项
 	const imageItems = computed(() => {
-		// 获取前两项作为图片项
-		return dataArray.value.slice(0, 2);
+		// 获取前四项作为图片项
+		return dataArray.value.slice(0, 4);
 	});
 
 	const textItems = computed(() => {
-		// 获取第三项及之后的所有项作为文本项
-		return dataArray.value.slice(2);
+		// 获取第五项及之后的所有项作为文本项
+		return dataArray.value.slice(4);
 	});
 
 	// 获取图片URL，如果值为"/"或不存在，则使用默认图片
