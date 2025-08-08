@@ -3,7 +3,7 @@ import {
     setFrontPhoto
 } from "@/utils/writeNew";
 import {
-    getFrontPhoto, getUDFrontPhoto
+    getFrontPhoto, getUDFrontPhoto, readBridgeUDImage
 } from "@/utils/readJsonNew.js";
 export async function setFrontPhotoCommited(userName, buildingId){
     const data = await getFrontPhoto(userName, buildingId);
@@ -33,6 +33,10 @@ export async function copyFrontPhoto(userName, buildingId){
         sideRight: [],
         commitType: 2 //0未提交 1已提交 2没存图片
     };
+    UDData.frontLeft = await readBridgeUDImage(userName, buildingId, UDData.frontLeft);
+    UDData.frontRight = await readBridgeUDImage(userName, buildingId, UDData.frontRight);
+    UDData.sideLeft = await readBridgeUDImage(userName, buildingId, UDData.sideLeft);
+    UDData.sideRight = await readBridgeUDImage(userName, buildingId, UDData.sideRight);
     ULdata.frontLeft = await saveBridgeImages(userName, buildingId, UDData.frontLeft);
     ULdata.frontRight = await saveBridgeImages(userName, buildingId, UDData.frontRight);
     ULdata.sideLeft = await saveBridgeImages(userName, buildingId, UDData.sideLeft);

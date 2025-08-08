@@ -283,22 +283,7 @@
 			}
 			if (data.commitType !== 2) isSubmit.value = data.commitType;
 		} catch (error) {
-			console.error('读取正立面照失败:', error);
-			// 初始化为空数组，不影响用户新上传图片
-			frontLeft.value = [];
-			frontRight.value = [];
-			sideLeft.value = [];
-			sideRight.value = [];
-			isSubmit.value = 2;
-			const data = {
-				frontLeft: [],
-				frontRight: [],
-				sideLeft: [],
-				sideRight: [],
-				commitType: 2 //0未提交 1已提交 2没存图片
-			};
-			await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
-      /*await copyFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+      await copyFrontPhoto(userInfo.username, idStorageInfo.buildingId);
       const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
       console.log('获取正立面照数据成功:', data);
       // 处理图片数据
@@ -317,7 +302,7 @@
         sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
             .sideRight)
       }
-      if (data.commitType !== 2) isSubmit.value = data.commitType;*/
+      if (data.commitType !== 2) isSubmit.value = data.commitType;
 		}
 	};
 
