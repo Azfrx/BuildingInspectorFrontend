@@ -33,7 +33,7 @@
 				</view>
 			</view>
 			<view v-else class="no-data-tip">
-				不存在第二层数据
+				正在加载
 			</view>
 		</view>
 
@@ -131,6 +131,7 @@ import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 import {idStore} from "@/store/idStorage";
 import {setCommit0} from "@/utils/CurrentPhoto";
 import {ButtonStore} from '@/store/button.js';
+import {useObject} from "@/store/object";
 
 //桥梁id
 const TaskBridgeId = ref(0)
@@ -143,6 +144,7 @@ const show = ref(false);
 const idStorageInfo = idStore()
 const buttonInfo = ButtonStore()
 const isCommit = ref(2)
+const objectData = useObject();
 // 确保每个二级菜单项都有独立的照片数组
 const ensurePhotoArrays = () => {
 	if (!structureData.value?.children) return;
@@ -563,6 +565,8 @@ const init = async () => {
 	try {
 		const latestData = await getObjectUL(userInfo.username, TaskBridgeId.value);
 		// console.log('获取到的原始数据:', JSON.stringify(latestData));
+    // const latestData = objectData.getData();
+
 		
 		// 确保数据结构完整
 		if (!latestData) {

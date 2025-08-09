@@ -30,8 +30,9 @@
 								<text>{{item.quantity}}</text>
 							</view>
 							<view class="info-row">
-								<text class="label">评定标度/参考评定：</text>
-								<text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>
+								<text class="label">参考评定/评定标度：</text>
+<!--								<text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>-->
+                <text>{{item.participateAssess === '1' ? '是' : (item.participateAssess === null ? '-' : '否')}}/{{item.participateAssess === '0' ? '-' : item.level}}</text>
 							</view>
 						</view>
 					</view>
@@ -75,8 +76,9 @@
             <text>{{item.quantity}}</text>
           </view>
           <view class="info-row">
-            <text class="label">评定标度/参考评定：</text>
-            <text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>
+            <text class="label">参考评定/评定标度：</text>
+<!--            <text>{{item.participateAssess === '1' ? '是' : '否'}}/{{item.participateAssess === '1' ? item.level : '-'}}</text>-->
+            <text>{{item.participateAssess === '1' ? '是' : (item.participateAssess === null ? '-' : '否')}}/{{item.participateAssess === '0' ? '-' : item.level}}</text>
           </view>
         </view>
       </view>
