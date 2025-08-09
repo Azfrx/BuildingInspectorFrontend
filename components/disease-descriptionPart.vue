@@ -384,6 +384,7 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
   .disease-help {
     height: 20rpx;
     width: 20rpx;
+    margin-left: 10rpx;
   }
   .diseaseHelp-popup-content {
     background-color: #fff;
