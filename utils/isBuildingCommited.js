@@ -30,7 +30,7 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
                 tasks[i] = {
-                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    updatetime: new Date().toISOString(),
                     id: tasks[i].id,
                     buildingId: tasks[i].buildingId,
                     commited: 0
@@ -50,7 +50,7 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
 }
 
 export async function setBuildingCommitted (username,projectId,buildingId) {
-    const taskData = await getTask(username, projectId);
+    const taskData = await getULTask(username, projectId);
 
     // 找到对应的任务项并设置 commited 字段为 1
     if (taskData && taskData.tasks) {
@@ -58,7 +58,7 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
         for (let i = 0; i < tasks.length; i++) {
             if (tasks[i].buildingId === buildingId) {
                 tasks[i] = {
-                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    updatetime: new Date().toISOString(),
                     id: tasks[i].id,
                     buildingId: tasks[i].buildingId,
                     commited: 1

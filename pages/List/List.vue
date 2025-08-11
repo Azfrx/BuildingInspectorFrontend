@@ -59,6 +59,7 @@
 <!--						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">
 							已提交</view>-->
 						<view class="status" v-if="bridge.commited === 0" style="background-color: #FF6430; color: #ffffff;">未提交</view>
+            <view class="status" v-if="bridge.commited === 1" style="background-color: #00B578; color: #ffffff;">已提交</view>
 						<text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
 						<text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
