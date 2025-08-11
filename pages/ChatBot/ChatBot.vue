@@ -382,12 +382,11 @@ const startStepTimer = () => {
   if (activeTimer) clearInterval(activeTimer);
   activeTimer = setInterval(() => {
     chatStore.updateLastAiMessage(currentMessage => {
-        if (currentMessage && currentMessage.timeline.current) {
+        // 当存在进行中的步骤时，刷新其 elapsed；
+        // 若当前没有步骤，不再停止计时器，等待下一步骤开始后继续更新。
+        if (currentMessage && currentMessage.timeline?.current) {
           const elapsed = ((Date.now() - currentMessage.timeline.current.startTime) / 1000).toFixed(1);
           currentMessage.timeline.current.elapsed = elapsed;
-        } else {
-          clearInterval(activeTimer);
-          activeTimer = null;
         }
     });
   }, 100);
