@@ -265,6 +265,7 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 			componentCode: description1.value.componentCode, // 构件编号
 			diseaseType: description1.value.type, // 病害类型
 			diseasePosition: description1.value.position, // 病害位置
+      positionNumber: description1.value.positionNumber,// 病害位置序号
       showColumns: description2.value.showColumns, // 是否显示裂缝特征
       crackType: description2.value.crackType, // 裂缝特征
 			defects: description2.value.defects, // 病害定量数据数组

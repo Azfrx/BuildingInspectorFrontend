@@ -286,6 +286,16 @@ const handleItemSelect = (event) => {
   console.log('当前选中项:', selectedItems.value);
 };
 
+// 使用闭包维护计数器
+const createIdGenerator = () => {
+  let counter = 0;
+  return () => {
+    counter = counter >= 999 ? 0 : counter + 1; // 防止溢出
+    return Number(`${Date.now()}${String(counter).padStart(3, '0')}`);
+  };
+};
+const generateUniqueId = createIdGenerator();
+
 // 复制病害
 const copyDisease = () => {
   if (selectedItems.value.length === 0) {
@@ -326,7 +336,7 @@ const copyDisease = () => {
       // 创建病害的深拷贝，避免修改原始数据
       const newDisease = JSON.parse(JSON.stringify(disease));
       // 生成新的ID和localId
-      const localId = new Date().getTime() + Math.floor(Math.random() * 1000);
+      const localId = generateUniqueId();
       newDisease.id = localId;
       newDisease.localId = localId;
       // 更新创建时间和更新时间为当前时间

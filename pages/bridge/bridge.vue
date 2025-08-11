@@ -68,9 +68,9 @@
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-						<text class="bridge-status"
-							:class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>
-						<text class="bridge-progress">{{ filteredProjectsTasks.length > 0 ? `0/${getTasksNumber(item.id)}` : '加载中...' }}</text>
+<!--						<text class="bridge-status"
+							:class="{ 'completed': item.status === '1' }">{{ getStatusText(item.status) }}</text>-->
+						<text class="bridge-progress">{{ filteredProjectsTasks.length > 0 ? `${getCommitedTasksNumber(item.id)}/${getTasksNumber(item.id)}` : '加载中...' }}</text>
 					</view>
 					<image src="/static/image/RightOutline.svg" mode="scaleToFill" />
 				</view>
@@ -100,69 +100,24 @@
 </template>
 
 <script setup>
-import {
-  ref,
-  onMounted,
-  computed,
-  watch, onUnmounted
-} from 'vue';
-	import {
-		getProject,
-		getTask,
-		getTaskByHadUsername
-	} from '../../utils/readJsonNew';
-	import {
-		setProject
-	} from '../../utils/writeNew';
-	import {
-		userStore
-	} from '@/store/index.js'
-	import {
-		idStore
-	} from '../../store/idStorage';
-	import {
-		FILE_NAMING,
-		listDirectoryFiles,
-		getAllFirstLevelDirs,
-		getHadProject
-	} from "@/utils/readJsonNew.js";
-	import {
-		async,
-		interval
-	} from 'rxjs';
-	// 从downloadUtils中导入函数
-	import {
-		useDownloader,
-		testDataPackageAPI,
-		directDownload,
-		parsePackageSize,
-		copyObjectJsonFiles
-	} from '@/utils/downloadUtils.js';
-	// 导入全局进度条管理器
-	import {
-		setActiveProgressId,
-		getActiveProgressId,
-		clearActiveProgressId,
-		isActiveProgressId
-	} from '@/utils/progressManager.js';
-	import {
-		createUserDataStructure,
-		checkDirectoryExists,
-		createDirectory,
-	} from '@/utils/fileUtils.js';
-	import {
-		deleteFolderInApp
-	} from '@/utils/deleteFolder.js';
-	// 导入saveZipAndStorePath函数
-	import { saveZipAndStorePath } from '@/utils/write.js';
-  	import ChatAgentButton from "../../components/ChatAgentButton.vue";
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {getProject, getTask, getTaskByHadUsername} from '../../utils/readJsonNew';
+import {userStore} from '@/store/index.js'
+import {idStore} from '../../store/idStorage';
+// 从downloadUtils中导入函数
+import {directDownload, parsePackageSize, testDataPackageAPI, useDownloader} from '@/utils/downloadUtils.js';
+// 导入全局进度条管理器
+import {clearActiveProgressId, isActiveProgressId, setActiveProgressId} from '@/utils/progressManager.js';
+// 导入saveZipAndStorePath函数
+import ChatAgentButton from "../../components/ChatAgentButton.vue";
 // 导入下载确认弹窗组件
 import downLoadWindow from '@/components/downLoadWindow.vue';
 import apiConfig from '../../config/api';
 // 导入版本更新弹窗组件
 import updateVersionWindow from '@/components/updateVersionWindow.vue';
-	
-	// 引入下载器
+import {getBuildingCommitedNumber} from "@/utils/isBuildingCommited";
+
+// 引入下载器
 	const { downloadProgress, unzipProgress, resetProgress, currentTaskId } = useDownloader();
 
 	// 添加进度条显示控制变量
@@ -1739,12 +1694,30 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 		return map;
 	});
 
+const projectCommitedTasksMap = computed(() => {
+
+  const map = new Map();
+  if (Array.isArray(filteredProjectsTasks.value)) {
+    filteredProjectsTasks.value.forEach(item => {
+
+      map.set(item.projectId, item.commitedNum || 0);
+    });
+  }
+
+  return map;
+});
+
 	// 同步获取任务数量的函数
 	const getTasksNumber = (id) => {
 		const result = projectTasksMap.value.get(id) || 0;
 	
 		return result;
 	};
+
+// 同步获取任务数量的函数
+const getCommitedTasksNumber = (id) => {
+  return projectCommitedTasksMap.value.get(id) || 0;
+};
 
 	// 监听 filteredProjectsTasks 的变化
 	watch(filteredProjectsTasks, (newVal) => {
@@ -1796,10 +1769,12 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				
 				// 确保data和tasks存在
 				const tasksCount = taskGetWithProjectId?.tasks?.length || 0;
+        const commitedNum = await getBuildingCommitedNumber(userInfo.username, item.id)
 				
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
-					tastsNumber: tasksCount
+					tastsNumber: tasksCount,
+          commitedNum: commitedNum
 				});
 			
 			} catch (error) {
@@ -1807,7 +1782,8 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				// 添加错误处理，确保即使一个项目失败也不会影响其他项目
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
-					tastsNumber: 0
+					tastsNumber: 0,
+          commitedNum: 0
 				});
 			}
 		}
@@ -1822,12 +1798,14 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				//读取本地task
 			
 				const taskGetWithProjectId = await getTaskByHadUsername(hadUsername, item.id)
+        const commitedNum = await getBuildingCommitedNumber(hadUsername, item.id)
 				
 				// 确保data和tasks存在
 				const tasksCount = taskGetWithProjectId?.data?.tasks?.length || 0;
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
-					tastsNumber: tasksCount
+					tastsNumber: tasksCount,
+          commitedNum: commitedNum
 				});
 				
 			} catch (error) {
@@ -1835,7 +1813,8 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 				// 添加错误处理，确保即使一个项目失败也不会影响其他项目
 				filteredProjectsTasks.value.push({
 					projectId: item.id,
-					tastsNumber: 0
+					tastsNumber: 0,
+          commitedNum: 0
 				});
 			}
 		}
@@ -1941,12 +1920,21 @@ import updateVersionWindow from '@/components/updateVersionWindow.vue';
 			uni.$emit('unzip-progress', { progress: newValue });
 		});
 
+    uni.$on('getCommitedNum',getCommitedNum);
 	
     // 取消屏幕常亮
     uni.setKeepScreenOn({
       keepScreenOn: false
     });
 	});
+  const getCommitedNum = async (projectId) => {
+    const commitedNum = await getBuildingCommitedNumber(userInfo.username, projectId);
+    for (let i = 0; i < filteredProjectsTasks.value.length; i++){
+      if (filteredProjectsTasks.value[i].projectId === projectId) {
+        filteredProjectsTasks.value[i].commitedNum = commitedNum;
+      }
+    }
+  };
 
 	const handleRadioChange = (e) => {
 		const value = e.detail.value;

@@ -467,7 +467,7 @@ onMounted(async () => {
     uni.showToast({
       title: '加载完成',
       icon: 'success',
-      duration: 2000
+      duration: 1000
     });
     console.log("组件挂载完成");
     
@@ -478,7 +478,7 @@ onMounted(async () => {
     uni.showToast({
       title: '加载失败，请重试',
       icon: 'none',
-      duration: 2000
+      duration: 1000
     });
   }
 });
