@@ -658,7 +658,8 @@
 			componentName: getComponentName(), // 获取当前选择的构件名称
 			componentCode: componentCodeInput.value, // 构件编号
 			type: type.value, // 病害类型
-			position: position.value // 病害位置
+			position: position.value, // 病害位置
+      positionNumber: positionNumber.value, // 病害位置编号
 		};
 		uni.$emit('setDescription1', description);
 	}
@@ -844,6 +845,7 @@
 		positionPicker.value = '';
 		typeInput.value = '';
 		positionInput.value = '';
+    positionNumber.value = '';
 	}
 
 	// 根据选择的部件类型更新缺损类型选项

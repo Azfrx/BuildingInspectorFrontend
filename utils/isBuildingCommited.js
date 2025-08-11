@@ -47,6 +47,7 @@ export async function setBuildingUnCommitted (username,projectId,buildingId) {
     }
     uni.$emit('setButtonUnCommited')
     await setTask(username, projectId, taskData);
+    uni.$emit('getCommitedNum',projectId)
 }
 
 export async function setBuildingCommitted (username,projectId,buildingId) {
@@ -75,6 +76,7 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
     }
     uni.$emit('setButtonCommited')
     await setTask(username, projectId, taskData);
+    uni.$emit('getCommitedNum',projectId)
 }
 
 export async function isBuildingCommited (username,projectId,buildingId) {
@@ -91,4 +93,23 @@ export async function isBuildingCommited (username,projectId,buildingId) {
             }
         }
     }
+}
+
+export async function getBuildingCommitedNumber (username,projectId) {
+    try{
+        const taskData = await getULTask(username, projectId);
+        let count = 0;
+        if (taskData && taskData && taskData.tasks) {
+            const tasks = taskData.tasks;
+            for (let i = 0; i < tasks.length; i++) {
+                if (tasks[i].commited === 1) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }catch (e) {
+        return 0;
+    }
+
 }
