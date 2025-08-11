@@ -333,9 +333,17 @@ const handleSSEMessage = (event) => {
               currentMessage.references.push(data.reference);
             }
             break;
+          case "error":
+            if (activeTimer) clearInterval(activeTimer);
+            chatStore.updateLastAiMessage(currentMessage => {
+              currentMessage.timeline.current = null;
+              currentMessage.timeline.error = "网络异常";
+            });
+            isLoading.value = false;
         }
     });
   } catch(e) {
+    handleSSEError(e)
     console.error("[日志] 解析SSE失败", "错误:", e, "原始事件:", event);
   }
 };
@@ -362,7 +370,6 @@ const handleSSEFinish = () => {
   isLoading.value = false;
 };
 
-// --- 辅助函数 ---
 const generateMessageId = () => `msg_${Date.now()}_${Math.floor(Math.random() * 1000000)}`;
 const completeCurrentStep = (message) => {
   const aiMessage = message || chatStore.findLastAiMessage();
