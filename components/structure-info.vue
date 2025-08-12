@@ -238,6 +238,7 @@ const safeTreeData = computed(() => {
 const isReady = computed(() => {
   return !isLoading.value && treeData.value && safeMenuIndex.value
 })
+let previousValue = 0;  // 用于保存上一次的值
 //检查一级菜单下的三级菜单警告状态，并统计数量
 const checkFirstLevelWarning = (item1) => {
 	  if (!item1.children) {
@@ -387,8 +388,18 @@ const setComponentCount = async () =>{
 		});
 		return;
 	}
-	
+	previousValue = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count;
+	console.log("previous",previousValue);
 	currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = componentCount.value;
+	
+	//更新的差值
+	const diff =  componentCount.value - previousValue;
+	console.log("diff",diff);
+	
+	//统计父节点数量
+	currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].count += diff;
+	
+	currentData.children[currentMenuIndex[0]].count  += diff;
 	
 	// 重新计算第二级菜单项的警告状态
 	const currentItem2 = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]];
@@ -412,6 +423,26 @@ const setComponentCount = async () =>{
 	//关闭按钮
 	closeButton();
 }
+//初始化更新所有count 全部置0
+function resetCounts(data) {
+  // 遍历第一层
+  for (let i = 0; i < data.children.length; i++) {
+    // 遍历第二层
+    for (let j = 0; j < data.children[i].children.length; j++) {
+      // 遍历第三层
+      for (let k = 0; k < data.children[i].children[j].children.length; k++) {
+        // 将第三层的 count 重置为 0
+        data.children[i].children[j].children[k].count = 0;
+      }
+      // 将第二层的 count 重置为 0
+      data.children[i].children[j].count = 0;
+    }
+    // 将第一层的 count 重置为 0
+    data.children[i].count = 0;
+  }
+}
+
+
 onMounted(async () => {
   try {
     uni.showLoading({
@@ -422,7 +453,6 @@ onMounted(async () => {
     // 尝试从UL目录读取object.json
     console.log('尝试从UL目录读取object.json，参数:', userInfo.username, idInfo.buildingId);
     let structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-
     // 如果UL目录中没有有效数据，尝试从UD目录复制
     if (!structureData || !structureData.children || structureData.children.length === 0) {
       console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
@@ -442,7 +472,15 @@ onMounted(async () => {
         structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
       }
     }
-
+	
+	//如果是未锁定 将所有count置0
+	 console.log("satus",structureData.status);
+	 console.log("structureData.init",structureData.init);
+	if(structureData.status !== 3 && structureData.init === undefined){
+		resetCounts(structureData)
+		structureData.init = false;
+	}
+	 
     // 设置数据并计算警告状态
     objectData.setData(structureData);
     const data = objectData.getData();
