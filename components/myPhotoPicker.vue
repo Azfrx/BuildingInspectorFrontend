@@ -106,7 +106,15 @@ const props = defineProps({
   limit: {
     type: Number,
     default: 20
-  }
+  },
+  currentSecondIndex: {
+    type: Number,
+    default: 0
+  },
+  currentSecondItem: {
+    type: Object,
+    default: () => ({})
+  },
 });
 const userInfo = userStore()
 const buttonInfo = ButtonStore()
@@ -140,24 +148,20 @@ const updateButtonInfo = async() => {
 
 // 计算属性：根据索引获取对应的图片信息
 const getPhotoInfoText = (index) => {
-  if (!buttonInfo.photoData || !buttonInfo.photoData.children) return '请添加图片信息';
+  console.log('getPhotoInfoText 被调用，index:', index);
+  console.log('props.currentItem:', props.currentSecondItem);
 
-  // 获取当前图片对应的信息
-  const firstIndex = buttonInfo.firstIndex;
-
-  try {
-    // 检查当前结构下是否有对应的二级菜单项
-    const secondLevelItem = buttonInfo.photoData.children[firstIndex]?.children?.[selectedSecondIndex.value];
-
-    // 检查二级菜单项是否有information数组且索引有效
-    if (secondLevelItem && Array.isArray(secondLevelItem.information) &&
-        index < secondLevelItem.information.length &&
-        secondLevelItem.information[index]) {
-      return secondLevelItem.information[index];
-    }
-  } catch (error) {
-    console.error('获取图片信息出错:', error);
+  // 直接使用当前菜单项的信息
+  if (props.currentSecondItem && Array.isArray(props.currentSecondItem.information) &&
+      index < props.currentSecondItem.information.length &&
+      props.currentSecondItem.information[index]) {
+    console.log('找到信息:', props.currentSecondItem.information[index]);
+    return props.currentSecondItem.information[index];
   }
+
+  console.log('未找到信息，currentItem:', props.currentSecondItem);
+  console.log('information 数组:', props.currentSecondItem?.information);
+  console.log('index:', index);
 
   return '请添加图片信息';
 }
@@ -195,7 +199,7 @@ const showPhotoInfo = (index) => {
 };
 
 // 添加selectedSecondIndex变量，用于存储当前选中的二级菜单索引
-const selectedSecondIndex = ref(0);
+// const selectedSecondIndex = ref(0);
 
 // 初始化时加载图片数据
 const initPhotoData = async () => {
@@ -203,14 +207,6 @@ const initPhotoData = async () => {
     const data = await updateButtonInfo();
     if (data) {
       buttonInfo.setPhotoData(data);
-
-      // 监听current-photo组件中的信息更新事件
-      uni.$on('photoInfoUpdated', (data) => {
-        // 更新按钮信息
-        buttonInfo.setPhotoData(data.structureData);
-        buttonInfo.setFirstIndex(data.firstIndex);
-        selectedSecondIndex.value = data.secondIndex;
-      });
     }
   } catch (error) {
     console.error('初始化图片数据失败:', error);
@@ -220,11 +216,19 @@ const initPhotoData = async () => {
 // 组件挂载时初始化数据
 onMounted(() => {
   initPhotoData();
+  // 监听current-photo组件中的信息更新事件
+/*  uni.$on('photoInfoUpdated', (data) => {
+    // 更新按钮信息
+    buttonInfo.setPhotoData(data.structureData);
+    buttonInfo.setFirstIndex(data.firstIndex);
+    selectedSecondIndex.value = data.secondIndex;
+    console.log('uni.$on---selectedSecondIndex...................................', selectedSecondIndex.value)
+  });*/
 });
 
 // 组件卸载时移除事件监听
 onUnmounted(() => {
-  uni.$off('photoInfoUpdated');
+  // uni.$off('photoInfoUpdated');
 });
 
 // 处理图片选择成功

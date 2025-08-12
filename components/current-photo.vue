@@ -41,8 +41,13 @@
 		<view class="photo-section">
 			<view v-for="(item, index) in secondLevelItems" :key="index">
 				<view class="photo-controls-wrapper">
-					<myPhotoPicker v-if="selectedSecondIndex === index" v-model="item.photo"
-						@select="handlePhotoChange(item)" @delete="handleDeletePhoto" @showPhotoInfo="(photoIdx) => showPhotoInfo(photoIdx)" />
+					<myPhotoPicker v-if="selectedSecondIndex === index"
+                         v-model="item.photo"
+                         :currentSecondIndex = selectedSecondIndex
+                         :currentSecondItem = item
+                         @select="handlePhotoChange(item)"
+                         @delete="handleDeletePhoto"
+                         @showPhotoInfo="(photoIdx) => showPhotoInfo(photoIdx)" />
 				</view>
 			</view>
 		</view>
