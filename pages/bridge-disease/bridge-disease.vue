@@ -28,6 +28,8 @@
 						class="red-icon"></image>
 					<image v-if="(index === 3 && currentPhotoSubmitStatus === 0)" src="/static/image/red.png"
 						class="red-icon"></image>
+          <image v-if="(index === 4 && structureSubmitStatus === 0)" src="/static/image/red.png"
+						class="red-icon"></image>
 				</view>
 			</view>
 			<!-- 滑动指示器 -->
@@ -54,7 +56,7 @@
 			</view>
 			<view v-show="activeTab === 4">
 				<!-- 结构信息内容 -->
-				<structure-info :activeTabTop="activeTab"></structure-info>
+				<structure-info :activeTabTop="activeTab" @loaded="handleStructureLoaded"></structure-info>
 			</view>
 			<view v-show="activeTab === 5">
 				<!-- 桥梁卡片内容 -->
@@ -154,8 +156,16 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
 
 	const currentPhotoSubmitStatus = ref(1) //0表未提交，1表示已提交
 
+  const structureSubmitStatus = ref(1) // 0表未提交，1表示已提交
+
 	// 当前活动标签
 	const activeTab = ref(0);
+
+  const isStructureLoaded = ref(false);
+
+  const handleStructureLoaded = () => {
+    isStructureLoaded.value = true;
+  };
 
 	// 切换标签的方法
 	const switchTab = (index) => {
@@ -204,11 +214,13 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
     checkDiseaseStatus();
     checkFrontPhotoStatus();
     checkCurrentPhotoStatus();
+    checkStructureStatus();
     uni.$on('setButtonUnCommited', setButtonUnCommited)
     uni.$on('setButtonCommited', setButtonCommited)
     uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
     uni.$on('diseaseStatusChanged', checkDiseaseStatus)
     uni.$on('currentPhotoStatusChanged', checkCurrentPhotoStatus)
+    uni.$on('structureStatusChanged', checkStructureStatus)
   });
 
 	onUnmounted(() => {
@@ -217,6 +229,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
 		uni.$off('frontPhotoStatusChanged')
 		uni.$off('diseaseStatusChanged')
 		uni.$off('currentPhotoStatusChanged')
+    uni.$off('structureStatusChanged')
 	})
 
 
@@ -257,6 +270,12 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
 	const checkCurrentPhotoStatus = async () => {
 		currentPhotoSubmitStatus.value = await readCommit(userInfo.username, idStorageInfo.buildingId);
 	}
+
+  // 检查结构信息提交状态
+  const checkStructureStatus = async () => {
+    const data = await getObjectUL(userInfo.username, idStorageInfo.buildingId);
+    structureSubmitStatus.value = data.structureSubmitStatus;
+  }
 
 	// 检查提交按钮的显示状态
 	const checkUncommitted = async () => {
@@ -383,10 +402,12 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
 				});
 				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+        uni.$emit('setStructureSubmitStatus1')
 				submitButtonEnabled.value = false;
 				diseaseSubmitStatus.value = 1;
 				frontPhotoSubmitStatus.value = 1;
 				currentPhotoSubmitStatus.value = 1;
+        structureSubmitStatus.value = 1;
 
 				uni.showToast({
 					title: '提交成功',

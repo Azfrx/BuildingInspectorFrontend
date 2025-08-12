@@ -694,7 +694,7 @@ import apiConfig from '../../config/api';
       if (!infoData.value.token) {
 		  // 先获取token
 		  const response = await uni.request({
-		  	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+		  	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 		  	method: 'POST'
 		  });
 		  	// const responseLogin = await uni.request({
@@ -761,7 +761,7 @@ import apiConfig from '../../config/api';
     } catch (error) {
       console.error('检查更新失败:', error);
 	  const responseLogin = await uni.request({
-	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 	    		method: 'POST'
 	    	});
 	  infoData.value.token = responseLogin.data.token;
@@ -785,7 +785,7 @@ import apiConfig from '../../config/api';
 
 			// 先获取token
 			const responseLogin = await uni.request({
-				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 				method: 'POST',
 			});
 			if (!responseLogin.data || !responseLogin.data.token) {
@@ -896,7 +896,7 @@ import apiConfig from '../../config/api';
 		try {
 			// 先获取token
 		const responseLogin = await uni.request({
-			url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+			url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 			method: 'POST'
 		});
 
@@ -1145,7 +1145,7 @@ import apiConfig from '../../config/api';
 	onMounted(async () => {
 		try {
 			const responseLogin = await uni.request({
-				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 				method: 'POST'
 			});
 			name.value = responseLogin.data.userName;

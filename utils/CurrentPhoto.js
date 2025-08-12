@@ -14,3 +14,8 @@ export async function readCommit(username, buildingId){
 	const data = await getObjectUL(username,buildingId)
 	return data.commit;
 }
+export async function setStructureSubmitStatus0(username, buildingId){
+	const data = await getObjectUL(username,buildingId)
+	data.structureSubmitStatus = 0;
+	await setObject(username, buildingId, data);
+}

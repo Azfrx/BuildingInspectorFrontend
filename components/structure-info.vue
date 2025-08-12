@@ -154,7 +154,7 @@
 
 <script setup>
 //1.引入结构数据全局变量
-import { onMounted, ref, watch, computed } from "vue";
+import {onMounted, ref, watch, computed, onUnmounted} from "vue";
 import { useObject } from "@/store/object.js";
 import { setObject } from "../utils/writeNew.js";
 import { userStore } from '../store/index.js';
@@ -163,6 +163,7 @@ import {getObjectUL} from "@/utils/readUL";
 import {
 		getObject
 	} from '@/utils/readJsonNew.js'
+import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
 //2.创建实例对象
 const objectData = useObject();
 const userInfo = userStore();
@@ -408,12 +409,18 @@ const setComponentCount = async () =>{
 	// 重新计算第一级菜单项的警告状态
 	const currentItem1 = currentData.children[currentMenuIndex[0]];
 	checkFirstLevelWarning(currentItem1);
+  if(diff !== 0){
+    await setBuildingUnCommitted(userInfo.username, idInfo.projectId, idInfo.buildingId);
+    uni.$emit('setBuildingUnCommit', idInfo.buildingId)
+    currentData.structureSubmitStatus = 0;
+  }
 	
 	// 同时更新全局store中的数据
 	objectData.setData(currentData);
 	
 	// 保存到本地文件系统
 	await setObject(userInfo.username, idInfo.buildingId, currentData);
+  uni.$emit('structureStatusChanged')
 	
 	// 最后检查整个页面的警告状态
 	checkPageWarning();
@@ -519,6 +526,11 @@ onMounted(async () => {
       duration: 1000
     });
   }
+  uni.$on('setStructureSubmitStatus1', async () => {
+    treeData.value.structureSubmitStatus = 1;
+    objectData.setData(treeData.value);
+    await setObject(userInfo.username, idInfo.buildingId, treeData.value);
+  })
 });
 // onMounted(async () => {
 // 	let structureData = null;
@@ -661,6 +673,9 @@ onMounted(async () => {
 //   // 初始化时计算属性会自动处理数据获取和警告状态计算
 //   // 如果需要额外的初始化操作，可以在这里添加
 // })
+onUnmounted(async () => {
+  uni.$off('setStructureSubmitStatus1')
+})
 </script>
 
 <style>

@@ -276,6 +276,9 @@ const autoSavePhotos = async () => {
 				}
 			}
 		}
+    console.log('保存到全局变量的structureData.value', structureData.value)
+
+    objectData.setData(JSON.parse(JSON.stringify(structureData.value)))
 		await setObject(userInfo.username, TaskBridgeId.value, structureData.value);
   if (structureData.value && structureData.value.children) {
 	for (const firstLevel of structureData.value.children) {
@@ -568,9 +571,12 @@ const init = async () => {
 		TaskBridgeId.value = bridgeIdFromURL.value;
 	}
 	try {
-		const latestData = await getObjectUL(userInfo.username, TaskBridgeId.value);
+		// const latestData = await getObjectUL(userInfo.username, TaskBridgeId.value);
 		// console.log('获取到的原始数据:', JSON.stringify(latestData));
     // const latestData = objectData.getData();
+    console.log('获取到的全局变量数据:', objectData.getData())
+    const latestData = JSON.parse(JSON.stringify(objectData.getData()));
+    console.log('获取到的现状照数据:', latestData);
 
 		
 		// 确保数据结构完整
@@ -799,7 +805,9 @@ const confirmPhotoInfo = async () => {
 				}
 			}
 		}
-		
+
+    objectData.setData(JSON.parse(JSON.stringify(structureData.value)))
+    console.log('保存数据:', structureData.value)
 		// 保存数据
 		await setObject(userInfo.username, TaskBridgeId.value, structureData.value);
 		if (structureData.value && structureData.value.children) {
@@ -815,9 +823,7 @@ const confirmPhotoInfo = async () => {
 			  }
 			}
 		}
-		
-		
-		
+
 		// 设置为未提交状态
 		await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId);
 		uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId);

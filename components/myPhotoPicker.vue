@@ -58,8 +58,8 @@
 
     <!-- 画线编辑弹窗 -->
     <view class="drawing-popup" v-if="drawingVisible">
-      <view class="drawing-content">
-        <view class="popup-title" style="height: 20px; line-height: 20px; padding: 0;">在图片上标记</view>
+      <view class="drawing-content"  style="border-radius: 10rpx; overflow: hidden;">
+        <view class="popup-title" style="height: 40rpx; line-height: 20px; padding:0;">在图片上标记</view>
         <view class="canvas-container" :style="{ height: canvasContainerHeight, width: canvasContainerWidth, backgroundColor: '#fff' }">
           <canvas canvas-id="drawingCanvas" class="drawing-canvas"
                   @touchstart="touchStart" @touchmove="touchMove" @touchend="touchEnd"></canvas>
@@ -158,11 +158,6 @@ const getPhotoInfoText = (index) => {
     console.log('找到信息:', props.currentSecondItem.information[index]);
     return props.currentSecondItem.information[index];
   }
-
-  console.log('未找到信息，currentItem:', props.currentSecondItem);
-  console.log('information 数组:', props.currentSecondItem?.information);
-  console.log('index:', index);
-
   return '请添加图片信息';
 }
 // 预览图片
@@ -207,6 +202,14 @@ const initPhotoData = async () => {
     const data = await updateButtonInfo();
     if (data) {
       buttonInfo.setPhotoData(data);
+
+      // 监听current-photo组件中的信息更新事件
+/*      uni.$on('photoInfoUpdated', (data) => {
+        // 更新按钮信息
+        buttonInfo.setPhotoData(data.structureData);
+        buttonInfo.setFirstIndex(data.firstIndex);
+        selectedSecondIndex.value = data.secondIndex;
+      });*/
     }
   } catch (error) {
     console.error('初始化图片数据失败:', error);
@@ -216,14 +219,6 @@ const initPhotoData = async () => {
 // 组件挂载时初始化数据
 onMounted(() => {
   initPhotoData();
-  // 监听current-photo组件中的信息更新事件
-/*  uni.$on('photoInfoUpdated', (data) => {
-    // 更新按钮信息
-    buttonInfo.setPhotoData(data.structureData);
-    buttonInfo.setFirstIndex(data.firstIndex);
-    selectedSecondIndex.value = data.secondIndex;
-    console.log('uni.$on---selectedSecondIndex...................................', selectedSecondIndex.value)
-  });*/
 });
 
 // 组件卸载时移除事件监听
@@ -870,8 +865,17 @@ const generateNumberedImage = (number) => {
       let fontSize = baseFontSize;
       //text.length = 4 使用默认字体大小
       //每多一位 减少4px
-      if (number.length > 4) {
-        fontSize = Math.max(16, baseFontSize - (number.length - 4) * 8);
+      if (number.length <= 4) {
+        fontSize = baseFontSize;
+      }
+      else if(number.length > 4 && number.length <= 6) {
+        fontSize = 54;
+      }else if(number.length > 6 && number.length <= 8){
+        fontSize = 40;
+      }else if(number.length > 8 && number.length <= 10){
+        fontSize = 26;
+      }else{
+        fontSize = 16;
       }
       // 绘制数字
       context.setFillStyle('#333');
@@ -1324,6 +1328,7 @@ const deleteImage = (idx) => {
   display: flex;
   flex-direction: column;
   overflow: visible; /* 改为可见，不裁剪内容 */
+  padding-top: 0;
 }
 
 .canvas-container {
@@ -1357,13 +1362,13 @@ const deleteImage = (idx) => {
   font-weight: bold;
   letter-spacing: 1rpx;
   flex-shrink: 0; /* 防止标题被压缩 */
-  height: 20px !important; /* 将标题高度从40px缩小到20px */
-  line-height: 20px !important;
+  height: 40rpx !important; /* 将标题高度从40px缩小到20px */
+  line-height: 40rpx !important;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 20px !important;
-  max-height: 20px !important;
+  min-height: 40rpx !important;
+  max-height: 40rpx !important;
 }
 
 .popup-buttons {
