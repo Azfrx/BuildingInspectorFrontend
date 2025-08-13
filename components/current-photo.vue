@@ -181,6 +181,7 @@ const handlePhotoChange = async (item) => {
 	///storage/emulated/0/Android/data/io.dcloud.HBuilder/apps/HBuilder/doc/UD25-07-06-inspector1@znjc/building/1837/images/bridge_1752056908276_1.jpg 相册选择的临时路径
 	// 2. 保存图片到本地，转为相对路径存到json
 	item.photo = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photo);
+  item.information.push("");
 
 	// 3. 转为绝对路径显示
 	item.photo = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photo);

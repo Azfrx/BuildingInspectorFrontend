@@ -129,13 +129,13 @@
 					// 查找匹配当前用户的UD目录
 					const udDirs = entries
 						.filter(e => e.isDirectory && e.name.startsWith('UD'))
-						.filter(e => e.name.includes(username))
+						.filter(e => e.name.split('-')[2] === username)
 						.sort((a, b) => b.name.localeCompare(a.name)); // 最新的在前
 
 					// 查找匹配当前用户的UL目录
 					const ulDirs = entries
 						.filter(e => e.isDirectory && e.name.startsWith('UL'))
-						.filter(e => e.name.includes(username))
+						.filter(e => e.name.split('-')[2] === username)
 						.sort((a, b) => b.name.localeCompare(a.name)); // 最新的在前
 
 					let hasData = false;

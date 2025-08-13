@@ -26,7 +26,7 @@ export async function setRootDir() {
                     const ulDirs = entries.filter(entry => 
                         entry.isDirectory && 
                         entry.name.startsWith('UL-') && 
-                        entry.name.includes(`-${username}`)
+                        entry.name.split('-')[2] === username
                     );
                     
                     
@@ -218,7 +218,7 @@ export function writeTaskJson(projectId, data) {
                     if (!userDirEntry) {
                         for (let i = 0; i < entries.length; i++) {
                             const entry = entries[i];
-                            if (entry.isDirectory && entry.name.includes(`-${username}`)) {
+                            if (entry.isDirectory && entry.name.split('-')[2] === username) {
                                 userDirEntry = entry;
                                 
                                 // 更新store中的路径
@@ -400,7 +400,7 @@ export function writeObjectJson(buildingId, data) {
                     if (!userDirEntry) {
                         for (let i = 0; i < entries.length; i++) {
                             const entry = entries[i];
-                            if (entry.isDirectory && entry.name.includes(`-${username}`)) {
+                            if (entry.isDirectory && entry.name.split('-')[2] === username) {
                                 console.log('找到匹配的用户目录:', entry.name, '完整路径:', entry.fullPath);
                                 
                                 // 优先使用UL目录

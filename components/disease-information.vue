@@ -91,7 +91,7 @@
 				</view>
 				<view class="picker-right">
 					<view class="picker-content" :style="position === '' ? 'color: #CCCCCC;' : ''" @click="">
-            {{position === '' ? '请输入病害位置' : `${positionNumber !== '' ? `第${positionNumber}号` : ''}${position}`}}
+						{{position === '' ? '请输入病害位置' : `${positionNumber !== '' ? `第${positionNumber}号` : ''}${position}`}}
 					</view>
 					<text class="picker-icon">&gt;</text>
 				</view>
@@ -243,6 +243,7 @@
 
 	// 构件名称picker选择的值
 	const componentNamePicker = ref('');
+	const componentId = ref('');
 	// 部件类型索引
 	const biObjectindex = ref(-1);
 
@@ -314,10 +315,11 @@
 
 	const openComponentPositionPopup = () => {
 		positionPopup.value.open();
-		if (position.value && positionNumber.value) combinedPosition.value = '第' + positionNumber.value + '号' + position.value;
-    else if(position.value) combinedPosition.value = position.value;
-    if(positionNumber.value) positionNumberPopup.value = positionNumber.value;
-    if(position.value) positionPickerPopup.value = position.value;
+		if (position.value && positionNumber.value) combinedPosition.value = '第' + positionNumber.value + '号' +
+			position.value;
+		else if (position.value) combinedPosition.value = position.value;
+		if (positionNumber.value) positionNumberPopup.value = positionNumber.value;
+		if (position.value) positionPickerPopup.value = position.value;
 	}
 
 	const positionPickerPopupChange = (e) => {
@@ -349,17 +351,17 @@
 		[positionNumberPopup, positionPickerPopup, positionInputPopup],
 		() => {
 			if (positionPickerPopup.value === '其他') {
-        if(positionNumberPopup.value){
-          combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionInputPopup.value;
-        }else{
-          combinedPosition.value = positionInputPopup.value;
-        }
+				if (positionNumberPopup.value) {
+					combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionInputPopup.value;
+				} else {
+					combinedPosition.value = positionInputPopup.value;
+				}
 			} else {
-        if(positionNumberPopup.value){
-          combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionPickerPopup.value;
-        }else{
-          combinedPosition.value = positionPickerPopup.value;
-        }
+				if (positionNumberPopup.value) {
+					combinedPosition.value = '第' + positionNumberPopup.value + '号' + positionPickerPopup.value;
+				} else {
+					combinedPosition.value = positionPickerPopup.value;
+				}
 			}
 		}
 	)
@@ -554,7 +556,7 @@
 		if (parentIndex !== -1) {
 			typeMultiIndex.value[0] = parentIndex;
 
-			// 初始化第二维数据
+			// 初始化第二维数据，传入true表示需要更新保存的数据
 			initMultiPickerColumns();
 
 			// 确保第二维数据已经初始化完成
@@ -597,10 +599,22 @@
 										console.log('成功设置biObjectindex:', biObjectindex.value);
 									}
 								} else if (componentNamePicker.value === '其他') {
-                  typeMultiIndex.value[2] = typeMultiArray.value[2].findIndex(item => item === '其他');
+									typeMultiIndex.value[2] = typeMultiArray.value[2].findIndex(item => item === '其他');
 									// 如果在第三级中找不到匹配项，可能是自定义名称
 									componentNameInput.value = biObjectNameInput;
 									console.log('设置自定义构件名称:', biObjectName);
+								}
+								const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+								if (selectedSecondLevel && selectedSecondLevel.children &&
+									Array.isArray(selectedSecondLevel.children) &&
+									typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+
+									const selectedThirdLevel = selectedSecondLevel.children.find(item => item.name ===
+										componentNamePicker.value);
+									if (selectedThirdLevel && selectedThirdLevel.id) {
+										componentId.value = selectedThirdLevel.id;
+										console.log('找到第三级组件ID:', componentId.value);
+									}
 								}
 							} else {
 								// 第三级列表为空，设置为自定义名称
@@ -660,7 +674,7 @@
 			componentCode: componentCodeInput.value, // 构件编号
 			type: type.value, // 病害类型
 			position: position.value, // 病害位置
-      positionNumber: positionNumber.value, // 病害位置编号
+			positionNumber: positionNumber.value, // 病害位置编号
 		};
 		uni.$emit('setDescription1', description);
 	}
@@ -671,46 +685,25 @@
 		if (componentNamePicker.value === '其他') {
 			// 如果选择了"其他"并且输入了自定义名称
 			componentName = componentNameInput.value;
-		} else if (typeMultiIndex.value[2] >= 0 && typeMultiIndex.value[2] < typeMultiArray.value[2].length) {
-			componentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
 		} else {
-			// 如果没有第三级选择，使用第二级作为备选
-			componentName = parentObjectName.value;
+			componentName = componentNamePicker.value;
 		}
 		return componentName;
 	}
 
-	// 初始化三级选择器的列数据
+	// 初始化三级选择器的列数据（仅更新列表内容，不修改任何要保存的值）
 	const initMultiPickerColumns = () => {
-		// 首先从structureData中获取第一列数据
-		/*if (structureData.value && structureData.value.children) {
-			// 更新第一列数据为structureData中的children的name数组
-			const firstColumnData = structureData.value.children.map(item => item.name);
-			structureTypes.value = firstColumnData;
-			typeMultiArray.value[0] = firstColumnData;
-
-			// 如果第一列索引超出范围，重置为0
-			if (typeMultiIndex.value[0] >= typeMultiArray.value[0].length) {
-				typeMultiIndex.value[0] = 0;
-			}
-		}
-    if(props.selectedGrandObject){
-      console.log('props.selectedGrandObject',props.selectedGrandObject)
-      typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === props.selectedGrandObject);
-      console.log('typeMultiIndex.value[0]',typeMultiIndex.value[0])
-    }*/
 
 		// 根据第一列当前选中项更新第二列的数据
 		const structureType = typeMultiArray.value[0][typeMultiIndex.value[0]];
 
-		// 设置grandObjectName以便获取对应的部件类型列表
-		grandObjectName.value = structureType;
+		// 不修改 grandObjectName 等保存值
 
 		// 如果结构数据已加载，则初始化部件类型列表
 		if (structureData.value && structureData.value.children) {
 			// 找到对应的结构部分（上部结构、下部结构、桥面系）
 			const structurePart = structureData.value.children.find(
-				item => item.name === grandObjectName.value
+				item => item.name === structureType
 			);
 
 			if (structurePart && structurePart.children) {
@@ -770,6 +763,7 @@
 		}
 	}
 
+
 	// 多列选择器列变化处理
 	const typeColumnChange = (e) => {
 		const {
@@ -780,14 +774,12 @@
 
 		// 如果第一列变化，则更新第二列和第三列数据
 		if (column === 0) {
-			// 设置grandObjectName为新选择的值
-			grandObjectName.value = structureTypes.value[value];
 
 			// 重置第二列和第三列索引
 			typeMultiIndex.value[1] = 0;
 			typeMultiIndex.value[2] = 0;
 
-			// 初始化第二列和第三列数据
+			// 仅更新列表内容，不修改任何要保存的值
 			initMultiPickerColumns();
 		}
 		// 如果第二列变化，则更新第三列数据
@@ -821,6 +813,18 @@
 		// 如果有选择第三级
 		if (typeMultiIndex.value[2] >= 0 && typeMultiArray.value[2].length > 0) {
 			selectedComponentName = typeMultiArray.value[2][typeMultiIndex.value[2]];
+			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
+			if (selectedSecondLevel && selectedSecondLevel.children &&
+				Array.isArray(selectedSecondLevel.children) &&
+				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
+
+				const selectedThirdLevel = selectedSecondLevel.children.find(item => item.name ===
+					selectedComponentName);
+				if (selectedThirdLevel && selectedThirdLevel.id) {
+					componentId.value = selectedThirdLevel.id;
+					console.log('找到第三级组件ID:', componentId.value);
+				}
+			}
 		}
 		// 如果只选择了第二级
 		else if (typeMultiIndex.value[1] >= 0 && typeMultiArray.value[1].length > 0) {
@@ -846,7 +850,7 @@
 		positionPicker.value = '';
 		typeInput.value = '';
 		positionInput.value = '';
-    positionNumber.value = '';
+		positionNumber.value = '';
 	}
 
 	// 根据选择的部件类型更新缺损类型选项
@@ -1033,21 +1037,6 @@
 
 		console.log('groupNamesArray', groupNamesArray)
 		console.log('最终缺损类型第二列选项更新为:', diseaseTypeOptions.value);
-
-		// 如果已经设置了病害类型，尝试在新的选项中找到对应的索引
-		/*if (type.value) {
-			const index = diseaseTypeOptions.value.findIndex(item => item === type.value);
-			if (index !== -1) {
-				typeindex.value = index;
-				typePicker.value = diseaseTypeOptions.value[index];
-				console.log('成功设置病害类型索引:', index);
-			} else {
-				// 如果在新选项中找不到当前病害类型，可能是自定义输入的
-				typePicker.value = '其他';
-				typeInput.value = type.value;
-				console.log('当前病害类型不在选项中，设为自定义输入:', type.value);
-			}
-		}*/
 	}
 
 	// 更新病害位置选项
@@ -1155,7 +1144,7 @@
 			uni.$emit('setSelectColumn', selectedDiseaseType.selectColumn)
 		}
 		console.log('病害类型选择变更为:', typePicker.value);
-    uni.$emit('setDiseaseHelp', selectedDiseaseType.code)
+		uni.$emit('setDiseaseHelp', selectedDiseaseType.code)
 	}
 
 	// 添加病害类型picker变化处理方法
@@ -1195,7 +1184,7 @@
 			}
 			console.log('病害类型选择变更为:', typePicker.value);
 			uni.$emit('clearDiseaseData')
-      uni.$emit('setDiseaseHelp', selectedDiseaseType.code)
+			uni.$emit('setDiseaseHelp', selectedDiseaseType.code)
 		}
 		console.log('确定病害类型 diseaseTypeMultiIndex:', diseaseTypeMultiIndex.value[0])
 		// updateDiseaseTypeOptions();
@@ -1237,43 +1226,6 @@
 		deep: true
 	});
 
-	// 添加获取第三级组件ID的方法
-	const getThirdLevelComponentId = () => {
-		let thirdLevelComponentId = null;
-		if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
-			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-			if (selectedSecondLevel && selectedSecondLevel.children &&
-				Array.isArray(selectedSecondLevel.children) &&
-				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
-
-				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
-				if (selectedThirdLevel && selectedThirdLevel.id) {
-					thirdLevelComponentId = selectedThirdLevel.id;
-					console.log('找到第三级组件ID:', thirdLevelComponentId);
-				}
-			}
-		}
-		return thirdLevelComponentId;
-	};
-
-	const getThirdLevelComponentName = () => {
-		let thirdLevelComponentName = null;
-		if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
-			const selectedSecondLevel = biObjectNameOptions.value[typeMultiIndex.value[1]];
-			if (selectedSecondLevel && selectedSecondLevel.children &&
-				Array.isArray(selectedSecondLevel.children) &&
-				typeMultiIndex.value[2] < selectedSecondLevel.children.length) {
-
-				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
-				if (selectedThirdLevel && selectedThirdLevel.name) {
-					thirdLevelComponentName = selectedThirdLevel.name;
-					console.log('找到第三级组件Name:', thirdLevelComponentName);
-				}
-			}
-		}
-		return thirdLevelComponentName;
-	}
-
 	const getAncestors = () => {
 		let ancestors = null;
 		if (typeMultiIndex.value[2] >= 0 && !isThirdLevelOther()) {
@@ -1314,9 +1266,6 @@
 		// 获取构件名称
 		const componentName = getComponentName();
 
-		// 获取第三级组件ID和Name（空心板、实心板那一级）
-		const thirdLevelComponentId = getThirdLevelComponentId();
-		const thirdLevelComponentName = getThirdLevelComponentName();
 		const ancestors = getAncestors();
 		return {
 			createBy: "",
@@ -1325,12 +1274,12 @@
 			id: null, // 第一级id设为null
 			code: componentCodeInput.value, // 使用输入的构件编号
 			name: componentCodeInput.value + '#' + componentName, // 使用第三级选择的值或输入框中的值#构件编号
-			biObjectId: thirdLevelComponentId,
+			biObjectId: componentId.value,
 			status: "0",
 			delFlag: "0",
 			biObject: {
-				id: thirdLevelComponentId,
-				name: thirdLevelComponentName, // 使用第三级选择的值
+				id: componentId.value,
+				name: componentNamePicker.value, // 使用第三级选择的值
 				count: 0,
 				ancestors: ancestors
 			},
