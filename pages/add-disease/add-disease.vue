@@ -1135,6 +1135,7 @@
 			component: diseaseInformationRef.value.component,
 			componentId: null, // 组件ID也设为null
 			buildingId: idStorageInfo.buildingId,
+      taskId: idStorageInfo.taskId,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			commitType: 1, //0为已提交 1为未提交 2为删除

@@ -163,8 +163,7 @@
 			};
 
 			console.log('准备保存的数据:', saveData);
-			const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component
-				.name);
+			const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, newDisease.component.name, newDisease.component.biObject.name);
 			if (isExist === false) {
 				console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 				await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.biObjectId);
@@ -218,8 +217,7 @@
 				return;
 			}
 
-			const isExist = await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
-				index].component.name);
+			const isExist = await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.name, diseaseList.value[index].component.biObject.name);
 			if (isExist === true) {
 				console.log('该构件只有这一个病害，需要减少病害构件数量,deleteData', diseaseList.value[index])
 				await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index]
@@ -299,17 +297,15 @@
 				return;
 			}
 
-			if (diseaseList.value[index].component.name !== updatedDisease.component.name) {
-				const isOnly = await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
-					index].component.name);
+			if (diseaseList.value[index].component.name !== updatedDisease.component.name || diseaseList.value[index].component.biObject.name !== updatedDisease.component.biObject.name) {
+				const isOnly = await isOnlyDisease(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index].component.name, diseaseList.value[index].component.biObject.name);
 				if (isOnly === true) {
 					console.log('该构件只有这一个病害，需要减少病害构件数量')
 					await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
 						index].component.biObjectId);
 					// structureStoreInfo.incrementDataVersion();
 				}
-				const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, updatedDisease
-					.component.name);
+				const isExist = await isExistDisease(userInfo.username, idStorageInfo.buildingId, updatedDisease.component.name, updatedDisease.component.biObject.name);
 				if (isExist === false) {
 					console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 					await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease

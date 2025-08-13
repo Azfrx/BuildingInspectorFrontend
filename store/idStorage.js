@@ -10,6 +10,7 @@ export const idStore = defineStore('Id', () => {
 	const projectId = ref('')
 	const buildingId = ref('')
 	const currentDir = ref('')
+	const taskId = ref('')
 	const setUserId = (Id)=>{
 		userId.value = Id.value
 	}
@@ -30,6 +31,7 @@ export const idStore = defineStore('Id', () => {
 		userId,
 		projectId,
 		buildingId,
+		taskId,
 		setUserId,
 		setProjectId,
 		setTaskId,

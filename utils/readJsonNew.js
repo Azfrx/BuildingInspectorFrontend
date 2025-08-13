@@ -856,7 +856,7 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId) {
 }
 
 // 新增病害时判断某一构建下面是否有病害
-export async function isExistDisease(userName, buildingId, componentName) {
+export async function isExistDisease(userName, buildingId, componentName,biObjectName) {
 	try {
 		// 获取当前年份
 		const currentYear = new Date().getFullYear().toString();
@@ -872,7 +872,7 @@ export async function isExistDisease(userName, buildingId, componentName) {
 
 		// 过滤掉已删除的病害记录，然后检查剩余记录中是否存在匹配的componentName
 		const exists = diseaseData.diseases.filter(disease => disease.commitType !== 2)
-			.some(disease => disease.component && disease.component.name === componentName);
+			.some(disease => disease.component && disease.component.name === componentName && disease.component.biObject.name === biObjectName);
 
 		console.log(`检查componentName为 ${componentName} 的病害${exists ? '存在' : '不存在'}`);
 		return exists;
@@ -884,7 +884,7 @@ export async function isExistDisease(userName, buildingId, componentName) {
 }
 
 // 删除病害时判断某一构建下面是否只有一个病害
-export async function isOnlyDisease(userName, buildingId, componentName) {
+export async function isOnlyDisease(userName, buildingId, componentName,biObjectName) {
 	try {
 		// 获取当前年份
 		const currentYear = new Date().getFullYear().toString();
@@ -902,13 +902,14 @@ export async function isOnlyDisease(userName, buildingId, componentName) {
 		const matchingDiseases = diseaseData.diseases.filter(disease =>
 			disease.component &&
 			disease.component.name === componentName &&
+            disease.component.biObject.name === biObjectName &&
 			disease.commitType !== 2 // 排除已删除的病害记录
 		);
 
 		// 检查是否只有一个匹配的记录
 		const isOnly = matchingDiseases.length === 1;
 
-		console.log(`componentName为 ${componentName} 的病害${isOnly ? '只有一个' : '有多个或没有'}`);
+		console.log(`componentName为 ${componentName},biObjectName为${biObjectName} 的病害${isOnly ? '只有一个' : '有多个或没有'}`);
 		return isOnly;
 
 	} catch (error) {

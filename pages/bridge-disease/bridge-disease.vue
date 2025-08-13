@@ -213,8 +213,9 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
     checkUncommitted();
     checkDiseaseStatus();
     checkFrontPhotoStatus();
-    checkCurrentPhotoStatus();
-    checkStructureStatus();
+    // checkCurrentPhotoStatus();
+    // checkStructureStatus();
+    checkCurrentPhotoAndStructureStatus();
     uni.$on('setButtonUnCommited', setButtonUnCommited)
     uni.$on('setButtonCommited', setButtonCommited)
     uni.$on('frontPhotoStatusChanged', checkFrontPhotoStatus)
@@ -266,6 +267,15 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
 		}
 	};
 
+  const checkCurrentPhotoAndStructureStatus = async () => {
+    const data = await getObjectUL(userInfo.username, idStorageInfo.buildingId);
+    if(data.commit !== undefined){
+      currentPhotoSubmitStatus.value = data.commit;
+    }
+    if(data.structureSubmitStatus !== undefined){
+      structureSubmitStatus.value = data.structureSubmitStatus;
+    }
+  }
 	// 检查现状照提交状态
 	const checkCurrentPhotoStatus = async () => {
 		currentPhotoSubmitStatus.value = await readCommit(userInfo.username, idStorageInfo.buildingId);
@@ -274,7 +284,9 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue';
   // 检查结构信息提交状态
   const checkStructureStatus = async () => {
     const data = await getObjectUL(userInfo.username, idStorageInfo.buildingId);
-    structureSubmitStatus.value = data.structureSubmitStatus;
+    if(data.structureSubmitStatus !== undefined){
+      structureSubmitStatus.value = data.structureSubmitStatus;
+    }
   }
 
 	// 检查提交按钮的显示状态

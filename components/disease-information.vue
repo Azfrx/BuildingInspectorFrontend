@@ -597,6 +597,7 @@
 										console.log('成功设置biObjectindex:', biObjectindex.value);
 									}
 								} else if (componentNamePicker.value === '其他') {
+                  typeMultiIndex.value[2] = typeMultiArray.value[2].findIndex(item => item === '其他');
 									// 如果在第三级中找不到匹配项，可能是自定义名称
 									componentNameInput.value = biObjectNameInput;
 									console.log('设置自定义构件名称:', biObjectName);

@@ -455,13 +455,13 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			return;
 		}
 
-		console.log('跳转到桥梁详情，buildingId:', bridge.buildingId);
-
 		// 将buildingId存储到store中
 		idInfo.setBuildingId({
 			value: bridge.buildingId
 		});
-		console.log('已将buildingId存储到store:', idInfo.buildingId);
+    idInfo.setTaskId({
+      value: bridge.id
+    })
 		// const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
 		// objectData.setData(newData);
 		// console.log("objectData",objectData.getData());
