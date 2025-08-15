@@ -85,10 +85,10 @@
 					</view>
 						
 					<!-- 第三级菜单项的按钮 -->
-					<view class = "button" :class="{show: safeMenuIndex[2] === index3 && Number(safeTreeData?.status) !== 3}">
+<!--					<view class = "button" :class="{show: safeMenuIndex[2] === index3 && Number(safeTreeData?.status) !== 3}">
 						<view class = "cancle" @click.stop="closeButton">取消</view>
 						<view class = "confirm" @click = "open">编辑</view>
-					</view>
+					</view>-->
 				</view>
 			</view>
 			
@@ -311,10 +311,24 @@ const changeTab = (index1, index2, index3) => {
     index3 !== undefined ? index3 : currentMenuIndex[2],
   ];
   // 当点击三级菜单时，设置该菜单按钮可见
-    if (index3 !== undefined) {
+/*    if (index3 !== undefined) {
       const key = `${index1}-${index2}-${index3}`;
       buttonVisible.value = { [key]: true }; // 只显示当前点击的按钮
-    }
+    }*/
+
+  //1.打开弹窗前先获取弹窗中的内容
+  //根据menuIndex获取最新索引
+  //获取数据
+  if(index3 !== undefined){
+    const data = treeData.value?.children?.[menuIndex.value[0]]?.children?.[menuIndex.value[1]]?.children?.[menuIndex.value[2]]
+    //更新构件名称
+    componentName.value = data.name;
+    //更新病害构件数量
+    diseaseNumber.value = data.diseaseNumber ?? 0;
+    //更新构件数量
+    componentCount.value = data.count;
+    windowPopup.value.open();
+  }
 }
 //初始化函数
 const initData = ()=>{
@@ -391,8 +405,11 @@ const setComponentCount = async () =>{
 	}
 	previousValue = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count;
 	console.log("previous",previousValue);
-	currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = componentCount.value;
-	
+  if(componentCount.value !== ''){
+    currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = componentCount.value;
+  }else{
+    currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = 0;
+  }
 	//更新的差值
 	const diff =  componentCount.value - previousValue;
 	console.log("diff",diff);

@@ -225,7 +225,7 @@
 		}
 	});
 
-
+	let isInitializing = false;
 
 	// 直接赋值（静态副本）
 	const structureData = ref(null)
@@ -312,6 +312,14 @@
 	const positionInputPopup = ref('');
 	const positionPickerPopup = ref('');
 	const combinedPosition = ref('')
+
+	watch([componentNamePicker, componentId, componentNameInput, componentCodeInput, typePicker, typeInput, position,
+		positionNumber
+	], () => {
+		if (isInitializing) {
+			uni.$emit('changeDiseaseData')
+		}
+	})
 
 	const openComponentPositionPopup = () => {
 		positionPopup.value.open();
@@ -512,12 +520,6 @@
 			}
 			initMultiPickerColumns()
 		}
-		/*if(props.selectedGrandObject){
-		  typeMultiIndex.value[0] = structureTypes.value.findIndex(item => item === grandObjectName.value);
-		}*/
-		// uni.$on('setComponentName', (emitParam) => {
-		// 	componentNamePicker.value = emitParam
-		// });
 		uni.$on('setComponentName', onComponentNameChangeByEmit);
 		uni.$on('setComponentCode', (emitParam) => {
 			componentCodeInput.value = emitParam
@@ -530,11 +532,11 @@
 
 
 		uni.$on('getDescription', getDescription);
-		// 如果父组件在挂载前已传递数据
-		/*if (props.structureData) {
-			structureData.value = JSON.parse(JSON.stringify(props.structureData))
-			initMultiPickerColumns()
-		}*/
+		// 标记初始化完成（可以延迟确保所有初始数据已加载）
+		setTimeout(() => {
+			isInitializing = true
+			console.log('表单初始化完成，开始检测修改')
+		}, 500)
 	})
 
 	onUnmounted(() => {

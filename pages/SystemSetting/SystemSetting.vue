@@ -760,6 +760,13 @@ import apiConfig from '../../config/api';
       }
     } catch (error) {
       console.error('检查更新失败:', error);
+      if(error.errMsg.includes('Failed to connect')){
+        uni.showToast({
+          title: '请检查网络连接',
+          icon: 'none',
+          duration: 1000
+        });
+      }
 	  const responseLogin = await uni.request({
 	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
 	    		method: 'POST'

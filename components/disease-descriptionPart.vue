@@ -41,7 +41,7 @@
 			<view class="line-select-left">
 				<text style="color: red;">*</text>
 				<view>评定标度</view>
-        <image src="/static/image/diseaseHelp.png" @click="showDiseaseHelp" class="disease-help"></image>
+				<image src="/static/image/diseaseHelp.png" @click="showDiseaseHelp" class="disease-help"></image>
 			</view>
 			<view class="line-select-right">
 				<uni-data-checkbox mode="tag" v-model="levelindex" :localdata="level"></uni-data-checkbox>
@@ -58,47 +58,52 @@
 			</view>
 		</view>
 
-    <uni-popup ref="diseaseHelpPopup" type="center">
-      <view class="diseaseHelp-popup-content">
-        <view class="popup-title">病害标度信息</view>
-        <view class="popup-input1">
-          <text class="popup-input1-title">病害标度</text>
-          <view class="popup-input1-content">
-            定性描述
-          </view>
-          <view class="popup-input1-content">
-            定量描述
-          </view>
-        </view>
-        <view class="popup-input1" v-for="item in diseaseHelpList">
-          <text class="popup-input1-title">{{ item.scale }}</text>
-          <view class="popup-input1-content">
-            {{ item.qualitative_description }}
-          </view>
-          <view class="popup-input1-content">
-            {{item.quantitative_description}}
-          </view>
-        </view>
-        <view class="popup-button">
-          <button class="popup-button-confirm" @click="confirmDiseaseHelp">确定</button>
-        </view>
-      </view>
-    </uni-popup>
+		<uni-popup ref="diseaseHelpPopup" type="center">
+			<view class="diseaseHelp-popup-content">
+				<view class="popup-title">病害标度信息</view>
+				<view class="popup-input1">
+					<text class="popup-input1-title">病害标度</text>
+					<view class="popup-input1-content">
+						定性描述
+					</view>
+					<view class="popup-input1-content">
+						定量描述
+					</view>
+				</view>
+				<view class="popup-input1" v-for="item in diseaseHelpList">
+					<text class="popup-input1-title">{{ item.scale }}</text>
+					<view class="popup-input1-content">
+						{{ item.qualitative_description }}
+					</view>
+					<view class="popup-input1-content">
+						{{item.quantitative_description}}
+					</view>
+				</view>
+				<view class="popup-button">
+					<button class="popup-button-confirm" @click="confirmDiseaseHelp">确定</button>
+				</view>
+			</view>
+		</uni-popup>
 
 	</view>
 </template>
 
 <script setup>
-import {
-  computed,
-  onMounted, onUnmounted,
-  ref
-} from 'vue';
+	import {
+		computed,
+		onMounted,
+		onUnmounted,
+		ref,
+		watch
+	} from 'vue';
 	import {
 		generateDiseaseDescription
 	} from '@/utils/diseaseDescriptionCreate.js'
-import { getDiseaseScale } from '@/utils/diseaseHelp.js';
-
+	import {
+		getDiseaseScale
+	} from '@/utils/diseaseHelp.js';
+	// 是否初始化完成
+	let isInitialized = false;
 	//病害描述
 	const description = ref('');
 
@@ -170,15 +175,20 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 	])
 	const developmentTrendIndex = ref(0);
 
-  const diseaseHelpList = ref([])
+	const diseaseHelpList = ref([])
 
-  const diseaseHelpPopup = ref();
-  const confirmDiseaseHelp = () => {
-    diseaseHelpPopup.value.close();
-  }
-  const showDiseaseHelp = () => {
-    diseaseHelpPopup.value.open();
-  }
+	const diseaseHelpPopup = ref();
+	const confirmDiseaseHelp = () => {
+		diseaseHelpPopup.value.close();
+	}
+	const showDiseaseHelp = () => {
+		diseaseHelpPopup.value.open();
+	}
+	watch([description, developmentTrendIndex, participateAssessindex, natureindex, levelindex], () => {
+		if (isInitialized) {
+			uni.$emit('changeDiseaseData');
+		}
+	})
 
 	onMounted(() => {
 		uni.$on('changeScale', changeScale);
@@ -190,25 +200,29 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 		uni.$on('setNature', setNature);
 		uni.$on('setParticipateAssess', setParticipateAssess);
 		uni.$on('setDevelopmentTrend', setDevelopmentTrend)
-    uni.$on('setDiseaseHelp', setDiseaseHelp)
+		uni.$on('setDiseaseHelp', setDiseaseHelp)
+		setTimeout(() => {
+			isInitialized = true
+			console.log('表单初始化完成，开始检测修改')
+		}, 500)
 	})
 
-  onUnmounted(() => {
-    uni.$off('changeScale');
-    uni.$off('setDescription1');
-    uni.$off('setDescription2');
-    uni.$off('setDescriptionByEmit');
-    uni.$off('setLevel');
-    uni.$off('setNature');
-    uni.$off('setParticipateAssess');
-    uni.$off('setDevelopmentTrend');
-    uni.$off('setDiseaseHelp');
-  })
-  const setDiseaseHelp = (emitDiseaseCode) => {
-    const parts = emitDiseaseCode.split('-'); // 按 '-' 分割成数组
-    const formattedCode = parts.slice(0, 2).join('-'); // 取前两部分并用 '-' 重新连接
-    diseaseHelpList.value = getDiseaseScale(formattedCode);
-  }
+	onUnmounted(() => {
+		uni.$off('changeScale');
+		uni.$off('setDescription1');
+		uni.$off('setDescription2');
+		uni.$off('setDescriptionByEmit');
+		uni.$off('setLevel');
+		uni.$off('setNature');
+		uni.$off('setParticipateAssess');
+		uni.$off('setDevelopmentTrend');
+		uni.$off('setDiseaseHelp');
+	})
+	const setDiseaseHelp = (emitDiseaseCode) => {
+		const parts = emitDiseaseCode.split('-'); // 按 '-' 分割成数组
+		const formattedCode = parts.slice(0, 2).join('-'); // 取前两部分并用 '-' 重新连接
+		diseaseHelpList.value = getDiseaseScale(formattedCode);
+	}
 	const setDevelopmentTrend = (emitDevelopmentTrend) => {
 		developmentTrendIndex.value = developmentTrend.value.findIndex(item => item.text === emitDevelopmentTrend);
 	}
@@ -265,13 +279,13 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 			componentCode: description1.value.componentCode, // 构件编号
 			diseaseType: description1.value.type, // 病害类型
 			diseasePosition: description1.value.position, // 病害位置
-      positionNumber: description1.value.positionNumber,// 病害位置序号
-      showColumns: description2.value.showColumns, // 是否显示裂缝特征
-      crackType: description2.value.crackType, // 裂缝特征
+			positionNumber: description1.value.positionNumber, // 病害位置序号
+			showColumns: description2.value.showColumns, // 是否显示裂缝特征
+			crackType: description2.value.crackType, // 裂缝特征
 			defects: description2.value.defects, // 病害定量数据数组
 			counts: description2.value.counts, // 缺损数量
-      units: description2.value.units,// 单位
-      threshold: description2.value.threshold,// 阈值
+			units: description2.value.units, // 单位
+			threshold: description2.value.threshold, // 阈值
 		})
 		description.value = createDescription
 	}
@@ -382,59 +396,66 @@ import { getDiseaseScale } from '@/utils/diseaseHelp.js';
 	view {
 		box-sizing: border-box;
 	}
-  .disease-help {
-    height: 20rpx;
-    width: 20rpx;
-    margin-left: 10rpx;
-  }
-  .diseaseHelp-popup-content {
-    background-color: #fff;
-    width: 700rpx;
-    max-height: 80vh;
-    min-height: 200rpx;
-    border-radius: 8rpx;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
-  }
-  .popup-title {
-    background-color: #BDCBE0;
-    font-size: 20rpx;
-    padding: 8rpx 0rpx;
-    text-align: center;
-    flex-shrink: 0;
-  }
-  .popup-input1 {
-    display: flex;
-    align-items: flex-start;
-    padding: 10px 10rpx;
-    border-bottom: 1rpx solid #eee;
-    flex-shrink: 0;
-  }
-  .popup-input1-title {
-    font-size: 20rpx;
-    min-width: 80rpx;
-    text-align: center;
-  }
-  .popup-input1-content {
-    flex: 1;
-    margin-left: 30rpx;
-    font-size: 20rpx;
-    word-wrap: break-word;
-    line-height: 1.4;
-  }
-  .popup-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 30rpx;
-	margin-bottom: 10rpx;
-    flex-shrink: 0;
-  }
-  .popup-button-confirm {
-    background-color: #1677FF;
-    color: #fff;
-  }
 
+	.disease-help {
+		height: 20rpx;
+		width: 20rpx;
+		margin-left: 10rpx;
+	}
+
+	.diseaseHelp-popup-content {
+		background-color: #fff;
+		width: 700rpx;
+		max-height: 80vh;
+		min-height: 200rpx;
+		border-radius: 8rpx;
+		box-sizing: border-box;
+		display: flex;
+		flex-direction: column;
+		overflow-y: auto;
+	}
+
+	.popup-title {
+		background-color: #BDCBE0;
+		font-size: 20rpx;
+		padding: 8rpx 0rpx;
+		text-align: center;
+		flex-shrink: 0;
+	}
+
+	.popup-input1 {
+		display: flex;
+		align-items: flex-start;
+		padding: 10px 10rpx;
+		border-bottom: 1rpx solid #eee;
+		flex-shrink: 0;
+	}
+
+	.popup-input1-title {
+		font-size: 20rpx;
+		min-width: 80rpx;
+		text-align: center;
+	}
+
+	.popup-input1-content {
+		flex: 1;
+		margin-left: 30rpx;
+		font-size: 20rpx;
+		word-wrap: break-word;
+		line-height: 1.4;
+	}
+
+	.popup-button {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-top: 30rpx;
+		margin-bottom: 10rpx;
+		flex-shrink: 0;
+	}
+
+	.popup-button-confirm {
+		background-color: #1677FF;
+		color: #fff;
+	}
 </style>

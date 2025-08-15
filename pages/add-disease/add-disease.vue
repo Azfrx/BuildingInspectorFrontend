@@ -32,7 +32,8 @@
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
 		<view class="form-container">
 
-			<disease-information :structureData="structureData" :selectedGrandObject="selectedGrandObject" ref="diseaseInformationRef"> </disease-information>
+			<disease-information :structureData="structureData" :selectedGrandObject="selectedGrandObject"
+				ref="diseaseInformationRef"> </disease-information>
 
 			<disease-quantitative-data ref="diseaseQuantitativeDataRef">
 			</disease-quantitative-data>
@@ -47,39 +48,41 @@
 				</view>
 
 				<view class="part-UploadImage">
-          <view v-if="openMode === 'history'">
-            <view class="part-title">图片</view>
-            <image v-for="(url, index) in fileList" :key="index" :src="url" mode="aspectFill" @click="previewImage(url)" class="disease-image" />
-          </view>
-          <view v-else>
-            <view class="part-title">上传图片</view>
-            <view class="upload-view">
-              <!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
+					<view v-if="openMode === 'history'">
+						<view class="part-title">图片</view>
+						<image v-for="(url, index) in fileList" :key="index" :src="url" mode="aspectFill"
+							@click="previewImage(url)" class="disease-image" />
+					</view>
+					<view v-else>
+						<view class="part-title">上传图片</view>
+						<view class="upload-view">
+							<!-- <uni-file-picker class="file-picker" limit="9" :image-styles="imageStyles" v-model="fileList"
                 file-mediatype="image" mode="grid" @select="handleFileSelect" @delete="handleFileDelete"
                 :auto-upload="false"></uni-file-picker> -->
-              <my-photo-picker class="photo-select" v-model="fileList" @select="handleFileSelect"
-                               @delete="handleFileDelete" :limit="9"></my-photo-picker>
-            </view>
-          </view>
+							<my-photo-picker class="photo-select" v-model="fileList" @select="handleFileSelect"
+								@delete="handleFileDelete" :limit="9"></my-photo-picker>
+						</view>
+					</view>
 				</view>
 
 				<view class="part-ADImages">
-          <view v-if="openMode === 'history'">
-            <view class="part-title">简图</view>
-            <image v-for="(url, index) in ADImgs" :key="index" :src="url" mode="aspectFill" @click="previewImage(url)" class="disease-image" />
-          </view>
-          <view v-else>
-            <view class="part-title">上传简图</view>
-            <view class="ADImages">
-              <view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
-                <image :src="img.src" class="ADImage"  @click="previewImage(img.src)" />
-                <view class="close-btn" @click="removeImage(index)">×</view>
-              </view>
-              <view class="ADImage-container" @click="selectCanvasTemplate()">
-                <image src="/static/image/AD.svg" class="ADImageButton"></image>
-              </view>
-            </view>
-          </view>
+					<view v-if="openMode === 'history'">
+						<view class="part-title">简图</view>
+						<image v-for="(url, index) in ADImgs" :key="index" :src="url" mode="aspectFill"
+							@click="previewImage(url)" class="disease-image" />
+					</view>
+					<view v-else>
+						<view class="part-title">上传简图</view>
+						<view class="ADImages">
+							<view class="img-wrapper" v-for="(img, index) in ADImgs" :key="img.src">
+								<image :src="img.src" class="ADImage" @click="previewImage(img.src)" />
+								<view class="close-btn" @click="removeImage(index)">×</view>
+							</view>
+							<view class="ADImage-container" @click="selectCanvasTemplate()">
+								<image src="/static/image/AD.svg" class="ADImageButton"></image>
+							</view>
+						</view>
+					</view>
 
 				</view>
 			</view>
@@ -193,13 +196,12 @@
 		onUnmounted,
 		watch,
 		computed,
-		nextTick
 	} from 'vue';
-  import {
-    getObject,
-    readDiseaseImages, readDiseaseUDImages,
-    removeDiseaseImage
-  } from '../../utils/readJsonNew.js';
+	import {
+		readDiseaseImages,
+		readDiseaseUDImages,
+		removeDiseaseImage
+	} from '../../utils/readJsonNew.js';
 	import {
 		saveDiseaseImages
 	} from '../../utils/writeNew.js';
@@ -209,23 +211,28 @@
 	import {
 		idStore
 	} from "@/store/idStorage";
-	import {
-		generateDiseaseDescription
-	} from "@/utils/diseaseDescriptionCreate.js"
 	import DiseaseInformation from "@/components/disease-information.vue";
 	import DiseaseQuantitativeData from "@/components/disease-quantitativeData.vue";
 	import DiseaseDescriptionPart from '@/components/disease-descriptionPart.vue';
-	import myFilePicker from '@/components/myFilePicker/myFilePicker.vue';
 	import MyPhotoPicker from '@/components/myPhotoPicker.vue';
-	import { ButtonStore } from '@/store/button.js';
-  import {useObject} from "@/store/object";
+	import {
+		ButtonStore
+	} from '@/store/button.js';
+	import {
+		useObject
+	} from "@/store/object";
+	import {
+		onBackPress
+	} from '@dcloudio/uni-app'
 
+	// 是否加载完成
+	let isInitializing = false;
 	const diseaseInformationRef = ref(null);
 	const diseaseQuantitativeDataRef = ref(null);
 	const diseaseDescriptionPart = ref(null);
 	const buttonInfo = ButtonStore();
 
-  const objectInfo = useObject();
+	const objectInfo = useObject();
 
 	const userInfo = userStore()
 
@@ -236,40 +243,13 @@
 	const popup = ref(null);
 	const ADImgs = ref([]);
 
-  // 选择进入的构件（上部结构、下部结构、桥面系）
-  const selectedGrandObject = ref('');
+	const isChanged = ref(false);
+
+	// 选择进入的构件（上部结构、下部结构、桥面系）
+	const selectedGrandObject = ref('');
 
 	// 保存结构数据
 	const structureData = ref(null);
-	// 保存构件名称的父亲，即picker的第二级
-	const parentObjectName = ref(''); // 默认值
-	// 保存构件名称的第一级，即picker的第一级 //上部结构、下部结构、桥面系、附属设施
-	// const grandObjectName = ref('');
-	// 部件类型列表picker中的第二级 - 动态生成
-	const biObjectNameOptions = ref([]);
-	// 缺损类型列表 - 动态生成
-	const diseaseTypeOptions = ref([]);
-
-	// 构件名称picker选择的值
-	const componentNamePicker = ref('');
-	// 部件类型索引
-	const biObjectindex = ref(-1);
-
-	// 创建一个数组来存储所有病害类型选项
-	let allDiseaseTypes = [];
-
-	// 缺损类型
-	const type = ref('');
-	const typeindex = ref(-1);
-	// 添加病害类型picker和input变量
-	const typePicker = ref('');
-	const typeInput = ref('');
-
-	// 缺损位置
-	const position = ref('');
-	// 添加病害位置picker和input变量
-	const positionPicker = ref('');
-	const positionInput = ref('');
 
 	// 添加一个数组来存储多个缺损的数据
 	const diseaseDataList = ref([]);
@@ -277,149 +257,10 @@
 	// 缺损数量
 	const quantity = ref(1);
 
-	// 长度
-	const length = ref('');
-
-	//宽度
-	const width = ref('');
-
-	//缝宽
-	const crackWidth = ref('');
-
-	//高度/深度
-	const heightDepth = ref('');
-
-	//面积
-	const area = ref('');
-
-	//病害描述
-	const description = ref('');
-
 	// 图片文件列表
 	const fileList = ref([]);
-
-
-	const diseasePosition = ref([]);
-
-
-	const diseasePositionPopup = ref(null);
-	const selectedPosition = ref('');
-
-	// 为三级选择器添加的数据和方法
-	const structureTypes = ref([]);
-	const typeMultiArray = ref([
-		structureTypes.value,
-		[],
-		[]
-	]);
-	const typeMultiIndex = ref([0, 0, 0]);
-
-
-
-	//病害性质
-	const natureindex = ref(0);
-
-	const nature = ref([{
-		text: '新病害',
-		value: 0
-	}, {
-		text: '旧病害',
-		value: 1
-	}]);
-
-	//参与评定
-	const participateAssess = ref([{
-		text: '是',
-		value: 1
-	}, {
-		text: '否',
-		value: 0
-	}]);
-	const participateAssessindex = ref(0);
-
-	//评定标度
-	const level = ref([{
-		text: '1',
-		value: 1
-	}, {
-		text: '2',
-		value: 2
-	}, {
-		text: '3',
-		value: 3
-	}, {
-		text: '4',
-		value: 4
-	}, {
-		text: '5',
-		value: 5
-	}]);
-	const levelindex = ref(1);
-
-
-	//裂缝特征
-	const crackTypeIndex = ref(0);
-	const crackType = ref([{
-			text: '纵向',
-			value: 0
-		},
-		{
-			text: '横向',
-			value: 1
-		},
-		{
-			text: '斜向',
-			value: 2
-		},
-		{
-			text: 'L型',
-			value: 3
-		},
-		{
-			text: 'U型',
-			value: 4
-		}
-	])
-
-	const developmentTrend = ref([{
-			text: '稳定',
-			value: 0
-		},
-		{
-			text: '发展',
-			value: 1
-		},
-		{
-			text: '新增',
-			value: 2
-		},
-		{
-			text: '已维修',
-			value: 3
-		}
-	])
-	const developmentTrendindex = ref(0);
-
-	//参考面1
-	const reference1Location = ref('');
-
-	//参考面2
-	const reference2Location = ref('');
-
-	// 参考面弹窗引用
-	// const referenceSurfacePopup = ref(null);
-
-	// 当前选择的是参考面1还是参考面2
-	const currentReferenceSurface = ref(1);
-
-	// 参考面输入框的值
-	const referenceSurfaceInput = ref('');
-
-	// 参考面选项列表
-	const referenceSurfaceOptions = ref([]);
-
-  const previewImage = (url) => {
-    console.log('预览图片:', url)
+	const previewImage = (url) => {
+		console.log('预览图片:', url)
 		uni.previewImage({
 			urls: [url],
 		});
@@ -430,376 +271,295 @@
 		// 隐藏图片信息按钮，确保在新增病害页面不显示
 		buttonInfo.reback();
 		// 获取结构数据（先执行，并等待完成）
-
+		isChanged.value = false;
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
-    selectedGrandObject.value = options.selectedGrandObject;
-    console.log('设置grandObject', selectedGrandObject.value)
+		selectedGrandObject.value = options.selectedGrandObject;
+		console.log('设置grandObject', selectedGrandObject.value)
 
 		// 初始化构件名称多级选择器
-		// initMultiPickerColumns();
 		// 如果有mode参数且值为edit，则设为编辑模式
 		if (options && options.mode === 'edit') {
 			openMode.value = 'edit';
-			/*// 如果传递了数据，则解析并填充表单
-			if (options.data) {
-				try {
-					const diseaseData = JSON.parse(decodeURIComponent(options.data));
-					console.log('接收到的编辑数据:', diseaseData);
-
-					// 填充表单数据
-					fillFormWithData(diseaseData);
-				} catch (error) {
-					console.error('解析编辑数据失败:', error);
-					uni.showToast({
-						title: '加载编辑数据失败',
-						icon: 'none'
-					});
-				}
-			}*/
 		} else if (options && options.mode === 'history') {
 			openMode.value = 'history';
-			/*// 如果传递了数据，则解析并填充表单
-			if (options.data) {
-				try {
-					const diseaseData = JSON.parse(decodeURIComponent(options.data));
-					console.log('接收到的历史病害数据:', diseaseData);
-
-					// 填充表单数据
-					fillFormWithData(diseaseData);
-				} catch (error) {
-					console.error('解析编辑数据失败:', error);
-					uni.showToast({
-						title: '加载编辑数据失败',
-						icon: 'none'
-					});
-				}
-			}*/
-			// 非编辑模式，初始化三级选择器
-			// initMultiPickerColumns();
 		} else {
 			openMode.value = 'create';
 		}
-    await fetchStructureData();
-    // 如果传递了数据，则解析并填充表单
-    if (options.data) {
-      try {
-        const diseaseData = JSON.parse(decodeURIComponent(options.data));
-        console.log('接收到的历史病害数据:', diseaseData);
+		await fetchStructureData();
+		// 如果传递了数据，则解析并填充表单
+		if (options.data) {
+			try {
+				const diseaseData = JSON.parse(decodeURIComponent(options.data));
+				console.log('接收到的历史病害数据:', diseaseData);
 
-        // 填充表单数据
-        await fillFormWithData(diseaseData);
-      } catch (error) {
-        console.error('解析编辑数据失败:', error);
-        uni.showToast({
-          title: '加载编辑数据失败',
-          icon: 'none'
-        });
-      }
-    }
-		// 初始化缺损数据列表
-		// updateDiseaseDataList(quantity.value);
+				// 填充表单数据
+				await fillFormWithData(diseaseData);
+			} catch (error) {
+				console.error('解析编辑数据失败:', error);
+				uni.showToast({
+					title: '加载编辑数据失败',
+					icon: 'none'
+				});
+			}
+		}
+		isInitializing = true;
+		uni.$on('changeDiseaseData', () => {
+			console.log('数据已改变')
+			isChanged.value = true;
+		})
 	});
 
 	// 根据接收的数据填充表单
 	const fillFormWithData = async (data) => {
-    console.log('开始填充表单数据:', data);
+		console.log('开始填充表单数据:', data);
 
-    //设置构建名称
-    if (data.component?.biObject?.name) {
-      // uni.$emit('setComponentName', data.component.biObject.name)
-      uni.$emit('setComponentName', {
-        biObjectName: data.component.biObject.name,
-        parentObjectName: data.component.parentObjectName,
-        grandObjectName: data.component.grandObjectName,
-        biObjectInput: data.biObjectName,
-      })
-    }
+		//设置构建名称
+		if (data.component?.biObject?.name) {
+			// uni.$emit('setComponentName', data.component.biObject.name)
+			uni.$emit('setComponentName', {
+				biObjectName: data.component.biObject.name,
+				parentObjectName: data.component.parentObjectName,
+				grandObjectName: data.component.grandObjectName,
+				biObjectInput: data.biObjectName,
+			})
+		}
 
-    // 设置构件编号
-    if (data.component?.code) {
-      componentCodeInput.value = data.component.code;
-      uni.$emit('setComponentCode', componentCodeInput.value)
-      console.log('成功设置构件编号:', data.component.code);
-    }
+		// 设置构件编号
+		if (data.component?.code) {
+			uni.$emit('setComponentCode', data.component.code)
+			console.log('成功设置构件编号:', data.component.code);
+		}
 
-    // 设置病害类型
-    if (data.type) {
-      // 更新病害类型和位置选项
-      type.value = data.type;
-      // updateDiseaseTypeOptions();
+		// 设置病害类型
+		if (data.type) {
+			// 更新病害类型和位置选项
+			uni.$emit('setDiseaseType', {
+				diseaseTypeInput: data.type,
+				diseaseType: data.diseaseType.name,
+				diseaseTypeCode: data.diseaseType.code,
+				diseaseTypeId: data.diseaseType.id,
+				diseaseTypeGroupName: data.diseaseType.groupName,
+			})
+			console.log('成功设置病害类型:', data.type);
+		}
 
-      // 检查是否在预设选项中
-      /*if (diseaseTypeOptions.value.includes(data.type)) {
-        typePicker.value = data.type;
-        typeInput.value = '';
-      } else {
-        typePicker.value = '其他';
-        typeInput.value = data.type;
-      }*/
-      uni.$emit('setDiseaseType', {
-        diseaseTypeInput: data.type,
-        diseaseType: data.diseaseType.name,
-        diseaseTypeCode: data.diseaseType.code,
-        diseaseTypeId: data.diseaseType.id,
-        diseaseTypeGroupName: data.diseaseType.groupName,
-      })
-      console.log('成功设置病害类型:', data.type);
-    }
+		if (data.diseaseType.threshold) {
+			uni.$emit('setThreshold', data.diseaseType.threshold)
+		}
 
-    if(data.diseaseType.threshold){
-      uni.$emit('setThreshold', data.diseaseType.threshold)
-    }
+		// 设置病害位置
+		if (data.position) {
+			uni.$emit('setDiseasePosition', data.position)
+			console.log('成功设置病害位置:', data.position);
+		}
+		if (data.positionNumber) {
+			uni.$emit('setPositionNumber', data.positionNumber)
+		}
 
-    // 设置病害位置
-    if (data.position) {
-      // updateDiseasePositionOptions();
-      position.value = data.position;
+		// 设置缺损数量
+		if (data.quantity) {
+			quantity.value = parseInt(data.quantity) || 1;
+			uni.$emit('setQuantity', data.quantity)
+		}
+		if (data.units) {
+			uni.$emit('setUnits', data.units)
+		}
 
-      uni.$emit('setDiseasePosition', data.position)
+		// 设置参与评定值（uni-data-checkbox格式）
+		if (data.participateAssess !== undefined) {
+			uni.$emit('setParticipateAssess', data.participateAssess)
+		}
 
-      console.log('成功设置病害位置:', data.position);
-    }
-    if(data.positionNumber){
-      uni.$emit('setPositionNumber', data.positionNumber)
-    }
+		if (data.nature) {
+			uni.$emit('setNature', data.nature)
+		}
 
-    // 设置缺损数量
-    if (data.quantity) {
-      quantity.value = parseInt(data.quantity) || 1;
-      uni.$emit('setQuantity', data.quantity)
-    }
-    if(data.units){
-      uni.$emit('setUnits', data.units)
-    }
+		// 设置评定标度（uni-data-checkbox格式）
+		if (data.level) {
+			uni.$emit('setLevel', data.level)
+		}
 
-    // 设置参与评定值（uni-data-checkbox格式）
-    if (data.participateAssess !== undefined) {
-      participateAssessindex.value = data.participateAssess === "0" ? 0 : 1;
-      uni.$emit('setParticipateAssess', data.participateAssess)
-    }
+		// 设置病害描述
+		if (data.description) {
+			uni.$emit('setDescriptionByEmit', data.description)
+		}
 
-    if (data.nature) {
-      // 根据nature的值更新natureindex
-      const natureItem = nature.value.find(item => item.text === data.nature);
-      if (natureItem) {
-        natureindex.value = natureItem.value;
-      }
-      uni.$emit('setNature', data.nature)
-    }
+		if (data.crackType) {
+			uni.$emit('setCrackType', data.crackType)
+		}
 
-    // 设置评定标度（uni-data-checkbox格式）
-    if (data.level) {
-      const levelVal = parseInt(data.level);
+		if (data.developmentTrend) {
+			uni.$emit('setDevelopmentTrend', data.developmentTrend)
+		}
 
-      // 检查是否有病害类型对象，并根据其maxScale和minScale设置评定标度选项
-      if (data.diseaseType && data.diseaseType.maxScale && data.diseaseType.minScale) {
-        const minScale = parseInt(data.diseaseType.minScale) || 1;
-        const maxScale = parseInt(data.diseaseType.maxScale) || 4;
+		// 处理diseaseDetails数据
+		if (data.diseaseDetails && Array.isArray(data.diseaseDetails)) {
 
-        // 创建新的评定标度选项
-        const newLevelOptions = [];
-        for (let i = minScale; i <= maxScale; i++) {
-          newLevelOptions.push({
-            text: String(i),
-            value: i
-          });
-        }
+			// 判断是否为范围模式 - 直接使用quantity字段判断
+			const quantity = parseInt(data.quantity) || 0;
+			const isRangeMode = quantity >= data.diseaseType.threshold;
+			console.log('根据quantity判断范围模式:', quantity, isRangeMode);
 
-        // 更新评定标度选项
-        level.value = newLevelOptions;
+			// 根据模式创建对应的数据结构
+			if (isRangeMode) {
+				if (data.diseaseDetails.length === 0) {
+					data.diseaseDetails.push({
+						useRangeMode: true,
+						// 最小值
+						lengthRangeStart: '',
+						lengthRangeEnd: '',
+						heightDepthRangeStart: '',
+						heightDepthRangeEnd: '',
+						crackWidthRangeStart: '',
+						crackWidthRangeEnd: '',
+						areaLength: '',
+						areaWidth: '',
+						areaIdentifier: '',
+						deformationRangeStart: '',
+						deformationRangeEnd: '',
+						angleRangeStart: '',
+						angleRangeEnd: '',
+						numeratorRatio: '',
+						denominatorRatio: '',
 
-        // 确保选中的值在范围内
-        levelindex.value = Math.max(minScale, Math.min(maxScale, levelVal));
-        console.log('根据病害类型设置评定标度范围:', minScale, '至', maxScale, '选中值:', levelindex.value);
-      } else {
-        // 如果没有病害类型信息，直接设置值
-        levelindex.value = levelVal; // 索引从1开始，值从1开始
-      }
-      uni.$emit('setLevel', data.level)
-    }
+						// 参考面信息
+						reference1Location: '',
+						reference1LocationStart: '',
+						reference1LocationEnd: '',
+						reference2Location: '',
+						reference2LocationStart: '',
+						reference2LocationEnd: '',
+					})
+				}
+				// 范围模式 - 缺损数量大于等于10时
+				const detail = data.diseaseDetails[0];
 
-    // 设置病害描述
-    if (data.description) {
-      description.value = data.description;
-      uni.$emit('setDescriptionByEmit', data.description)
-    }
+				// 创建一个包含所有范围值的对象
+				const rangeData = {
+					useRangeMode: true,
+					// 最小值
+					lengthRangeStart: detail.lengthRangeStart || '',
+					lengthRangeEnd: detail.lengthRangeEnd || '',
+					heightDepthRangeStart: detail.heightDepthRangeStart || '',
+					heightDepthRangeEnd: detail.heightDepthRangeEnd || '',
+					crackWidthRangeStart: detail.crackWidthRangeStart || '',
+					crackWidthRangeEnd: detail.crackWidthRangeEnd || '',
+					areaLength: detail.areaLength || '',
+					areaWidth: detail.areaWidth || '',
+					areaIdentifier: detail.areaIdentifier || '',
+					deformationRangeStart: detail.deformationRangeStart || '',
+					deformationRangeEnd: detail.deformationRangeEnd || '',
+					angleRangeStart: detail.angleRangeStart || '',
+					angleRangeEnd: detail.angleRangeEnd || '',
+					numeratorRatio: detail.numeratorRatio || '',
+					denominatorRatio: detail.denominatorRatio || '',
 
-    if (data.crackType) {
-      uni.$emit('setCrackType', data.crackType)
-    }
+					// 参考面信息
+					reference1Location: detail.reference1Location || '',
+					reference1LocationStart: detail.reference1LocationStart || '',
+					reference1LocationEnd: detail.reference1LocationEnd || '',
+					reference2Location: detail.reference2Location || '',
+					reference2LocationStart: detail.reference2LocationStart || '',
+					reference2LocationEnd: detail.reference2LocationEnd || '',
+				};
 
-    if (data.developmentTrend) {
-      uni.$emit('setDevelopmentTrend', data.developmentTrend)
-    }
+				// 更新数据列表
+				diseaseDataList.value = [rangeData];
+			} else {
+				if (data.diseaseDetails.length < data.quantity) {
+					while (data.diseaseDetails.length < data.quantity) {
+						data.diseaseDetails.push({
+							useRangeMode: false,
+							length1: '',
+							length2: '',
+							length3: '',
+							heightDepth: '',
+							crackWidth: '',
+							areaLength: '',
+							areaWidth: '',
+							areaIdentifier: '',
+							deformation: '',
+							angle: '',
+							numeratorRatio: '',
+							denominatorRatio: '',
 
-    // 处理diseaseDetails数据
-    if (data.diseaseDetails && Array.isArray(data.diseaseDetails) ) {
-
-      // 判断是否为范围模式 - 直接使用quantity字段判断
-      const quantity = parseInt(data.quantity) || 0;
-      const isRangeMode = quantity >= data.diseaseType.threshold;
-      console.log('根据quantity判断范围模式:', quantity, isRangeMode);
-
-      // 根据模式创建对应的数据结构
-      if (isRangeMode) {
-        if(data.diseaseDetails.length === 0){
-          data.diseaseDetails.push({
-            useRangeMode: true,
-            // 最小值
-            lengthRangeStart:'',
-            lengthRangeEnd: '',
-            heightDepthRangeStart: '',
-            heightDepthRangeEnd: '',
-            crackWidthRangeStart: '',
-            crackWidthRangeEnd: '',
-            areaLength: '',
-            areaWidth: '',
-            areaIdentifier: '',
-            deformationRangeStart: '',
-            deformationRangeEnd: '',
-            angleRangeStart: '',
-            angleRangeEnd: '',
-            numeratorRatio: '',
-            denominatorRatio: '',
-
-            // 参考面信息
-            reference1Location: '',
-            reference1LocationStart: '',
-            reference1LocationEnd: '',
-            reference2Location: '',
-            reference2LocationStart: '',
-            reference2LocationEnd: '',
-          })
-        }
-        // 范围模式 - 缺损数量大于等于10时
-        const detail = data.diseaseDetails[0];
-
-        // 创建一个包含所有范围值的对象
-        const rangeData = {
-          useRangeMode: true,
-          // 最小值
-          lengthRangeStart: detail.lengthRangeStart || '',
-          lengthRangeEnd: detail.lengthRangeEnd || '',
-          heightDepthRangeStart: detail.heightDepthRangeStart || '',
-          heightDepthRangeEnd: detail.heightDepthRangeEnd || '',
-          crackWidthRangeStart: detail.crackWidthRangeStart || '',
-          crackWidthRangeEnd: detail.crackWidthRangeEnd || '',
-          areaLength: detail.areaLength || '',
-          areaWidth: detail.areaWidth || '',
-          areaIdentifier: detail.areaIdentifier || '',
-          deformationRangeStart: detail.deformationRangeStart || '',
-          deformationRangeEnd: detail.deformationRangeEnd || '',
-          angleRangeStart: detail.angleRangeStart || '',
-          angleRangeEnd: detail.angleRangeEnd || '',
-          numeratorRatio: detail.numeratorRatio || '',
-          denominatorRatio: detail.denominatorRatio || '',
-
-          // 参考面信息
-          reference1Location: detail.reference1Location || '',
-          reference1LocationStart: detail.reference1LocationStart || '',
-          reference1LocationEnd: detail.reference1LocationEnd || '',
-          reference2Location: detail.reference2Location || '',
-          reference2LocationStart: detail.reference2LocationStart || '',
-          reference2LocationEnd: detail.reference2LocationEnd || '',
-        };
-
-        // 更新数据列表
-        diseaseDataList.value = [rangeData];
-      } else {
-        if(data.diseaseDetails.length < data.quantity){
-          while(data.diseaseDetails.length < data.quantity){
-            data.diseaseDetails.push({
-              useRangeMode: false,
-              length1: '',
-              length2: '',
-              length3: '',
-              heightDepth: '',
-              crackWidth: '',
-              areaLength: '',
-              areaWidth: '',
-              areaIdentifier: '',
-              deformation: '',
-              angle: '',
-              numeratorRatio: '',
-              denominatorRatio: '',
-
-              // 参考面信息
-              reference1Location: '',
-              reference1LocationStart: '',
-              reference1LocationEnd: '',
-              reference2Location: '',
-              reference2LocationStart: '',
-              reference2LocationEnd: '',
-            })
-          }
-        }
-        // 普通模式 - 为每个缺损创建一条记录
-        const newList = data.diseaseDetails.map(detail => {
-          return {
-            useRangeMode: false,
-            length1: detail.length1 || '',
-            length2: detail.length2 || '',
-            length3: detail.length3 || '',
-            heightDepth: detail.heightDepth || '',
-            crackWidth: detail.crackWidth || '',
-            areaLength: detail.areaLength || '',
-            areaWidth: detail.areaWidth || '',
-            areaIdentifier: detail.areaIdentifier || '',
-            deformation: detail.deformation || '',
-            angle: detail.angle || '',
-            numeratorRatio: detail.numeratorRatio || '',
-            denominatorRatio: detail.denominatorRatio || '',
+							// 参考面信息
+							reference1Location: '',
+							reference1LocationStart: '',
+							reference1LocationEnd: '',
+							reference2Location: '',
+							reference2LocationStart: '',
+							reference2LocationEnd: '',
+						})
+					}
+				}
+				// 普通模式 - 为每个缺损创建一条记录
+				const newList = data.diseaseDetails.map(detail => {
+					return {
+						useRangeMode: false,
+						length1: detail.length1 || '',
+						length2: detail.length2 || '',
+						length3: detail.length3 || '',
+						heightDepth: detail.heightDepth || '',
+						crackWidth: detail.crackWidth || '',
+						areaLength: detail.areaLength || '',
+						areaWidth: detail.areaWidth || '',
+						areaIdentifier: detail.areaIdentifier || '',
+						deformation: detail.deformation || '',
+						angle: detail.angle || '',
+						numeratorRatio: detail.numeratorRatio || '',
+						denominatorRatio: detail.denominatorRatio || '',
 
 
-            // 参考面信息
-            reference1Location: detail.reference1Location || '',
-            reference1LocationStart: detail.reference1LocationStart || '',
-            reference1LocationEnd: detail.reference1LocationEnd || '',
-            reference2Location: detail.reference2Location || '',
-            reference2LocationStart: detail.reference2LocationStart || '',
-            reference2LocationEnd: detail.reference2LocationEnd || '',
-          };
-        });
+						// 参考面信息
+						reference1Location: detail.reference1Location || '',
+						reference1LocationStart: detail.reference1LocationStart || '',
+						reference1LocationEnd: detail.reference1LocationEnd || '',
+						reference2Location: detail.reference2Location || '',
+						reference2LocationStart: detail.reference2LocationStart || '',
+						reference2LocationEnd: detail.reference2LocationEnd || '',
+					};
+				});
 
-        // 更新数据列表
-        diseaseDataList.value = newList;
-      }
-      uni.$emit('setDiseaseDataList', diseaseDataList.value)
-      console.log('成功设置diseaseDetails数据', diseaseDataList.value);
-    }
+				// 更新数据列表
+				diseaseDataList.value = newList;
+			}
+			uni.$emit('setDiseaseDataList', diseaseDataList.value)
+			console.log('成功设置diseaseDetails数据', diseaseDataList.value);
+		}
 
-    // 处理图片数据
-    if (data.images && Array.isArray(data.images)) {
-      console.log('开始处理图片数据......:', data.images);
-      let imagesPaths = [];
-      if (openMode.value == 'history') {
-        imagesPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.images);
-      } else {
-        imagesPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
-      }
-      // const imagesPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
-      console.log('处理后的图片路径:', imagesPaths);
-      fileList.value = imagesPaths;
-    }
+		// 处理图片数据
+		if (data.images && Array.isArray(data.images)) {
+			console.log('开始处理图片数据......:', data.images);
+			let imagesPaths = [];
+			if (openMode.value == 'history') {
+				imagesPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.images);
+			} else {
+				imagesPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
+			}
+			// const imagesPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
+			console.log('处理后的图片路径:', imagesPaths);
+			fileList.value = imagesPaths;
+		}
 
-    // AD图片
-    if (data.ADImgs && Array.isArray(data.ADImgs)) {
-      let ADImgsPaths = [];
-      if (openMode.value == 'history') {
-        ADImgsPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
-      } else {
-        ADImgsPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
-      }
-      // const ADImgsPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
-      ADImgs.value = ADImgsPaths.map((src, index) => ({
-        src: src
-      }));
-    }
+		// AD图片
+		if (data.ADImgs && Array.isArray(data.ADImgs)) {
+			let ADImgsPaths = [];
+			if (openMode.value == 'history') {
+				ADImgsPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
+			} else {
+				ADImgsPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
+			}
+			// const ADImgsPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
+			ADImgs.value = ADImgsPaths.map((src, index) => ({
+				src: src
+			}));
+		}
 
-    console.log('表单数据填充完成');
-  };
+		console.log('表单数据填充完成');
+	};
 
 	// 根据文本查找索引的工具函数
 	const findIndexByText = (optionsArray, targetText) => {
@@ -959,8 +719,19 @@
 		console.log('保存并复制到下一条');
 		// 调用创建标准数据结构的函数，然后进行保存
 		const diseaseData = createDiseaseData();
-		if (diseaseData) {
-			saveWithoutNavigateBack(diseaseData);
+		// 验证数据完整性
+		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+			console.log('数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置');
+			uni.hideLoading();
+			uni.showToast({
+				title: '请填写必填项',
+				icon: 'none'
+			});
+			return;
+		}
+		const saveDiseaseData = JSON.parse(JSON.stringify(diseaseData));
+		if (saveDiseaseData) {
+			saveWithoutNavigateBack(saveDiseaseData);
 		}
 		diseaseData.id = new Date().getTime();
 		diseaseData.localId = new Date().getTime();
@@ -1019,7 +790,7 @@
 				crackWidthRangeEnd: rangeData.crackWidthRangeEnd || '',
 				areaLength: rangeData.areaLength || '',
 				areaWidth: rangeData.areaWidth || '',
-        areaIdentifier: rangeData.areaIdentifier || '',
+				areaIdentifier: rangeData.areaIdentifier || '',
 				deformationRangeStart: rangeData.deformationRangeStart || '',
 				deformationRangeEnd: rangeData.deformationRangeEnd || '',
 				angleRangeStart: rangeData.angleRangeStart || '',
@@ -1056,7 +827,7 @@
 					angle: item.angle || '',
 					areaLength: item.areaLength,
 					areaWidth: item.areaWidth,
-          areaIdentifier: item.areaIdentifier,
+					areaIdentifier: item.areaIdentifier,
 					numeratorRatio: item.numeratorRatio,
 					denominatorRatio: item.denominatorRatio,
 					// percentage: item.percentage || '',
@@ -1112,16 +883,16 @@
 				name: diseaseTypeObj.name,
 				maxScale: diseaseTypeObj.maxScale || 5,
 				minScale: diseaseTypeObj.minScale || 1,
-        groupName: diseaseTypeObj.groupName || '',
+				groupName: diseaseTypeObj.groupName || '',
 				status: "0"
 			} : null,
 			diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,
 			description: diseaseDescriptionPart.value.description,
 			position: diseaseInformationRef.value.position,
-      positionNumber: diseaseInformationRef.value.positionNumber,
+			positionNumber: diseaseInformationRef.value.positionNumber,
 			level: diseaseDescriptionPart.value.level,
 			quantity: diseaseQuantitativeDataRef.value.quantity,
-      units:diseaseQuantitativeDataRef.value.units,
+			units: diseaseQuantitativeDataRef.value.units,
 			// 直接存储详细数据
 			diseaseDetails: diseaseDetails,
 			type: diseaseInformationRef.value.type, // 直接使用type.value而不是通过索引获取
@@ -1135,7 +906,7 @@
 			component: diseaseInformationRef.value.component,
 			componentId: null, // 组件ID也设为null
 			buildingId: idStorageInfo.buildingId,
-      taskId: idStorageInfo.taskId,
+			taskId: idStorageInfo.taskId,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			commitType: 1, //0为已提交 1为未提交 2为删除
@@ -1175,7 +946,7 @@
 					uni.showToast({
 						title: '已保存，可继续添加下一条',
 						icon: 'none',
-						duration: 1500
+						duration: 1000
 					});
 				}, 500);
 			})
@@ -1204,9 +975,11 @@
 				try {
 					const originalData = JSON.parse(decodeURIComponent(options.data));
 					// 将相对路径转为绝对路径
-					originalImages = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+					originalImages = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId,
+						originalData
 						.images) || [];
-					originalADImages = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, originalData
+					originalADImages = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId,
+						originalData
 						.ADImgs) || [];
 				} catch (error) {
 					console.error('解析原始数据失败:', error);
@@ -1311,6 +1084,7 @@
 
 				// 返回上一页
 				setTimeout(() => {
+					isChanged.value = false;
 					uni.navigateBack();
 				}, 500);
 			})
@@ -1357,6 +1131,7 @@
 
 				// 返回上一页
 				setTimeout(() => {
+					isChanged.value = false;
 					uni.navigateBack();
 				}, 500);
 			})
@@ -1414,8 +1189,9 @@
 
 						// 返回上一页
 						setTimeout(() => {
+							isChanged.value = false;
 							uni.navigateBack();
-						}, 1500);
+						}, 500);
 					} else {
 						uni.showToast({
 							title: '无法获取病害ID',
@@ -1428,40 +1204,51 @@
 	}
 
 	const copyAndAddDisease = async () => {
-    const diseaseData = createDiseaseData();
+		const diseaseData = createDiseaseData();
+		// 验证数据完整性
+		if (!diseaseData.type || !diseaseData.component || !diseaseData.position || !diseaseData.description) {
+			console.log('数据不完整，请确保选择了构件名称、构件编号、病害类型和病害位置');
+			uni.hideLoading();
+			uni.showToast({
+				title: '请填写必填项',
+				icon: 'none'
+			});
+			return;
+		}
+		const saveDiseaseData = JSON.parse(JSON.stringify(diseaseData));
 
-    await saveImagesAndUpdateDisease(diseaseData)
-    // 清空图片列表
-    fileList.value = [];
+		await saveImagesAndUpdateDisease(saveDiseaseData)
+		// 清空图片列表
+		fileList.value = [];
 
-    // 清空AD图片列表
-    ADImgs.value = [];
-    diseaseData.id = new Date().getTime();
-    diseaseData.commitType = 1;
-    diseaseData.localId = new Date().getTime();
-    diseaseData.createTime = formatDateTime();
-    diseaseData.updateTime = formatDateTime();
-    diseaseData.historyDiseaseId = null;
+		// 清空AD图片列表
+		ADImgs.value = [];
+		diseaseData.id = new Date().getTime();
+		diseaseData.commitType = 1;
+		diseaseData.localId = new Date().getTime();
+		diseaseData.createTime = formatDateTime();
+		diseaseData.updateTime = formatDateTime();
+		diseaseData.historyDiseaseId = null;
 
-    console.log('保存并复制到下一条');
+		console.log('保存并复制到下一条');
 
-    /*		// 清空图片列表
-        fileList.value = [];
+		/*		// 清空图片列表
+		    fileList.value = [];
 
-        // 清空AD图片列表
-        ADImgs.value = [];*/
+		    // 清空AD图片列表
+		    ADImgs.value = [];*/
 
-    // 将编辑模式切换为新增模式
-    openMode.value = 'create';
-    // saveImagesAndUpdateDisease(diseaseData)
+		// 将编辑模式切换为新增模式
+		openMode.value = 'create';
+		// saveImagesAndUpdateDisease(diseaseData)
 
-    // 简单提示
-    uni.showToast({
-      title: '保存并复制成功',
-      icon: 'success',
-      duration: 500
-    });
-  }
+		// 简单提示
+		uni.showToast({
+			title: '保存并复制成功',
+			icon: 'success',
+			duration: 500
+		});
+	}
 
 	const editDisease = () => {
 		console.log('编辑');
@@ -1497,6 +1284,7 @@
 
 				// 返回上一页
 				setTimeout(() => {
+					isChanged.value = false;
 					uni.navigateBack();
 				}, 500);
 			})
@@ -1580,7 +1368,7 @@
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
 			// const data = await getObject(userInfo.username, idStorageInfo.buildingId);
-      const data = objectInfo.getData();
+			const data = objectInfo.getData();
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 
@@ -1598,12 +1386,6 @@
 		}
 	};
 
-	// 构件名称input输入框
-	const componentNameInput = ref('');
-
-	// 构件编号 - 改为输入框
-	const componentCodeInput = ref('');
-
 	watch(openMode, (newOpenMode) => {
 		if (newOpenMode === 'edit') {
 			uni.setNavigationBarTitle({
@@ -1620,6 +1402,42 @@
 				title: '历史病害', // 要设置的标题文字
 			});
 		}
+	})
+	watch([fileList, ADImgs], () => {
+		if (isInitializing) {
+			console.log('数据已改变')
+			isChanged.value = true;
+		}
+	}, {
+		deep: true
+	})
+
+	let isManualBack = false; // 是否手动触发返回
+
+	onBackPress(() => {
+		if (isManualBack) {
+			isManualBack = false;
+			return false; // 允许返回
+		}
+		if ((openMode.value === 'edit' || openMode.value === 'create') && isChanged.value) {
+			uni.showModal({
+				title: '提示',
+				content: '您有未保存的修改，是否返回？',
+				success: (res) => {
+					if (res.confirm) {
+						isManualBack = true;
+						uni.navigateBack();
+					}
+				},
+			});
+			return true; // 先阻止默认返回
+		}
+		return false;
+	});
+
+	onUnmounted(() => {
+		// 移除监听事件
+		uni.$off('changeDiseaseData')
 	})
 </script>
 <style>
@@ -1645,7 +1463,7 @@
 		color: #ffffff;
 		margin-right: 10rpx;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	/* 新增病害顶部按钮 */
@@ -1665,7 +1483,7 @@
 		background-color: #0F4687;
 		color: #ffffff;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-copyAndTonext {
@@ -1675,7 +1493,7 @@
 		margin-left: 0;
 		margin-right: 10rpx;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-savetonext {
@@ -1684,7 +1502,7 @@
 		color: #ffffff;
 		margin-right: 10rpx;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-save {
@@ -1694,7 +1512,7 @@
 		margin-left: 0;
 		margin-right: 0;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-cancle {
@@ -1702,7 +1520,7 @@
 		border: 1px solid #1677FF;
 		margin: 0 10rpx;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-copyHistoryDisease {
@@ -1711,7 +1529,7 @@
 		color: #ffffff;
 		margin-right: 0;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	.button-staging {
@@ -1721,7 +1539,7 @@
 		margin-right: 0;
 		margin-left: 10rpx;
 		display: flex;
-    padding: 0 10rpx;
+		padding: 0 10rpx;
 	}
 
 	/*picker公用*/
@@ -1757,7 +1575,7 @@
 		min-height: 100rpx;
 		background-color: transparent;
 	}
-	
+
 	/* 覆盖myPhotoPicker组件中的图片容器尺寸 */
 	.photo-select::v-deep .preview-container {
 		width: 140rpx;
@@ -1923,11 +1741,12 @@
 	.photo-select::v-deep .preview-list {
 		gap: 15rpx;
 	}
-  .disease-image{
-    height: 140rpx;
-    width: 140rpx;
-    margin-top: 10rpx;
-    margin-left: 10rpx;
-    object-fit: cover;
-  }
+
+	.disease-image {
+		height: 140rpx;
+		width: 140rpx;
+		margin-top: 10rpx;
+		margin-left: 10rpx;
+		object-fit: cover;
+	}
 </style>
