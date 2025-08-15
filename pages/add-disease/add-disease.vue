@@ -1422,7 +1422,7 @@
 		if ((openMode.value === 'edit' || openMode.value === 'create') && isChanged.value) {
 			uni.showModal({
 				title: '提示',
-				content: '您有未保存的修改，是否返回？',
+				content: '您有未保存的修改，点击[确定]将丢弃未保存数据。',
 				success: (res) => {
 					if (res.confirm) {
 						isManualBack = true;

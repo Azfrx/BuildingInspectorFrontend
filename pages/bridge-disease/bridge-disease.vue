@@ -10,7 +10,7 @@
 					</view>
 				</view>
 				<view class="bridge-info-content-right">
-					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测按钮</button>
+					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测数据</button>
 				</view>
 			</view>
 		</view>

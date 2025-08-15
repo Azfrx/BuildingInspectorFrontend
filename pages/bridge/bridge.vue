@@ -868,7 +868,7 @@ import {getBuildingCommitedNumber} from "@/utils/isBuildingCommited";
 	    // 检查UDPath是否匹配当前用户，如果不匹配则重置
 	    if (userInfo.UDPath) {
 	      const currentUsername = userInfo.username;
-	      if (currentUsername && !userInfo.UDPath.includes(currentUsername)) {
+	      if (currentUsername && !userInfo.UDPath.split('-')[2] === currentUsername) {
 	        userInfo.setUDPath(''); // 重置UDPath
 	        hasCheckedVersion.value = false; // 重置版本检查标志
 	      } else {
@@ -899,7 +899,7 @@ import {getBuildingCommitedNumber} from "@/utils/isBuildingCommited";
 	            // 优先查找匹配当前用户名的目录
 	            if (currentUsername) {
 	              for (const dir of udDirs) {
-	                if (dir.name.includes(currentUsername)) {
+	                if (dir.name.split('-')[2] === currentUsername) {
 	                  matchedDir = dir.name;
 	                  break;
 	                }

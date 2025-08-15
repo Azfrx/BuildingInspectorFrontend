@@ -126,6 +126,9 @@
 		<!-- 自定义错误弹窗 -->
 		<offlineFailVue ref="offlineFailRef" @confirm="handleOfflineFailConfirm" />
 		<offlineVersionVue ref="offlineVersionRef" />
+
+    <offlineFailVue ref="dataOffline"/>
+
 	</view>
 </template>
 
@@ -209,6 +212,9 @@ import apiConfig from '../../config/api';
 	// 自定义错误弹窗引用
 	const offlineFailRef = ref(null);
 	const offlineVersionRef = ref(null)
+
+  // 检查更新按钮没网弹窗
+  const dataOffline = ref(null);
   const testButton = ()=>{
 	  uni.navigateTo({
 	  	url: '/pages/test/test'
@@ -761,11 +767,7 @@ import apiConfig from '../../config/api';
     } catch (error) {
       console.error('检查更新失败:', error);
       if(error.errMsg.includes('Failed to connect')){
-        uni.showToast({
-          title: '请检查网络连接',
-          icon: 'none',
-          duration: 1000
-        });
+        dataOffline.value.show();
       }
 	  const responseLogin = await uni.request({
 	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
