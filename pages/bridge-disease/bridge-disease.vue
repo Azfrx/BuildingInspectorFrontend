@@ -10,7 +10,7 @@
 					</view>
 				</view>
 				<view class="bridge-info-content-right">
-          <button class="delete-button" @click="deleteBridgeData">清空桥梁数据</button>
+          <button class="delete-button" @click="deleteBridgeData">清空检测数据</button>
 					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测数据</button>
 				</view>
 			</view>
@@ -70,7 +70,7 @@
         <view class="popup-title">警告</view>
         <view class="popup-input1">
           <view class="popup-input1-content">
-            <text>该操作将清空本地保存的下列数据：\n* 当前病害\n* 正立面照\n* 现状照\n* 结构信息\n\n执行该操作将无法恢复上述数据，已提交到服务器的数据不受影响，您是否执行该操作？</text>
+            <text>该操作将清空[{{bridgeName}}]在本地保存的下列数据：\n* 当前病害\n* 正立面照\n* 现状照\n* 结构信息\n\n执行该操作将无法恢复上述数据，已提交到服务器的数据不受影响，您是否执行该操作？</text>
           </view>
         </view>
         <view class="popup-button">
