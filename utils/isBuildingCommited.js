@@ -79,6 +79,35 @@ export async function setBuildingCommitted (username,projectId,buildingId) {
     uni.$emit('getCommitedNum',projectId)
 }
 
+export async function setBuildingNull(username,projectId,buildingId){
+    const taskData = await getULTask(username, projectId);
+
+    // 找到对应的任务项并设置 commited 字段为 1
+    if (taskData && taskData.tasks) {
+        const tasks = taskData.tasks;
+        for (let i = 0; i < tasks.length; i++) {
+            if (tasks[i].buildingId === buildingId) {
+                tasks[i] = {
+                    updatetime: new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: 2
+                };
+            }else{
+                tasks[i] = {
+                    updatetime: tasks[i].updatetime || new Date().toISOString(),
+                    id: tasks[i].id,
+                    buildingId: tasks[i].buildingId,
+                    commited: tasks[i].commited
+                };
+            }
+        }
+    }
+    uni.$emit('setButtonCommited')
+    await setTask(username, projectId, taskData);
+    uni.$emit('getCommitedNum',projectId)
+}
+
 export async function isBuildingCommited (username,projectId,buildingId) {
     const taskData = await getULTask(username, projectId);
 

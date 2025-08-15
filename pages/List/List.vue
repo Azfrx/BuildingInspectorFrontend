@@ -348,6 +348,17 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			}
 		}
 	};
+  const setBuildingNull = async (buildingId) => {
+    // 找到对应的任务项并设置 commited 字段为 2 为刚初始化的状态
+    if (initTaskData.value && initTaskData.value.tasks) {
+      for (let i = 0; i < initTaskData.value.tasks.length; i++) {
+        if (initTaskData.value.tasks[i].buildingId === buildingId) {
+          initTaskData.value.tasks[i].commited = 2;
+          break;
+        }
+      }
+    }
+  };
 	const refreshTaskData = async () => {
 		initTaskData.value = await getTask(userInfo.username, projectId.value)
 		console.log("initTaskData---------------------------------------------------------", initTaskData.value);
@@ -368,6 +379,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 		// 注册事件监听
 		uni.$on('setBuildingUnCommit', setBuildingUnCommit);
 		uni.$on('setBuildingCommit', setBuildingCommit);
+    uni.$on('setBuildingNull', setBuildingNull);
 		uni.$on('refreshTaskData', refreshTaskData);
 
 		console.log('页面初始化完成');
@@ -376,6 +388,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 	onUnmounted(() => {
 		uni.$off('setBuildingUnCommit', setBuildingUnCommit)
 		uni.$off('setBuildingCommit', setBuildingCommit)
+    uni.$off('setBuildingNull', setBuildingNull)
 		uni.$off('refreshTaskData', refreshTaskData)
 	})
 	// 添加计算属性来获取当前项目

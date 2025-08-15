@@ -10,6 +10,7 @@
 					</view>
 				</view>
 				<view class="bridge-info-content-right">
+          <button class="delete-button" @click="deleteBridgeData">清空桥梁数据</button>
 					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测数据</button>
 				</view>
 			</view>
@@ -63,6 +64,22 @@
 				<bridge-archive :activeTabTop="activeTab"></bridge-archive>
 			</view>
 		</view>
+
+    <uni-popup ref="deleteBuildingDataPopup" type="center">
+      <view class="deleteBuildingData-popup-content">
+        <view class="popup-title">警告</view>
+        <view class="popup-input1">
+          <view class="popup-input1-content">
+            <text>该操作将清空本地保存的下列数据：\n* 当前病害\n* 正立面照\n* 现状照\n* 结构信息\n\n执行该操作将无法恢复上述数据，已提交到服务器的数据不受影响，您是否执行该操作？</text>
+          </view>
+        </view>
+        <view class="popup-button">
+          <button class="popup-button-confirm" @click="confirmDeleteBuildingData">确定</button>
+          <button class="popup-button-cancel" @click="closeDeleteBuildingPopup">取消</button>
+        </view>
+      </view>
+    </uni-popup>
+
 		<ChatAgentButton />
 	</view>
 </template>
@@ -99,10 +116,10 @@
 		readCommit,
 		setCommit1
 	} from "@/utils/CurrentPhoto";
-	import {
-		isBuildingCommited,
-		setBuildingCommitted
-	} from "@/utils/isBuildingCommited";
+  import {
+    isBuildingCommited,
+    setBuildingCommitted, setBuildingNull
+  } from "@/utils/isBuildingCommited";
 	import {
 		userStore
 	} from "@/store";
@@ -117,6 +134,7 @@
 	} from "@/store/object";
 	import apiConfig from '../../config/api';
 	import ChatAgentButton from '../../components/ChatAgentButton.vue';
+  import {deleteULbuilding} from "@/utils/deleteBuilding";
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore();
@@ -130,6 +148,8 @@
 	const bridgePileNumber = ref('');
 	const routeCode = ref('');
 	const routeName = ref('');
+
+  const deleteBuildingDataPopup = ref(null);
 
 	// 定义导航标签
 	const tabs = ref([{
@@ -440,6 +460,31 @@
 			}
 		}
 	};
+
+  const deleteBridgeData = async () => {
+    deleteBuildingDataPopup.value.open();
+  };
+  const confirmDeleteBuildingData = async () => {
+    deleteBuildingDataPopup.value.close();
+    uni.showLoading({
+      title: '正在删除',
+      mask: true
+    });
+    await deleteULbuilding(userInfo.username, idStorageInfo.buildingId);
+    uni.$emit('setBuildingNull', idStorageInfo.buildingId)
+    await setBuildingNull(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+    uni.hideLoading();
+    uni.navigateBack();
+    uni.showToast({
+      title: '删除成功',
+      icon: 'success',
+      duration: 1000
+    });
+  };
+  const closeDeleteBuildingPopup = () => {
+    deleteBuildingDataPopup.value.close();
+  };
+
 </script>
 
 <style>
@@ -520,6 +565,9 @@
 
 	.bridge-info-content-left {}
 
+  .bridge-info-content-right{
+    display: flex;
+  }
 	.bridge-info-content-left-title {
 		font-size: 20rpx;
 		font-weight: 700;
@@ -539,6 +587,14 @@
 		line-height: 26rpx;
 		padding: 5rpx 10rpx;
 	}
+  .delete-button{
+    background-color: red;
+    color: white;
+    font-size: 15rpx;
+    line-height: 26rpx;
+    padding: 5rpx 10rpx;
+    margin-right: 20rpx;
+  }
 
 	.red-icon {
 		width: 8rpx;
@@ -555,4 +611,61 @@
 		top: -2rpx;
 		right: -8rpx;
 	}
+  .deleteBuildingData-popup-content{
+    background-color: #fff;
+    width: 500rpx;
+    height: 380rpx;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .popup-title {
+    background-color: #BDCBE0;
+    font-size: 20rpx;
+    padding: 8rpx 0rpx;
+    text-align: center;
+    /* 添加水平居中 */
+  }
+
+  .popup-input1 {
+    display: flex;
+    align-items: center;
+    padding: 10px 10rpx;
+    font-size: 20rpx;
+  }
+  .popup-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 30rpx;
+  }
+
+  .popup-button button {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 20rpx;
+    padding: 8rpx 8rpx;
+    line-height: normal;
+    /* 避免行高影响字体样式 */
+  }
+
+  .popup-button-cancel {
+    background-color: #fff;
+    color: #1677FF;
+    border: 1px solid #1677FF;
+    font-size: 20rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-left:10rpx;
+  }
+
+  .popup-button-confirm {
+    background-color: #1677FF;
+    color: #fff;
+    margin-right: 10rpx;
+  }
 </style>

@@ -963,7 +963,7 @@ export function buildingImagesFromAbsoluteToRelative(absolutePaths) {
 }
 
 //读取UL下的数据
-async function findMatchingULDirectory(userName) {
+export async function findMatchingULDirectory(userName) {
     try {
         // 获取_doc目录下的所有子目录
         const allDirs = await getAllFirstLevelDirs();
