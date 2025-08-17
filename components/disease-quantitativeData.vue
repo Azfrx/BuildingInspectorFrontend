@@ -559,7 +559,7 @@
 
 	const units = ref('')
 
-	const quantityUnits = ref(['个', '条', '处'])
+	const quantityUnits = ref(['处', '条', '个'])
 
 	const quantityUnitChange = (e) => {
 		const index = e.detail.value;
@@ -705,6 +705,11 @@
 				showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
 			}
 		}
+    if(showColumns.value[0] == '1'){
+      units.value = '条'
+    }else{
+      units.value = '处'
+    }
 	}
 	const clearDiseaseData = () => {
 		diseaseDataList.value = []

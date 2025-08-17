@@ -959,6 +959,16 @@
 				}
 			}
 		}
+    
+		// 将包含"其他"的选项移到最后
+		groupNamesArray.sort((a, b) => {
+			const aHasOther = a.includes('其他');
+			const bHasOther = b.includes('其他');
+			if (aHasOther && !bHasOther) return 1;  // a包含"其他"，b不包含，a排在后面
+			if (!aHasOther && bHasOther) return -1; // a不包含"其他"，b包含，a排在前面
+			return 0; // 都包含或都不包含，保持原有顺序
+		});
+    
 		// 更新第一列 groupName
 		diseaseTypeMultiArray.value[0] = groupNamesArray;
 

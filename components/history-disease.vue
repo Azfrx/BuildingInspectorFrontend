@@ -306,6 +306,11 @@ const copyDisease = () => {
     return;
   }
 
+  uni.showLoading({
+    title: '正在复制',
+    mask: true
+  });
+
   // 按年份分组获取选中的病害
   const selectedDiseasesByYear = {};
   Object.keys(diseaseMap.value).forEach(year => {
@@ -388,14 +393,11 @@ const copyDisease = () => {
   });
 
   // 发送添加新病害事件给current-disease组件
-  allCopiedDiseases.forEach(disease => {
-    console.log('发送添加新病害事件给current-disease组件:', disease);
-    uni.$emit('addNewDisease', disease);
-  });
+  uni.$emit('copyDiseases', allCopiedDiseases)
 
   // 显示成功提示
   uni.showToast({
-    title: `成功复制${allCopiedDiseases.length}条病害`,
+    title: `已复制${allCopiedDiseases.length}条病害`,
     icon: 'success'
   });
 

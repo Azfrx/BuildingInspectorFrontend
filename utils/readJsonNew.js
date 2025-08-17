@@ -856,7 +856,7 @@ export async function readDiseaseComponent(userName, buildingId, biObjectId) {
 }
 
 // 新增病害时判断某一构建下面是否有病害
-export async function isExistDisease(userName, buildingId, componentName, biObjectId) {
+/*export async function isExistDisease(userName, buildingId, componentName, biObjectId) {
 	try {
 		// 获取当前年份
 		const currentYear = new Date().getFullYear().toString();
@@ -881,10 +881,10 @@ export async function isExistDisease(userName, buildingId, componentName, biObje
 		console.error('检查病害是否存在与某个构件上时出错:', error);
 		return false; // 出错时返回false
 	}
-}
+}*/
 
 // 删除病害时判断某一构建下面是否只有一个病害
-export async function isOnlyDisease(userName, buildingId, componentName, biObjectId) {
+/*export async function isOnlyDisease(userName, buildingId, componentName, biObjectId) {
 	try {
 		// 获取当前年份
 		const currentYear = new Date().getFullYear().toString();
@@ -916,7 +916,7 @@ export async function isOnlyDisease(userName, buildingId, componentName, biObjec
 		console.error('检查病害是否唯一时出错:', error);
 		return false; // 出错时返回false
 	}
-}
+}*/
 // 判断是否编辑过 
 export async function isCommit(userName, buildingId) {
 	const data = await getObject(userName, buildingId);
