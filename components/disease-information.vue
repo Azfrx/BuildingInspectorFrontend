@@ -109,14 +109,14 @@
 				<view class="picker-right">
 					<text class="left-icon">K</text>
 					<view class="input-content">
-						<input class="" v-model="mileageStation1" placeholder="请填写"
+						<input class="input-content-input" v-model="mileageStation1" placeholder="请填写"
 							placeholder-style="color: #CCCCCC;" />
 						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation1 = ''"></image>
 					</view>
 
 					<text class="mid-icon">+</text>
 					<view class="input-content">
-						<input class="" v-model="mileageStation2" placeholder="请填写" placeholder-style="color: #CCCCCC;">
+						<input class="input-content-input" v-model="mileageStation2" placeholder="请填写" placeholder-style="color: #CCCCCC;">
 						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation2 = ''"></image>
 					</view>
 				</view>
@@ -1364,14 +1364,16 @@
 	}
 
 	.input-content {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		border: 1rpx solid #eee;
-		width: 100rpx;
-		padding: 2rpx 2rpx;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    border: 1rpx solid #EEEEEE;
+    padding: 4rpx 4rpx;
 	}
+  .input-content-input{
+    width: 100rpx;
+    font-size: 18rpx;
+  }
 
 	.left-icon {
 		margin-right: 5rpx;
