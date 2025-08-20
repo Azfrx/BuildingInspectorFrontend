@@ -98,6 +98,31 @@
 			</view>
 		</view>
 
+		<view class="picker">
+			<view class="picker-titleAndContent">
+				<view class="picker-left">
+					<text class="picker-must">&ensp;</text>
+					<view class="picker-title">
+						里程桩号
+					</view>
+				</view>
+				<view class="picker-right">
+					<text class="left-icon">K</text>
+					<view class="input-content">
+						<input class="" v-model="mileageStation1" placeholder="请填写"
+							placeholder-style="color: #CCCCCC;" />
+						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation1 = ''"></image>
+					</view>
+
+					<text class="mid-icon">+</text>
+					<view class="input-content">
+						<input class="" v-model="mileageStation2" placeholder="请填写" placeholder-style="color: #CCCCCC;">
+						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation2 = ''"></image>
+					</view>
+				</view>
+			</view>
+		</view>
+
 		<uni-popup ref="componentCodePopup" type="center" @change="handlePopupChange">
 			<view class="componentCode-popup-content">
 				<view class="popup-title">编辑构件编号</view>
@@ -312,6 +337,10 @@
 	const positionInputPopup = ref('');
 	const positionPickerPopup = ref('');
 	const combinedPosition = ref('')
+
+	// 里程桩号
+	const mileageStation1 = ref('');
+	const mileageStation2 = ref('');
 
 	watch([componentNamePicker, componentId, componentNameInput, componentCodeInput, typePicker, typeInput, position,
 		positionNumber
@@ -529,7 +558,7 @@
 		uni.$on('setPositionNumber', (emitParam) => {
 			positionNumber.value = emitParam;
 		})
-
+		uni.$on('setMileageStation', setMileageStation)
 
 		uni.$on('getDescription', getDescription);
 		// 标记初始化完成（可以延迟确保所有初始数据已加载）
@@ -547,7 +576,13 @@
 		uni.$off('setDiseasePosition')
 		uni.$off('setPositionNumber')
 		uni.$off('getDescription')
+		uni.$off('setMileageStation')
 	})
+
+	const setMileageStation = (emitParam) => {
+		mileageStation1.value = emitParam.mileageStation1
+		mileageStation2.value = emitParam.mileageStation2
+	}
 
 	const onComponentNameChangeByEmit = (emitComponent) => {
 		grandObjectName.value = emitComponent.grandObjectName;
@@ -677,6 +712,8 @@
 			type: type.value, // 病害类型
 			position: position.value, // 病害位置
 			positionNumber: positionNumber.value, // 病害位置编号
+			mileageStation1: mileageStation1.value, // 病害位置里程站1
+			mileageStation2: mileageStation2.value, // 病害位置里程站2
 		};
 		uni.$emit('setDescription1', description);
 	}
@@ -959,16 +996,16 @@
 				}
 			}
 		}
-    
+
 		// 将包含"其他"的选项移到最后
 		groupNamesArray.sort((a, b) => {
 			const aHasOther = a.includes('其他');
 			const bHasOther = b.includes('其他');
-			if (aHasOther && !bHasOther) return 1;  // a包含"其他"，b不包含，a排在后面
+			if (aHasOther && !bHasOther) return 1; // a包含"其他"，b不包含，a排在后面
 			if (!aHasOther && bHasOther) return -1; // a不包含"其他"，b包含，a排在前面
 			return 0; // 都包含或都不包含，保持原有顺序
 		});
-    
+
 		// 更新第一列 groupName
 		diseaseTypeMultiArray.value[0] = groupNamesArray;
 
@@ -1312,6 +1349,8 @@
 		position,
 		type,
 		positionNumber,
+		mileageStation1,
+		mileageStation2,
 	});
 </script>
 
@@ -1322,6 +1361,24 @@
 		flex-direction: row;
 		justify-content: space-between;
 		align-items: center;
+	}
+
+	.input-content {
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		border: 1rpx solid #eee;
+		width: 100rpx;
+		padding: 2rpx 2rpx;
+	}
+
+	.left-icon {
+		margin-right: 5rpx;
+	}
+
+	.mid-icon {
+		margin: 0 5rpx;
 	}
 
 	.head {
@@ -1548,7 +1605,7 @@
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		margin-top: 30rpx;
+		margin-top: 20rpx;
 	}
 
 	.popup-button button {

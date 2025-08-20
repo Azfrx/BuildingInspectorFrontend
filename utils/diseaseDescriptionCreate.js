@@ -6,6 +6,8 @@ function generateDiseaseDescription(data) {
 		diseaseType, // 病害类型
 		diseasePosition, // 病害位置
 		positionNumber, // 位置编号
+		mileageStation1, // 里程站1
+		mileageStation2, // 里程站2
 		crackType, // 裂缝特征（可选）
 		defects = [], // 缺损数据数组
 		counts = 0, // 病害数量（可选）
@@ -16,7 +18,7 @@ function generateDiseaseDescription(data) {
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
 
-	let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '，' + (positionNumber ? `第${positionNumber}#` : '') + diseasePosition : ''}，${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
+	let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '，' + (positionNumber ? `第${positionNumber}#` : '') + diseasePosition : ''}，${mileageStation1 !== '' || mileageStation2 !== '' ? 'K'+(mileageStation1 || '0') + '+' + (mileageStation2 || '0') + '处，' : ''}${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
 	if (showColumns[0] == 1 && crackType) description += `，${crackType}裂缝`;
 	let descriptionArr = [];
 

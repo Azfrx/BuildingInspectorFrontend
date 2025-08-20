@@ -357,6 +357,12 @@
 		if (data.positionNumber) {
 			uni.$emit('setPositionNumber', data.positionNumber)
 		}
+    if(data.mileageStation1 || data.mileageStation2){
+      uni.$emit('setMileageStation', {
+        mileageStation1: data.mileageStation1,
+        mileageStation2: data.mileageStation2,
+      })
+    }
 
 		// 设置缺损数量
 		if (data.quantity) {
@@ -890,6 +896,8 @@
 			description: diseaseDescriptionPart.value.description,
 			position: diseaseInformationRef.value.position,
 			positionNumber: diseaseInformationRef.value.positionNumber,
+      mileageStation1:diseaseInformationRef.value.mileageStation1,
+      mileageStation2:diseaseInformationRef.value.mileageStation2,
 			level: diseaseDescriptionPart.value.level,
 			quantity: diseaseQuantitativeDataRef.value.quantity,
 			units: diseaseQuantitativeDataRef.value.units,
