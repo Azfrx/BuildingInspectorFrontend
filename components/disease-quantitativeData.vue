@@ -12,11 +12,11 @@
 				<view>缺损数量</view>
 			</view>
 			<view class="quantitative-data-right">
-				<view class="quantitative-data-right-value">
-					<input class="quantitative-data-right-value-input" placeholder="请填写" type="number"
-						v-model="quantity">
-					<!--					<view class="clear-input" @click="quantity = ''">×</view>-->
-					<image src="/static/image/clear.png" class="clear-icon" @click="quantity = 1"></image>
+				<view class="quantitative-data-right-value-number">
+<!--										<input class="quantitative-data-right-value-input" placeholder="请填写" type="number" v-model="quantity">-->
+					<uni-number-box v-model="quantity" :min="1"
+						class="quantitative-data-right-value-number-input"></uni-number-box>
+					<!--					<image src="/static/image/clear.png" class="clear-icon" @click="quantity = 1"></image>-->
 				</view>
 				<picker class="quantitative-data-right-unit unit-picker" :range="quantityUnits"
 					@change="quantityUnitChange">
@@ -52,6 +52,9 @@
 			<!-- 如果缺损数量大于1，显示缺损编号 -->
 			<view v-if="diseaseDataList.length > 1" class="disease-index-title">
 				缺损-{{index + 1}}
+				<view class="disease-index-title-delete" @click="deleteIndexDisease(index)">
+					<image src="/static/image/delete.png" class="delete-icon"></image>
+				</view>
 			</view>
 
 
@@ -474,6 +477,19 @@
 				</view>
 			</uni-popup>
 
+			<uni-popup ref="deleteIndexDiseasePopup" type="center">
+				<view class="deleteIndexDisease-popup-content">
+					<view class="popup-title">删除单条缺省记录</view>
+					<view class="popup-content">
+						您将删除当前选中的缺损记录，是否确定删除？
+					</view>
+					<view class="popup-button">
+						<button class="popup-button-cancel" @click="closeDeleteIndexDiseasePopup">取消</button>
+						<button class="popup-button-confirm" @click="confirmDeleteIndexDisease">确定</button>
+					</view>
+				</view>
+			</uni-popup>
+
 		</view>
 
 	</view>
@@ -533,6 +549,9 @@
 		// 更新指定缺损的areaIdentifier值
 		diseaseDataList.value[diseaseIndex].areaIdentifier = index + 1; // 因为索引从0开始，而我们需要1和2的值
 	}
+
+  // 删除缺损记录弹窗引用
+	const deleteIndexDiseasePopup = ref(null);
 
 	// 添加当前编辑的缺损索引
 	const currentDiseaseIndex = ref(0);
@@ -647,6 +666,7 @@
 	};
 
 	watch(() => crackTypeIndex.value, (newValue) => {
+    console.log('crackTypeIndex改变------------', newValue)
 		if (crackTypeIndex.value === 6) {
 			showColumns.value = ['1', '0', '1', '1', '1', '0', '0', '0', '1', '1', '1', '0']
 		} else if (crackTypeIndex.value === 3) {
@@ -654,7 +674,9 @@
 		} else {
 			showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
 		}
-		clearDiseaseData();
+    if(isInitialized === true){
+      clearDiseaseData();
+    }
 	})
 
 	// 添加onMounted处理可能的初始值
@@ -705,11 +727,11 @@
 				showColumns.value = ['1', '1', '1', '1', '0', '0', '0', '0', '1', '1', '1', '0']
 			}
 		}
-    if(showColumns.value[0] == '1'){
-      units.value = '条'
-    }else{
-      units.value = '处'
-    }
+		if (showColumns.value[0] == '1') {
+			units.value = '条'
+		} else {
+			units.value = '处'
+		}
 	}
 	const clearDiseaseData = () => {
 		diseaseDataList.value = []
@@ -758,6 +780,7 @@
 			quantity.value = numValue;
 			updateDiseaseDataList(numValue);
 		} else {
+      console.log('从else进入',numValue)
 			updateDiseaseDataList(numValue);
 		}
 	});
@@ -893,16 +916,27 @@
 		diseaseDataList.value = newList;
 	};
 
-	// 根据文本查找索引的工具函数
-	const findIndexByText = (optionsArray, targetText) => {
-		if (!optionsArray || !Array.isArray(optionsArray) || !targetText) return 0;
+  // 删除的索引
+  const deleteIndex = ref(-1);
 
-		const index = optionsArray.findIndex(item =>
-			(item.text && item.text === targetText) || item === targetText
-		);
-
-		return index !== -1 ? index : 0;
+  // 打开删除的病害弹窗
+	const deleteIndexDisease = (index) => {
+		deleteIndex.value = index;
+    deleteIndexDiseasePopup.value[0].open();
 	};
+
+  // 确认弹窗删除
+  const confirmDeleteIndexDisease = () =>{
+    diseaseDataList.value.splice(deleteIndex.value, 1);
+    quantity.value--;
+    closeDeleteIndexDiseasePopup();
+  }
+
+  // 关闭删除弹窗
+  const closeDeleteIndexDiseasePopup = () => {
+    deleteIndexDiseasePopup.value[0].close();
+    deleteIndex.value = -1;
+  }
 
 	// 打开参考面选择弹窗
 	const openReferenceSurfacePopup = (surfaceNumber = 1, diseaseIndex = 0) => {
@@ -1144,7 +1178,6 @@
 		width: 100rpx;
 		font-size: 18rpx;
 	}
-
 	.quantitative-data-right-unit {
 		width: 35rpx;
 		margin-left: 20rpx;
@@ -1284,7 +1317,22 @@
 		font-size: 20rpx;
 		color: #333333;
 		background-color: #f5f5f5;
-		text-align: center;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+	}
+
+	.disease-index-title-delete {
+		position: absolute;
+		right: 16rpx;
+		display: flex;
+		align-items: center;
+	}
+
+	.delete-icon {
+		width: 20rpx;
+		height: 20rpx;
 	}
 
 	/* 范围输入相关样式 */
@@ -1367,4 +1415,75 @@
 		display: flex;
 		width: 50rpx;
 	}
+  .deleteIndexDisease-popup-content{
+    background-color: #fff;
+    width: 500rpx;
+    height: 250rpx;
+    border-radius: 8rpx;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .popup-title {
+    background-color: #BDCBE0;
+    font-size: 20rpx;
+    padding: 8rpx 0;
+    text-align: center;
+  }
+  .popup-content {
+    padding: 20rpx;
+    font-size: 20rpx;
+    text-align: center;
+    margin-top: 30rpx;
+  }
+  .popup-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 20rpx;
+  }
+
+  .popup-button button {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 20rpx;
+    padding: 8rpx 8rpx;
+    line-height: normal;
+    /* 避免行高影响字体样式 */
+  }
+
+  .popup-button-cancel {
+    background-color: #fff;
+    color: #1677FF;
+    border: 1px solid #1677FF;
+    font-size: 20rpx;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 10rpx;
+  }
+
+  .popup-button-confirm {
+    background-color: #1677FF;
+    color: #fff;
+    margin-left: 10rpx;
+  }
+  .quantitative-data-right-value-number-input :deep(.uni-numbox) {
+    height: 30rpx;
+  }
+  .quantitative-data-right-value-number-input :deep(.uni-numbox__value) {
+    height: 30rpx;
+    line-height: 30rpx;
+    min-width: 60rpx; /* 中间输入框宽度 */
+    font-size: 20rpx;
+  }
+  .quantitative-data-right-value-number-input :deep(.uni-numbox__minus),
+  .quantitative-data-right-value-number-input :deep(.uni-numbox__plus) {
+    width: 20rpx;   /* 两侧按钮宽度 */
+    height: 30rpx;  /* 两侧按钮高度 */
+    line-height: 30rpx;
+    font-size: 20rpx;
+  }
 </style>

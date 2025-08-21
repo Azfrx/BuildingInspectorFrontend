@@ -23,7 +23,8 @@ function generateDiseaseDescription(data) {
 	let descriptionArr = [];
 
 	if (counts < threshold) {
-		const details = defects.map(item => {
+		const details = defects.map((item, index) => {
+			// 多条时仅作为前缀展示序号，不参与 join 分隔符
 			// 检查字段是否存在内容再拼接
 			if (showColumns[8] == 1 && item.reference1Location && item.reference1LocationStart) {
 				descriptionArr.push(`距${item.reference1Location} ${item.reference1LocationStart}m`);
@@ -51,7 +52,8 @@ function generateDiseaseDescription(data) {
 				descriptionArr.push(`高度/深度：${item.heightDepth}m`);
 			}
 			if (showColumns[4] == 1 && item.areaLength && item.areaWidth) {
-				descriptionArr.push(`面积S=${item.areaLength}×${item.areaWidth}m²`);
+				const areaLabel = counts >= 2 ? `_${index + 1}` : '';
+				descriptionArr.push(`面积S${areaLabel}=${item.areaLength}×${item.areaWidth}m²`);
 			}
 			if (showColumns[5] == 1 && item.deformation) {
 				descriptionArr.push(`变形/位移：${item.deformation}m`);
@@ -62,7 +64,8 @@ function generateDiseaseDescription(data) {
 			if (showColumns[7] == 1 && item.numeratorRatio && item.denominatorRatio) {
 				descriptionArr.push(`比例：${item.numeratorRatio}/${item.denominatorRatio}`);
 			}
-			const result = descriptionArr.join('，');
+			const prefix = counts >= 2 ? `（${index + 1}）` : '';
+			const result = `${prefix}${descriptionArr.join('，')}`;
 			descriptionArr = [];
 			return result;
 		}).join('；');
@@ -88,7 +91,7 @@ function generateDiseaseDescription(data) {
 		}
 		if (showColumns[4] == 1 && item.areaLength && item.areaWidth) {
 			const areaLabel = item.areaIdentifier == 1 ? '均' : item.areaIdentifier == 2 ? '总' : item.areaIdentifier;
-			descriptionArr.push(`面积S(${areaLabel})=${item.areaLength}×${item.areaWidth}m²`);
+			descriptionArr.push(`面积S_${areaLabel}=${item.areaLength}×${item.areaWidth}m²`);
 		}
 		if (showColumns[5] == 1 && item.deformationRangeStart && item.deformationRangeEnd) {
 			descriptionArr.push(`变形/位移：${item.deformationRangeStart}~${item.deformationRangeEnd}m`);
