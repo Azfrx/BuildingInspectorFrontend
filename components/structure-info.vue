@@ -132,6 +132,7 @@
 						      type="number"
 						      placeholder="请输入数量"
 						      placeholder-style="color: #CCCCCC;"
+                  :focus="isFocus"
 						    />
 						    <image
 						      src="/static/image/clear.png"
@@ -146,6 +147,7 @@
 				<view class="edit-button">
 					<button class="edit-button-cancel" @click = "close">取消</button>
 					<button class="edit-button-confirm" @click = "setComponentCount()">确定</button>
+          <button class="edit-button-next" @click = "nextComponentCount">下一项</button>
 				</view>
 			</view>
 		</uni-popup>
@@ -154,7 +156,7 @@
 
 <script setup>
 //1.引入结构数据全局变量
-import {onMounted, ref, watch, computed, onUnmounted} from "vue";
+import {onMounted, ref, watch, computed, onUnmounted, nextTick} from "vue";
 import { useObject } from "@/store/object.js";
 import { setObject } from "../utils/writeNew.js";
 import { userStore } from '../store/index.js';
@@ -224,6 +226,8 @@ const componentName = ref("")
 const diseaseNumber = ref(0)
 //构件数量
 const componentCount = ref(0)
+// 输入框聚焦引用
+const isFocus = ref(false)
 //通过这个变量控制第三级菜单项的按钮的显示
 const buttonVisible = ref({})
 
@@ -329,6 +333,10 @@ const changeTab = (index1, index2, index3) => {
     componentCount.value = data.count;
     windowPopup.value.open();
   }
+  // 弹窗打开时，等待DOM更新完成后聚焦输入框
+  nextTick(() => {
+    isFocus.value = true;
+  });
 }
 //初始化函数
 const initData = ()=>{
@@ -446,6 +454,75 @@ const setComponentCount = async () =>{
 	close();
 	//关闭按钮
 	closeButton();
+}
+
+// 下一项
+const nextComponentCount = async () => {
+  const currentData = objectData.getData();
+  const currentMenuIndex = menuIndex.value || [0, 0, -1];
+  if (!currentData?.children?.[currentMenuIndex[0]]?.children?.[currentMenuIndex[1]]?.children?.[currentMenuIndex[2]]) {
+    uni.showToast({
+      title: '数据加载中，请稍后重试',
+      icon: 'none',
+      duration: 2000
+    });
+    return;
+  }
+  previousValue = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count;
+  console.log("previous", previousValue);
+  if (componentCount.value !== '') {
+    currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = componentCount.value;
+  } else {
+    currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].children[currentMenuIndex[2]].count = 0;
+  }
+  //更新的差值
+  const diff = componentCount.value - previousValue;
+  console.log("diff", diff);
+
+  //统计父节点数量
+  currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]].count += diff;
+
+  currentData.children[currentMenuIndex[0]].count += diff;
+
+  // 重新计算第二级菜单项的警告状态
+  const currentItem2 = currentData.children[currentMenuIndex[0]].children[currentMenuIndex[1]];
+  checkSecondLevelWarning(currentItem2);
+
+  // 重新计算第一级菜单项的警告状态
+  const currentItem1 = currentData.children[currentMenuIndex[0]];
+  checkFirstLevelWarning(currentItem1);
+  if (diff !== 0) {
+    await setBuildingUnCommitted(userInfo.username, idInfo.projectId, idInfo.buildingId);
+    uni.$emit('setBuildingUnCommit', idInfo.buildingId)
+    currentData.structureSubmitStatus = 0;
+  }
+
+  // 同时更新全局store中的数据
+  objectData.setData(currentData);
+
+  // 保存到本地文件系统
+  await setObject(userInfo.username, idInfo.buildingId, currentData);
+  uni.$emit('structureStatusChanged')
+
+  // 最后检查整个页面的警告状态
+  checkPageWarning();
+
+  if(currentMenuIndex[2] !== undefined){
+    const length = treeData.value?.children?.[menuIndex.value[0]]?.children?.[menuIndex.value[1]]?.children?.length
+    const data = treeData.value?.children?.[menuIndex.value[0]]?.children?.[menuIndex.value[1]]?.children?.[(menuIndex.value[2] + 1) %  length]
+    //更新构件名称
+    componentName.value = data.name;
+    //更新病害构件数量
+    diseaseNumber.value = data.diseaseNumber ?? 0;
+    //更新构件数量
+    componentCount.value = data.count;
+    // 更新索引
+    menuIndex.value[2] = (menuIndex.value[2] + 1) %  length;
+  }
+  // 直接调用 input 的聚焦方法
+  isFocus.value = false;
+  await nextTick();
+  isFocus.value = true;
 }
 //初始化更新所有count 全部置0
 function resetCounts(data) {
@@ -867,26 +944,23 @@ onUnmounted(async () => {
 }
 .edit-content{
 	font-size: 20rpx;
-	margin: 30rpx 30rpx;
+	margin: 10rpx 30rpx;
 	display: flex;
 	flex-direction: column;
 }
 .edit-content-first{
-	margin: 20rpx 30rpx;
-	padding-bottom: 20rpx;
-	
+	margin: 15rpx 30rpx;
+	padding-bottom: 10rpx;
 }
 .edit-content-second{
-	margin: 20rpx 30rpx;
-	padding-bottom: 20rpx;
-	
+	margin: 15rpx 30rpx;
+	padding-bottom: 10rpx;
 }
 .edit-content-third{
-	margin: 20rpx 30rpx;
-	padding-bottom: 20rpx;
+	margin: 15rpx 30rpx;
+	padding-bottom: 10rpx;
 	display: flex;
 	flex-direction: row;
-	
 }
 .edit-key{
 	color: #666;
@@ -947,7 +1021,7 @@ onUnmounted(async () => {
 	display: flex;
 	align-items: center;     /* 垂直居中 */
 	justify-content: center; /* 水平居中 */
-	transform: translateY(-30rpx);  
+	transform: translateY(-30rpx);
 }
 .edit-button-confirm{
 	flex: 1;
@@ -956,7 +1030,17 @@ onUnmounted(async () => {
 	display: flex;
 	align-items: center;     /* 垂直居中 */
 	justify-content: center; /* 水平居中 */
-	transform: translateY(-30rpx);   
+	transform: translateY(-30rpx);
+  margin-right: 20rpx;
+}
+.edit-button-next{
+  flex: 1;
+  background-color: #0F4687;
+  color: #fff;
+  display: flex;
+  align-items: center;     /* 垂直居中 */
+  justify-content: center; /* 水平居中 */
+  transform: translateY(-30rpx);
 }
 .warning-icon {
   position: absolute;
