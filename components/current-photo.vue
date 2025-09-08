@@ -43,7 +43,7 @@
 					<view class="photo-controls-wrapper">
 						<myPhotoPicker v-if="selectedSecondIndex === index" v-model="item.photo"
 							:currentSecondIndex=selectedSecondIndex :currentSecondItem=item
-							@select="handlePhotoChange(item)" @delete="handleDeletePhoto"
+                           @select="(photoNumber) => handlePhotoChange(photoNumber, item)" @delete="handleDeletePhoto"
 							@showPhotoInfo="(photoIdx) => showPhotoInfo(photoIdx)" />
 					</view>
 				</view>
@@ -171,9 +171,9 @@
 	};
 
 	// 照片变化处理函数
-	const handlePhotoChange = async (item) => {
+	const handlePhotoChange = async (photoNum, item) => {
 		console.log('item.photos', item.photo);
-
+    console.log('photoNum', photoNum)
 		// 1. 先获取当前item中已有的图片的绝对路径（除了最新添加的图片）
 		let oldPhotoPaths = [];
 		if (item.photo.length > 1) {
@@ -187,6 +187,22 @@
 		// 2. 保存图片到本地，转为相对路径存到json
 		item.photo = await saveBridgeImages(userInfo.username, TaskBridgeId.value, item.photo);
 		item.information.push(item.name);
+    if(item.imgNoExp === undefined){
+      item.imgNoExp = [];
+    }
+    if (item.photo.length !== item.imgNoExp.length + 1) {
+      // 计算需要补充的空字符串数量
+      const targetLength = item.photo.length - 1;
+      const needAdd = targetLength - item.imgNoExp.length;
+
+      // 如果需要补充，添加相应数量的空字符串
+      if (needAdd > 0) {
+        for (let i = 0; i < needAdd; i++) {
+          item.imgNoExp.push('');
+        }
+      }
+    }
+    item.imgNoExp.push(photoNum);
 
 		// 3. 转为绝对路径显示
 		item.photo = await readBridgeImage(userInfo.username, TaskBridgeId.value, item.photo);
@@ -474,6 +490,9 @@
 				// secondLevelItem.photos = await buildingImagesFromAbsoluteToRelative(secondLevelItem.photos);
 				// 更新数据
 				secondLevelItem.information.splice(index, 1);
+        if(secondLevelItem.imgNoExp !== undefined){
+          secondLevelItem.imgNoExp.splice(index, 1);
+        }
 				await autoSavePhotos();
 				// 读取相对路径为绝对路径
 				/*secondLevelItem.photos = await readBridgeImage(userInfo.username, TaskBridgeId.value,

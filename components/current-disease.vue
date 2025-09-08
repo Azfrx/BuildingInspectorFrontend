@@ -446,7 +446,7 @@
 		// 根据activeTab和searchText过滤disease列表
 		const selectedType = tabItems.value[activeTab.value];
 
-		return diseaseList.value.filter(item => {
+		const filtered = diseaseList.value.filter(item => {
 			// 过滤掉已删除的数据（commit_type=2）
 			if (item.commitType === 2) {
 				return false;
@@ -468,6 +468,13 @@
 			}
 
 			return true;
+		});
+
+		// 按 component.code 升序排序
+		return filtered.sort((a, b) => {
+			const codeA = a.component?.code || '';
+			const codeB = b.component?.code || '';
+			return codeA.localeCompare(codeB);
 		});
 	});
 

@@ -223,7 +223,6 @@ onMounted(() => {
 
 // 组件卸载时移除事件监听
 onUnmounted(() => {
-  // uni.$off('photoInfoUpdated');
 });
 
 // 处理图片选择成功
@@ -601,7 +600,7 @@ const confirmDrawing = () => {
 const addImageToCollection = (imagePath) => {
   const newImages = [...props.modelValue, imagePath];
   emit('update:modelValue', newImages);
-  emit('select');
+  emit('select','');
 
   uni.hideLoading();
   uni.showToast({
@@ -817,7 +816,7 @@ const confirmPhotoNumber = async () => {
         // 将生成的图片添加到图片列表中
         const newImages = [...props.modelValue, numberedImagePath];
         emit('update:modelValue', newImages);
-        emit('select');
+        emit('select',photoNumber.value);
 
         uni.showToast({
           title: `已生成序号${photoNumber.value}的图片`,

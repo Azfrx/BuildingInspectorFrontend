@@ -100,6 +100,11 @@
 	const sideLeft = ref([]);
 	const sideRight = ref([]);
 
+  const frontLeftImgNoExp = ref([]);
+  const frontRightImgNoExp = ref([]);
+  const sideRightImgNoExp = ref([]);
+  const sideLeftImgNoExp = ref([]);
+
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
 	const buttonInfo = ButtonStore()
@@ -119,19 +124,23 @@
 		height: '200rpx'
 	});
 
-	const frontLeftSelect = async () => {
+	const frontLeftSelect = async (photoNum) => {
+    frontLeftImgNoExp.value.push(photoNum);
 		await autoSavePhotos('frontLeft');
 	};
 
-	const frontRightSelect = async () => {
+	const frontRightSelect = async (photoNum) => {
+    frontRightImgNoExp.value.push(photoNum);
 		await autoSavePhotos('frontRight');
 	};
 
-	const sideLeftSelect = async () => {
+	const sideLeftSelect = async (photoNum) => {
+    sideLeftImgNoExp.value.push(photoNum)
 		await autoSavePhotos('sideLeft');
 	};
 
-	const sideRightSelect = async () => {
+	const sideRightSelect = async (photoNum) => {
+    sideRightImgNoExp.value.push(photoNum)
 		await autoSavePhotos('sideRight');
 	};
 
@@ -192,18 +201,22 @@
 	const createPhotoDate = async (type) => {
 		try {
 			const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-			if (type == 'frontLeft') {
+			if (type === 'frontLeft') {
 				data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
 					.value);
-			} else if (type == 'frontRight') {
+        data.frontLeftImgNoExp = frontLeftImgNoExp.value;
+			} else if (type === 'frontRight') {
 				data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
 					.value);
-			} else if (type == 'sideLeft') {
+        data.frontRightImgNoExp = frontRightImgNoExp.value;
+			} else if (type === 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
 					.value);
-			} else if (type == 'sideRight') {
+        data.sideLeftImgNoExp = sideLeftImgNoExp.value;
+			} else if (type === 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
+        data.sideRightImgNoExp = sideRightImgNoExp.value;
 			}
 			data.commitType = 0;
 			return data;
@@ -216,18 +229,22 @@
 				sideRight: [],
 				commitType: 0
 			};
-			if (type == 'frontLeft') {
+			if (type === 'frontLeft') {
 				data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
 					.value);
-			} else if (type == 'frontRight') {
+        data.frontLeftImgNoExp = frontLeftImgNoExp.value;
+			} else if (type === 'frontRight') {
 				data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
 					.value);
-			} else if (type == 'sideLeft') {
+        data.frontRightImgNoExp = frontRightImgNoExp.value;
+			} else if (type === 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
 					.value);
-			} else if (type == 'sideRight') {
+        data.sideLeftImgNoExp = sideLeftImgNoExp.value;
+			} else if (type === 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
+        data.sideRightImgNoExp = sideRightImgNoExp.value;
 			}
 			return data;
 		}
@@ -239,19 +256,35 @@
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.frontLeft = [];
+      frontLeftImgNoExp.value = [];
+      if (data.frontLeftImgNoExp !== undefined) {
+        data.frontLeftImgNoExp = [];
+      }
 		} else if (type === 'frontRight') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
 				.frontRight);
 			await removeDiseaseImage(imagesPaths);
 			data.frontRight = [];
+      frontRightImgNoExp.value = [];
+      if (data.frontRightImgNoExp !== undefined) {
+        data.frontRightImgNoExp = [];
+      }
 		} else if (type === 'sideLeft') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.sideLeft = [];
+      sideLeftImgNoExp.value = [];
+      if (data.sideLeftImgNoExp !== undefined) {
+        data.sideLeftImgNoExp = [];
+      }
 		} else if (type === 'sideRight') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
 			await removeDiseaseImage(imagesPaths);
 			data.sideRight = [];
+      sideRightImgNoExp.value = [];
+      if (data.sideRightImgNoExp !== undefined) {
+        data.sideRightImgNoExp = [];
+      }
 		}
 		data.commitType = 0;
 		await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);

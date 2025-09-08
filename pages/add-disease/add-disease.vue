@@ -257,6 +257,9 @@
 	// 缺损数量
 	const quantity = ref(1);
 
+  // 图片编号列表
+  const imgNoExp = ref([]);
+
 	// 图片文件列表
 	const fileList = ref([]);
 	const previewImage = (url) => {
@@ -917,6 +920,7 @@
 			taskId: idStorageInfo.taskId,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
+      imgNoExp: imgNoExp.value,
 			commitType: 1, //0为已提交 1为未提交 2为删除
 			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
@@ -1335,17 +1339,33 @@
 		});
 	}
 
-	const handleFileSelect = () => {
+	const handleFileSelect = (photoNum) => {
 		console.log('图片选择完成');
+    if (fileList.value.length !== imgNoExp.value.length + 1) {
+      // 计算需要补充的空字符串数量
+      const targetLength = fileList.value.length - 1;
+      const needAdd = targetLength - imgNoExp.value.length;
+
+      // 如果需要补充，添加相应数量的空字符串
+      if (needAdd > 0) {
+        for (let i = 0; i < needAdd; i++) {
+          imgNoExp.value.push('');
+        }
+      }
+    }
+    imgNoExp.value.push(photoNum);
 		// myPhotoPicker组件通过v-model直接更新了fileList数组
 		// 这里不需要像之前那样从事件中提取数据
+    console.log('图片编号列表', imgNoExp.value);
 		console.log('当前图片列表:', fileList.value);
 	}
 
 	const handleFileDelete = (e) => {
 		console.log('图片删除事件', e);
+    imgNoExp.value.splice(e.index, 1);
 		// myPhotoPicker组件通过v-model直接更新了fileList数组
 		// 这里可以进行一些额外的处理，如果需要的话
+    console.log('删除后图片编号列表:', imgNoExp.value);
 		console.log('删除后的图片列表:', fileList.value);
 	}
 
