@@ -224,6 +224,9 @@
 	import {
 		onBackPress
 	} from '@dcloudio/uni-app'
+	import {
+		getObjectTemplate
+	} from "@/utils/diseaseHelp";
 
 	// 是否加载完成
 	let isInitializing = false;
@@ -257,8 +260,8 @@
 	// 缺损数量
 	const quantity = ref(1);
 
-  // 图片编号列表
-  const imgNoExp = ref([]);
+	// 图片编号列表
+	const imgNoExp = ref([]);
 
 	// 图片文件列表
 	const fileList = ref([]);
@@ -360,12 +363,12 @@
 		if (data.positionNumber) {
 			uni.$emit('setPositionNumber', data.positionNumber)
 		}
-    if(data.mileageStation1 || data.mileageStation2){
-      uni.$emit('setMileageStation', {
-        mileageStation1: data.mileageStation1,
-        mileageStation2: data.mileageStation2,
-      })
-    }
+		if (data.mileageStation1 || data.mileageStation2) {
+			uni.$emit('setMileageStation', {
+				mileageStation1: data.mileageStation1,
+				mileageStation2: data.mileageStation2,
+			})
+		}
 
 		// 设置缺损数量
 		if (data.quantity) {
@@ -899,8 +902,8 @@
 			description: diseaseDescriptionPart.value.description,
 			position: diseaseInformationRef.value.position,
 			positionNumber: diseaseInformationRef.value.positionNumber,
-      mileageStation1:diseaseInformationRef.value.mileageStation1,
-      mileageStation2:diseaseInformationRef.value.mileageStation2,
+			mileageStation1: diseaseInformationRef.value.mileageStation1,
+			mileageStation2: diseaseInformationRef.value.mileageStation2,
 			level: diseaseDescriptionPart.value.level,
 			quantity: diseaseQuantitativeDataRef.value.quantity,
 			units: diseaseQuantitativeDataRef.value.units,
@@ -920,7 +923,7 @@
 			taskId: idStorageInfo.taskId,
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
-      imgNoExp: imgNoExp.value,
+			imgNoExp: imgNoExp.value,
 			commitType: 1, //0为已提交 1为未提交 2为删除
 			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
@@ -1341,31 +1344,31 @@
 
 	const handleFileSelect = (photoNum) => {
 		console.log('图片选择完成');
-    if (fileList.value.length !== imgNoExp.value.length + 1) {
-      // 计算需要补充的空字符串数量
-      const targetLength = fileList.value.length - 1;
-      const needAdd = targetLength - imgNoExp.value.length;
+		if (fileList.value.length !== imgNoExp.value.length + 1) {
+			// 计算需要补充的空字符串数量
+			const targetLength = fileList.value.length - 1;
+			const needAdd = targetLength - imgNoExp.value.length;
 
-      // 如果需要补充，添加相应数量的空字符串
-      if (needAdd > 0) {
-        for (let i = 0; i < needAdd; i++) {
-          imgNoExp.value.push('');
-        }
-      }
-    }
-    imgNoExp.value.push(photoNum);
+			// 如果需要补充，添加相应数量的空字符串
+			if (needAdd > 0) {
+				for (let i = 0; i < needAdd; i++) {
+					imgNoExp.value.push('');
+				}
+			}
+		}
+		imgNoExp.value.push(photoNum);
 		// myPhotoPicker组件通过v-model直接更新了fileList数组
 		// 这里不需要像之前那样从事件中提取数据
-    console.log('图片编号列表', imgNoExp.value);
+		console.log('图片编号列表', imgNoExp.value);
 		console.log('当前图片列表:', fileList.value);
 	}
 
 	const handleFileDelete = (e) => {
 		console.log('图片删除事件', e);
-    imgNoExp.value.splice(e.index, 1);
+		imgNoExp.value.splice(e.index, 1);
 		// myPhotoPicker组件通过v-model直接更新了fileList数组
 		// 这里可以进行一些额外的处理，如果需要的话
-    console.log('删除后图片编号列表:', imgNoExp.value);
+		console.log('删除后图片编号列表:', imgNoExp.value);
 		console.log('删除后的图片列表:', fileList.value);
 	}
 
@@ -1395,8 +1398,10 @@
 		try {
 
 			// 在实际应用中，这些可能来自于路由参数或全局状态
-			// const data = await getObject(userInfo.username, idStorageInfo.buildingId);
-			const data = objectInfo.getData();
+			const templateId = objectInfo.getData().templateObjectId;
+			console.log('模板ID', templateId)
+			const data = getObjectTemplate(templateId);
+			// const data = objectInfo.getData();
 			console.log('结构数据获取成功:', data);
 			structureData.value = data;
 

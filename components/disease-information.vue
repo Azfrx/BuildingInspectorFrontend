@@ -881,6 +881,7 @@
 		}
 
 		// 更新缺损类型和构件编号
+    diseaseTypeMultiIndex.value[0] = 0;
 		updateDiseaseTypeOptions();
 
 		// 更新病害位置选项 - 在确认选择后更新
