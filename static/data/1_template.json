@@ -15,8 +15,7 @@
   "weight" : null,
   "props" : null,
   "diseaseTypeCount" : null,
-  "children" : [ 
-    {
+  "children" : [ {
     "createBy" : "admin",
     "createTime" : "2025-04-03 14:36:35",
     "updateBy" : "",
@@ -4208,6 +4207,70 @@
         "selectColumn" : 1796,
         "threshold" : 10,
         "groupName" : "橡胶支座老化变质、开裂",
+        "diseaseScales" : null
+      }, {
+        "createBy" : "admin",
+        "createTime" : "2025-04-14 17:14:06",
+        "updateBy" : null,
+        "updateTime" : "2025-07-28 11:18:05",
+        "remark" : null,
+        "id" : 35,
+        "code" : "5.3.4-1-1",
+        "name" : "螺纹、螺帽松动",
+        "maxScale" : 5,
+        "minScale" : 1,
+        "status" : "0",
+        "selectColumn" : 1792,
+        "threshold" : 10,
+        "groupName" : "螺纹、螺帽松动或锚螺杆剪切",
+        "diseaseScales" : null
+      }, {
+        "createBy" : "admin",
+        "createTime" : "2025-04-14 17:14:06",
+        "updateBy" : null,
+        "updateTime" : "2025-07-28 11:18:05",
+        "remark" : null,
+        "id" : 402,
+        "code" : "5.3.4-1-2",
+        "name" : "锚螺杆剪切",
+        "maxScale" : 5,
+        "minScale" : 1,
+        "status" : "0",
+        "selectColumn" : 1792,
+        "threshold" : 10,
+        "groupName" : "螺纹、螺帽松动或锚螺杆剪切",
+        "diseaseScales" : null
+      }, {
+        "createBy" : "admin",
+        "createTime" : "2025-04-14 17:14:06",
+        "updateBy" : "admin",
+        "updateTime" : "2025-07-28 11:18:05",
+        "remark" : "",
+        "id" : 36,
+        "code" : "5.3.4-2",
+        "name" : "上下座板（盆）锈蚀",
+        "maxScale" : 4,
+        "minScale" : 1,
+        "status" : "0",
+        "selectColumn" : 1808,
+        "threshold" : 10,
+        "groupName" : "上下座板（盆）锈蚀",
+        "diseaseScales" : null
+      }, {
+        "createBy" : "admin",
+        "createTime" : "2025-04-14 17:14:06",
+        "updateBy" : "admin",
+        "updateTime" : "2025-07-31 15:43:42",
+        "remark" : "",
+        "id" : 37,
+        "code" : "5.3.4-3",
+        "name" : "纵横线扭转",
+        "maxScale" : 4,
+        "minScale" : 1,
+        "status" : "0",
+        "selectColumn" : 1888,
+        "threshold" : 10,
+        "groupName" : "纵横线扭转",
         "diseaseScales" : null
       } ]
     }, {
