@@ -240,6 +240,7 @@
 		ref,
 		watch
 	} from "vue";
+  import {useObject} from "@/store/object";
 
 	const props = defineProps({
 		structureData: {
@@ -249,6 +250,8 @@
 			type: String,
 		}
 	});
+
+  const objectInfo = useObject();
 
 	let isInitializing = false;
 
@@ -649,7 +652,8 @@
 									const selectedThirdLevel = selectedSecondLevel.children.find(item => item.name ===
 										componentNamePicker.value);
 									if (selectedThirdLevel && selectedThirdLevel.id) {
-										componentId.value = selectedThirdLevel.id;
+										// componentId.value = selectedThirdLevel.id;
+                    componentId.value = objectInfo.getData().children[parentIndex].children[secondLevelIndex].children[thirdLevelIndex].id;
 										console.log('找到第三级组件ID:', componentId.value);
 									}
 								}
@@ -859,8 +863,12 @@
 
 				const selectedThirdLevel = selectedSecondLevel.children.find(item => item.name ===
 					selectedComponentName);
+        const thirdLevelIndex = selectedSecondLevel.children.findIndex(item => item.name ===
+            selectedComponentName);
 				if (selectedThirdLevel && selectedThirdLevel.id) {
-					componentId.value = selectedThirdLevel.id;
+					// componentId.value = selectedThirdLevel.id;
+          console.log('找到第三级组件:', objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[thirdLevelIndex]);
+          componentId.value = objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[thirdLevelIndex].id;
 					console.log('找到第三级组件ID:', componentId.value);
 				}
 			}
@@ -1286,7 +1294,8 @@
 
 				const selectedThirdLevel = selectedSecondLevel.children[typeMultiIndex.value[2]];
 				if (selectedThirdLevel && selectedThirdLevel.name) {
-					ancestors = selectedThirdLevel.ancestors;
+					// ancestors = selectedThirdLevel.ancestors;
+          ancestors = objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[typeMultiIndex.value[2]].ancestors;
 					console.log('找到第三级组件ancestors:', ancestors);
 				}
 			}

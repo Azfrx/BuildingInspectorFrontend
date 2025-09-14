@@ -1396,7 +1396,6 @@
 	// 获取结构数据
 	const fetchStructureData = async () => {
 		try {
-
 			// 在实际应用中，这些可能来自于路由参数或全局状态
 			const templateId = objectInfo.getData().templateObjectId;
 			console.log('模板ID', templateId)
