@@ -653,7 +653,7 @@
 										componentNamePicker.value);
 									if (selectedThirdLevel && selectedThirdLevel.id) {
 										// componentId.value = selectedThirdLevel.id;
-                    componentId.value = objectInfo.getData().children[parentIndex].children[secondLevelIndex].children[thirdLevelIndex].id;
+                    componentId.value = objectInfo.getData().children[parentIndex].children.find(item => item.name === selectedSecondLevel.name).children.find(item => item.name === componentNamePicker.value).id;
 										console.log('找到第三级组件ID:', componentId.value);
 									}
 								}
@@ -868,7 +868,8 @@
 				if (selectedThirdLevel && selectedThirdLevel.id) {
 					// componentId.value = selectedThirdLevel.id;
           console.log('找到第三级组件:', objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[thirdLevelIndex]);
-          componentId.value = objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[thirdLevelIndex].id;
+          // componentId.value = objectInfo.getData().children[typeMultiIndex.value[0]].children[typeMultiIndex.value[1]].children[thirdLevelIndex].id;
+          componentId.value = objectInfo.getData().children[typeMultiIndex.value[0]].children.find(item => item.name === selectedSecondLevel.name).children.find(item => item.name === selectedComponentName).id;
 					console.log('找到第三级组件ID:', componentId.value);
 				}
 			}
