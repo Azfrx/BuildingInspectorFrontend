@@ -6,6 +6,7 @@
 			<span :style="{color: Number(safeTreeData?.status) === 3 ? '#f56c6c': '#333'}">
 				{{ Number(safeTreeData?.status) === 3 ? '已锁定': '未锁定'}}
 			</span>
+      <button @click = "refreshDiseaseCount">刷新病害构件数量</button>
 		</view>
 		
 		<!-- 加载状态 -->
@@ -166,6 +167,7 @@ import {
 		getObject
 	} from '@/utils/readJsonNew.js'
 import {setBuildingUnCommitted} from "@/utils/isBuildingCommited";
+import {refreshDiseaseNumber} from "@/utils/diseaseNumber";
 //2.创建实例对象
 const objectData = useObject();
 const userInfo = userStore();
@@ -213,6 +215,19 @@ watch(
   },
   { deep: true } // 深度监听，确保嵌套对象变化也能触发
 );
+
+const refreshDiseaseCount = async () => {
+  uni.showLoading({
+    title: '正在刷新',
+    mask: true
+  });
+  await refreshDiseaseNumber(userInfo.username, idInfo.buildingId);
+  uni.hideLoading();
+  uni.showToast({
+    title: `刷新完成`,
+    icon: 'success'
+  });
+}
 //用数组存储索引下标,默认只选中前2项
 const menuIndex = ref([0,0,-1])
 
@@ -804,6 +819,21 @@ onUnmounted(async () => {
 	padding: 20rpx 0;
 	background-color: #BDCBE0;
 	font-size: 20rpx;
+  display: flex;
+}
+.Title button{
+  margin-right: 20rpx;
+  background-color: #0F4687;
+  color: white;
+  font-size: 15rpx;
+  height: 36rpx;
+  line-height: 26rpx;
+  padding: 5rpx 10rpx;
+  white-space: nowrap; /* 防止文本换行 */
+}
+.Title span{
+  padding-top: 5rpx;
+  padding-bottom: 5rpx;
 }
 .text{
 	padding-left: 20rpx;

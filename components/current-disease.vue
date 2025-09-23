@@ -6,9 +6,16 @@
 				<uni-search-bar class="search-bar" placeholder="搜索词" clearButton="none" cancelButton="none"
 					@confirm="search" @input="handleSearchInput" />
 			</view>
-
-			<!--			<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled"> 提交检测结果</button>-->
-			<button class="add-button" @click="addNewDisease">新增病害</button>
+			<picker class="tag-select" :value="tagIndex" :range="tags" @change="tagChange">
+				<view class="tag-picker">{{tags[tagIndex]}}</view>
+				<text class="tag-icon">▼</text>
+			</picker>
+			<view class="button-group">
+				<button class="delete-button" v-if="showDeleteButton" @click="deleteSelectDisease">删除</button>
+				<button class="allSelect-button" v-if="showDeleteButton" @click="selectAllDisease">全选</button>
+				<button class="select-button" @click="toggleSelectMode">{{ isSelectMode ? '取消' : '选择' }}</button>
+				<button class="add-button" @click="addNewDisease" :disabled="isSelectMode">新增病害</button>
+			</view>
 		</view>
 
 		<view class="content-layout">
@@ -25,7 +32,8 @@
 
 			<!-- 右侧内容区 -->
 			<view class="content">
-				<disease-item v-for="(item, index) in filteredDiseases" :key="index" :item="item" :editMode="'edit'" />
+				<disease-item v-for="(item, index) in filteredDiseases" :key="index" :item="item" :editMode="'edit'"
+					:selectMode="isSelectMode" :selected="selectedItems.includes(item.id)" @select="handleItemSelect" />
 				<view v-if="filteredDiseases.length === 0" class="placeholder">
 					暂无数据
 				</view>
@@ -46,17 +54,10 @@
 	} from 'vue';
 	import {
 		getULDisease,
-		isUnFinishDisease,
-		// readDiseaseCommit
 	} from '../utils/readJsonNew.js';
 	import {
-		markObjectAsCommitted,
-		saveBridgeZip,
 		setDisease,
 	} from '../utils/writeNew.js';
-	import {
-		setFrontPhotoCommited
-	} from '../utils/frontPhoto.js';
 	import {
 		userStore
 	} from "@/store";
@@ -67,20 +68,11 @@
 		decrementDiseaseNumber,
 		incrementDiseaseNumber
 	} from "@/utils/diseaseNumber";
-	/*	import {
-			structureStore
-		} from "@/store/structureNumberStorage";*/
 	import {
 		isBuildingCommited,
 		setBuildingCommitted,
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
-	import {
-		setCommit1
-	} from "@/utils/CurrentPhoto";
-	import {
-		readWarning
-	} from "@/utils/warning";
 
 	const props = defineProps({
 		activeTabTop: {
@@ -109,55 +101,229 @@
 			// await checkUncommitted()
 		}
 	})*/
+	// 顶部选择未完成、未提交
+	const tags = ref(['全部', '已提交', '未提交', '未完成']);
+	const tagIndex = ref(0);
+	const tagChange = (e) => {
+		// e.detail.value 可能为字符串，统一转为数字索引
+		tagIndex.value = Number(e.detail.value);
+		// commitType 0为已提交 1为未提交 2为删除 3为未保存
+		// 切换筛选时，如处于选择模式可根据需要清空已选
+		if (isSelectMode.value) {
+			toggleSelectMode();
+		}
+	};
 
-  const isExistDisease = async (componentName, biObjectId) => {
-    try {
-      // 检查数据是否有效
-      if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
-        console.log('没有找到病害数据或数据格式不正确');
-        return false; // 如果没有数据或格式不正确，返回false
-      }
+	const selectedItems = ref([]); // 存储选中项的ID
+	const showDeleteButton = ref(false); // 是否显示删除按钮
+	const isSelectMode = ref(false); // 是否处于选择模式
+	// 切换选择模式
+	const toggleSelectMode = () => {
+		isSelectMode.value = !isSelectMode.value;
+		showDeleteButton.value = isSelectMode.value;
+		console.log('isSelectMode:', isSelectMode.value);
 
-      // 过滤掉已删除的病害记录，然后检查剩余记录中是否存在匹配的componentName
-      const exists = diseaseList.value.filter(disease => disease.commitType !== 2)
-          .some(disease => disease.component && disease.component.name === componentName && disease.component.biObject.id === biObjectId);
+		// 退出选择模式时清空选中项
+		if (!isSelectMode.value) {
+			selectedItems.value = [];
+		}
+	};
+	// 处理项目选择
+	const handleItemSelect = (event) => {
+		const {
+			item,
+			selected
+		} = event;
 
-      console.log(`检查componentName为 ${componentName} 的病害${exists ? '存在' : '不存在'}`);
-      return exists;
+		if (selected) {
+			// 添加到选中数组
+			if (!selectedItems.value.includes(item.id)) {
+				selectedItems.value.push(item.id);
+			}
+		} else {
+			// 从选中数组中移除
+			const index = selectedItems.value.indexOf(item.id);
+			if (index !== -1) {
+				selectedItems.value.splice(index, 1);
+			}
+		}
 
-    } catch (error) {
-      console.error('检查病害是否存在与某个构件上时出错:', error);
-      return false; // 出错时返回false
-    }
+		console.log('当前选中项:', selectedItems.value);
+	};
+
+	//全选所有病害
+	// 全选所有病害
+	const selectAllDisease = () => {
+		// 获取当前筛选后的病害列表
+		const allDiseases = filteredDiseases.value;
+		// 清空当前选中项
+		selectedItems.value = [];
+		// 将所有病害ID添加到选中列表
+		selectedItems.value = allDiseases.map(item => item.id);
+
+		console.log('已全选病害:', selectedItems.value);
+	};
+
+	// 删除选中病害
+	const deleteSelectDisease = () => {
+		if (selectedItems.value.length === 0) {
+			uni.showToast({
+				title: '请先选择要删除的病害',
+				icon: 'none'
+			});
+			return;
+		}
+		uni.showModal({
+			title: '提示',
+			content: '确定要删除所选病害吗？',
+			success: async (res) => {
+				if (res.confirm) {
+					// 删除病害
+					await deleteDiseaseByIds(selectedItems.value);
+				}
+			}
+		})
+	};
+
+	const deleteDiseaseByIds = async (ids) => {
+		try {
+			uni.showLoading({
+				title: '正在删除',
+				mask: true
+			});
+			for (const id of ids) {
+				// 获取病害数据
+				const diseaseData = diseaseList.value.find(item => item.id === id);
+				if (!diseaseData) {
+					console.log(`未找到ID为${id}的病害数据`);
+					continue;
+				}
+
+				// 删除病害数据
+				const index = diseaseList.value.indexOf(diseaseData);
+				console.log('index:', index)
+				const isExist = await isOnlyDisease(diseaseList.value[index].component.name, diseaseList.value[
+					index].component.biObject.id);
+				console.log('isExist:', isExist)
+				if (isExist === true) {
+					console.log('该构件只有这一个病害，需要减少病害构件数量,deleteData', diseaseList.value[index])
+					await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
+							index]
+						.biObjectId);
+				}
+
+				// 检查是否有历史病害引用，如果有则发送事件通知 history-disease 组件
+				const diseaseToDelete = diseaseList.value[index];
+				if (diseaseToDelete.historyDiseaseId && diseaseToDelete.localId) {
+					console.log('发送删除历史病害引用事件:', {
+						historyDiseaseId: diseaseToDelete.historyDiseaseId,
+						localId: diseaseToDelete.localId || diseaseToDelete.id
+					});
+
+					// 发送事件给 history-disease 组件
+					uni.$emit('deleteHistoryDiseaseReference', {
+						historyDiseaseId: diseaseToDelete.historyDiseaseId,
+						localId: diseaseToDelete.localId || diseaseToDelete.id
+					});
+				}
+
+				// 将commit_type置为2表示已删除，而不是直接从数组中移除
+				diseaseList.value[index].commitType = 2;
+				console.log(`病害ID:${id}已标记为删除(commitType=2)`);
+			}
+			// 准备要保存的数据
+			const currentYear = new Date().getFullYear().toString();
+
+			// 构建要保存的数据对象
+			const saveData = {
+				year: parseInt(currentYear),
+				buildingId: parseInt(idStorageInfo.buildingId),
+				diseases: diseaseList.value
+			};
+
+			console.log('准备保存更新后的数据:', saveData);
+
+			// 调用setDisease方法保存数据
+			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
+
+			console.log('删除标记保存成功');
+			const hasUncommittedDiseases = readDiseaseCommit();
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			} else {
+				await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
+			}
+			uni.$emit('diseaseStatusChanged');
+
+			// 显示成功提示
+			toggleSelectMode();
+			uni.hideLoading();
+			uni.showToast({
+				title: `已删除${ids.length}条病害`,
+				icon: 'success'
+			});
+		} catch (e) {
+			console.error('保存删除失败:', error);
+			uni.hideLoading();
+			uni.showToast({
+				title: '删除失败',
+				icon: 'none'
+			});
+		}
+	};
+
+	const isExistDisease = async (componentName, biObjectId) => {
+		try {
+			// 检查数据是否有效
+			if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
+				console.log('没有找到病害数据或数据格式不正确');
+				return false; // 如果没有数据或格式不正确，返回false
+			}
+
+			// 过滤掉已删除的病害记录，然后检查剩余记录中是否存在匹配的componentName
+			const exists = diseaseList.value.filter(disease => disease.commitType !== 2)
+				.some(disease => disease.component && disease.component.name === componentName && disease.component
+					.biObject.id === biObjectId);
+
+			console.log(`检查componentName为 ${componentName} 的病害${exists ? '存在' : '不存在'}`);
+			return exists;
+
+		} catch (error) {
+			console.error('检查病害是否存在与某个构件上时出错:', error);
+			return false; // 出错时返回false
+		}
 	}
 
-  const isOnlyDisease = async (componentName, biObjectId) => {
-    try {
-      // 检查数据是否有效
-      if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
-        console.log('没有找到病害数据或数据格式不正确');
-        return false; // 如果没有数据或格式不正确，返回false
-      }
+	const isOnlyDisease = async (componentName, biObjectId) => {
+		try {
+			// 检查数据是否有效
+			if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
+				console.log('没有找到病害数据或数据格式不正确');
+				return false; // 如果没有数据或格式不正确，返回false
+			}
 
-      // 过滤出与指定componentName匹配且未删除的病害记录
-      const matchingDiseases = diseaseList.value.filter(disease =>
-          disease.component &&
-          disease.component.name === componentName &&
-          disease.component.biObject.id === biObjectId &&
-          disease.commitType !== 2 // 排除已删除的病害记录
-      );
+			// 过滤出与指定componentName匹配且未删除的病害记录
+			const matchingDiseases = diseaseList.value.filter(disease =>
+				disease.component &&
+				disease.component.name === componentName &&
+				disease.component.biObject.id === biObjectId &&
+				disease.commitType !== 2 // 排除已删除的病害记录
+			);
 
-      // 检查是否只有一个匹配的记录
-      const isOnly = matchingDiseases.length === 1;
+			// 检查是否只有一个匹配的记录
+			const isOnly = matchingDiseases.length === 1;
 
-      console.log(`componentName为 ${componentName},biObjectId为${biObjectId} 的病害${isOnly ? '只有一个' : '有多个或没有'}`);
-      return isOnly;
+			console.log(
+				`componentName为 ${componentName},biObjectId为${biObjectId} 的病害${isOnly ? '只有一个' : '有多个或没有'}`);
+			return isOnly;
 
-    } catch (error) {
-      console.error('检查病害是否唯一时出错:', error);
-      return false; // 出错时返回false
-    }
-  }
+		} catch (error) {
+			console.error('检查病害是否唯一时出错:', error);
+			return false; // 出错时返回false
+		}
+	}
 
 	//
 	const readCurrentYearDiseaseDataByJson = async () => {
@@ -192,64 +358,64 @@
 		await readCurrentYearDiseaseDataByJson();
 	};
 
-  const copyDiseases = async (allCopiedDiseases) => {
-    try{
-      console.log('接收到复制病害数据:', allCopiedDiseases);
-      for (const disease of allCopiedDiseases) {
-        const isExist = await isExistDisease(disease.component.name, disease.component.biObject.id);
-        diseaseList.value.push(disease);
-        if (isExist === false) {
-          console.log('该构件下不存在该病害类型，需要增加病害构件数量')
-          await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, disease.biObjectId);
-        }
-      }
-      // 准备要保存的数据
-      const currentYear = new Date().getFullYear().toString();
+	const copyDiseases = async (allCopiedDiseases) => {
+		try {
+			console.log('接收到复制病害数据:', allCopiedDiseases);
+			for (const disease of allCopiedDiseases) {
+				const isExist = await isExistDisease(disease.component.name, disease.component.biObject.id);
+				diseaseList.value.push(disease);
+				if (isExist === false) {
+					console.log('该构件下不存在该病害类型，需要增加病害构件数量')
+					await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, disease.biObjectId);
+				}
+			}
+			// 准备要保存的数据
+			const currentYear = new Date().getFullYear().toString();
 
-      // 构建要保存的数据对象
-      const saveData = {
-        year: parseInt(currentYear),
-        buildingId: parseInt(idStorageInfo.buildingId),
-        diseases: diseaseList.value
-      };
-      await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
+			// 构建要保存的数据对象
+			const saveData = {
+				year: parseInt(currentYear),
+				buildingId: parseInt(idStorageInfo.buildingId),
+				diseases: diseaseList.value
+			};
+			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, saveData);
 
-      const hasUncommittedDiseases = readDiseaseCommit();
-      if (hasUncommittedDiseases) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }
+			const hasUncommittedDiseases = readDiseaseCommit();
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			}
 
-      // 修改顶部导航栏状态
-      uni.$emit('diseaseStatusChanged');
-    }catch (e) {
-      console.error('复制病害数据失败:', e);
-      uni.showToast({
-        title: '复制失败',
-        icon: 'none'
-      });
-    }
-  }
+			// 修改顶部导航栏状态
+			uni.$emit('diseaseStatusChanged');
+		} catch (e) {
+			console.error('复制病害数据失败:', e);
+			uni.showToast({
+				title: '复制失败',
+				icon: 'none'
+			});
+		}
+	}
 
 	// 添加新增病害数据的方法
 	const addNewDiseaseData = async (newDisease) => {
 		try {
 			console.log('接收到新增病害数据:', newDisease);
 			const isExist = await isExistDisease(newDisease.component.name, newDisease.component.biObject.id);
-      // 将新病害数据添加到列表中
-      diseaseList.value.push(newDisease);
+			// 将新病害数据添加到列表中
+			diseaseList.value.push(newDisease);
 
-      // 准备要保存的数据
-      const currentYear = new Date().getFullYear().toString();
+			// 准备要保存的数据
+			const currentYear = new Date().getFullYear().toString();
 
-      // 构建要保存的数据对象
-      const saveData = {
-        year: parseInt(currentYear),
-        buildingId: parseInt(idStorageInfo.buildingId),
-        diseases: diseaseList.value
-      };
+			// 构建要保存的数据对象
+			const saveData = {
+				year: parseInt(currentYear),
+				buildingId: parseInt(idStorageInfo.buildingId),
+				diseases: diseaseList.value
+			};
 
-      console.log('准备保存的数据:', saveData);
+			console.log('准备保存的数据:', saveData);
 			if (isExist === false) {
 				console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 				await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, newDisease.biObjectId);
@@ -265,11 +431,11 @@
 			});*/
 			// await checkUncommittedDiseases();
 			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      const hasUncommittedDiseases = readDiseaseCommit();
-      if (hasUncommittedDiseases) {
-        await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
-        uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
-      }
+			const hasUncommittedDiseases = readDiseaseCommit();
+			if (hasUncommittedDiseases) {
+				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
+				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
+			}
 			/*else{
 			  await setBuildingCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 			  uni.$emit('setBuildingCommit', idStorageInfo.buildingId)
@@ -302,7 +468,8 @@
 				return;
 			}
 
-			const isExist = await isOnlyDisease( diseaseList.value[index].component.name, diseaseList.value[index].component.biObject.id);
+			const isExist = await isOnlyDisease(diseaseList.value[index].component.name, diseaseList.value[index]
+				.component.biObject.id);
 			if (isExist === true) {
 				console.log('该构件只有这一个病害，需要减少病害构件数量,deleteData', diseaseList.value[index])
 				await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[index]
@@ -346,7 +513,7 @@
 
 			console.log('删除标记保存成功');
 			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      const hasUncommittedDiseases = readDiseaseCommit();
+			const hasUncommittedDiseases = readDiseaseCommit();
 			if (hasUncommittedDiseases) {
 				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
@@ -382,15 +549,18 @@
 				return;
 			}
 
-			if (diseaseList.value[index].component.name !== updatedDisease.component.name || diseaseList.value[index].component.biObject.id !== updatedDisease.component.biObject.id) {
-				const isOnly = await isOnlyDisease(diseaseList.value[index].component.name, diseaseList.value[index].component.biObject.id);
+			if (diseaseList.value[index].component.name !== updatedDisease.component.name || diseaseList.value[
+					index].component.biObject.id !== updatedDisease.component.biObject.id) {
+				const isOnly = await isOnlyDisease(diseaseList.value[index].component.name, diseaseList.value[
+					index].component.biObject.id);
 				if (isOnly === true) {
 					console.log('该构件只有这一个病害，需要减少病害构件数量')
 					await decrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, diseaseList.value[
 						index].component.biObjectId);
 					// structureStoreInfo.incrementDataVersion();
 				}
-				const isExist = await isExistDisease(updatedDisease.component.name, updatedDisease.component.biObject.id);
+				const isExist = await isExistDisease(updatedDisease.component.name, updatedDisease.component
+					.biObject.id);
 				if (isExist === false) {
 					console.log('该构件下不存在该病害类型，需要增加病害构件数量')
 					await incrementDiseaseNumber(userInfo.username, idStorageInfo.buildingId, updatedDisease
@@ -421,7 +591,7 @@
 			console.log('更新数据保存成功');
 			// await checkUncommittedDiseases();
 			// const hasUncommittedDiseases = await readDiseaseCommit(userInfo.username, idStorageInfo.buildingId, currentYear);
-      const hasUncommittedDiseases = readDiseaseCommit();
+			const hasUncommittedDiseases = readDiseaseCommit();
 			if (hasUncommittedDiseases) {
 				await setBuildingUnCommitted(userInfo.username, idStorageInfo.projectId, idStorageInfo.buildingId)
 				uni.$emit('setBuildingUnCommit', idStorageInfo.buildingId)
@@ -451,6 +621,11 @@
 			if (item.commitType === 2) {
 				return false;
 			}
+			// 根据顶部标签按 commitType 过滤：0已提交，1未提交，3未保存
+			const tIdx = Number(tagIndex.value);
+			if (tIdx === 1 && item.commitType !== 0) return false; // 已提交
+			if (tIdx === 2 && item.commitType !== 1) return false; // 未提交
+			if (tIdx === 3 && item.commitType !== 3) return false; // 未完成
 			// 按类型过滤 - 使用component.grandObjectName
 			if (item.component?.grandObjectName !== selectedType) {
 				return false;
@@ -493,6 +668,9 @@
 
 	const changeTab = (index) => {
 		activeTab.value = index;
+		if (isSelectMode.value) {
+			toggleSelectMode();
+		}
 	};
 
 	const getTpyeItemCount = (type) => {
@@ -556,25 +734,25 @@
 		}
 	};
 
-  const readDiseaseCommit = () => {
-    try {
-      // 检查diseases数组是否存在
-      if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
-        console.log('没有找到病害数据或数据格式不正确');
-        return false;
-      }
+	const readDiseaseCommit = () => {
+		try {
+			// 检查diseases数组是否存在
+			if (!diseaseList.value || !Array.isArray(diseaseList.value)) {
+				console.log('没有找到病害数据或数据格式不正确');
+				return false;
+			}
 
-      // 使用some方法检查是否有任何病害的commit_type为1（未提交）或为2（需要删除）
-      const hasUncommittedDiseases = diseaseList.value.some(disease => disease.commitType === 1 || disease
-          .commitType === 2);
+			// 使用some方法检查是否有任何病害的commit_type为1（未提交）或为2（需要删除）
+			const hasUncommittedDiseases = diseaseList.value.some(disease => disease.commitType === 1 || disease
+				.commitType === 2);
 
-      console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
-      return hasUncommittedDiseases;
-    } catch (error) {
-      console.error('检查病害提交状态时出错:', error);
-      return false; // 出错时返回false
-    }
-  }
+			console.log(`检查未提交病害: ${hasUncommittedDiseases ? '有未提交病害' : '全部已提交'}`);
+			return hasUncommittedDiseases;
+		} catch (error) {
+			console.error('检查病害提交状态时出错:', error);
+			return false; // 出错时返回false
+		}
+	}
 
 	// 组件挂载时
 	onMounted(() => {
@@ -595,8 +773,8 @@
 		// 添加更新病害事件监听
 		uni.$on('updateDisease', handleUpdateDisease);
 
-    // 添加复制病害事件监听
-    uni.$on('copyDiseases',copyDiseases)
+		// 添加复制病害事件监听
+		uni.$on('copyDiseases', copyDiseases)
 
 		// 添加获取同类型病害列表的事件监听
 		uni.$on('getDiseasesOfType', (data) => {
@@ -628,7 +806,7 @@
 		uni.$off('updateDisease');
 		uni.$off('getDiseasesOfType');
 		uni.$off('submitSuccess')
-    uni.$off('copyDiseases')
+		uni.$off('copyDiseases')
 	});
 </script>
 
@@ -655,7 +833,7 @@
 	}
 
 	.view-search-bar {
-		width: 80%;
+		width: 45%;
 	}
 
 	.search-bar {
@@ -663,13 +841,17 @@
 	}
 
 	.add-button {
-		margin-right: 24rpx;
+		/*margin-right: 24rpx;*/
+		margin-right: 16rpx;
+		/* 使用右侧间距 */
 		background-color: #0F4687;
 		color: white;
 		font-size: 15rpx;
 		height: 36rpx;
 		line-height: 26rpx;
 		padding: 5rpx 10rpx;
+		white-space: nowrap;
+		/* 防止文本换行 */
 	}
 
 	.submit-button {
@@ -709,7 +891,6 @@
 		flex-direction: column;
 		align-items: flex-start;
 		/* 修改为 flex-start */
-
 	}
 
 	.sidebar-item-content {
@@ -719,7 +900,6 @@
 		/* 修改为 flex-start */
 		padding-left: 16rpx;
 		/* 添加左内边距 */
-
 	}
 
 	.sidebar-item-text {
@@ -742,8 +922,6 @@
 		border-left: 4rpx solid #0F4687;
 	}
 
-
-
 	/* 内容区样式 */
 	.content {
 		flex: 1;
@@ -758,5 +936,94 @@
 		color: #999;
 		font-size: 28rpx;
 		margin-top: 30rpx;
+	}
+
+	.select-button {
+		margin-right: 16rpx;
+		/*margin-right: 16rpx;*/
+		background-color: #0F4687;
+		color: white;
+		font-size: 15rpx;
+		height: 36rpx;
+		line-height: 26rpx;
+		padding: 5rpx 10rpx;
+		white-space: nowrap;
+		/* 防止文本换行 */
+	}
+
+	.delete-button {
+		margin-right: 16rpx;
+		background-color: #FF3141;
+		color: #ffffff;
+		font-size: 15rpx;
+		height: 36rpx;
+		line-height: 26rpx;
+		padding: 5rpx 10rpx;
+		white-space: nowrap;
+		/* 防止文本换行 */
+	}
+
+	.allSelect-button {
+		margin-right: 16rpx;
+		background-color: #0F4687;
+		color: white;
+		font-size: 15rpx;
+		height: 36rpx;
+		line-height: 26rpx;
+		padding: 5rpx 10rpx;
+		white-space: nowrap;
+		/* 防止文本换行 */
+	}
+
+	.button-group {
+		display: flex;
+		/* 内部按钮横向排列 */
+		align-items: center;
+		/* 垂直居中 */
+		margin-left: auto;
+		/* 整个按钮组靠右 */
+		padding-right: 0;
+		/* 由最后一个按钮的margin-right控制右侧留白 */
+	}
+
+	.tag-select {
+		position: relative;
+		display: inline-flex;
+		align-items: center;
+		margin-left: 8rpx;
+		background: #ffffff;
+		border: 1rpx solid #CFD7E6;
+		border-radius: 4rpx;
+		padding: 4rpx 28rpx 4rpx 10rpx;
+		/* 右侧为箭头预留空间 */
+		box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+		/* 需要时可加阴影 */
+		width: 100rpx;
+		box-sizing: border-box;
+	}
+
+	.tag-picker {
+		padding: 0;
+		/* 由外层控制内边距 */
+		margin-left: 0;
+		/* 使用外层margin */
+		font-size: 20rpx;
+		color: #333;
+		display: block;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.tag-icon {
+		position: absolute;
+		right: 8rpx;
+		top: 50%;
+		transform: translateY(-50%);
+		font-size: 18rpx;
+		color: #6B778C;
+		pointer-events: none;
+		/* 不阻挡点击 */
 	}
 </style>

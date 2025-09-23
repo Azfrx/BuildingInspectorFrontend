@@ -904,6 +904,8 @@
 			positionNumber: diseaseInformationRef.value.positionNumber,
 			mileageStation1: diseaseInformationRef.value.mileageStation1,
 			mileageStation2: diseaseInformationRef.value.mileageStation2,
+      mileageStation3: diseaseInformationRef.value.mileageStation3,
+      mileageStation4: diseaseInformationRef.value.mileageStation4,
 			level: diseaseDescriptionPart.value.level,
 			quantity: diseaseQuantitativeDataRef.value.quantity,
 			units: diseaseQuantitativeDataRef.value.units,
@@ -924,7 +926,7 @@
 			images: [], // 初始化为空数组，等待图片保存后更新
 			ADImgs: [], // 添加AD图片字段
 			imgNoExp: imgNoExp.value,
-			commitType: 1, //0为已提交 1为未提交 2为删除
+			commitType: 1, //0为已提交 1为未提交 2为删除 3为未保存
 			localId: openMode.value === 'create' ? new Date().getTime() : JSON.parse(decodeURIComponent(
 				getCurrentPages()[getCurrentPages().length - 1].$page?.options.data))?.localId,
 			historyDiseaseId: openMode.value === 'create' ? null : JSON.parse(decodeURIComponent(

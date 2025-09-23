@@ -113,12 +113,24 @@
 							placeholder-style="color: #CCCCCC;" />
 						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation1 = ''"></image>
 					</view>
-
 					<text class="mid-icon">+</text>
 					<view class="input-content">
 						<input class="input-content-input" v-model="mileageStation2" placeholder="请填写" placeholder-style="color: #CCCCCC;">
 						<image src="/static/image/clear.png" class="clear-icon" @click="mileageStation2 = ''"></image>
 					</view>
+          <text class="mid-icon">至</text>
+          <text class="left-icon">K</text>
+          <view class="input-content">
+            <input class="input-content-input" v-model="mileageStation3" placeholder="请填写"
+                   placeholder-style="color: #CCCCCC;" />
+            <image src="/static/image/clear.png" class="clear-icon" @click="mileageStation3 = ''"></image>
+          </view>
+
+          <text class="mid-icon">+</text>
+          <view class="input-content">
+            <input class="input-content-input" v-model="mileageStation4" placeholder="请填写" placeholder-style="color: #CCCCCC;">
+            <image src="/static/image/clear.png" class="clear-icon" @click="mileageStation4 = ''"></image>
+          </view>
 				</view>
 			</view>
 		</view>
@@ -344,6 +356,8 @@
 	// 里程桩号
 	const mileageStation1 = ref('');
 	const mileageStation2 = ref('');
+  const mileageStation3 = ref('');
+  const mileageStation4 = ref('');
 
 	watch([componentNamePicker, componentId, componentNameInput, componentCodeInput, typePicker, typeInput, position,
 		positionNumber
@@ -716,8 +730,10 @@
 			type: type.value, // 病害类型
 			position: position.value, // 病害位置
 			positionNumber: positionNumber.value, // 病害位置编号
-			mileageStation1: mileageStation1.value, // 病害位置里程站1
-			mileageStation2: mileageStation2.value, // 病害位置里程站2
+			mileageStation1: mileageStation1.value, // 病害位置里程桩号1
+			mileageStation2: mileageStation2.value, // 病害位置里程桩号2
+      mileageStation3: mileageStation3.value, // 病害位置里程桩号3
+      mileageStation4: mileageStation4.value, // 病害位置里程桩号4
 		};
 		uni.$emit('setDescription1', description);
 	}
@@ -1362,6 +1378,8 @@
 		positionNumber,
 		mileageStation1,
 		mileageStation2,
+    mileageStation3,
+    mileageStation4
 	});
 </script>
 
@@ -1382,7 +1400,7 @@
     padding: 4rpx 4rpx;
 	}
   .input-content-input{
-    width: 100rpx;
+    width: 80rpx;
     font-size: 18rpx;
   }
 

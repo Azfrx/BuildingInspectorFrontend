@@ -6,8 +6,10 @@ function generateDiseaseDescription(data) {
 		diseaseType, // 病害类型
 		diseasePosition, // 病害位置
 		positionNumber, // 位置编号
-		mileageStation1, // 里程站1
-		mileageStation2, // 里程站2
+		mileageStation1, // 里程桩号1
+		mileageStation2, // 里程桩号2
+		mileageStation3, // 里程桩号3
+		mileageStation4, // 里程桩号4
 		crackType, // 裂缝特征（可选）
 		defects = [], // 缺损数据数组
 		counts = 0, // 病害数量（可选）
@@ -17,8 +19,23 @@ function generateDiseaseDescription(data) {
 
 	const count = defects.length;
 	if (count === 0) return '还未填写病害数据';
+	// 先计算里程部分
+	const mileageText = (() => {
+		const hasStart = mileageStation1 !== '' || mileageStation2 !== '';
+		const hasEnd = mileageStation3 !== '' || mileageStation4 !== '';
 
-	let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '，' + (positionNumber ? `第${positionNumber}#` : '') + diseasePosition : ''}，${mileageStation1 !== '' || mileageStation2 !== '' ? 'K'+(mileageStation1 || '0') + '+' + (mileageStation2 || '0') + '处，' : ''}${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
+		if (!hasStart && !hasEnd) return '';
+
+		let text = '';
+		if (hasStart) text += `K${mileageStation1 || '0'}+${mileageStation2 || '0'}`;
+		if (hasStart && hasEnd) text += '至';
+		if (hasEnd) text += `K${mileageStation3 || '0'}+${mileageStation4 || '0'}`;
+
+		return text + '处，';
+	})();
+
+	// let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '，' + (positionNumber ? `第${positionNumber}#` : '') + diseasePosition : ''}，${mileageStation1 !== '' || mileageStation2 !== '' ? 'K'+(mileageStation1 || '0') + '+' + (mileageStation2 || '0') + '处，' : ''}${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
+	let description = `${componentCode}#${componentName}${componentName !== diseasePosition ? '，' + (positionNumber ? `第${positionNumber}#` : '') + diseasePosition : ''}，${mileageText}${diseaseType.split('#')[1] || diseaseType}${counts > 0 ? `${counts}` : ''}${units !== '' ? `${units}` : '个'}`;
 	if (showColumns[0] == 1 && crackType) description += `，${crackType}裂缝`;
 	let descriptionArr = [];
 
