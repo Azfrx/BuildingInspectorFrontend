@@ -1,5 +1,5 @@
 <template>
-  <uni-swipe-action :ref="el => swipeAction = el" v-if="editMode !== 'history'">
+  <uni-swipe-action :ref="el => swipeAction = el" v-if="editMode === 'edit'">
 		<uni-swipe-action-item :right-options="swipeOptions" @click="handleSwipeClick" @change="swipeChange" :disabled="selectMode">
 			<view class="disease-item" @click="handleItemClick">
 				<!-- 选择框区域 -->

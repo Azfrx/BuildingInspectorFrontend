@@ -11,6 +11,7 @@
 				</view>
 				<view class="bridge-info-content-right">
 <!--          <button class="delete-button" @click="deleteBridgeData">清空检测数据</button>-->
+          <button class="online-button" @click="viewOnlineData">查看在线数据</button>
 					<button class="submit-button" @click="submitZip" :disabled="!submitButtonEnabled">提交检测数据</button>
 				</view>
 			</view>
@@ -212,6 +213,13 @@
 			transform: 'none' // 移除transform
 		};
 	});
+
+  // 查看在线数据
+  const viewOnlineData = () => {
+    uni.navigateTo({
+      url: `/pages/online-information/online-information?bridgeCode=${bridgeCode.value}&bridgeName=${bridgeName.value}&bridgePileNumber=${bridgePileNumber.value}&routeName=${routeName.value}&routeCode=${routeCode.value}`
+    });
+  };
 
 	const readBridgeInfo = () => {
 		const pages = getCurrentPages();
@@ -579,6 +587,15 @@
 		color: #666666;
 	}
 
+  .online-button{
+    background-color: #0F4687;
+    color: white;
+    font-size: 15rpx;
+    height: 36rpx;
+    line-height: 26rpx;
+    padding: 5rpx 10rpx;
+    margin-right: 16rpx;
+  }
 	.submit-button {
 		background-color: #0F4687;
 		color: white;

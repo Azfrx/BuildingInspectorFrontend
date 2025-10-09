@@ -30,7 +30,7 @@
 
 
 		<!-- 表单内容容器 - 添加form-container类以便横屏时调整布局 -->
-		<view class="form-container">
+		<view :class="openMode !== 'online' ? 'form-container' : ''">
 
 			<disease-information :structureData="structureData" :selectedGrandObject="selectedGrandObject"
 				ref="diseaseInformationRef"> </disease-information>
@@ -48,7 +48,7 @@
 				</view>
 
 				<view class="part-UploadImage">
-					<view v-if="openMode === 'history'">
+					<view v-if="openMode === 'history' || openMode === 'online'">
 						<view class="part-title">图片</view>
 						<image v-for="(url, index) in fileList" :key="index" :src="url" mode="aspectFill"
 							@click="previewImage(url)" class="disease-image" />
@@ -66,7 +66,7 @@
 				</view>
 
 				<view class="part-ADImages">
-					<view v-if="openMode === 'history'">
+					<view v-if="openMode === 'history' || openMode === 'online'">
 						<view class="part-title">简图</view>
 						<image v-for="(url, index) in ADImgs" :key="index" :src="url" mode="aspectFill"
 							@click="previewImage(url)" class="disease-image" />
@@ -290,7 +290,10 @@
 			openMode.value = 'edit';
 		} else if (options && options.mode === 'history') {
 			openMode.value = 'history';
-		} else {
+		} else if(options && options.mode === 'online'){
+      openMode.value = 'online';
+    }
+    else {
 			openMode.value = 'create';
 		}
 		await fetchStructureData();
@@ -548,7 +551,10 @@
 			let imagesPaths = [];
 			if (openMode.value == 'history') {
 				imagesPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.images);
-			} else {
+			} else if(openMode.value == 'online'){
+        imagesPaths = data.images;
+      }
+      else {
 				imagesPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
 			}
 			// const imagesPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.images);
@@ -561,7 +567,10 @@
 			let ADImgsPaths = [];
 			if (openMode.value == 'history') {
 				ADImgsPaths = await readDiseaseUDImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
-			} else {
+			} else if(openMode.value == 'online'){
+        ADImgsPaths = data.ADImgs;
+      }
+      else {
 				ADImgsPaths = await readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
 			}
 			// const ADImgsPaths = readDiseaseImages(userInfo.username, idStorageInfo.buildingId, data.ADImgs);
@@ -1436,6 +1445,11 @@
 				title: '历史病害', // 要设置的标题文字
 			});
 		}
+    if(newOpenMode === 'online'){
+      uni.setNavigationBarTitle({
+        title: '查看病害', // 要设置的标题文字
+      });
+    }
 	})
 	watch([fileList, ADImgs], () => {
 		if (isInitializing) {
