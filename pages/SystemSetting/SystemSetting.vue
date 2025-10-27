@@ -1,34 +1,34 @@
 <template>
 	<view class='System'>
-    <!-- <LoadingMask v-if="loading" text="正在更新线上完整数据..." /> -->
+		<!-- <LoadingMask v-if="loading" text="正在更新线上完整数据..." /> -->
 
-    <!-- 下载进度条 -->
-    <view class="download-progress-container" v-if="showDownloadProgress">
-      <view class="progress-header">
-        <text class="progress-title">正在下载数据包</text>
-        <text class="progress-percent">{{ Math.floor(downloadProgress) }}%</text>
-      </view>
-      <view class="progress-bar-bg">
-        <view class="progress-bar-fill" :style="{ width: downloadProgress + '%' }"></view>
-      </view>
-      <view class="progress-info">
-        <text>下载中，请稍候...</text>
-      </view>
-    </view>
+		<!-- 下载进度条 -->
+		<view class="download-progress-container" v-if="showDownloadProgress">
+			<view class="progress-header">
+				<text class="progress-title">正在下载数据包</text>
+				<text class="progress-percent">{{ Math.floor(downloadProgress) }}%</text>
+			</view>
+			<view class="progress-bar-bg">
+				<view class="progress-bar-fill" :style="{ width: downloadProgress + '%' }"></view>
+			</view>
+			<view class="progress-info">
+				<text>下载中，请稍候...</text>
+			</view>
+		</view>
 
-    <!-- 解压进度条 -->
-    <view class="download-progress-container" v-if="showUnzipProgress">
-      <view class="progress-header">
-        <text class="progress-title">正在解压数据包</text>
-        <text class="progress-percent">{{ Math.floor(unzipProgress) }}%</text>
-      </view>
-      <view class="progress-bar-bg">
-        <view class="progress-bar-fill" :style="{ width: unzipProgress + '%' }"></view>
-      </view>
-      <view class="progress-info">
-        <text>解压中，请稍候...</text>
-      </view>
-    </view>
+		<!-- 解压进度条 -->
+		<view class="download-progress-container" v-if="showUnzipProgress">
+			<view class="progress-header">
+				<text class="progress-title">正在解压数据包</text>
+				<text class="progress-percent">{{ Math.floor(unzipProgress) }}%</text>
+			</view>
+			<view class="progress-bar-bg">
+				<view class="progress-bar-fill" :style="{ width: unzipProgress + '%' }"></view>
+			</view>
+			<view class="progress-info">
+				<text>解压中，请稍候...</text>
+			</view>
+		</view>
 		<view class="main">
 			<view class="titleBar">
 				<image src="/static/image/user1.png" class="avatar"></image>
@@ -62,13 +62,13 @@
 			<view class="versionTitle">当前下载数据包版本</view>
 			<view class="versionNumber">{{currentDataVersionD}}</view>
 		</view>
-    <view class="divider"></view>
-    <view class="inData">
-      <view class="inDataTitle">更新在线数据</view>
-      <button size="default" type="default" class="functionButton" hover-class="is-hover"
-              @click="handleUnpdate">检查更新</button>
-    </view>
-<!--		<view class="divider"></view>
+		<view class="divider"></view>
+		<view class="inData">
+			<view class="inDataTitle">更新在线数据</view>
+			<button size="default" type="default" class="functionButton" hover-class="is-hover"
+				@click="handleUnpdate">检查更新</button>
+		</view>
+		<!--		<view class="divider"></view>
 		<view class="inData">
 			<view class="inDataTitle">本地数据导入</view>
 			<button size="default" type="default" class="functionButton" hover-class="is-hover"
@@ -87,7 +87,7 @@
 			<button size="default" type="default" class="functionButton" hover-class="is-hover"
 				@click="onClickUpdate">版本更新</button>
 		</view>
-		
+
 		<!-- 添加修改密码弹窗 -->
 		<uni-popup ref="passwordPopup" type="center">
 			<view class="password-popup-content">
@@ -115,52 +115,58 @@
 		</uni-popup>
 
 		<!-- 版本更新弹窗 -->
-		<updateVersionWindow
-			:visible="showUpdateModal"
-			:title="updateModalTitle"
-			:content="updateModalContent"
-			@confirm="handleUpdateConfirm"
-			@cancel="handleUpdateCancel"
-		/>
+		<updateVersionWindow :visible="showUpdateModal" :title="updateModalTitle" :content="updateModalContent"
+			@confirm="handleUpdateConfirm" @cancel="handleUpdateCancel" />
 
 		<!-- 自定义错误弹窗 -->
 		<offlineFailVue ref="offlineFailRef" @confirm="handleOfflineFailConfirm" />
 		<offlineVersionVue ref="offlineVersionRef" />
 
-    <offlineFailVue ref="dataOffline"/>
+		<offlineFailVue ref="dataOffline" />
 
 	</view>
 </template>
 
 <script setup>
-import {
-  computed,
-  onMounted,
-  ref
-} from 'vue';
+	import {
+		computed,
+		onMounted,
+		ref
+	} from 'vue';
 	import {
 		onLoad
 	} from '@dcloudio/uni-app'
 	import {
 		async
 	} from 'rxjs';
-  import {
-    userStore
-  } from '@/store/index.js'
-  import {downloadProjects, getAllDataAndSetToLocal} from '@/utils/request'
+	import {
+		userStore
+	} from '@/store/index.js'
+	import {
+		downloadProjects,
+		getAllDataAndSetToLocal
+	} from '@/utils/request'
 	import checkUpdate from '@/uni_modules/uni-upgrade-center-app/utils/check-update'
 	// 导入下载工具
-	import { useDownloader, parsePackageSize } from '@/utils/downloadUtils.js'
+	import {
+		useDownloader,
+		parsePackageSize
+	} from '@/utils/downloadUtils.js'
 	// 导入版本更新弹窗组件
 	import updateVersionWindow from '@/components/updateVersionWindow.vue'
-import offlineFailVue from '../../components/offlineFail.vue'
-import offlineVersionVue from '../../components/offlineVersion.vue';
-import apiConfig from '../../config/api';
+	import offlineFailVue from '../../components/offlineFail.vue'
+	import offlineVersionVue from '../../components/offlineVersion.vue';
+	import apiConfig from '../../config/api';
 	// 获取用户信息
 	const userInfo = userStore();
 
 	// 引入下载器
-	const { downloadProgress, unzipProgress, resetProgress, currentTaskId } = useDownloader();
+	const {
+		downloadProgress,
+		unzipProgress,
+		resetProgress,
+		currentTaskId
+	} = useDownloader();
 
 	// 密码相关变量
 	const passwordPopup = ref(null);
@@ -181,608 +187,625 @@ import apiConfig from '../../config/api';
 		passwordPopup.value.open();
 	};
 
-  // 使用计算属性来响应 store 变化
-  const currentDataVersion = computed(() => {
-    return userInfo.ULPath || '-';
-  });
+	// 使用计算属性来响应 store 变化
+	const currentDataVersion = computed(() => {
+		return userInfo.ULPath || '-';
+	});
 
-  const currentDataVersionD = computed(() => {
-    return userInfo.UDPath || '-';
-  });
+	const currentDataVersionD = computed(() => {
+		return userInfo.UDPath || '-';
+	});
 	// 关闭修改密码弹窗
 	const closePasswordModal = () => {
 		passwordPopup.value.close();
 	};
 
-  const infoData = ref({});
-  const loading = ref(false);
+	const infoData = ref({});
+	const loading = ref(false);
 
-  // 添加进度条显示控制变量
-  const showDownloadProgress = ref(false);
-  const showUnzipProgress = ref(false);
-  const packageSize = ref(null);
-  const isDownloading = ref(false);
+	// 添加进度条显示控制变量
+	const showDownloadProgress = ref(false);
+	const showUnzipProgress = ref(false);
+	const packageSize = ref(null);
+	const isDownloading = ref(false);
 
-  	// 版本更新弹窗相关变量
+	// 版本更新弹窗相关变量
 	const showUpdateModal = ref(false);
 	const updateModalTitle = ref('发现新版本');
 	const updateModalContent = ref('');
 	const updateConfirmResolve = ref(null);
-	
+
 	// 自定义错误弹窗引用
 	const offlineFailRef = ref(null);
 	const offlineVersionRef = ref(null)
 
-  // 检查更新按钮没网弹窗
-  const dataOffline = ref(null);
-  const testButton = ()=>{
-	  uni.navigateTo({
-	  	url: '/pages/test/test'
-	  });
-  }
+	// 检查更新按钮没网弹窗
+	const dataOffline = ref(null);
+	const testButton = () => {
+		uni.navigateTo({
+			url: '/pages/test/test'
+		});
+	}
 
-  // 版本更新弹窗处理方法
-  const handleUpdateConfirm = () => {
-    showUpdateModal.value = false;
-    if (updateConfirmResolve.value) {
-      updateConfirmResolve.value(true);
-      updateConfirmResolve.value = null;
-    }
-  };
+	// 版本更新弹窗处理方法
+	const handleUpdateConfirm = () => {
+		showUpdateModal.value = false;
+		if (updateConfirmResolve.value) {
+			updateConfirmResolve.value(true);
+			updateConfirmResolve.value = null;
+		}
+	};
 
-  const handleUpdateCancel = () => {
-    showUpdateModal.value = false;
-    if (updateConfirmResolve.value) {
-      updateConfirmResolve.value(false);
-      updateConfirmResolve.value = null;
-    }
-  };
+	const handleUpdateCancel = () => {
+		showUpdateModal.value = false;
+		if (updateConfirmResolve.value) {
+			updateConfirmResolve.value(false);
+			updateConfirmResolve.value = null;
+		}
+	};
 
-  // 处理自定义错误弹窗确认事件
-  const handleOfflineFailConfirm = () => {
-    console.log('用户确认了错误弹窗');
-    // 可以在这里添加额外的处理逻辑
-  };
+	// 处理自定义错误弹窗确认事件
+	const handleOfflineFailConfirm = () => {
+		console.log('用户确认了错误弹窗');
+		// 可以在这里添加额外的处理逻辑
+	};
 
-  // 显示版本更新弹窗的方法
-  const showUpdateConfirmModal = (title, content) => {
-    return new Promise((resolve) => {
-      updateModalTitle.value = title;
-      updateModalContent.value = content;
-      updateConfirmResolve.value = resolve;
-      showUpdateModal.value = true;
-    });
-  };
+	// 显示版本更新弹窗的方法
+	const showUpdateConfirmModal = (title, content) => {
+		return new Promise((resolve) => {
+			updateModalTitle.value = title;
+			updateModalContent.value = content;
+			updateConfirmResolve.value = resolve;
+			showUpdateModal.value = true;
+		});
+	};
 
-  // 重置下载状态
-  const resetDownloadState = () => {
-    console.log('重置下载状态');
-    resetProgress();
-    showDownloadProgress.value = false;
-    showUnzipProgress.value = false;
-    packageSize.value = null;
-    isDownloading.value = false;
-  };
+	// 重置下载状态
+	const resetDownloadState = () => {
+		console.log('重置下载状态');
+		resetProgress();
+		showDownloadProgress.value = false;
+		showUnzipProgress.value = false;
+		packageSize.value = null;
+		isDownloading.value = false;
+	};
 
-  // 清理事件监听器
-  const cleanupDownloadListeners = () => {
-    console.log('清理下载事件监听器');
-    uni.$off('download-progress');
-    uni.$off('unzip-progress');
-    uni.$off('unzip-completed');
-    uni.hideLoading();
-  };
+	// 清理事件监听器
+	const cleanupDownloadListeners = () => {
+		console.log('清理下载事件监听器');
+		uni.$off('download-progress');
+		uni.$off('unzip-progress');
+		uni.$off('unzip-completed');
+		uni.hideLoading();
+	};
 
-  // 查找解压后的实际目录
-  const findActualUnzippedDir = () => {
-    return new Promise((resolve) => {
-      plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
-        entry.createReader().readEntries((entries) => {
-          console.log('检查_doc/目录内容，寻找解压后的目录:');
+	// 查找解压后的实际目录
+	const findActualUnzippedDir = () => {
+		return new Promise((resolve) => {
+			plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+				entry.createReader().readEntries((entries) => {
+					console.log('检查_doc/目录内容，寻找解压后的目录:');
 
-          // 查找最新的UD开头的目录
-          const udDirs = entries
-            .filter(e => e.isDirectory && e.name.startsWith('UD'))
-            .sort((a, b) => {
-              // 按目录名排序，最新的在前
-              return b.name.localeCompare(a.name);
-            });
+					// 查找最新的UD开头的目录
+					const udDirs = entries
+						.filter(e => e.isDirectory && e.name.startsWith('UD'))
+						.sort((a, b) => {
+							// 按目录名排序，最新的在前
+							return b.name.localeCompare(a.name);
+						});
 
-          if (udDirs.length > 0) {
-            const latestDir = udDirs[0].name;
-            console.log('找到最新的UD目录:', latestDir);
-            resolve(latestDir);
-          } else {
-            // 如果没有UD目录，查找其他可能的目录
-            const otherDirs = entries.filter(e =>
-              e.isDirectory &&
-              !e.name.startsWith('uniapp_temp') &&
-              e.name !== 'project'
-            );
+					if (udDirs.length > 0) {
+						const latestDir = udDirs[0].name;
+						console.log('找到最新的UD目录:', latestDir);
+						resolve(latestDir);
+					} else {
+						// 如果没有UD目录，查找其他可能的目录
+						const otherDirs = entries.filter(e =>
+							e.isDirectory &&
+							!e.name.startsWith('uniapp_temp') &&
+							e.name !== 'project'
+						);
 
-            if (otherDirs.length > 0) {
-              const dirName = otherDirs[0].name;
-              console.log('找到其他目录:', dirName);
-              resolve(dirName);
-            } else {
-              console.log('未找到合适的解压目录');
-              resolve(null);
-            }
-          }
-        }, (err) => {
-          console.error('读取_doc/目录失败:', err);
-          resolve(null);
-        });
-      }, (err) => {
-        console.error('解析_doc/目录失败:', err);
-        resolve(null);
-      });
-    });
-  };
+						if (otherDirs.length > 0) {
+							const dirName = otherDirs[0].name;
+							console.log('找到其他目录:', dirName);
+							resolve(dirName);
+						} else {
+							console.log('未找到合适的解压目录');
+							resolve(null);
+						}
+					}
+				}, (err) => {
+					console.error('读取_doc/目录失败:', err);
+					resolve(null);
+				});
+			}, (err) => {
+				console.error('解析_doc/目录失败:', err);
+				resolve(null);
+			});
+		});
+	};
 
-  // 删除旧目录
-  const deleteOldDirectory = (dirPath) => {
-    return new Promise((resolve, reject) => {
-      console.log('准备删除目录:', dirPath);
+	// 删除旧目录
+	const deleteOldDirectory = (dirPath) => {
+		return new Promise((resolve, reject) => {
+			console.log('准备删除目录:', dirPath);
 
-      plus.io.resolveLocalFileSystemURL(dirPath, (entry) => {
-        if (entry.isDirectory) {
-          entry.removeRecursively(() => {
-            console.log('目录删除成功:', dirPath);
-            resolve();
-          }, (err) => {
-            console.error('目录删除失败:', dirPath, err);
-            reject(err);
-          });
-        } else {
-          console.error('路径不是目录:', dirPath);
-          reject(new Error('路径不是目录'));
-        }
-      }, (err) => {
-        console.error('解析目录路径失败:', dirPath, err);
-        // 如果目录不存在，也认为删除成功
-        if (err.code === 1) { // NOT_FOUND_ERR
-          console.log('目录不存在，无需删除:', dirPath);
-          resolve();
-        } else {
-          reject(err);
-        }
-      });
-    });
-  };
+			plus.io.resolveLocalFileSystemURL(dirPath, (entry) => {
+				if (entry.isDirectory) {
+					entry.removeRecursively(() => {
+						console.log('目录删除成功:', dirPath);
+						resolve();
+					}, (err) => {
+						console.error('目录删除失败:', dirPath, err);
+						reject(err);
+					});
+				} else {
+					console.error('路径不是目录:', dirPath);
+					reject(new Error('路径不是目录'));
+				}
+			}, (err) => {
+				console.error('解析目录路径失败:', dirPath, err);
+				// 如果目录不存在，也认为删除成功
+				if (err.code === 1) { // NOT_FOUND_ERR
+					console.log('目录不存在，无需删除:', dirPath);
+					resolve();
+				} else {
+					reject(err);
+				}
+			});
+		});
+	};
 
-  // 下载并解压数据包
-  const downloadAndUnzipPackage = async (url, packageSizeStr, version) => {
-    try {
-      // 检查是否已经有下载任务在进行
-      if (isDownloading.value) {
-        console.log('已有下载任务在进行，跳过新的下载请求');
-        return;
-      }
+	// 下载并解压数据包
+	const downloadAndUnzipPackage = async (url, packageSizeStr, version) => {
+		try {
+			// 检查是否已经有下载任务在进行
+			if (isDownloading.value) {
+				console.log('已有下载任务在进行，跳过新的下载请求');
+				return;
+			}
 
-      // 先清理之前的状态和监听器
-      cleanupDownloadListeners();
-      resetDownloadState();
+			// 先清理之前的状态和监听器
+			cleanupDownloadListeners();
+			resetDownloadState();
 
-      // 设置下载状态
-      isDownloading.value = true;
-      const taskId = Date.now();
+			// 设置下载状态
+			isDownloading.value = true;
+			const taskId = Date.now();
 
-      // 显示下载进度条
-      showDownloadProgress.value = true;
+			// 显示下载进度条
+			showDownloadProgress.value = true;
 
-      console.log('开始下载数据包，URL:', url);
-      console.log('包大小:', packageSizeStr);
-      console.log('版本:', version);
+			console.log('开始下载数据包，URL:', url);
+			console.log('包大小:', packageSizeStr);
+			console.log('版本:', version);
 
-      // 解析包大小
-      const parsedSize = parsePackageSize(packageSizeStr);
-      if (parsedSize) {
-        packageSize.value = parsedSize;
-        console.log(`解析后的包大小: ${(parsedSize / (1024 * 1024)).toFixed(2)}MB`);
-      }
+			// 解析包大小
+			const parsedSize = parsePackageSize(packageSizeStr);
+			if (parsedSize) {
+				packageSize.value = parsedSize;
+				console.log(`解析后的包大小: ${(parsedSize / (1024 * 1024)).toFixed(2)}MB`);
+			}
 
-      // 监听下载进度
-      uni.$on('download-progress', (progress) => {
-        if (!isDownloading.value) {
-          console.log('忽略过期的下载进度事件');
-          return;
-        }
+			// 监听下载进度
+			uni.$on('download-progress', (progress) => {
+				if (!isDownloading.value) {
+					console.log('忽略过期的下载进度事件');
+					return;
+				}
 
-        downloadProgress.value = progress.progress || 0;
+				downloadProgress.value = progress.progress || 0;
 
-        if (progress.packageSize) {
-          const size = Number(progress.packageSize);
-          if (!isNaN(size) && size > 0) {
-            packageSize.value = size;
-          }
-        }
-      });
+				if (progress.packageSize) {
+					const size = Number(progress.packageSize);
+					if (!isNaN(size) && size > 0) {
+						packageSize.value = size;
+					}
+				}
+			});
 
-      // 监听解压进度
-      uni.$on('unzip-progress', (progress) => {
-        if (!isDownloading.value) {
-          console.log('忽略过期的解压进度事件');
-          return;
-        }
+			// 监听解压进度
+			uni.$on('unzip-progress', (progress) => {
+				if (!isDownloading.value) {
+					console.log('忽略过期的解压进度事件');
+					return;
+				}
 
-        showDownloadProgress.value = false;
-        showUnzipProgress.value = true;
-        unzipProgress.value = progress.progress || 0;
-      });
+				showDownloadProgress.value = false;
+				showUnzipProgress.value = true;
+				unzipProgress.value = progress.progress || 0;
+			});
 
-      // 监听解压完成事件
-      uni.$on('unzip-completed', async () => {
-        if (!isDownloading.value) {
-          console.log('忽略过期的解压完成事件');
-          return;
-        }
+			// 监听解压完成事件
+			uni.$on('unzip-completed', async () => {
+				if (!isDownloading.value) {
+					console.log('忽略过期的解压完成事件');
+					return;
+				}
 
-        console.log('收到解压完成事件，关闭进度条');
-        cleanupDownloadListeners();
-        resetDownloadState();
+				console.log('收到解压完成事件，关闭进度条');
+				cleanupDownloadListeners();
+				resetDownloadState();
 
-        try {
-          // 查找解压后的实际目录
-          const actualDirName = await findActualUnzippedDir();
-          if (actualDirName) {
-            console.log('找到解压后的实际目录:', actualDirName);
+				try {
+					// 查找解压后的实际目录
+					const actualDirName = await findActualUnzippedDir();
+					if (actualDirName) {
+						console.log('找到解压后的实际目录:', actualDirName);
 
-            // 删除旧的UD目录（如果存在）
-            const oldUDPath = userInfo.UDPath;
-            if (oldUDPath && oldUDPath !== actualDirName) {
-              console.log('准备删除旧目录:', oldUDPath);
-              try {
-                await deleteOldDirectory(`_doc/${oldUDPath}`);
-                console.log('成功删除旧目录:', oldUDPath);
-              } catch (error) {
-                console.error('删除旧目录失败:', error);
-                // 继续执行，不中断流程
-              }
-            }
+						// 删除旧的UD目录（如果存在）
+						const oldUDPath = userInfo.UDPath;
+						if (oldUDPath && oldUDPath !== actualDirName) {
+							console.log('准备删除旧目录:', oldUDPath);
+							try {
+								await deleteOldDirectory(`_doc/${oldUDPath}`);
+								console.log('成功删除旧目录:', oldUDPath);
+							} catch (error) {
+								console.error('删除旧目录失败:', error);
+								// 继续执行，不中断流程
+							}
+						}
 
-            // 更新用户的UDPath为实际解压的目录
-            userInfo.setUDPath(actualDirName);
-            console.log('已更新UDPath为实际目录:', actualDirName);
-          } else {
-            console.log('未找到解压后的实际目录，使用时间戳生成目录名');
-            // 如果找不到实际目录，回退到使用时间戳
-            const now = new Date();
-            const timestamp =
-              now.getFullYear().toString() +
-              (now.getMonth() + 1).toString().padStart(2, '0') +
-              now.getDate().toString().padStart(2, '0') +
-              now.getHours().toString().padStart(2, '0') +
-              now.getMinutes().toString().padStart(2, '0') +
-              now.getSeconds().toString().padStart(2, '0');
+						// 更新用户的UDPath为实际解压的目录
+						userInfo.setUDPath(actualDirName);
+						console.log('已更新UDPath为实际目录:', actualDirName);
+					} else {
+						console.log('未找到解压后的实际目录，使用时间戳生成目录名');
+						// 如果找不到实际目录，回退到使用时间戳
+						const now = new Date();
+						const timestamp =
+							now.getFullYear().toString() +
+							(now.getMonth() + 1).toString().padStart(2, '0') +
+							now.getDate().toString().padStart(2, '0') +
+							now.getHours().toString().padStart(2, '0') +
+							now.getMinutes().toString().padStart(2, '0') +
+							now.getSeconds().toString().padStart(2, '0');
 
-            const dirName = `UD${timestamp}-${userInfo.username}`;
-            userInfo.setUDPath(dirName);
-            console.log('已更新UDPath为时间戳生成的目录:', dirName);
-          }
-        } catch (error) {
-          console.error('处理解压后目录时出错:', error);
-        }
+						const dirName = `UD${timestamp}-${userInfo.username}`;
+						userInfo.setUDPath(dirName);
+						console.log('已更新UDPath为时间戳生成的目录:', dirName);
+					}
+				} catch (error) {
+					console.error('处理解压后目录时出错:', error);
+				}
 
-        uni.showToast({
-          title: '数据更新成功',
-          icon: 'success',
-          duration: 2000
-        });
-      });
+				uni.showToast({
+					title: '数据更新成功',
+					icon: 'success',
+					duration: 2000
+				});
+			});
 
-      // 开始下载
-      const tempPath = await downloadFile(url, parsedSize || packageSizeStr, taskId);
-      console.log('下载完成，临时文件路径:', tempPath);
+			// 开始下载
+			const tempPath = await downloadFile(url, parsedSize || packageSizeStr, taskId);
+			console.log('下载完成，临时文件路径:', tempPath);
 
-      // 开始解压
-      console.log('开始解压文件到 _doc/');
-      await unzipFile(tempPath, '_doc/', taskId);
+			// 开始解压
+			console.log('开始解压文件到 _doc/');
+			await unzipFile(tempPath, '_doc/', taskId);
 
-    } catch (error) {
-      console.error('下载解压失败:', error);
-      cleanupDownloadListeners();
-      resetDownloadState();
+		} catch (error) {
+			console.error('下载解压失败:', error);
+			cleanupDownloadListeners();
+			resetDownloadState();
 
-      // 使用自定义弹窗替代 uni.showModal
-      if (offlineFailRef.value) {
-        // 显示错误信息
-        offlineFailRef.value.show('更新失败', error.message || '下载或解压数据包失败，请重试');
-      }
-    }
-  };
+			// 使用自定义弹窗替代 uni.showModal
+			if (offlineFailRef.value) {
+				// 显示错误信息
+				offlineFailRef.value.show('更新失败', error.message || '下载或解压数据包失败，请重试');
+			}
+		}
+	};
 
-  // 下载文件函数
-  const downloadFile = (url, packageSizeParam, taskId) => {
-    return new Promise((resolve, reject) => {
-      console.log('开始下载文件:', url);
+	// 下载文件函数
+	const downloadFile = (url, packageSizeParam, taskId) => {
+		return new Promise((resolve, reject) => {
+			console.log('开始下载文件:', url);
 
-      if (!url.startsWith('http')) {
-        reject(new Error('URL格式不正确'));
-        return;
-      }
+			if (!url.startsWith('http')) {
+				reject(new Error('URL格式不正确'));
+				return;
+			}
 
-      // 处理包大小参数，如果是字符串则解析，如果是数字则直接使用
-      let TOTAL_FILE_SIZE;
-      if (typeof packageSizeParam === 'string') {
-        const parsed = parsePackageSize(packageSizeParam);
-        TOTAL_FILE_SIZE = parsed || 12.5 * 1024 * 1024;
-      } else {
-        TOTAL_FILE_SIZE = packageSizeParam || 12.5 * 1024 * 1024;
-      }
+			// 处理包大小参数，如果是字符串则解析，如果是数字则直接使用
+			let TOTAL_FILE_SIZE;
+			if (typeof packageSizeParam === 'string') {
+				const parsed = parsePackageSize(packageSizeParam);
+				TOTAL_FILE_SIZE = parsed || 12.5 * 1024 * 1024;
+			} else {
+				TOTAL_FILE_SIZE = packageSizeParam || 12.5 * 1024 * 1024;
+			}
 
-      const task = uni.downloadFile({
-        url,
-        timeout: 180000,
-        success: (res) => {
-          if (res.statusCode === 200) {
-            console.log('下载成功，临时文件路径:', res.tempFilePath);
-            resolve(res.tempFilePath);
-          } else {
-            reject(new Error(`下载失败: ${res.statusCode}`));
-          }
-        },
-        fail: (err) => {
-          console.error('下载文件失败:', err);
-          reject(err);
-        }
-      });
+			const task = uni.downloadFile({
+				url,
+				timeout: 180000,
+				success: (res) => {
+					if (res.statusCode === 200) {
+						console.log('下载成功，临时文件路径:', res.tempFilePath);
+						resolve(res.tempFilePath);
+					} else {
+						reject(new Error(`下载失败: ${res.statusCode}`));
+					}
+				},
+				fail: (err) => {
+					console.error('下载文件失败:', err);
+					reject(err);
+				}
+			});
 
-      if (task && typeof task.onProgressUpdate === 'function') {
-        task.onProgressUpdate((e) => {
-          const totalSize = e.totalBytesExpectedToWrite > 0 ? e.totalBytesExpectedToWrite : TOTAL_FILE_SIZE;
-          const progress = e.totalBytesWritten / totalSize * 100;
+			if (task && typeof task.onProgressUpdate === 'function') {
+				task.onProgressUpdate((e) => {
+					const totalSize = e.totalBytesExpectedToWrite > 0 ? e.totalBytesExpectedToWrite :
+						TOTAL_FILE_SIZE;
+					const progress = e.totalBytesWritten / totalSize * 100;
 
-          uni.$emit('download-progress', {
-            progress,
-            packageSize: TOTAL_FILE_SIZE,
-            bytesWritten: e.totalBytesWritten,
-            bytesExpected: totalSize,
-            taskId: taskId
-          });
-        });
-      }
-    });
-  };
+					uni.$emit('download-progress', {
+						progress,
+						packageSize: TOTAL_FILE_SIZE,
+						bytesWritten: e.totalBytesWritten,
+						bytesExpected: totalSize,
+						taskId: taskId
+					});
+				});
+			}
+		});
+	};
 
-  // 解压文件函数 - 参考bridge页面的优化实现
-  const unzipFile = (zipPath, targetDir, taskId) => {
-    return new Promise((resolve, reject) => {
-      console.log('开始解压文件:', zipPath, '到', targetDir);
+	// 解压文件函数 - 参考bridge页面的优化实现
+	const unzipFile = (zipPath, targetDir, taskId) => {
+		return new Promise((resolve, reject) => {
+			console.log('开始解压文件:', zipPath, '到', targetDir);
 
-      let isResolved = false;
+			let isResolved = false;
 
-      // 添加强制完成定时器，大幅缩短检查时间
-      const forceCompleteTimeoutId = setTimeout(() => {
-        if (!isResolved) {
-          console.log('解压可能已完成，正在检查文件系统');
-          isResolved = true;
+			// 添加强制完成定时器，大幅缩短检查时间
+			const forceCompleteTimeoutId = setTimeout(() => {
+				if (!isResolved) {
+					console.log('解压可能已完成，正在检查文件系统');
+					isResolved = true;
 
-          // 检查_doc目录是否有内容，验证解压是否成功
-          plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
-            entry.createReader().readEntries((entries) => {
-              console.log('解压后_doc/目录内容:', entries.length, '个项目');
-              if (entries.length > 0) {
-                console.log('目录不为空，解压已成功');
-                // 发送解压完成事件
-                uni.$emit('unzip-completed', { taskId: taskId });
-                resolve(targetDir);
-              } else {
-                console.error('解压后目录为空，可能失败');
-                reject(new Error('解压可能失败，目录为空'));
-              }
-            }, (err) => {
-              console.error('读取目录失败，解压可能失败:', err);
-              reject(new Error('解压可能失败，无法读取目录'));
-            });
-          }, (err) => {
-            console.error('解压目录不存在，解压失败:', err);
-            reject(new Error('解压失败，目标目录不存在'));
-          });
-        }
-      }, 3000); // 缩短到3秒，大多数情况下解压应该已经完成
+					// 检查_doc目录是否有内容，验证解压是否成功
+					plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+						entry.createReader().readEntries((entries) => {
+							console.log('解压后_doc/目录内容:', entries.length, '个项目');
+							if (entries.length > 0) {
+								console.log('目录不为空，解压已成功');
+								// 发送解压完成事件
+								uni.$emit('unzip-completed', {
+									taskId: taskId
+								});
+								resolve(targetDir);
+							} else {
+								console.error('解压后目录为空，可能失败');
+								reject(new Error('解压可能失败，目录为空'));
+							}
+						}, (err) => {
+							console.error('读取目录失败，解压可能失败:', err);
+							reject(new Error('解压可能失败，无法读取目录'));
+						});
+					}, (err) => {
+						console.error('解压目录不存在，解压失败:', err);
+						reject(new Error('解压失败，目标目录不存在'));
+					});
+				}
+			}, 3000); // 缩短到3秒，大多数情况下解压应该已经完成
 
-      // 添加文件系统轮询检查，更快地发现解压完成
-      let checkCount = 0;
-      const maxChecks = 10;
-      const checkInterval = setInterval(() => {
-        if (isResolved) {
-          clearInterval(checkInterval);
-          return;
-        }
+			// 添加文件系统轮询检查，更快地发现解压完成
+			let checkCount = 0;
+			const maxChecks = 10;
+			const checkInterval = setInterval(() => {
+				if (isResolved) {
+					clearInterval(checkInterval);
+					return;
+				}
 
-        checkCount++;
-        console.log(`轮询检查解压状态 (${checkCount}/${maxChecks})...`);
+				checkCount++;
+				console.log(`轮询检查解压状态 (${checkCount}/${maxChecks})...`);
 
-        plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
-          entry.createReader().readEntries((entries) => {
-            // 检查是否有project目录或其他关键目录，表明解压已完成
-            const hasKeyDirectories = entries.some(e =>
-              e.isDirectory && (e.name === 'project' || e.name.startsWith('UD'))
-            );
+				plus.io.resolveLocalFileSystemURL('_doc/', (entry) => {
+					entry.createReader().readEntries((entries) => {
+						// 检查是否有project目录或其他关键目录，表明解压已完成
+						const hasKeyDirectories = entries.some(e =>
+							e.isDirectory && (e.name === 'project' || e.name
+								.startsWith('UD'))
+						);
 
-            if (hasKeyDirectories) {
-              console.log('发现关键目录，解压已完成');
-              if (!isResolved) {
-                isResolved = true;
-                clearTimeout(forceCompleteTimeoutId);
-                clearInterval(checkInterval);
-                uni.$emit('unzip-completed', { taskId: taskId });
-                resolve(targetDir);
-              }
-            } else if (checkCount >= maxChecks) {
-              console.log('达到最大检查次数，停止轮询');
-              clearInterval(checkInterval);
-            }
-          }, () => {
-            if (checkCount >= maxChecks) {
-              clearInterval(checkInterval);
-            }
-          });
-        }, () => {
-          if (checkCount >= maxChecks) {
-            clearInterval(checkInterval);
-          }
-        });
-      }, 1000); // 每秒检查一次
+						if (hasKeyDirectories) {
+							console.log('发现关键目录，解压已完成');
+							if (!isResolved) {
+								isResolved = true;
+								clearTimeout(forceCompleteTimeoutId);
+								clearInterval(checkInterval);
+								uni.$emit('unzip-completed', {
+									taskId: taskId
+								});
+								resolve(targetDir);
+							}
+						} else if (checkCount >= maxChecks) {
+							console.log('达到最大检查次数，停止轮询');
+							clearInterval(checkInterval);
+						}
+					}, () => {
+						if (checkCount >= maxChecks) {
+							clearInterval(checkInterval);
+						}
+					});
+				}, () => {
+					if (checkCount >= maxChecks) {
+						clearInterval(checkInterval);
+					}
+				});
+			}, 1000); // 每秒检查一次
 
-      plus.zip.decompress(
-        zipPath,
-        targetDir,
-        (progress) => {
-          if (progress && progress.loaded && progress.total && progress.total > 0) {
-            const progressPercent = Math.floor((progress.loaded / progress.total) * 100);
-            uni.$emit('unzip-progress', { progress: progressPercent, taskId: taskId });
-            console.log('解压进度:', progressPercent);
+			plus.zip.decompress(
+				zipPath,
+				targetDir,
+				(progress) => {
+					if (progress && progress.loaded && progress.total && progress.total > 0) {
+						const progressPercent = Math.floor((progress.loaded / progress.total) * 100);
+						uni.$emit('unzip-progress', {
+							progress: progressPercent,
+							taskId: taskId
+						});
+						console.log('解压进度:', progressPercent);
 
-            // 如果进度达到100%，也可以认为解压已完成
-            if (progressPercent >= 100 && !isResolved) {
-              console.log('进度达到100%，解压已完成');
-              isResolved = true;
-              clearTimeout(forceCompleteTimeoutId);
-              clearInterval(checkInterval);
-              uni.$emit('unzip-completed', { taskId: taskId });
-              resolve(targetDir);
-            }
-          } else {
-            console.log('解压进行中...', Date.now());
-          }
-        },
-        () => {
-          console.log('解压完成回调被触发');
-          // 解压完成时发送事件
-          if (!isResolved) {
-            uni.$emit('unzip-completed', { taskId: taskId });
-            clearTimeout(forceCompleteTimeoutId);
-            clearInterval(checkInterval);
-            isResolved = true;
-            resolve(targetDir);
-          }
-        },
-        (err) => {
-          console.error('解压失败:', err);
-          if (!isResolved) {
-            clearTimeout(forceCompleteTimeoutId);
-            clearInterval(checkInterval);
-            isResolved = true;
-            reject(new Error(`解压失败: ${JSON.stringify(err)}`));
-          }
-        }
-      );
-    });
-  };
-  // 判断目录1是否大于目录2
-  function compareUDDirectories(dir1, dir2) {
-      // 定义正则表达式匹配目录中的时间戳部分（14位数字）
-      const timestampRegex = /UD-(\d{14})-/;
-      
-      // 从第一个目录名中提取时间戳
-      const match1 = dir1.match(timestampRegex);
-      if (!match1 || !match1[1]) {
-          throw new Error(`无效的目录格式: ${dir1}`);
-      }
-      const timestamp1 = match1[1];
-      
-      // 从第二个目录名中提取时间戳
-      const match2 = dir2.match(timestampRegex);
-      if (!match2 || !match2[1]) {
-          throw new Error(`无效的目录格式: ${dir2}`);
-      }
-      const timestamp2 = match2[1];
-      
-      // 比较两个时间戳字符串（直接字符串比较即可，因为它们都是固定长度的数字）
-      return timestamp1 > timestamp2;
-  }
-  const handleUnpdate = async () => {
-    try {
-      infoData.value = userInfo.infoData;
+						// 如果进度达到100%，也可以认为解压已完成
+						if (progressPercent >= 100 && !isResolved) {
+							console.log('进度达到100%，解压已完成');
+							isResolved = true;
+							clearTimeout(forceCompleteTimeoutId);
+							clearInterval(checkInterval);
+							uni.$emit('unzip-completed', {
+								taskId: taskId
+							});
+							resolve(targetDir);
+						}
+					} else {
+						console.log('解压进行中...', Date.now());
+					}
+				},
+				() => {
+					console.log('解压完成回调被触发');
+					// 解压完成时发送事件
+					if (!isResolved) {
+						uni.$emit('unzip-completed', {
+							taskId: taskId
+						});
+						clearTimeout(forceCompleteTimeoutId);
+						clearInterval(checkInterval);
+						isResolved = true;
+						resolve(targetDir);
+					}
+				},
+				(err) => {
+					console.error('解压失败:', err);
+					if (!isResolved) {
+						clearTimeout(forceCompleteTimeoutId);
+						clearInterval(checkInterval);
+						isResolved = true;
+						reject(new Error(`解压失败: ${JSON.stringify(err)}`));
+					}
+				}
+			);
+		});
+	};
+	// 判断目录1是否大于目录2
+	function compareUDDirectories(dir1, dir2) {
+		// 定义正则表达式匹配目录中的时间戳部分（14位数字）
+		const timestampRegex = /UD-(\d{14})-/;
 
-      if (!infoData.value.token) {
-		  // 先获取token
-		  const response = await uni.request({
-		  	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
-		  	method: 'POST'
-		  });
-		  	// const responseLogin = await uni.request({
-		  	// 	url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
-		  	// 	method: 'POST'
-		  	// });
-		infoData.value.token = responseLogin.data.token;
-        // uni.showToast({
-        //   title: '登录信息无效，请重新登录',
-        //   icon: 'none'
-        // });
-        return;
-      }
+		// 从第一个目录名中提取时间戳
+		const match1 = dir1.match(timestampRegex);
+		if (!match1 || !match1[1]) {
+			throw new Error(`无效的目录格式: ${dir1}`);
+		}
+		const timestamp1 = match1[1];
 
-      loading.value = true;
+		// 从第二个目录名中提取时间戳
+		const match2 = dir2.match(timestampRegex);
+		if (!match2 || !match2[1]) {
+			throw new Error(`无效的目录格式: ${dir2}`);
+		}
+		const timestamp2 = match2[1];
 
-      // 1.根据url版本号与本地UD目录的版本号的相对大小来判断是否有更新内容
-      console.log('开始检查数据包版本...');
-      const response = await uni.request({
-      	url: `${apiConfig.baseURL}${apiConfig.endpoints.dataPackage}`,
-        // url: 'http://60.205.13.156:8090/api/user/dataPackage',
-        method: 'GET',
-        header: {
-          'Authorization': `${infoData.value.token}`
-        }
-      });
+		// 比较两个时间戳字符串（直接字符串比较即可，因为它们都是固定长度的数字）
+		return timestamp1 > timestamp2;
+	}
+	const handleUnpdate = async () => {
+		try {
+			infoData.value = userInfo.infoData;
 
-      console.log('API响应:', response.data);
+			if (!infoData.value.token) {
+				// 先获取token
+				const response = await uni.request({
+					url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
+					method: 'POST'
+				});
+				// const responseLogin = await uni.request({
+				// 	url: `http://60.205.13.156:8090/jwt/login?username=${username.value}&password=${password.value}`,
+				// 	method: 'POST'
+				// });
+				infoData.value.token = responseLogin.data.token;
+				// uni.showToast({
+				//   title: '登录信息无效，请重新登录',
+				//   icon: 'none'
+				// });
+				return;
+			}
 
-      if (response.statusCode !== 200 || response.data.code !== 0) {
-        throw new Error(response.data?.msg || '获取数据包信息失败');
-      }
+			loading.value = true;
 
-      const { url, version, packageSize: apiPackageSize } = response.data;
-      console.log('当前数据包版本:', version);
-      console.log('压缩包URL:', url);
-      console.log('包大小:', apiPackageSize);
+			// 1.根据url版本号与本地UD目录的版本号的相对大小来判断是否有更新内容
+			console.log('开始检查数据包版本...');
+			const response = await uni.request({
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.dataPackage}`,
+				// url: 'http://60.205.13.156:8090/api/user/dataPackage',
+				method: 'GET',
+				header: {
+					'Authorization': `${infoData.value.token}`
+				}
+			});
 
-      const dirNew = version;
-      const dirOld = userInfo.UDPath;
-      console.log('本地数据包版本:', dirOld);
+			console.log('API响应:', response.data);
 
-      // 如果本地版本小于获取的版本 触发更新
-      if (!dirOld || compareUDDirectories(dirNew, dirOld)) {
-        console.log('检测到新版本，开始下载更新...');
+			if (response.statusCode !== 200 || response.data.code !== 0) {
+				throw new Error(response.data?.msg || '获取数据包信息失败');
+			}
 
-        // 显示确认对话框
-        const confirmResult = await showUpdateConfirmModal(
-          '发现新版本',
-          `检测到新的数据包版本 ${version}，是否立即更新？`
-        );
+			const {
+				url,
+				version,
+				packageSize: apiPackageSize
+			} = response.data;
+			console.log('当前数据包版本:', version);
+			console.log('压缩包URL:', url);
+			console.log('包大小:', apiPackageSize);
 
-        if (confirmResult) {
-          // 开始下载和解压
-          await downloadAndUnzipPackage(url, apiPackageSize, version);
-        }
-      } else {
-        uni.showToast({
-          title: '已是最新版本',
-          icon: 'success',
-          duration: 2000
-        });
-      }
-    } catch (error) {
-      console.error('检查更新失败:', error);
-      if(error.errMsg.includes('Failed to connect')){
-        dataOffline.value.show();
-      }
-	  const responseLogin = await uni.request({
-	    		url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
-	    		method: 'POST'
-	    	});
-	  infoData.value.token = responseLogin.data.token;
-      // 使用自定义弹窗替代 uni.showModal
-      if (offlineFailRef.value) {
-        // 显示错误信息
-        offlineFailRef.value.show();
-      }
-    } finally {
-      loading.value = false;
-    }
-  };
+			const dirNew = version;
+			const dirOld = userInfo.UDPath;
+			console.log('本地数据包版本:', dirOld);
+
+			// 如果本地版本小于获取的版本 触发更新
+			if (!dirOld || compareUDDirectories(dirNew, dirOld)) {
+				console.log('检测到新版本，开始下载更新...');
+
+				// 显示确认对话框
+				const confirmResult = await showUpdateConfirmModal(
+					'发现新版本',
+					`检测到新的数据包版本 ${version}，是否立即更新？`
+				);
+
+				if (confirmResult) {
+					// 开始下载和解压
+					await downloadAndUnzipPackage(url, apiPackageSize, version);
+				}
+			} else {
+				uni.showToast({
+					title: '已是最新版本',
+					icon: 'success',
+					duration: 2000
+				});
+			}
+		} catch (error) {
+			console.error('检查更新失败:', error);
+			if (error.errMsg.includes('Failed to connect')) {
+				dataOffline.value.show();
+			}
+			const responseLogin = await uni.request({
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
+				method: 'POST'
+			});
+			infoData.value.token = responseLogin.data.token;
+			// 使用自定义弹窗替代 uni.showModal
+			if (offlineFailRef.value) {
+				// 显示错误信息
+				offlineFailRef.value.show();
+			}
+		} finally {
+			loading.value = false;
+		}
+	};
 
 	// 退出登录
 	const handleLogout = async () => {
@@ -904,10 +927,10 @@ import apiConfig from '../../config/api';
 
 		try {
 			// 先获取token
-		const responseLogin = await uni.request({
-			url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
-			method: 'POST'
-		});
+			const responseLogin = await uni.request({
+				url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${userInfo.username}&password=${userInfo.password}`,
+				method: 'POST'
+			});
 
 			console.log('登录响应:', responseLogin.data);
 
@@ -990,7 +1013,7 @@ import apiConfig from '../../config/api';
 					}
 					return
 				}
-				
+
 				// 在线情况下的检查更新逻辑
 				// 显示检查中的提示
 				uni.showLoading({
@@ -1018,7 +1041,7 @@ import apiConfig from '../../config/api';
 
 				// 先检查是否能获取到widgetInfo.version，避免调用checkUpdate时出错
 				if (typeof plus !== 'undefined' && plus.runtime) {
-					plus.runtime.getProperty(plus.runtime.appid, function (widgetInfo) {
+					plus.runtime.getProperty(plus.runtime.appid, function(widgetInfo) {
 						console.log('widgetInfo:', widgetInfo);
 						console.log('widgetInfo。version:', widgetInfo.version);
 						if (!widgetInfo.version) {
@@ -1287,14 +1310,13 @@ import apiConfig from '../../config/api';
 	.versionApp {
 		display: flex;
 		align-items: center;
-		margin-right: 10px;
+		margin: 0 10px;
 		height: 48px;
 	}
 
 	.appTitle {
 		font-size: 20rpx;
 		color: #666666;
-		margin-left: 10px;
 	}
 
 	.versionApp view:nth-child(2) {
@@ -1309,11 +1331,11 @@ import apiConfig from '../../config/api';
 	}
 
 	.inData {
-		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0 10rpx;
+		// padding: 0 10rpx;
+		margin: 0 20rpx;
 		height: 48px;
 		box-sizing: border-box;
 	}
@@ -1476,5 +1498,69 @@ import apiConfig from '../../config/api';
 		font-size: 14px;
 		color: #666;
 		text-align: center;
+	}
+
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.titleBar {
+			margin-left: 20px;
+		}
+
+		.code {
+			font-size: 24rpx;
+		}
+
+		.name {
+			font-size: 18rpx;
+		}
+
+		.button {
+			gap: 30rpx;
+		}
+
+		.button button {
+			height: 50rpx;
+			width: 140rpx;
+			padding: 8rpx 24rpx;
+			padding-top: 10rpx;
+			font-size: 22rpx;
+		}
+
+		.versionTitle {
+			font-size: 24rpx;
+		}
+
+		.versionNumber {
+			font-size: 24rpx;
+		}
+
+		.inData {}
+
+		.inDataTitle {
+			font-size: 24rpx;
+		}
+
+		.functionButton {
+			height: 50rpx;
+			width: 140rpx;
+			padding: 8rpx 24rpx;
+			padding-top: 10rpx;
+			font-size: 22rpx;
+			// margin: 0;
+		}
+
+		.versionApp {}
+
+		.appTitle {
+			font-size: 24rpx;
+		}
+
+		.versionApp view:nth-child(2) {
+			font-size: 24rpx;
+		}
+
+		.versionApp button {
+			// margin-left: 0 !important;
+		}
 	}
 </style>

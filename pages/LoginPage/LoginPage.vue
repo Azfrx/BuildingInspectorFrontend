@@ -60,7 +60,9 @@
 	import {
 		idStore
 	} from '../../store/idStorage';
-	import { setRootDir } from '../../utils/write';
+	import {
+		setRootDir
+	} from '../../utils/write';
 	// 引入配置文件
 	import apiConfig from '@/config/api.js';
 	import checkUpdate from '../../uni_modules/uni-upgrade-center-app/utils/check-update';
@@ -102,7 +104,7 @@
 	});
 
 	onMounted(() => {
-		checkUpdate();   
+		checkUpdate();
 		const lastUsername = uni.getStorageSync('lastUsername')
 		const lastPassword = uni.getStorageSync('lastPassword')
 		const isRemember = uni.getStorageSync('isRemember')
@@ -158,16 +160,23 @@
 						console.log('未找到匹配用户的UL目录');
 					}
 
-					console.log('离线登录路径设置完成，UDPath:', userInfo.UDPath, 'ULPath:', userInfo.ULPath);
+					console.log('离线登录路径设置完成，UDPath:', userInfo.UDPath, 'ULPath:', userInfo
+						.ULPath);
 					console.log('是否找到数据:', hasData);
-					resolve({ hasData });
+					resolve({
+						hasData
+					});
 				}, (err) => {
 					console.error('读取_doc/目录失败:', err);
-					resolve({ hasData: false }); // 失败时返回无数据
+					resolve({
+						hasData: false
+					}); // 失败时返回无数据
 				});
 			}, (err) => {
 				console.error('解析_doc/目录失败:', err);
-				resolve({ hasData: false }); // 失败时返回无数据
+				resolve({
+					hasData: false
+				}); // 失败时返回无数据
 			});
 		});
 	};
@@ -188,7 +197,7 @@
 
 		try {
 			// 在线登录逻辑
-			const response = await apiConfig.login(username.value,password.value)
+			const response = await apiConfig.login(username.value, password.value)
 			// const response = await uni.request({
 			// 	url: `${apiConfig.baseURL}${apiConfig.endpoints.login}?username=${username.value}&password=${password.value}`,
 			// 	method: 'POST'
@@ -202,7 +211,9 @@
 					password: password.value,
 					infoData: response.data,
 				})
-				idInfo.setUserId({value:response.data.userId})
+				idInfo.setUserId({
+					value: response.data.userId
+				})
 
 				// 调用setRootDir方法创建根目录
 				try {
@@ -370,7 +381,7 @@
 		background-color: #ffffff;
 
 		.logo {
-			height: 508px;
+			height: 508rpx;
 			background-color: #ffffff;
 
 			.logo-container {
@@ -486,5 +497,46 @@
 		height: 22px;
 		padding: 0;
 		margin-bottom: 2px;
+	}
+
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.loginPage {
+			.form {
+				padding-left: 100rpx;
+				padding-right: 100rpx;
+
+				.item_1,
+				.item_2 {
+					width: 100%;
+					
+					.name{
+						font-size: 16px;
+					}
+					.uni-input{
+						font-size: 18px;
+					}
+				}
+
+				.item_3 {
+					margin-right: auto;
+					
+					radio-group{
+						label{
+							font-size: 18px;
+						}
+					}
+				}
+				
+				.item_4{
+					button{
+						width: 80%;
+						height: 50px;
+						line-height: 50px;
+						font-size: 18px;
+					}
+				}
+			}
+		}
 	}
 </style>

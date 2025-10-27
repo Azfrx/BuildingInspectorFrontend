@@ -40,9 +40,13 @@
 		ref
 	} from 'vue';
 	import checkUpdate from '../../uni_modules/uni-upgrade-center-app/utils/check-update';
-	import { writeObjectJson } from '../../utils/write';
-	import { userStore } from '@/store/index.js';
-  	import ChatAgentButton from "../../components/ChatAgentButton.vue";
+	import {
+		writeObjectJson
+	} from '../../utils/write';
+	import {
+		userStore
+	} from '@/store/index.js';
+	import ChatAgentButton from "../../components/ChatAgentButton.vue";
 	const activeSection = ref('');
 	const userInfo = userStore();
 	const handleClick = (section) => {
@@ -57,23 +61,24 @@
 			});
 		}
 	};
-	
+
 	onMounted(() => {
-		checkUpdate();   
+		checkUpdate();
 	});
 </script>
 
 <style lang="scss" scoped>
 	.navbar {
 		width: 100vw;
-		height: 6.5vh;
 		background-color: #0F4687;
 		color: #FFFFFF;
-		font-size: 16rpx;
+		font-size: 16px;
+		line-height: 30px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding-top: 3vh;
+		padding-top: 40px; 
+		padding-bottom: 7px;
 		box-sizing: border-box;
 	}
 
@@ -88,7 +93,7 @@
 	.content {
 		display: flex;
 		width: 100%;
-		height: 300px;
+		height: 300rpx;
 		margin-top: -20rpx;
 	}
 
@@ -131,7 +136,7 @@
 		font-size: 16px;
 		color: #333;
 	}
-	
+
 	.test-button-container {
 		width: 100%;
 		display: flex;
@@ -140,7 +145,7 @@
 		padding: 0 20rpx;
 		box-sizing: border-box;
 	}
-	
+
 	.test-button {
 		width: 80%;
 		height: 80rpx;
