@@ -37,6 +37,7 @@
 		<view class="search-box">
 			<text class="search-icon">&#xe654;</text>
 			<input type="text" placeholder="搜索桥梁名称/编号/位置" v-model="searchText" @input="handleSearch" />
+      <button class="addBridge-button" @click="addBridge">新建桥梁</button>
 		</view>
 		<!-- 桥梁任务列表 -->
 		<view class="bridge-list">
@@ -590,6 +591,13 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
     return `${year}-${month}-${day}`;
   };
 
+  // 跳转新建桥梁页面
+  const addBridge= () => {
+    uni.navigateTo({
+      url: `/pages/add-bridge/add-bridge?projectName=${currentProject.value.name}`
+    });
+  }
+
 </script>
 
 <style lang="scss">
@@ -793,13 +801,17 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 		border-radius: 0;
 		border-top: 1px solid rgba(255, 255, 255, 0.2);
 		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 10px;
 
 		input {
 			background-color: #fff;
 			border-radius: 4px;
 			padding: 8px 10px 8px 35px;
 			font-size: 14px;
-			width: 100%;
+			flex: 1;
+			height: 36px;
 			box-sizing: border-box;
 			border: 1px solid #0f4687;
 
@@ -821,4 +833,18 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			line-height: 1;
 		}
 	}
+  .addBridge-button{
+    font-size: 14px;
+    background-color: #0F4687;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 15px;
+    height: 36px;
+    border-radius: 4px;
+    border: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
 </style>

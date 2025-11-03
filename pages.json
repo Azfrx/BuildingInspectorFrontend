@@ -120,6 +120,25 @@
 				"navigationBarTitleText": "智能助手",
 				"navigationBarBackgroundColor": "#0F4687"
 			}
+		},
+		{
+			"path" : "pages/online-information/online-information",
+			"style" : 
+			{
+				"navigationBarTitleText" : "桥梁与病害在线信息",
+				"navigationBarBackgroundColor": "#0F4687",
+				"app-plus": {
+					"titleNView": {}
+				}
+			}
+		},
+		{
+			"path" : "pages/add-bridge/add-bridge",
+			"style" : 
+			{
+				"navigationBarTitleText" : "新建桥梁",
+				"navigationBarBackgroundColor": "#0F4687"
+			}
 		}
 	],
 	"globalStyle": {
