@@ -1290,9 +1290,9 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
-		margin-left: 10px;
-		margin-right: 10px;
+		margin: 0 20rpx;
 		height: 48px;
+		box-sizing: border-box;
 	}
 
 	.versionTitle {
@@ -1310,8 +1310,9 @@
 	.versionApp {
 		display: flex;
 		align-items: center;
-		margin: 0 10px;
+		margin: 0 20rpx;
 		height: 48px;
+		box-sizing: border-box;
 	}
 
 	.appTitle {
@@ -1323,7 +1324,7 @@
 		font-size: 20rpx;
 		color: #333333;
 		margin-left: auto;
-		margin-right: 20px;
+		margin-right: 20rpx;
 	}
 
 	.versionApp button {
@@ -1501,7 +1502,7 @@
 	}
 
 	/* 手机端适配 */
-	@media (max-width: 767px) {
+	@media (max-width: 599px) {
 		.titleBar {
 			margin-left: 20px;
 		}
