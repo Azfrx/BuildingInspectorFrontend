@@ -51,19 +51,19 @@ function generateDiseaseDescription(data) {
 			}
 			if (showColumns[1] == 1 && item.length1) {
 				if(crackType === 'L型'){
-					descriptionArr.push(`长度L1=${item.length1}m`);
+					descriptionArr.push(`L1=${item.length1}m`);
 					descriptionArr.push(`L2=${item.length2}m`);
 				}
 				else if(crackType === 'U型'){
-					descriptionArr.push(`长度L1=${item.length1}m`);
+					descriptionArr.push(`L1=${item.length1}m`);
 					descriptionArr.push(`L2=${item.length2}m`);
 					descriptionArr.push(`L3=${item.length3}m`);
 				}else{
-					descriptionArr.push(`长度L=${item.length1}m`);
+					descriptionArr.push(`L=${item.length1}m`);
 				}
 			}
 			if (showColumns[2] == 1 && item.crackWidth) {
-				descriptionArr.push(`缝宽：${item.crackWidth}mm`);
+				descriptionArr.push(`W=${item.crackWidth}mm`);
 			}
 			if (showColumns[3] == 1 && item.heightDepth) {
 				descriptionArr.push(`高度/深度：${item.heightDepth}m`);
