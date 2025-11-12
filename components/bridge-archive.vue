@@ -21,8 +21,7 @@
 				<!--桥梁技术指标-->
 				<bridge-tech v-else-if="activeTab === 1" :data="getComponentData('桥梁技术指标')"></bridge-tech>
 				<!--桥梁结构信息-->
-				<bridge-structure v-else-if="activeTab === 2"
-					:data="getComponentData('结构信息')"></bridge-structure>
+				<bridge-structure v-else-if="activeTab === 2" :data="getComponentData('结构信息')"></bridge-structure>
 				<!--桥梁档案资料-->
 				<bridge-files v-else-if="activeTab === 3" :data="getComponentData('档案资料')"></bridge-files>
 				<!--桥梁检测评定历史-->
@@ -83,12 +82,12 @@
 
 	const idStorageInfo = idStore();
 
-/*	watch(() => props.activeTabTop, (newval, oldval) => {
-		if (newval == 5) {
-			console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
-			loadDiseaseData();
-		}
-	})*/
+	/*	watch(() => props.activeTabTop, (newval, oldval) => {
+			if (newval == 5) {
+				console.log('当前activeTabTop为：', newval) // 使用newval而不是activeTabTop
+				loadDiseaseData();
+			}
+		})*/
 
 	// 左侧导航栏选择
 	const changeTab = (index) => {
@@ -100,12 +99,12 @@
 		if (!bridgeArchive.value || !bridgeArchive.value.children) {
 			return [];
 		}
-		
+
 		// 特殊处理"桥梁所处行政区划代码"，将其归入"行政识别数据"的最前面
 		if (name === '行政识别数据') {
 			const adminData = bridgeArchive.value.children.find(item => item.name === '行政识别数据');
 			const regionCode = bridgeArchive.value.children.find(item => item.name === '桥梁所处行政区划代码');
-			
+
 			if (adminData && adminData.children) {
 				// 如果找到了行政识别数据和区划代码，返回合并后的数据（区划代码放在最前面）
 				return regionCode ? [regionCode, ...adminData.children] : adminData.children;
@@ -114,7 +113,7 @@
 				return [regionCode];
 			}
 		}
-		
+
 		// 对于其他组件，直接按name查找
 		const item = bridgeArchive.value.children.find(item => item.name === name);
 		return item && item.children ? item.children : [];
@@ -130,7 +129,7 @@
 			if (data && Object.keys(data).length > 0) {
 				bridgeArchive.value = data.property;
 			}
-      
+
 		} catch (error) {
 			console.error('本地json获取桥梁档案数据失败:', error);
 		}
@@ -227,5 +226,22 @@
 		color: #999;
 		font-size: 28rpx;
 		margin-top: 30rpx;
+	}
+
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.sidebar {
+			width: 18%;
+		}
+
+		.sidebar-item {
+			height: 50rpx;
+		}
+
+		.sidebar-item-content {
+			padding-left: 16rpx;
+			font-size: 24rpx;
+			width: auto;
+		}
 	}
 </style>

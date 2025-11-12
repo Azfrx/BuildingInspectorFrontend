@@ -1,9 +1,6 @@
 <template>
-
 	<view>
-
 		<view>
-
 			<view class="photo-container">
 				<view class="photo-item">
 					<view class="head">
@@ -81,8 +78,12 @@
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
 	import MyPhotoPicker from "@/components/myPhotoPicker.vue";
-	import {ButtonStore} from '@/store/button.js';
-  import {copyFrontPhoto} from "@/utils/frontPhoto";
+	import {
+		ButtonStore
+	} from '@/store/button.js';
+	import {
+		copyFrontPhoto
+	} from "@/utils/frontPhoto";
 
 	// 接收父组件传递的数据加载状态
 	const props = defineProps({
@@ -100,10 +101,10 @@
 	const sideLeft = ref([]);
 	const sideRight = ref([]);
 
-  const frontLeftImgNoExp = ref([]);
-  const frontRightImgNoExp = ref([]);
-  const sideRightImgNoExp = ref([]);
-  const sideLeftImgNoExp = ref([]);
+	const frontLeftImgNoExp = ref([]);
+	const frontRightImgNoExp = ref([]);
+	const sideRightImgNoExp = ref([]);
+	const sideLeftImgNoExp = ref([]);
 
 	const idStorageInfo = idStore();
 	const userInfo = userStore()
@@ -125,22 +126,22 @@
 	});
 
 	const frontLeftSelect = async (photoNum) => {
-    frontLeftImgNoExp.value.push(photoNum);
+		frontLeftImgNoExp.value.push(photoNum);
 		await autoSavePhotos('frontLeft');
 	};
 
 	const frontRightSelect = async (photoNum) => {
-    frontRightImgNoExp.value.push(photoNum);
+		frontRightImgNoExp.value.push(photoNum);
 		await autoSavePhotos('frontRight');
 	};
 
 	const sideLeftSelect = async (photoNum) => {
-    sideLeftImgNoExp.value.push(photoNum)
+		sideLeftImgNoExp.value.push(photoNum)
 		await autoSavePhotos('sideLeft');
 	};
 
 	const sideRightSelect = async (photoNum) => {
-    sideRightImgNoExp.value.push(photoNum)
+		sideRightImgNoExp.value.push(photoNum)
 		await autoSavePhotos('sideRight');
 	};
 
@@ -204,19 +205,19 @@
 			if (type === 'frontLeft') {
 				data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
 					.value);
-        data.frontLeftImgNoExp = frontLeftImgNoExp.value;
+				data.frontLeftImgNoExp = frontLeftImgNoExp.value;
 			} else if (type === 'frontRight') {
 				data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
 					.value);
-        data.frontRightImgNoExp = frontRightImgNoExp.value;
+				data.frontRightImgNoExp = frontRightImgNoExp.value;
 			} else if (type === 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
 					.value);
-        data.sideLeftImgNoExp = sideLeftImgNoExp.value;
+				data.sideLeftImgNoExp = sideLeftImgNoExp.value;
 			} else if (type === 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
-        data.sideRightImgNoExp = sideRightImgNoExp.value;
+				data.sideRightImgNoExp = sideRightImgNoExp.value;
 			}
 			data.commitType = 0;
 			return data;
@@ -232,19 +233,19 @@
 			if (type === 'frontLeft') {
 				data.frontLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontLeft
 					.value);
-        data.frontLeftImgNoExp = frontLeftImgNoExp.value;
+				data.frontLeftImgNoExp = frontLeftImgNoExp.value;
 			} else if (type === 'frontRight') {
 				data.frontRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, frontRight
 					.value);
-        data.frontRightImgNoExp = frontRightImgNoExp.value;
+				data.frontRightImgNoExp = frontRightImgNoExp.value;
 			} else if (type === 'sideLeft') {
 				data.sideLeft = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideLeft
 					.value);
-        data.sideLeftImgNoExp = sideLeftImgNoExp.value;
+				data.sideLeftImgNoExp = sideLeftImgNoExp.value;
 			} else if (type === 'sideRight') {
 				data.sideRight = await saveBridgeImages(userInfo.username, idStorageInfo.buildingId, sideRight
 					.value);
-        data.sideRightImgNoExp = sideRightImgNoExp.value;
+				data.sideRightImgNoExp = sideRightImgNoExp.value;
 			}
 			return data;
 		}
@@ -256,35 +257,35 @@
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.frontLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.frontLeft = [];
-      frontLeftImgNoExp.value = [];
-      if (data.frontLeftImgNoExp !== undefined) {
-        data.frontLeftImgNoExp = [];
-      }
+			frontLeftImgNoExp.value = [];
+			if (data.frontLeftImgNoExp !== undefined) {
+				data.frontLeftImgNoExp = [];
+			}
 		} else if (type === 'frontRight') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
 				.frontRight);
 			await removeDiseaseImage(imagesPaths);
 			data.frontRight = [];
-      frontRightImgNoExp.value = [];
-      if (data.frontRightImgNoExp !== undefined) {
-        data.frontRightImgNoExp = [];
-      }
+			frontRightImgNoExp.value = [];
+			if (data.frontRightImgNoExp !== undefined) {
+				data.frontRightImgNoExp = [];
+			}
 		} else if (type === 'sideLeft') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft);
 			await removeDiseaseImage(imagesPaths);
 			data.sideLeft = [];
-      sideLeftImgNoExp.value = [];
-      if (data.sideLeftImgNoExp !== undefined) {
-        data.sideLeftImgNoExp = [];
-      }
+			sideLeftImgNoExp.value = [];
+			if (data.sideLeftImgNoExp !== undefined) {
+				data.sideLeftImgNoExp = [];
+			}
 		} else if (type === 'sideRight') {
 			const imagesPaths = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideRight);
 			await removeDiseaseImage(imagesPaths);
 			data.sideRight = [];
-      sideRightImgNoExp.value = [];
-      if (data.sideRightImgNoExp !== undefined) {
-        data.sideRightImgNoExp = [];
-      }
+			sideRightImgNoExp.value = [];
+			if (data.sideRightImgNoExp !== undefined) {
+				data.sideRightImgNoExp = [];
+			}
 		}
 		data.commitType = 0;
 		await setFrontPhoto(userInfo.username, idStorageInfo.buildingId, data);
@@ -316,26 +317,26 @@
 			}
 			if (data.commitType !== 2) isSubmit.value = data.commitType;
 		} catch (error) {
-      await copyFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-      const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
-      console.log('获取正立面照数据成功:', data);
-      // 处理图片数据
-      if (data.frontLeft && Array.isArray(data.frontLeft)) {
-        frontLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
-            .frontLeft)
-      }
-      if (data.frontRight && Array.isArray(data.frontRight)) {
-        frontRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
-            .frontRight)
-      }
-      if (data.sideLeft && Array.isArray(data.sideLeft)) {
-        sideLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft)
-      }
-      if (data.sideRight && Array.isArray(data.sideRight)) {
-        sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
-            .sideRight)
-      }
-      if (data.commitType !== 2) isSubmit.value = data.commitType;
+			await copyFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+			const data = await getFrontPhoto(userInfo.username, idStorageInfo.buildingId);
+			console.log('获取正立面照数据成功:', data);
+			// 处理图片数据
+			if (data.frontLeft && Array.isArray(data.frontLeft)) {
+				frontLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.frontLeft)
+			}
+			if (data.frontRight && Array.isArray(data.frontRight)) {
+				frontRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.frontRight)
+			}
+			if (data.sideLeft && Array.isArray(data.sideLeft)) {
+				sideLeft.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data.sideLeft)
+			}
+			if (data.sideRight && Array.isArray(data.sideRight)) {
+				sideRight.value = await readBridgeImage(userInfo.username, idStorageInfo.buildingId, data
+					.sideRight)
+			}
+			if (data.commitType !== 2) isSubmit.value = data.commitType;
 		}
 	};
 
@@ -369,7 +370,6 @@
 		margin-left: 0;
 		width: 100%;
 		display: flex;
-		justify-content: center;
 	}
 
 	.photo-item image {
@@ -411,5 +411,13 @@
 		margin-top: 20rpx;
 		height: 200rpx;
 		/* 改为自适应高度 */
+	}
+	
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.head-text {
+			padding: 6rpx 10rpx;
+			font-size: 24rpx;
+		}
 	}
 </style>

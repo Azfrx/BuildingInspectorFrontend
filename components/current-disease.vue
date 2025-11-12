@@ -872,11 +872,9 @@
 	}
 
 	/* 侧边栏样式 */
-
 	.sidebar {
 		width: 16.67%;
 		background-color: #f5f5f5;
-
 		height: 100%;
 		display: flex;
 		flex-direction: column;
@@ -1025,5 +1023,46 @@
 		color: #6B778C;
 		pointer-events: none;
 		/* 不阻挡点击 */
+	}
+
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.search-bar {
+			padding: 6px 8px;
+		}
+
+		.tag-select {
+			padding: 2rpx 20rpx 2rpx 4rpx;
+		}
+
+		.tag-picker {
+			padding: 4rpx 10rpx;
+			/* 由外层控制内边距 */
+			font-size: 24rpx;
+		}
+
+		.tag-icon {
+			font-size: 20rpx;
+		}
+
+		.add-button,
+		.delete-button,
+		.allSelect-button,
+		.select-button{
+			margin-right: 16rpx;
+			font-size: 22rpx;
+			height: 44rpx;
+			padding: 14rpx 16rpx;
+			line-height: 40rpx;
+			padding-top: 2rpx;
+		}
+		
+		.sidebar {
+			width: 18%;
+		}
+		
+		.sidebar-item-text {
+			font-size: 24rpx;
+		}
 	}
 </style>

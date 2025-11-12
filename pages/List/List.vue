@@ -21,7 +21,8 @@
 				</view>
 				<view class="info-row">
 					<text>检测年度: {{currentProject.year || ''}}年度</text>
-					<text>起止时间: {{ formatDate(currentProject.startDate) || '' }}至{{ formatDate(currentProject.endDate) || '' }}</text>
+					<text>起止时间:
+						{{ formatDate(currentProject.startDate) || '' }}至{{ formatDate(currentProject.endDate) || '' }}</text>
 				</view>
 				<view class="info-row">
 					<text>检测单位: {{currentProject.dept?.deptName || ''}}</text>
@@ -56,10 +57,12 @@
 				</view>
 				<view class="bridge-meta">
 					<view class="text-group">
-<!--						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">
+						<!--						<view class="status" v-if="bridge.commited" style="background-color: #00B578; color: #ffffff;">
 							已提交</view>-->
-						<view class="status" v-if="bridge.commited === 0" style="background-color: #FF6430; color: #ffffff;">未提交</view>
-            <view class="status" v-if="bridge.commited === 1" style="background-color: #00B578; color: #ffffff;">已提交</view>
+						<view class="status" v-if="bridge.commited === 0"
+							style="background-color: #FF6430; color: #ffffff;">未提交</view>
+						<view class="status" v-if="bridge.commited === 1"
+							style="background-color: #00B578; color: #ffffff;">已提交</view>
 						<text class="bridge-length">{{bridge.building.bridgeLength}}m</text>
 						<text class="bridge-class">{{bridge.building?.bridgeRank||'/'}}类</text>
 					</view>
@@ -90,7 +93,9 @@
 		getULTask,
 		getObject
 	} from '@/utils/readJsonNew.js'
-	import { getObjectUL } from '../../utils/readUL'
+	import {
+		getObjectUL
+	} from '../../utils/readUL'
 	import {
 		setTask,
 		setObject
@@ -105,8 +110,10 @@
 		setBuildingCommitted,
 		setBuildingUnCommitted
 	} from "@/utils/isBuildingCommited";
-	import { useObject } from '../../store/object'
-import ChatAgentButton from '../../components/ChatAgentButton.vue'
+	import {
+		useObject
+	} from '../../store/object'
+	import ChatAgentButton from '../../components/ChatAgentButton.vue'
 	// 返回上一页
 	const back = () => {
 		uni.navigateBack()
@@ -205,7 +212,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 				initTaskData.value = await getTask(userInfo.username, projectId.value);
 				try {
 					initTaskULData.value = await getULTask(userInfo.username, projectId.value)
-				} catch(error) {
+				} catch (error) {
 					console.error('获取UL任务数据失败,创建ULtask:', error);
 
 					// 如果UL任务数据不存在，则创建一个新的
@@ -217,7 +224,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 							updatetime: task.updatetime || new Date().toISOString(),
 							id: task.id,
 							buildingId: task.buildingId,
-							commited: 2//0 未提交 1 提交 2 未保存数据
+							commited: 2 //0 未提交 1 提交 2 未保存数据
 						}));
 
 						// 创建UL任务数据对象
@@ -235,7 +242,9 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 						}
 					} else {
 						console.warn('无法创建UL任务数据：UD任务数据不可用或格式不正确');
-						initTaskULData.value = { tasks: [] };
+						initTaskULData.value = {
+							tasks: []
+						};
 					}
 				}
 				// 检查任务数据结构
@@ -265,7 +274,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 
 				// 合并UL任务中的commited字段到initTaskData
 				if (initTaskULData.value && initTaskULData.value.tasks && Array.isArray(initTaskULData.value
-					.tasks)) {
+						.tasks)) {
 					console.log('开始合并UL任务数据中的commited字段');
 
 					// 遍历UL任务数据
@@ -348,17 +357,17 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			}
 		}
 	};
-  const setBuildingNull = async (buildingId) => {
-    // 找到对应的任务项并设置 commited 字段为 2 为刚初始化的状态
-    if (initTaskData.value && initTaskData.value.tasks) {
-      for (let i = 0; i < initTaskData.value.tasks.length; i++) {
-        if (initTaskData.value.tasks[i].buildingId === buildingId) {
-          initTaskData.value.tasks[i].commited = 2;
-          break;
-        }
-      }
-    }
-  };
+	const setBuildingNull = async (buildingId) => {
+		// 找到对应的任务项并设置 commited 字段为 2 为刚初始化的状态
+		if (initTaskData.value && initTaskData.value.tasks) {
+			for (let i = 0; i < initTaskData.value.tasks.length; i++) {
+				if (initTaskData.value.tasks[i].buildingId === buildingId) {
+					initTaskData.value.tasks[i].commited = 2;
+					break;
+				}
+			}
+		}
+	};
 	const refreshTaskData = async () => {
 		initTaskData.value = await getTask(userInfo.username, projectId.value)
 		console.log("initTaskData---------------------------------------------------------", initTaskData.value);
@@ -379,7 +388,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 		// 注册事件监听
 		uni.$on('setBuildingUnCommit', setBuildingUnCommit);
 		uni.$on('setBuildingCommit', setBuildingCommit);
-    uni.$on('setBuildingNull', setBuildingNull);
+		uni.$on('setBuildingNull', setBuildingNull);
 		uni.$on('refreshTaskData', refreshTaskData);
 
 		console.log('页面初始化完成');
@@ -388,7 +397,7 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 	onUnmounted(() => {
 		uni.$off('setBuildingUnCommit', setBuildingUnCommit)
 		uni.$off('setBuildingCommit', setBuildingCommit)
-    uni.$off('setBuildingNull', setBuildingNull)
+		uni.$off('setBuildingNull', setBuildingNull)
 		uni.$off('refreshTaskData', refreshTaskData)
 	})
 	// 添加计算属性来获取当前项目
@@ -472,17 +481,17 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 		idInfo.setBuildingId({
 			value: bridge.buildingId
 		});
-    idInfo.setTaskId({
-      value: bridge.id
-    })
+		idInfo.setTaskId({
+			value: bridge.id
+		})
 		// const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
 		// objectData.setData(newData);
 		// console.log("objectData",objectData.getData());
-    // 导航到桥梁疾病页面
-    uni.navigateTo({
-      // url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
-      url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}&bridgeCode=${bridge.building.buildingCode}&bridgeName=${bridge.building.name}&bridgePileNumber=${bridge.building.bridgePileNumber}&routeName=${bridge.building.routeName}&routeCode=${bridge.building.routeCode}`
-    });
+		// 导航到桥梁疾病页面
+		uni.navigateTo({
+			// url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}`
+			url: `/pages/bridge-disease/bridge-disease?bridgeId=${bridge.buildingId}&bridgeCode=${bridge.building.buildingCode}&bridgeName=${bridge.building.name}&bridgePileNumber=${bridge.building.bridgePileNumber}&routeName=${bridge.building.routeName}&routeCode=${bridge.building.routeCode}`
+		});
 		// // 在跳转前，检查并复制数据从UD到UL目录
 		// try {
 		// 	console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
@@ -581,15 +590,14 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 		console.log('搜索关键词:', searchText.value);
 		// 由于使用了计算属性filteredBridges，无需在这里手动过滤
 	}
-  const formatDate = (timestamp) => {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const year = date.getFullYear().toString().slice(); // yyyy
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1并补零
-    const day = String(date.getDate()).padStart(2, '0'); // 日期补零
-    return `${year}-${month}-${day}`;
-  };
-
+	const formatDate = (timestamp) => {
+		if (!timestamp) return '';
+		const date = new Date(timestamp);
+		const year = date.getFullYear().toString().slice(); // yyyy
+		const month = String(date.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1并补零
+		const day = String(date.getDate()).padStart(2, '0'); // 日期补零
+		return `${year}-${month}-${day}`;
+	};
 </script>
 
 <style lang="scss">
@@ -819,6 +827,57 @@ import ChatAgentButton from '../../components/ChatAgentButton.vue'
 			z-index: 1;
 			height: 16px;
 			line-height: 1;
+		}
+	}
+
+	/* 手机端适配 */
+	@media (max-width: 767px) {
+		.info-card {
+			.title {
+				font-size: 16px;
+				margin-bottom: 8px;
+			}
+
+			.info-row {
+				font-size: 12px;
+
+				text {
+					line-height: 1.4;
+				}
+			}
+		}
+
+		.bridge-list {
+			.bridge-item {
+				padding: 15px;
+
+				.bridge-info {
+					.bridge-code {
+						font-size: 18rpx;
+						margin-bottom: 4px;
+					}
+
+					.bridge-name {
+						font-size: 24rpx;
+						margin-bottom: 4px;
+					}
+
+					.bridge-location {
+						font-size: 18rpx;
+					}
+				}
+
+				.bridge-meta {
+					.text-group {
+						margin-right: 8px;
+					}
+
+					.bridge-length {
+						font-size: 22rpx;
+						margin-bottom: 4px;
+					}
+				}
+			}
 		}
 	}
 </style>
