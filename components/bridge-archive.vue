@@ -16,25 +16,25 @@
 			<view class="content">
 				<!--使用条件渲染显示不同组件 -->
 				<!--行政识别数据 -->
-				<administrative-identification-data v-if="activeTab === 0" :data="getComponentData('行政识别数据')">
+				<administrative-identification-data :data="getComponentData()">
 				</administrative-identification-data>
-				<!--桥梁技术指标-->
-				<bridge-tech v-else-if="activeTab === 1" :data="getComponentData('桥梁技术指标')"></bridge-tech>
-				<!--桥梁结构信息-->
+<!--				&lt;!&ndash;桥梁技术指标&ndash;&gt;
+				<bridge-tech v-else-if="activeTab === 1" :data="getComponentData('技术指标')"></bridge-tech>
+				&lt;!&ndash;桥梁结构信息&ndash;&gt;
 				<bridge-structure v-else-if="activeTab === 2"
 					:data="getComponentData('结构信息')"></bridge-structure>
-				<!--桥梁档案资料-->
+				&lt;!&ndash;桥梁档案资料&ndash;&gt;
 				<bridge-files v-else-if="activeTab === 3" :data="getComponentData('档案资料')"></bridge-files>
-				<!--桥梁检测评定历史-->
+				&lt;!&ndash;桥梁检测评定历史&ndash;&gt;
 				<bridge-inspection-history v-else-if="activeTab === 4"
 					:data="getComponentData('检测评定历史')"></bridge-inspection-history>
-				<!--养护处置记录-->
+				&lt;!&ndash;养护处置记录&ndash;&gt;
 				<maintenance-records v-else-if="activeTab === 5"
 					:data="getComponentData('养护处治记录')"></maintenance-records>
-				<!--需要说明的事项-->
+				&lt;!&ndash;需要说明的事项&ndash;&gt;
 				<notes v-else-if="activeTab === 6" :data="getComponentData('需要说明的事项')"></notes>
-				<!--其他-->
-				<other-info v-else-if="activeTab === 7" :data="getComponentData('其他')"></other-info>
+				&lt;!&ndash;其他&ndash;&gt;
+				<other-info v-else-if="activeTab === 7" :data="getComponentData('其他数据')"></other-info>-->
 			</view>
 		</view>
 	</view>
@@ -64,6 +64,7 @@
 	import {
 		idStore
 	} from "@/store/idStorage";
+  import datajson from '@/static/data/data.json';
 
 	const props = defineProps({
 		activeTabTop: {
@@ -78,7 +79,8 @@
 	const bridgeArchive = ref({
 		children: [] // 初始化为空数组
 	});
-	const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
+	// const tabItems = ref(['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他']);
+  const tabItems = ref(['基础数据', '行政识别', '技术指标', '结构信息', '其他数据', '桥牌信息']);
 	const activeTab = ref(0);
 
 	const idStorageInfo = idStore();
@@ -96,7 +98,7 @@
 	};
 
 	// 根据name获取对应的数据
-	const getComponentData = (name) => {
+/*	const getComponentData = (name) => {
 		if (!bridgeArchive.value || !bridgeArchive.value.children) {
 			return [];
 		}
@@ -118,12 +120,38 @@
 		// 对于其他组件，直接按name查找
 		const item = bridgeArchive.value.children.find(item => item.name === name);
 		return item && item.children ? item.children : [];
-	};
+	};*/
+
+  // 根据name获取对应的数据
+  const getComponentData = () => {
+    if (!bridgeArchive.value || !bridgeArchive.value.children) {
+      return [];
+    }
+
+    // 特殊处理"桥梁所处行政区划代码"，将其归入"行政识别数据"的最前面
+   /* if (name === '行政识别数据') {
+      const adminData = bridgeArchive.value.children.find(item => item.name === '行政识别数据');
+      const regionCode = bridgeArchive.value.children.find(item => item.name === '桥梁所处行政区划代码');
+
+      if (adminData && adminData.children) {
+        // 如果找到了行政识别数据和区划代码，返回合并后的数据（区划代码放在最前面）
+        return regionCode ? [regionCode, ...adminData.children] : adminData.children;
+      } else if (regionCode) {
+        // 如果只找到了区划代码，返回包含区划代码的数组
+        return [regionCode];
+      }
+    }*/
+
+    // 对于其他组件，直接按index查找
+    const item = bridgeArchive.value.children.find((item, index) => index === activeTab.value);
+    return item && item.children ? item.children : [];
+  };
 
 	const readPropetryDataByJson = async () => {
 		try {
 			// 直接调用getProperty方法获取数据，传入username和buildingId
-			const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
+			// const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
+      const data = datajson;
 			console.log('获取到桥梁档案数据:', data);
 
 			// 将获取的数据赋值给本地状态
