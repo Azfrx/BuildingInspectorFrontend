@@ -697,7 +697,7 @@
 
 
 	/* 手机端适配 */
-	@media (max-width: 767px) {
+	@media (max-width: 599px) {
 		.bridge-info-content{
 			padding: 14rpx 10rpx;
 		}

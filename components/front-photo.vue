@@ -414,7 +414,7 @@
 	}
 	
 	/* 手机端适配 */
-	@media (max-width: 767px) {
+	@media (max-width: 599px) {
 		.head-text {
 			padding: 6rpx 10rpx;
 			font-size: 24rpx;

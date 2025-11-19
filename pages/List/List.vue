@@ -858,7 +858,7 @@
   }
 
 	/* 手机端适配 */
-	@media (max-width: 767px) {
+	@media (max-width: 599px) {
 		.info-card {
 			.title {
 				font-size: 16px;

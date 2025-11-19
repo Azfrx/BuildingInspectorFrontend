@@ -1214,7 +1214,7 @@
 	}
 	
 	/* 手机端适配 */
-	@media (max-width: 767px) {
+	@media (max-width: 599px) {
 		.Title {
 			padding: 16rpx 0;
 			font-size: 24rpx;
