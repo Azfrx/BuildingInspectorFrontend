@@ -150,8 +150,8 @@
 	const readPropetryDataByJson = async () => {
 		try {
 			// 直接调用getProperty方法获取数据，传入username和buildingId
-			// const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
-      const data = datajson;
+			const data = await getProperty(userInfo.username, idStorageInfo.buildingId);
+      // const data = datajson;
 			console.log('获取到桥梁档案数据:', data);
 
 			// 将获取的数据赋值给本地状态
