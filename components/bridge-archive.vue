@@ -15,26 +15,51 @@
 			<!-- 右侧内容区 -->
 			<view class="content">
 				<!--使用条件渲染显示不同组件 -->
-				<!--行政识别数据 -->
-				<administrative-identification-data :data="getComponentData()">
-				</administrative-identification-data>
-<!--				&lt;!&ndash;桥梁技术指标&ndash;&gt;
-				<bridge-tech v-else-if="activeTab === 1" :data="getComponentData('技术指标')"></bridge-tech>
-				&lt;!&ndash;桥梁结构信息&ndash;&gt;
-				<bridge-structure v-else-if="activeTab === 2"
-					:data="getComponentData('结构信息')"></bridge-structure>
-				&lt;!&ndash;桥梁档案资料&ndash;&gt;
-				<bridge-files v-else-if="activeTab === 3" :data="getComponentData('档案资料')"></bridge-files>
-				&lt;!&ndash;桥梁检测评定历史&ndash;&gt;
-				<bridge-inspection-history v-else-if="activeTab === 4"
-					:data="getComponentData('检测评定历史')"></bridge-inspection-history>
-				&lt;!&ndash;养护处置记录&ndash;&gt;
-				<maintenance-records v-else-if="activeTab === 5"
-					:data="getComponentData('养护处治记录')"></maintenance-records>
-				&lt;!&ndash;需要说明的事项&ndash;&gt;
-				<notes v-else-if="activeTab === 6" :data="getComponentData('需要说明的事项')"></notes>
-				&lt;!&ndash;其他&ndash;&gt;
-				<other-info v-else-if="activeTab === 7" :data="getComponentData('其他数据')"></other-info>-->
+        <view v-if = "tabItems.length === 6">
+          <!--行政识别数据 -->
+          <administrative-identification-data :data="getComponentData()">
+          </administrative-identification-data>
+          <!--桥梁技术指标-->
+          <!--				<bridge-tech v-else-if="activeTab === 1" :data="getComponentData('技术指标')"></bridge-tech>
+                  &lt;!&ndash;桥梁结构信息&ndash;&gt;
+                  <bridge-structure v-else-if="activeTab === 2"
+                    :data="getComponentData('结构信息')"></bridge-structure>
+                  &lt;!&ndash;桥梁档案资料&ndash;&gt;
+                  <bridge-files v-else-if="activeTab === 3" :data="getComponentData('档案资料')"></bridge-files>
+                  &lt;!&ndash;桥梁检测评定历史&ndash;&gt;
+                  <bridge-inspection-history v-else-if="activeTab === 4"
+                    :data="getComponentData('检测评定历史')"></bridge-inspection-history>
+                  &lt;!&ndash;养护处置记录&ndash;&gt;
+                  <maintenance-records v-else-if="activeTab === 5"
+                    :data="getComponentData('养护处治记录')"></maintenance-records>
+                  &lt;!&ndash;需要说明的事项&ndash;&gt;
+                  <notes v-else-if="activeTab === 6" :data="getComponentData('需要说明的事项')"></notes>
+                  &lt;!&ndash;其他&ndash;&gt;
+                  <other-info v-else-if="activeTab === 7" :data="getComponentData('其他数据')"></other-info>-->
+        </view>
+        <view v-else>
+          <!--行政识别数据 -->
+          <administrative-identification-data v-if="activeTab === 0" :data="getComponentDataByName('行政识别数据')">
+          </administrative-identification-data>
+          <!--桥梁技术指标-->
+          <bridge-tech v-else-if="activeTab === 1" :data="getComponentDataByName('桥梁技术指标')"></bridge-tech>
+          <!--桥梁结构信息-->
+          <bridge-structure v-else-if="activeTab === 2"
+                            :data="getComponentDataByName('结构信息')"></bridge-structure>
+          <!--桥梁档案资料-->
+          <bridge-files v-else-if="activeTab === 3" :data="getComponentDataByName('档案资料')"></bridge-files>
+          <!--桥梁检测评定历史-->
+          <bridge-inspection-history v-else-if="activeTab === 4"
+                                     :data="getComponentDataByName('检测评定历史')"></bridge-inspection-history>
+          <!--养护处置记录-->
+          <maintenance-records v-else-if="activeTab === 5"
+                               :data="getComponentDataByName('养护处治记录')"></maintenance-records>
+          <!--需要说明的事项-->
+          <notes v-else-if="activeTab === 6" :data="getComponentDataByName('需要说明的事项')"></notes>
+          <!--其他-->
+          <other-info v-else-if="activeTab === 7" :data="getComponentDataByName('其他')"></other-info>
+        </view>
+
 			</view>
 		</view>
 	</view>
@@ -98,7 +123,7 @@
 	};
 
 	// 根据name获取对应的数据
-/*	const getComponentData = (name) => {
+	const getComponentDataByName = (name) => {
 		if (!bridgeArchive.value || !bridgeArchive.value.children) {
 			return [];
 		}
@@ -119,8 +144,9 @@
 		
 		// 对于其他组件，直接按name查找
 		const item = bridgeArchive.value.children.find(item => item.name === name);
+    if(!item.children) return item;
 		return item && item.children ? item.children : [];
-	};*/
+	};
 
   // 根据name获取对应的数据
   const getComponentData = () => {
@@ -158,6 +184,11 @@
 			if (data && Object.keys(data).length > 0) {
 				bridgeArchive.value = data.property;
 			}
+      if(data.property.children.length === 6){
+        tabItems.value = ['基础数据', '行政识别', '技术指标', '结构信息', '其他数据', '桥牌信息'];
+      }else{
+        tabItems.value = ['行政识别数据', '桥梁技术指标', '桥梁结构信息', '桥梁档案资料', '桥梁检测评定历史', '养护处置记录', '需要说明的事项', '其他'];
+      }
       
 		} catch (error) {
 			console.error('本地json获取桥梁档案数据失败:', error);
