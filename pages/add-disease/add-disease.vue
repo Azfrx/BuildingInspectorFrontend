@@ -905,6 +905,7 @@
 				maxScale: diseaseTypeObj.maxScale || 5,
 				minScale: diseaseTypeObj.minScale || 1,
 				groupName: diseaseTypeObj.groupName || '',
+        threshold: diseaseTypeObj.threshold || 10,
 				status: "0"
 			} : null,
 			diseaseTypeId: diseaseTypeObj ? diseaseTypeObj.id : null,

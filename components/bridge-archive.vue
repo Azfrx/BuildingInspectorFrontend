@@ -89,7 +89,6 @@
 	import {
 		idStore
 	} from "@/store/idStorage";
-  import datajson from '@/static/data/data.json';
 
 	const props = defineProps({
 		activeTabTop: {
