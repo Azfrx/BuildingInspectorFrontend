@@ -592,232 +592,185 @@
 	}
 
 
-	onMounted(async () => {
-		try {
-			uni.showLoading({
-				title: '加载结构信息',
-				mask: true
-			});
+  const isActive = ref(true);
+  // 保存当前页面的建筑ID
+  let currentBuildingId = null;
 
-			// 尝试从UL目录读取object.json
-			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, idInfo.buildingId);
-			let structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-			// 如果UL目录中没有有效数据，尝试从UD目录复制
-			if (!structureData || !structureData.children || structureData.children.length === 0) {
-				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
+  onMounted(async () => {
+    // 初始化状态
+    isActive.value = true;
+    currentBuildingId = idInfo.buildingId; // 锁定当前页面的ID
 
-				const udData = await getObject(userInfo.username, idInfo.buildingId);
-				console.log("udData0:", udData);
+    try {
+      uni.showLoading({
+        title: '加载结构信息',
+        mask: true
+      });
 
-				if (udData && udData.children && udData.children.length > 0) {
-					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
+      // 尝试从UL目录读取object.json
+      console.log('尝试从UL目录读取object.json，参数:', userInfo.username, currentBuildingId);
+      let structureData = await getObjectUL(userInfo.username, currentBuildingId);
 
-					udData.warning = false;
-					udData.commit = 2;
-					await setObject(userInfo.username, idInfo.buildingId, udData);
-					console.log("udData:", udData);
+      // 检查是否已经退出或页面已切换
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，终止执行');
+        return;
+      }
 
-					// 重新从UL目录读取数据
-					structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-				}
-			}
+      // 如果UL目录中没有有效数据，尝试从UD目录复制
+      if (!structureData || !structureData.children || structureData.children.length === 0) {
+        console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
 
-			//如果是未锁定 将所有count置0
-			console.log("satus", structureData.status);
-			console.log("structureData.init", structureData.init);
-			if (structureData.status !== 3 && structureData.init === undefined) {
-				resetCounts(structureData)
-				structureData.init = false;
-			}
+        const udData = await getObject(userInfo.username, currentBuildingId);
 
-			// 设置数据并计算警告状态
-			objectData.setData(structureData);
-			const data = objectData.getData();
+        // 检查是否已经退出或页面已切换
+        if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+          console.log('页面已退出或切换，终止执行');
+          return;
+        }
 
-			if (data?.children) {
-				data.children.forEach(item1 => {
-					if (item1.children) {
-						item1.children.forEach(item2 => {
-							checkSecondLevelWarning(item2);
-						});
-					}
-					checkFirstLevelWarning(item1);
-				});
-			}
+        if (udData && udData.children && udData.children.length > 0) {
+          console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
 
-			// 检查页面警告状态
-			await checkPageWarning();
+          udData.warning = false;
+          udData.commit = 2;
 
-			treeData.value = objectData.getData();
-			isLoading.value = false;
-			uni.hideLoading();
-			uni.showToast({
-				title: '加载完成',
-				icon: 'success',
-				duration: 1000
-			});
-			console.log("组件挂载完成");
+          // 关键：在执行写入前再次验证
+          if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+            console.log('页面已切换，取消写入操作');
+            return;
+          }
 
-		} catch (error) {
-			console.error("加载数据失败:", error);
-			isLoading.value = false;
-			uni.hideLoading();
-			uni.showToast({
-				title: '加载失败，请重试',
-				icon: 'none',
-				duration: 1000
-			});
-		}
-		uni.$on('setStructureSubmitStatus1', async () => {
-			treeData.value.structureSubmitStatus = 1;
-			objectData.setData(treeData.value);
-			await setObject(userInfo.username, idInfo.buildingId, treeData.value);
-		})
-	});
-	// onMounted(async () => {
-	// 	let structureData = null;
-	//     uni.showLoading({
-	//       title: '加载结构信息',
-	//       mask: true
-	//     });// 在跳转前，检查并复制数据从UD到UL目录
-	// 		try {
-	// 			console.log('尝试从UL目录读取object.json，参数:', userInfo.username, bridge.buildingId);
-	// 			// 尝试从UL目录读取数据
-	// 			structureData = await getObjectUL(userInfo.username, idInfo.buildingId);
-	// 			// 如果从UL目录读不到数据（没有数据或只有默认空数据）
-	// 			if (!structureData || !structureData.children || structureData.children.length === 0) {
-	// 				console.log("UL目录中没有找到有效的object.json数据，尝试从UD目录复制");
+          await setObject(userInfo.username, currentBuildingId, udData);
+          console.log("udData:", udData);
 
-	// 				// 从UD目录读取数据
-	// 				console.log('尝试从UD目录读取object.json，参数:', userInfo.username, idInfo.buildingId);
-	// 				const udData = await getObject(userInfo.username, idInfo.buildingId);
-	// 				console.log("udData0:", udData);
-	// 				if (udData && udData.children && udData.children.length > 0) {
-	// 					console.log("从UD目录读取到有效的object.json数据，准备复制到UL目录");
+          // 检查是否已经退出或页面已切换
+          if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+            console.log('页面已退出或切换，终止执行');
+            return;
+          }
 
-	// 					// 将UD目录的数据保存到UL目录
-	// 					console.log('将object.json数据保存到UL目录，参数:', userInfo.username,idInfo.buildingId);
-	// 					udData.warning = false;
-	// 					udData.commit = 2
-	// 					await setObject(userInfo.username, idInfo.buildingId, udData);
-	// 					console.log("udData:", udData);
-	// 					console.log("object.json数据已从UD目录复制到UL目录");
+          // 重新从UL目录读取数据
+          structureData = await getObjectUL(userInfo.username, currentBuildingId);
+        }
+      }
 
-	// 					// 验证数据是否成功保存
-	// 					const verifyData = await getObjectUL(userInfo.username, idInfo.buildingId);
-	// 					if (verifyData && verifyData.children && verifyData.children.length > 0) {
-	// 						console.log("验证成功：object.json数据已正确保存到UL目录");
-	// 					} else {
-	// 						console.error("验证失败：object.json数据未能正确保存到UL目录");
-	// 					}
-	// 				} else {
-	// 					console.log("UD目录中也没有有效的object.json数据");
-	// 				}
-	// 			} else {
-	// 				  uni.showLoading({
-	// 				    title: '加载结构信息',
-	// 				    mask: true
-	// 				  });
-	// 				  objectData.setData(structureData);
-	// 				  console.log("objectData", objectData.getData());
-	// 				  const data = objectData.getData();
-	// 				  uni.showLoading({
-	// 				    title: '加载结构信息',
-	// 				    mask: true
-	// 				  });
-	// 				  // 每次获取数据时都重新计算警告状态
-	// 				 if (data?.children) {
-	// 				    data.children.forEach(item1 => {
-	// 				      if (item1.children) {
-	// 				        item1.children.forEach(item2 => {
-	// 				          checkSecondLevelWarning(item2);
-	// 				        });
-	// 				      }
-	// 				      checkFirstLevelWarning(item1);
-	// 				    });
-	// 				  }
-	// 				  uni.showLoading({
-	// 				    title: '加载结构信息',
-	// 				    mask: true
-	// 				  });
+      // 检查是否已经退出或页面已切换
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，终止执行');
+        return;
+      }
 
-	// 				  // 检查页面警告状态并设置全局标志
-	// 				  await checkPageWarning();
+      // 如果是未锁定 将所有count置0
+      console.log("status", structureData.status);
+      console.log("structureData.init", structureData.init);
+      if (structureData.status !== 3 && structureData.init === undefined) {
+        resetCounts(structureData)
+        structureData.init = false;
+      }
 
-	// 				  treeData.value = objectData.getData();
-	// 				  isLoading.value = false;
-	// 				  uni.showToast({
-	// 				    title: '加载完成',
-	// 				    icon: 'success',
-	// 				    duration: 2000
-	// 				  });
-	// 				  console.log("组件挂载完成");
-	// 				} catch (error) {
-	// 				  console.error("加载数据失败:", error);
-	// 				  isLoading.value = false;
-	// 				  uni.showToast({
-	// 				    title: '加载失败，请重试',
-	// 				    icon: 'none',
-	// 				    duration: 2000
-	// 				  });
-	// 				}
-	// 			}
+      // 检查是否已经退出或页面已切换
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，终止执行');
+        return;
+      }
 
-	//  //    const newData = await getObjectUL(userInfo.username, idInfo.buildingId);
-	// 	// console.log("结构信息数据",newData);
-	//  //    uni.showLoading({
-	//  //      title: '加载结构信息',
-	//  //      mask: true
-	//  //    });
-	//  //    objectData.setData(newData);
-	//  //    console.log("objectData", objectData.getData());
-	//  //    const data = objectData.getData();
-	//  //    uni.showLoading({
-	//  //      title: '加载结构信息',
-	//  //      mask: true
-	//  //    });
-	//  //    // 每次获取数据时都重新计算警告状态
-	//  //   if (data?.children) {
-	//  //      data.children.forEach(item1 => {
-	//  //        if (item1.children) {
-	//  //          item1.children.forEach(item2 => {
-	//  //            checkSecondLevelWarning(item2);
-	//  //          });
-	//  //        }
-	//  //        checkFirstLevelWarning(item1);
-	//  //      });
-	//  //    }
-	//  //    uni.showLoading({
-	//  //      title: '加载结构信息',
-	//  //      mask: true
-	//  //    });
+      // 设置数据并计算警告状态
+      objectData.setData(structureData);
+      const data = objectData.getData();
 
-	//  //    // 检查页面警告状态并设置全局标志
-	//  //    await checkPageWarning();
+      if (data?.children) {
+        data.children.forEach(item1 => {
+          if (item1.children) {
+            item1.children.forEach(item2 => {
+              checkSecondLevelWarning(item2);
+            });
+          }
+          checkFirstLevelWarning(item1);
+        });
+      }
 
-	//  //    treeData.value = objectData.getData();
-	//  //    isLoading.value = false;
-	//  //    uni.showToast({
-	//  //      title: '加载完成',
-	//  //      icon: 'success',
-	//  //      duration: 2000
-	//  //    });
-	//  //    console.log("组件挂载完成");
-	//  //  } catch (error) {
-	//  //    console.error("加载数据失败:", error);
-	//  //    isLoading.value = false;
-	//  //    uni.showToast({
-	//  //      title: '加载失败，请重试',
-	//  //      icon: 'none',
-	//  //      duration: 2000
-	//  //    });
-	//  //  }
-	//   // 初始化时计算属性会自动处理数据获取和警告状态计算
-	//   // 如果需要额外的初始化操作，可以在这里添加
-	// })
-	onUnmounted(async () => {
-		uni.$off('setStructureSubmitStatus1')
-	})
+      // 检查是否已经退出或页面已切换
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，终止执行');
+        return;
+      }
+
+      // 检查页面警告状态
+      await checkPageWarning();
+
+      // 检查是否已经退出或页面已切换
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，终止执行');
+        return;
+      }
+
+      treeData.value = objectData.getData();
+      isLoading.value = false;
+      uni.hideLoading();
+      uni.showToast({
+        title: '加载完成',
+        icon: 'success',
+        duration: 1000
+      });
+      console.log("组件挂载完成");
+
+    } catch (error) {
+      // 如果已经退出或页面已切换，不处理错误
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已退出或切换，忽略错误');
+        return;
+      }
+
+      console.error("加载数据失败:", error);
+      isLoading.value = false;
+      uni.hideLoading();
+      uni.showToast({
+        title: '加载失败，请重试',
+        icon: 'none',
+        duration: 1000
+      });
+    }
+
+    // 事件监听器 - 同样需要安全检查
+    uni.$on('setStructureSubmitStatus1', async () => {
+      // 检查是否仍然在正确的页面上
+      if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+        console.log('页面已切换，取消事件处理');
+        return;
+      }
+
+      try {
+        treeData.value.structureSubmitStatus = 1;
+        objectData.setData(treeData.value);
+
+        // 检查是否仍然在正确的页面上
+        if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+          console.log('页面已切换，取消数据写入');
+          return;
+        }
+
+        await setObject(userInfo.username, currentBuildingId, treeData.value);
+      } catch (error) {
+        if (!isActive.value || currentBuildingId !== idInfo.buildingId) {
+          console.log('页面已切换，忽略事件处理错误');
+          return;
+        }
+        console.error('设置提交状态失败:', error);
+      }
+    });
+  });
+
+  onUnmounted(() => {
+    // 标记为不活跃，终止所有后续操作
+    isActive.value = false;
+    currentBuildingId = null;
+
+    // 移除事件监听器
+    uni.$off('setStructureSubmitStatus1');
+
+    console.log('组件已卸载，所有操作已终止');
+  });
 </script>
 
 <style>

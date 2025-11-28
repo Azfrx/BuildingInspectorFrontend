@@ -983,7 +983,6 @@ export async function findMatchingULDirectory(userName) {
             const lastDashIndex = dir.lastIndexOf('-');
             if (lastDashIndex !== -1 && lastDashIndex < dir.length - 1) {
                 const dirUsername = dir.substring(lastDashIndex + 1);
-                console.log(`目录 ${dir} 中的用户名: ${dirUsername}`);
 
                 // 检查提取的用户名是否与当前用户名匹配
                 if (userName && dirUsername === userName) {

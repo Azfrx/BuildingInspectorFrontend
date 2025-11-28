@@ -38,7 +38,7 @@
 		<view class="search-box">
 			<text class="search-icon">&#xe654;</text>
 			<input type="text" placeholder="搜索桥梁名称/编号/位置" v-model="searchText" @input="handleSearch" />
-      <button class="addBridge-button" @click="addBridge">新建桥梁</button>
+<!--      <button class="addBridge-button" @click="addBridge">新建桥梁</button>-->
 		</view>
 		<!-- 桥梁任务列表 -->
 		<view class="bridge-list">
