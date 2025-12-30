@@ -232,7 +232,8 @@
 				console.log(`病害ID:${id}已标记为删除(commitType=2)`);
 			}
 			// 准备要保存的数据
-			const currentYear = new Date().getFullYear().toString();
+			// const currentYear = new Date().getFullYear().toString();
+      const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {
@@ -328,7 +329,7 @@
 	//
 	const readCurrentYearDiseaseDataByJson = async () => {
 		try {
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 调用getDisease获取当前年份数据
 			const yearData = await getULDisease(userInfo.username, idStorageInfo.buildingId, currentYear);
@@ -344,7 +345,7 @@
 			console.log('病害数据加载完成:', diseaseList.value);
 		} catch (error) {
 			console.error('读取当前病害数据失败,创建当前病害json:', error);
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 			await setDisease(userInfo.username, idStorageInfo.buildingId, currentYear, {
 				year: parseInt(currentYear),
 				buildingId: parseInt(idStorageInfo.buildingId),
@@ -370,7 +371,7 @@
 				}
 			}
 			// 准备要保存的数据
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {
@@ -406,7 +407,7 @@
 			diseaseList.value.push(newDisease);
 
 			// 准备要保存的数据
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {
@@ -497,7 +498,7 @@
 			console.log(`病害ID:${deleteData.id}已标记为删除(commitType=2)`);
 
 			// 准备要保存的数据
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {
@@ -574,7 +575,7 @@
 			console.log(`病害ID:${updatedDisease.id}已更新`);
 
 			// 准备要保存的数据
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {
@@ -715,7 +716,7 @@
 
 		// 如果有更改，保存更新后的数据
 		if (hasChanges) {
-			const currentYear = new Date().getFullYear().toString();
+			const currentYear = idStorageInfo.projectYear;
 
 			// 构建要保存的数据对象
 			const saveData = {

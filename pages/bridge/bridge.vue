@@ -1820,6 +1820,9 @@
 		idInfo.setProjectId({
 			value: item.id
 		})
+    idInfo.setProjectYear({
+      value: item.year
+    })
 		// 然后导航到List页面
 		uni.navigateTo({
 			url: `/pages/List/List?projectId=${item.id}`

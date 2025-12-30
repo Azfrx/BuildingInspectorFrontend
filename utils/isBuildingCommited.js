@@ -3,9 +3,9 @@ import {getTask, getULTask, isCommit, readDiseaseCommit} from "@/utils/readJsonN
 import {isPhotoCommmitted} from "@/utils/frontPhoto";
 import {setTask} from "@/utils/writeNew";
 
-export async function  checkUncommittedBuilding (username,buildingId) {
+export async function  checkUncommittedBuilding (username,buildingId,projectYear) {
     try {
-        const currentYear = new Date().getFullYear().toString();
+        const currentYear = projectYear;
         const hasUncommittedDiseases = await readDiseaseCommit(username, buildingId, currentYear);
         const isPhotoCommited = await isPhotoCommmitted(username, buildingId);
         const hasUncommmittedPhoto = isPhotoCommited ? false : true;

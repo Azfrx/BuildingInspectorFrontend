@@ -1,4 +1,3 @@
-import { readDiseaseComponentUL } from './readUL.js';
 import { userStore } from '@/store/index.js';
 //对数据添加额外字段flag 和 diseaseNumber
 export async function addFlagsAndDiseaseNumber(data,username,TaskBridgeId) {
@@ -21,8 +20,6 @@ export async function addFlagsAndDiseaseNumber(data,username,TaskBridgeId) {
                         for (const thirdLevel of secondLevel.children) {
                             // 为第三层添加 flag 和 diseaseNumber
                             thirdLevel.flag = false;
-                             // thirdLevel.diseaseNumber = await readDiseaseComponentUL(username,TaskBridgeId,thirdLevel.id);
-							 // thirdLevel.diseaseNumber = 0
                         }
                     }
                 }

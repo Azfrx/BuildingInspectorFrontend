@@ -108,7 +108,7 @@ onMounted(async () => {
 
   const token = responseLogin.data.token;
 
-  const currentYear = new Date().getFullYear();
+  const currentYear = idStorageInfo.projectYear;
   const diseaseDataResponse = await uni.request({
     url: `${apiConfig.baseURL}/api/building/${idStorageInfo.buildingId}/disease?year=${currentYear}`,//http://{{host}}:{{port}}/api/building/1959/disease?year=2025
     method: 'GET',

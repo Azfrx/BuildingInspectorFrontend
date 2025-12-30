@@ -66,9 +66,9 @@ export async function decrementDiseaseNumber(username, buildingId, targetId) {
 	return false; // 未找到匹配的 ID
 }
 
-export async function refreshDiseaseNumber(username, buildingId) {
+export async function refreshDiseaseNumber(username, buildingId, projectYear) {
 	const objectData = useObject()
-	const currentYear = new Date().getFullYear().toString();
+	const currentYear = projectYear;
 	const diseaseData = await getULDisease(username, buildingId, currentYear);
 	// 创建Map来存储每个构件的病害数量统计
 	const diseaseCountMap = new Map();

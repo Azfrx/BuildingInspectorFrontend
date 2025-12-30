@@ -11,6 +11,7 @@ export const idStore = defineStore('Id', () => {
 	const buildingId = ref('')
 	const currentDir = ref('')
 	const taskId = ref('')
+	const projectYear = ref('')
 	const setUserId = (Id)=>{
 		userId.value = Id.value
 	}
@@ -26,17 +27,22 @@ export const idStore = defineStore('Id', () => {
 	const setDir = (dir)=>{
 		currentDir.value = dir.value
 	}
+	const setProjectYear = (year)=>{
+		projectYear.value = year.value
+	}
 	return {
 		currentDir,
 		userId,
 		projectId,
 		buildingId,
 		taskId,
+		projectYear,
 		setUserId,
 		setProjectId,
 		setTaskId,
 		setBuildingId,
-		setDir
+		setDir,
+		setProjectYear
 	}
 })
 //store旨在存储全局数据，让不同组件可以随时访问，而不必层层传递 props 或 emit

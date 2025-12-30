@@ -74,15 +74,8 @@
 		computed
 	} from 'vue';
 	import {
-		getDisease,
-		getHistoryYear,
 		getProperty
 	} from '../utils/readJsonNew.js';
-	import {
-		saveBridgeImages,
-		setProperty,
-		saveBridgeImage
-	} from "@/utils/writeNew";
 	import {
 		userStore
 	} from "@/store";

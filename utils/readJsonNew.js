@@ -382,7 +382,7 @@ export async function getObject(userName, buildingId) {
 // }
 
 // 获取历史年份方法（返回除当前年份外的所有年份字符串倒序数组）
-export async function getHistoryYear(userName, buildingId) {
+export async function getHistoryYear(userName, buildingId, projectYear) {
 	try {
 		// 查找匹配的目录
 		const matchedDir = await findMatchingDirectory(userName);
@@ -405,7 +405,7 @@ export async function getHistoryYear(userName, buildingId) {
 			);
 
 			// 5. 获取当前年份字符串
-			const currentYear = String(new Date().getFullYear());
+			const currentYear = projectYear;
 
 			// 6. 过滤掉当前年份并倒序排序
 			const filteredYears = years

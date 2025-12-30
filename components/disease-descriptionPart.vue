@@ -20,7 +20,7 @@
 				<text style="color: red;">*</text>
 				<view>发展趋势</view>
 			</view>
-			<view class="line-select-right">
+			<view class="line-select-right developmentTrend">
 				<uni-data-checkbox mode="tag" v-model="developmentTrendIndex"
 					:localdata="developmentTrend"></uni-data-checkbox>
 			</view>
@@ -462,4 +462,26 @@
 		background-color: #1677FF;
 		color: #fff;
 	}
+
+  /* 手机端适配 */
+  @media (max-width: 599px) {
+    .developmentTrend{
+      padding-left: 50rpx;
+    }
+    ::v-deep .uni-data-checklist .checklist-box {
+      min-width: 48rpx !important;
+      padding: 4rpx 8rpx !important;
+    }
+
+    ::v-deep .uni-data-checklist .checklist-content {
+      font-size: 16rpx !important;
+    }
+    .developmentTrend ::v-deep .uni-data-checklist {
+      flex-wrap: nowrap !important;
+      overflow-x: auto;
+    }
+    .line-select-left {
+      white-space: nowrap;
+    }
+  }
 </style>

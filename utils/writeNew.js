@@ -455,15 +455,17 @@ export function saveBridgeImage(userName, buildingId, tempImagePath) {
     });
 }
 
-export async function saveBridgeZip(userName, buildingId) {
+export async function saveBridgeZip(userName, buildingId, projectYear) {
     //void plus.zip.compress(src, zipfile, successCB, errorCB);
     // 查找匹配的目录
     const matchedDir = await findMatchingULDirectory(userName);
     return new Promise((resolve, reject) => {
         // const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + FILE_NAMING.targetBridgeZip(userName, buildingId));//DOC_BASE_PATH + `${matchedDir}/building/${buildingId}`;
+        // 待压缩的文件夹路径
         const src = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + `${matchedDir}/building/${buildingId}`);
         // const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + getUserDir(userName) + '/building/' + buildingId);
-        const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + `${matchedDir}` + '/building/' + buildingId);
+        // 压缩包路径
+        const zipfile = plus.io.convertLocalFileSystemURL(DOC_BASE_PATH + `${matchedDir}` + '/building/' + buildingId + '_' + projectYear);
         plus.zip.compress(src, zipfile,
 
             function () {

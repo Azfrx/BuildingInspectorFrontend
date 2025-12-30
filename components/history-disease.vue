@@ -121,7 +121,7 @@
 	const readHistoryDiseaseData = async () => {
 		try {
 			//  获取所有历史病害年份
-			const years = await getHistoryYear(userInfo.username, idStorageInfo.buildingId);
+			const years = await getHistoryYear(userInfo.username, idStorageInfo.buildingId, idStorageInfo.projectYear);
 
 			tabItems.value = years;
 
@@ -332,7 +332,6 @@
 
 		// 处理选中的病害，更新时间戳等信息
 		const currentTime = new Date();
-		const currentYear = currentTime.getFullYear().toString();
 		const allCopiedDiseases = [];
 
 		// 遍历每个年份的选中病害
@@ -351,6 +350,7 @@
 				newDisease.updateTime = formattedTime;
 				newDisease.commitType = 3;
 				newDisease.projectId = idStorageInfo.projectId;
+        newDisease.taskId = idStorageInfo.taskId;
 				// 确保新复制出来的病害的copyId字段为空
 				newDisease.copyId = [];
 				newDisease.images = [];

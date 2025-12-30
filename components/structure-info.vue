@@ -235,7 +235,7 @@
 			title: '正在刷新',
 			mask: true
 		});
-		await refreshDiseaseNumber(userInfo.username, idInfo.buildingId);
+		await refreshDiseaseNumber(userInfo.username, idInfo.buildingId, idInfo.projectYear);
 		uni.hideLoading();
 		uni.showToast({
 			title: `刷新完成`,

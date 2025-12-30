@@ -1691,4 +1691,27 @@
 		width: 18rpx;
 		height: 18rpx;
 	}
+  /* 手机端适配 */
+  @media (max-width: 599px) {
+    .componentCode-popup-content {
+      background-color: #fff;
+      width: 500rpx;
+      height: 400rpx;
+      border-radius: 8rpx;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .position-popup-content {
+      background-color: #fff;
+      width: 500rpx;
+      height: 400rpx;
+      border-radius: 8rpx;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+  }
 </style>

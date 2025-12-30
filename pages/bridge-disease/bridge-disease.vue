@@ -272,7 +272,7 @@
 
 	// 检查当前病害状态
 	const checkDiseaseStatus = async () => {
-		const currentYear = new Date().getFullYear().toString();
+		const currentYear = idStorageInfo.projectYear;
 		const hasUnFinishDisease = await isUnFinishDisease(userInfo.username, idStorageInfo.buildingId,
 			currentYear)
 		if (hasUnFinishDisease) {
@@ -340,7 +340,7 @@
 
 	const submitZip = async () => {
 		console.log('提交压缩文件,buildingId', idStorageInfo.buildingId);
-		const currentYear = new Date().getFullYear().toString();
+		const currentYear = idStorageInfo.projectYear;
 
 		// 只在开始时显示一次 Loading，并保持到最终结束
 		uni.showLoading({
@@ -381,7 +381,8 @@
 			// 3. 压缩文件
 			const zipFilePath = await saveBridgeZip(
 				userInfo.username,
-				idStorageInfo.buildingId
+				idStorageInfo.buildingId,
+        idStorageInfo.projectYear
 			);
 			console.log('压缩完成，文件路径:', zipFilePath);
 

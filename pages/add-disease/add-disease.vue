@@ -1489,11 +1489,6 @@
 		uni.$off('changeDiseaseData')
 	})
 </script>
-<style>
-	.input-text-placeholder {
-		color: #CCCCCC;
-	}
-</style>
 
 <style scoped>
 	/* 编辑病害顶部按钮 */
@@ -1798,4 +1793,12 @@
 		margin-left: 10rpx;
 		object-fit: cover;
 	}
+  /* 手机端适配 */
+  @media (max-width: 599px) {
+    .photo-select ::v-deep .preview-list,
+    .photo-select ::v-deep .preview-container,
+    .photo-select ::v-deep .upload-list {
+      justify-content: flex-start !important;
+    }
+  }
 </style>
