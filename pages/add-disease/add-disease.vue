@@ -227,6 +227,7 @@
 	import {
 		getObjectTemplate
 	} from "@/utils/diseaseHelp";
+  import {lastComponentNameStore} from "@/store/lastComponentNameStore";
 
 	// 是否加载完成
 	let isInitializing = false;
@@ -760,21 +761,6 @@
 
 	// 创建病害数据对象的方法
 	const createDiseaseData = () => {
-		/*// 获取选中的缺损类型对象（如果有）
-		let diseaseTypeObj = null;
-		if (typePicker.value && allDiseaseTypes.length > 0) {
-			// 在allDiseaseTypes中查找匹配的对象
-			diseaseTypeObj = allDiseaseTypes.find(item => item.name === typePicker.value);
-			console.log('找到的病害类型对象:', diseaseTypeObj ? diseaseTypeObj.name : '未找到');
-		}
-
-		// 获取选中的部件对象（如果有）
-		let biObjectObj = null;
-		if (biObjectindex.value !== -1 && biObjectNameOptions.value && biObjectNameOptions.value[biObjectindex
-				.value]) {
-			biObjectObj = biObjectNameOptions.value[biObjectindex.value];
-		}
-		console.log('选中的第二级构件对象:', biObjectObj);*/
 
 		// 处理diseaseDataList，构建病害详细数据
 		let diseaseDetails = [];
@@ -881,13 +867,6 @@
 			});
 		}
 
-		/*// 获取构件名称
-		const componentName = getComponentName();
-
-		// 获取第三级组件ID和Name（空心板、实心板那一级）
-		const thirdLevelComponentId = getThirdLevelComponentId();
-		const thirdLevelComponentName = getThirdLevelComponentName();*/
-
 		const diseaseTypeObj = diseaseInformationRef.value.diseaseTypeObj;
 
 		// 创建符合要求的病害数据对象
@@ -993,6 +972,13 @@
 		const pages = getCurrentPages();
 		const currentPage = pages[pages.length - 1];
 		const options = currentPage.$page?.options;
+
+    // 保存构建名称到lastComponentNameStore中，供下次使用
+    if(diseaseData.component.grandObjectName && diseaseData.component.parentObjectName && diseaseData.component.biObject.name){
+      lastComponentNameStore().setGrandObjectName(diseaseData.component.grandObjectName);
+      lastComponentNameStore().setParentObjectName(diseaseData.component.parentObjectName);
+      lastComponentNameStore().setObjectName(diseaseData.component.biObject.name);
+    }
 
 		// 如果是编辑模式，获取原始数据中的图片和AD图片
 		let originalImages = [];

@@ -10,7 +10,11 @@
 			<view class="input-area-title">
 				<text style="color: red;">*</text>
 				<view>病害描述</view>
-				<view class="input-right-button" @click="createDescription()">生成病害描述</view>
+				<view style="margin-left: auto; display: flex; gap: 10rpx;">
+					<view class="input-right-button" style="margin-left: 0;" @click="showDescriptionList()">查看病害描述</view>
+					<view class="input-right-button" style="margin-left: 0;" @click="copyDescription()">复制病害描述</view>
+					<view class="input-right-button" style="margin-left: 0;" @click="createDescription()">生成病害描述</view>
+				</view>
 			</view>
 			<textarea class="input-area-content" v-model="description" placeholder="请填写病害信息" auto-height="" />
 		</view>
@@ -85,6 +89,31 @@
 			</view>
 		</uni-popup>
 
+		<uni-popup ref="descriptionListPopup" type="center">
+			<view class="diseaseHelp-popup-content">
+				<view class="popup-title">病害描述列表</view>
+				<scroll-view scroll-y style="max-height: 50vh; width: 100%;">
+					<view
+						v-for="(item, index) in descriptionListData"
+						:key="index"
+						class="popup-list-item"
+						:class="{ 'popup-list-item-active': selectedDescriptionIndex === index }"
+						@click="selectDescription(index)"
+					>
+						{{ item.text }}
+					</view>
+					<view v-if="descriptionListData.length === 0" style="text-align: center; padding: 20rpx; color: #999; font-size: 20rpx;">
+						暂无数据
+					</view>
+				</scroll-view>
+				<view class="popup-button">
+					<button class="popup-button-confirm" @click="confirmDescriptionSelection">确定</button>
+					<button class="popup-button-cancel" @click="cancelDescriptionSelection" style="margin-left: 20rpx;">取消</button>
+					<button class="popup-button-delete" @click="deleteSelectedDescription" style="margin-left: 20rpx;">删除</button>
+				</view>
+			</view>
+		</uni-popup>
+
 	</view>
 </template>
 
@@ -102,6 +131,7 @@
 	import {
 		getDiseaseScale
 	} from '@/utils/diseaseHelp.js';
+	import { descriptionListStore } from '@/store/descriptionList.js';
 	// 是否初始化完成
 	let isInitialized = false;
 	//病害描述
@@ -184,6 +214,75 @@
 	const showDiseaseHelp = () => {
 		diseaseHelpPopup.value.open();
 	}
+
+	const descriptionListPopup = ref();
+	const descriptionListData = ref([]);
+	const selectedDescriptionIndex = ref(-1);
+
+	const showDescriptionList = () => {
+		uni.$emit('getDescription');
+		const store = descriptionListStore();
+
+		descriptionListData.value = store.descriptionList.map(item => {
+			return {
+				originalData: item,
+				text: generateDiseaseDescription(item)
+			};
+		});
+		selectedDescriptionIndex.value = -1;
+		descriptionListPopup.value.open();
+	};
+
+	const selectDescription = (index) => {
+		selectedDescriptionIndex.value = index;
+	};
+
+	const deleteSelectedDescription = () => {
+		if (selectedDescriptionIndex.value === -1) {
+			uni.showToast({ title: '请选择要删除的病害描述', icon: 'none' });
+			return;
+		}
+
+		const index = selectedDescriptionIndex.value;
+		const store = descriptionListStore();
+		store.removeDescription(index);
+
+		// 重新加载列表数据
+		descriptionListData.value = store.descriptionList.map(item => {
+			return {
+				originalData: item,
+				text: generateDiseaseDescription(item)
+			};
+		});
+
+		selectedDescriptionIndex.value = -1;
+
+		uni.showToast({
+			title: '删除成功',
+			icon: 'success',
+			duration: 500
+		});
+	};
+
+	const confirmDescriptionSelection = () => {
+		if (selectedDescriptionIndex.value === -1) {
+			uni.showToast({ title: '请选择病害描述', icon: 'none' });
+			return;
+		}
+		const selectedOriginalData = descriptionListData.value[selectedDescriptionIndex.value].originalData;
+		const replaceData = {
+			...selectedOriginalData,
+			componentName: description1.value.componentName,
+			componentCode: description1.value.componentCode
+		};
+		description.value = generateDiseaseDescription(replaceData);
+		descriptionListPopup.value.close();
+	};
+
+	const cancelDescriptionSelection = () => {
+		descriptionListPopup.value.close();
+	};
+
 	watch([description, developmentTrendIndex, participateAssessindex, natureindex, levelindex], () => {
 		if (isInitialized) {
 			uni.$emit('changeDiseaseData');
@@ -268,6 +367,34 @@
 	const description2 = ref({});
 	const setDescription2 = (description) => {
 		description2.value = description
+	}
+
+	const copyDescription = () => {
+		uni.$emit('getDescription');
+		const store = descriptionListStore();
+		store.addDescription({
+			componentName: description1.value.componentName, // 构件名称
+			componentCode: description1.value.componentCode, // 构件编号
+			diseaseType: description1.value.type, // 病害类型
+			diseasePosition: description1.value.position, // 病害位置
+			positionNumber: description1.value.positionNumber, // 病害位置序号
+			mileageStation1: description1.value.mileageStation1,// 病害位置里程桩号1
+			mileageStation2: description1.value.mileageStation2,// 病害位置里程桩号2
+			mileageStation3: description1.value.mileageStation3,// 病害位置里程桩号3
+			mileageStation4: description1.value.mileageStation4,// 病害位置里程桩号4
+			showColumns: description2.value.showColumns, // 是否显示裂缝特征
+			crackType: description2.value.crackType, // 裂缝特征
+			defects: description2.value.defects, // 病害定量数据数组
+			counts: description2.value.counts, // 缺损数量
+			units: description2.value.units, // 单位
+			threshold: description2.value.threshold, // 阈值
+		});
+		console.log('当前病害描述列表：', store.descriptionList);
+		uni.showToast({
+			title: '已复制',
+			icon: 'success',
+			duration: 500
+		});
 	}
 
 	const createDescription = () => {
@@ -461,6 +588,30 @@
 	.popup-button-confirm {
 		background-color: #1677FF;
 		color: #fff;
+	}
+
+	.popup-button-cancel {
+		background-color: #f5f5f5;
+		color: #333;
+	}
+
+	.popup-button-delete {
+		background-color: #ff4d4f;
+		color: #fff;
+	}
+
+	.popup-list-item {
+		padding: 20rpx;
+		font-size: 20rpx;
+		border-bottom: 1rpx solid #eee;
+		color: #333;
+		word-wrap: break-word;
+		line-height: 1.5;
+	}
+
+	.popup-list-item-active {
+		background-color: #e6f7ff;
+		color: #1677FF;
 	}
 
   /* 手机端适配 */

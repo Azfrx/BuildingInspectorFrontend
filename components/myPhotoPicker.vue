@@ -60,6 +60,17 @@
 		<view class="drawing-popup" v-if="drawingVisible">
 			<view class="drawing-content" style="border-radius: 10rpx; overflow: hidden;">
 				<view class="popup-title" style="height: 40rpx; line-height: 20px; padding:0;">在图片上标记</view>
+				<view class="drawing-toolbar">
+					<view class="tool-item" :class="{ active: currentTool === 'curve' }" @click="currentTool = 'curve'">
+						<image src="/static/image/curve.svg" class="tool-icon"></image>
+					</view>
+					<view class="tool-item" :class="{ active: currentTool === 'rect' }" @click="currentTool = 'rect'">
+						<image src="/static/image/rect.svg" class="tool-icon"></image>
+					</view>
+					<view class="tool-item" :class="{ active: currentTool === 'line' }" @click="currentTool = 'line'">
+						<image src="/static/image/line.svg" class="tool-icon"></image>
+					</view>
+				</view>
 				<view class="canvas-container"
 					:style="{ height: canvasContainerHeight, width: canvasContainerWidth, backgroundColor: '#fff' }">
 					<canvas canvas-id="drawingCanvas" class="drawing-canvas" @touchstart="touchStart"
@@ -146,6 +157,7 @@
 	const canvasContainerHeight = ref('600rpx');
 	const isProcessing = ref(false); // 防重复点击标志
 	const lastDrawTime = ref(0); // 上次绘制时间，用于节流
+	const currentTool = ref('curve'); // 当前工具：curve、rect、line
 	let drawingContext = null; // 全局画布上下文，避免重复创建
 
 	// 撤销功能相关变量
@@ -435,11 +447,15 @@
 			y: touch.y
 		};
 
-		// 开始新的一笔
-		currentStroke.value = [{
-			x: touch.x,
-			y: touch.y
-		}];
+		// 记录新的笔画
+		currentStroke.value = {
+			tool: currentTool.value,
+			points: [{ x: touch.x, y: touch.y }],
+			startX: touch.x,
+			startY: touch.y,
+			endX: touch.x,
+			endY: touch.y
+		};
 	};
 
 	// 触摸移动事件
@@ -457,51 +473,36 @@
 		if (now - lastDrawTime.value < 16) return; // 约60fps
 		lastDrawTime.value = now;
 
-		// 记录当前点
-		currentStroke.value.push(currentPoint);
+		if (currentTool.value === 'curve') {
+			// 记录当前点
+			currentStroke.value.points.push(currentPoint);
 
-		// 绘制线条
-		drawingContext.beginPath();
-		drawingContext.lineWidth = 3;
-		drawingContext.lineCap = 'round';
-		drawingContext.lineJoin = 'round';
-		drawingContext.strokeStyle = '#FF0000'; // 红色线条
+			// 绘制线条
+			drawingContext.beginPath();
+			drawingContext.lineWidth = 3;
+			drawingContext.lineCap = 'round';
+			drawingContext.lineJoin = 'round';
+			drawingContext.strokeStyle = '#FF0000'; // 红色线条
 
-		drawingContext.moveTo(lastPoint.value.x, lastPoint.value.y);
-		drawingContext.lineTo(currentPoint.x, currentPoint.y);
-		drawingContext.stroke();
-		drawingContext.draw(true);
+			drawingContext.moveTo(lastPoint.value.x, lastPoint.value.y);
+			drawingContext.lineTo(currentPoint.x, currentPoint.y);
+			drawingContext.stroke();
+			drawingContext.draw(true);
+		} else {
+			// 对于矩形和直线
+			currentStroke.value.endX = currentPoint.x;
+			currentStroke.value.endY = currentPoint.y;
+
+			// 重绘画布和所有历史，再加上当前的形状
+			internalRedrawCanvas(true);
+		}
 
 		// 更新最后一个点
 		lastPoint.value = currentPoint;
 	};
 
-	// 触摸结束事件
-	const touchEnd = () => {
-		if (!isDrawing.value) return;
-
-		isDrawing.value = false;
-
-		// 保存当前笔画到历史记录
-		if (currentStroke.value.length > 1) {
-			strokeHistory.value.push([...currentStroke.value]);
-			currentStroke.value = [];
-		}
-	};
-
-	// 撤销最后一笔
-	const undoLastStroke = () => {
-		if (strokeHistory.value.length === 0) return;
-
-		// 移除最后一笔
-		strokeHistory.value.pop();
-
-		// 重新绘制所有内容
-		redrawCanvas();
-	};
-
-	// 重新绘制画布
-	const redrawCanvas = () => {
+	// 抽出内部重绘方法
+	const internalRedrawCanvas = (drawCurrent = false) => {
 		if (!drawingContext || !currentEditingImage.value) return;
 
 		// 清除画布
@@ -514,30 +515,107 @@
 				height: drawHeight
 			} = imageDrawParams.value;
 
-			// 对所有图片使用统一的绘制逻辑，确保完整显示
 			drawingContext.drawImage(currentEditingImage.value, 0, 0, drawWidth, drawHeight);
 		}
 
-		// 重新绘制所有笔画
 		drawingContext.lineWidth = 3;
 		drawingContext.lineCap = 'round';
 		drawingContext.lineJoin = 'round';
 		drawingContext.strokeStyle = '#FF0000';
 
-		strokeHistory.value.forEach(stroke => {
-			if (stroke.length < 2) return;
+		// 重新绘制所有笔画
+		const drawStroke = (stroke) => {
+			if (!stroke) return;
 
-			drawingContext.beginPath();
-			drawingContext.moveTo(stroke[0].x, stroke[0].y);
-
-			for (let i = 1; i < stroke.length; i++) {
-				drawingContext.lineTo(stroke[i].x, stroke[i].y);
+			// 兼容旧的历史记录格式（如果存在纯数组的旧数据）
+			if (Array.isArray(stroke)) {
+				if (stroke.length < 2) return;
+				drawingContext.beginPath();
+				drawingContext.moveTo(stroke[0].x, stroke[0].y);
+				for (let i = 1; i < stroke.length; i++) {
+					drawingContext.lineTo(stroke[i].x, stroke[i].y);
+				}
+				drawingContext.stroke();
+				return;
 			}
 
-			drawingContext.stroke();
-		});
+			const tool = stroke.tool;
+			drawingContext.beginPath();
 
-		drawingContext.draw();
+			if (tool === 'curve') {
+				if (!stroke.points || stroke.points.length < 2) return;
+				drawingContext.moveTo(stroke.points[0].x, stroke.points[0].y);
+				for (let i = 1; i < stroke.points.length; i++) {
+					drawingContext.lineTo(stroke.points[i].x, stroke.points[i].y);
+				}
+				drawingContext.stroke();
+			} else if (tool === 'rect') {
+				const x = Math.min(stroke.startX, stroke.endX);
+				const y = Math.min(stroke.startY, stroke.endY);
+				const w = Math.abs(stroke.startX - stroke.endX);
+				const h = Math.abs(stroke.startY - stroke.endY);
+				drawingContext.strokeRect(x, y, w, h);
+			} else if (tool === 'line') {
+				drawingContext.moveTo(stroke.startX, stroke.startY);
+				drawingContext.lineTo(stroke.endX, stroke.endY);
+				drawingContext.stroke();
+			}
+		};
+
+		strokeHistory.value.forEach(stroke => drawStroke(stroke));
+
+		if (drawCurrent && currentStroke.value) {
+			drawStroke(currentStroke.value);
+		}
+
+		drawingContext.draw(false);
+	};
+
+	// 触摸结束事件
+	const touchEnd = () => {
+		if (!isDrawing.value) return;
+
+		isDrawing.value = false;
+
+		// 保存当前笔画到历史记录
+		if (currentTool.value === 'curve') {
+			if (currentStroke.value.points && currentStroke.value.points.length > 1) {
+				// 深度拷贝当前笔画
+				strokeHistory.value.push({
+					tool: 'curve',
+					points: [...currentStroke.value.points]
+				});
+			}
+		} else {
+			// 矩形和直线
+			if (currentStroke.value.startX !== currentStroke.value.endX || currentStroke.value.startY !== currentStroke.value.endY) {
+				strokeHistory.value.push({
+					tool: currentTool.value,
+					startX: currentStroke.value.startX,
+					startY: currentStroke.value.startY,
+					endX: currentStroke.value.endX,
+					endY: currentStroke.value.endY
+				});
+				internalRedrawCanvas(false); // 固定当前笔画
+			}
+		}
+		currentStroke.value = null;
+	};
+
+	// 撤销最后一笔
+	const undoLastStroke = () => {
+		if (strokeHistory.value.length === 0) return;
+
+		// 移除最后一笔
+		strokeHistory.value.pop();
+
+		// 重新绘制所有内容
+		internalRedrawCanvas(false);
+	};
+
+	// 重新绘制画布
+	const redrawCanvas = () => {
+		internalRedrawCanvas(false);
 	};
 
 	// 取消绘图
@@ -1422,6 +1500,46 @@
 		align-items: center;
 	}
 
+	.drawing-toolbar {
+		display: flex;
+		justify-content: center;
+		gap: 20rpx;
+		padding: 15rpx 0;
+		background-color: #f5f5f5;
+		border-bottom: 1rpx solid #ddd;
+	}
+
+	.tool-item {
+		width: 60rpx;
+		height: 60rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		border-radius: 8rpx;
+		border: 2rpx solid transparent;
+		background-color: #fff;
+		box-shadow: 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+		transition: all 0.2s ease;
+	}
+
+	.tool-item.active {
+		border-color: #007aff;
+		background-color: #e6f2ff;
+		box-shadow: inset 0 2rpx 4rpx rgba(0, 0, 0, 0.1);
+	}
+
+	.tool-icon {
+		width: 40rpx;
+		height: 40rpx;
+		object-fit: contain;
+	}
+
+	/* 移除之前的 brightness filter，改用更好的样式 */
+	/* .active .tool-icon {
+		filter: brightness(1.2);
+	} */
+
 	/* 手机端适配 */
 	@media (max-width: 599px) {
 		.preview-list {
@@ -1429,3 +1547,5 @@
 		}
 	}
 </style>
+
+

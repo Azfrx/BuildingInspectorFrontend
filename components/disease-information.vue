@@ -185,6 +185,31 @@
 						</view>
 					</view>
 				</view>
+				<view class="popup-input2">
+					<text class="popup-input2-title">特殊符号</text>
+					<view class="popup-input2-input">
+						<view class="popup-input2-firstPart" style="visibility: hidden; pointer-events: none;">
+							<view class="popup-input2-firstPart-picker">{{codeFirstPart || 'L'}}</view>
+							<text class="picker-icon">&gt;</text>
+						</view>
+						<text style="visibility: hidden;">-</text>
+						<view class="popup-input2-secondPart" style="border: none; justify-content: center; flex: 1;">
+							<checkbox v-show="codeSecondPart !== ''" :checked="checkboxSecondPart" @click="checkboxSecondPart = !checkboxSecondPart" style="transform: scale(0.9);" />
+						</view>
+						<text style="visibility: hidden;">-</text>
+						<view class="popup-input2-thirdPart" style="border: none; justify-content: center; flex: 1;">
+							<checkbox v-show="codeThirdPart !== ''" :checked="checkboxThirdPart" @click="checkboxThirdPart = !checkboxThirdPart" style="transform: scale(0.9);" />
+						</view>
+						<text style="visibility: hidden;">-</text>
+						<view class="popup-input2-forthPart" style="border: none; justify-content: center; flex: 1;">
+							<checkbox v-show="codeFourthPart !== ''" :checked="checkboxFourthPart" @click="checkboxFourthPart = !checkboxFourthPart" style="transform: scale(0.9);" />
+						</view>
+						<text style="visibility: hidden;">-</text>
+						<view class="popup-input2-fifthPart" style="border: none; justify-content: center; flex: 1;">
+							<checkbox v-show="codeFifthPart !== ''" :checked="checkboxFifthPart" @click="checkboxFifthPart = !checkboxFifthPart" style="transform: scale(0.9);" />
+						</view>
+					</view>
+				</view>
 				<view class="popup-button">
 					<button class="popup-button-cancel" @click="closeComponentCodePopup">取消</button>
 					<button class="popup-button-confirm" @click="confirmComponentCode">确定</button>
@@ -253,6 +278,7 @@
 		watch
 	} from "vue";
   import {useObject} from "@/store/object";
+  import {lastComponentNameStore} from "@/store/lastComponentNameStore";
 
 	const props = defineProps({
 		structureData: {
@@ -342,6 +368,12 @@
 	const codeThirdPart = ref('');
 	const codeFourthPart = ref('');
 	const codeFifthPart = ref('');
+
+	const checkboxSecondPart = ref(false);
+	const checkboxThirdPart = ref(false);
+	const checkboxFourthPart = ref(false);
+	const checkboxFifthPart = ref(false);
+
 	//构件编号弹窗
 	const componentCodePopup = ref(null);
 	// 病害位置弹窗
@@ -441,6 +473,22 @@
 					.selectedGrandObject);
 			} // 深拷贝避免引用问题
 			initMultiPickerColumns()
+
+      // TODO：选择最近的componentName
+      const lastComponentName = lastComponentNameStore();
+      if (props.selectedGrandObject === lastComponentName.grandObjectName) {
+
+        // 处理第二级：找不到就置 0
+        const parentIndex = typeMultiArray.value[1].findIndex(item => item === lastComponentName.parentObjectName);
+        typeMultiIndex.value[1] = parentIndex !== -1 ? parentIndex : 0;
+
+        // 只有第二级成功找到（index !== -1），才处理第三级
+        if (parentIndex !== -1) {
+          updateThirdColumn();
+          const objectIndex = typeMultiArray.value[2].findIndex(item => item === lastComponentName.objectName);
+          typeMultiIndex.value[2] = objectIndex !== -1 ? objectIndex : 0;
+        }
+      }
 		}
 	}, {
 		immediate: true,
@@ -454,10 +502,18 @@
 	}
 	//关闭构件编号弹窗
 	const handlePopupChange = () => {
+		clearComponentCodePopup();
+	}
+	const clearComponentCodePopup = () => {
 		codeFirstPart.value = '';
 		codeSecondPart.value = '';
 		codeThirdPart.value = '';
 		codeFourthPart.value = '';
+		codeFifthPart.value = '';
+		checkboxSecondPart.value = false;
+		checkboxThirdPart.value = false;
+		checkboxFourthPart.value = false;
+		checkboxFifthPart.value = false;
 		componentCodePopupInput.value = '';
 	}
 	// 构件编号弹窗选择L R
@@ -469,24 +525,16 @@
 	const confirmComponentCode = () => {
 		componentCodeInput.value = componentCodePopupInput.value;
 		closeComponentCodePopup();
-		codeFirstPart.value = '';
-		codeSecondPart.value = '';
-		codeThirdPart.value = '';
-		codeFourthPart.value = '';
-		componentCodePopupInput.value = '';
+		clearComponentCodePopup();
 	}
 	// 构件编号弹窗取消
 	const closeComponentCodePopup = () => {
 		componentCodePopup.value.close();
-		codeFirstPart.value = '';
-		codeSecondPart.value = '';
-		codeThirdPart.value = '';
-		codeFourthPart.value = '';
-		componentCodePopupInput.value = '';
+		clearComponentCodePopup();
 	}
 	// 监听 input2 的四个部分，只要有变化就自动拼接
 	watch(
-		[codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart, codeFifthPart],
+		[codeFirstPart, codeSecondPart, codeThirdPart, codeFourthPart, codeFifthPart, checkboxSecondPart, checkboxThirdPart, checkboxFourthPart, checkboxFifthPart],
 		() => {
 			console.log('input2变化:', codeFirstPart.value, codeSecondPart.value, codeThirdPart.value, codeFourthPart
 				.value)
@@ -496,39 +544,43 @@
 
 			// 处理第二部分（codeSecondPart），如果前面有有效部分则加'-'
 			if (codeSecondPart.value !== '') {
+				let p2 = codeSecondPart.value + (checkboxSecondPart.value ? "`" : "");
 				if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '')) {
-					parts.push('-' + codeSecondPart.value);
+					parts.push('-' + p2);
 				} else {
-					parts.push(codeSecondPart.value);
+					parts.push(p2);
 				}
 			}
 
 			// 处理第三部分（codeThirdPart），如果前面有有效部分则加'-'
 			if (codeThirdPart.value !== '') {
+				let p3 = codeThirdPart.value + (checkboxThirdPart.value ? "`" : "");
 				if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '') {
-					parts.push('-' + codeThirdPart.value);
+					parts.push('-' + p3);
 				} else {
-					parts.push(codeThirdPart.value);
+					parts.push(p3);
 				}
 			}
 
 			// 处理第四部分（codeFourthPart），如果前面有有效部分则加'-'
 			if (codeFourthPart.value !== '') {
+				let p4 = codeFourthPart.value + (checkboxFourthPart.value ? "`" : "");
 				if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '' ||
 					codeThirdPart.value !== '') {
-					parts.push('-' + codeFourthPart.value);
+					parts.push('-' + p4);
 				} else {
-					parts.push(codeFourthPart.value);
+					parts.push(p4);
 				}
 			}
 
 			// 处理第五部分（codeFifthPart），如果前面有有效部分则加'-'
 			if (codeFifthPart.value !== '') {
+				let p5 = codeFifthPart.value + (checkboxFifthPart.value ? "`" : "");
 				if ((codeFirstPart.value !== '无前缀' && codeFirstPart.value !== '') || codeSecondPart.value !== '' ||
 					codeThirdPart.value !== '' || codeFourthPart.value !== '') {
-					parts.push('-' + codeFifthPart.value);
+					parts.push('-' + p5);
 				} else {
-					parts.push(codeFifthPart.value);
+					parts.push(p5);
 				}
 			}
 
@@ -1527,7 +1579,7 @@
 	.componentCode-popup-content {
 		background-color: #fff;
 		width: 500rpx;
-		height: 250rpx;
+		height: 350rpx;
 		border-radius: 8rpx;
 		box-sizing: border-box;
 		display: flex;
@@ -1696,7 +1748,7 @@
     .componentCode-popup-content {
       background-color: #fff;
       width: 500rpx;
-      height: 400rpx;
+      height: 450rpx;
       border-radius: 8rpx;
       box-sizing: border-box;
       display: flex;
